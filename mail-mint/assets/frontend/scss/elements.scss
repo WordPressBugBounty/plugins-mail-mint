@@ -1,0 +1,41 @@
+//1. checkbox style
+//2. redio button style
+
+
+.mintmrm-page-template-main {
+
+    //---5. loader----
+    .mintmrm-loader {
+        border: 2px solid #8265c5;
+        border-radius: 50%;
+        border-top: 2px solid #fff;
+        width: 13px;
+        height: 13px;
+        animation: spin 0.7s linear infinite;
+        display: none;
+        margin-left: 4px;
+
+        &.show {
+            display: block;
+        }
+    }
+
+    @-webkit-keyframes spin {
+        0% {
+            -webkit-transform: rotate(0deg);
+        }
+        100% {
+            -webkit-transform: rotate(360deg);
+        }
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+}

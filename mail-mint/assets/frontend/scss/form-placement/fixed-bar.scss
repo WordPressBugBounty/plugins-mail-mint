@@ -1,0 +1,65 @@
+.mintmrm {
+    .mrm-fixed-on-bottom,
+    .mrm-fixed-on-top {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 999;
+
+        .mrm-form-wrapper-inner {
+            padding: 20px 80px 20px 20px;
+            background: #b7b7b7;
+
+            .mrm-form-close {
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
+                width: auto;
+                height: auto;
+                border-radius: 0;
+                padding: 5px;
+                background: transparent;
+
+                svg {
+                    width: 24px;
+                    height: 24px;
+                }
+            }
+        }
+    }
+
+    .mrm-fixed-on-bottom {
+        top: inherit;
+        bottom: 0;
+    }
+
+    
+    //--fade in animation--
+    .mrm-fixed-on-bottom.mrm-fade-in,
+    .mrm-fixed-on-top.mrm-fade-in {
+        -webkit-animation: mrmFadeIn 0.5s ease 1s both;
+        animation: mrmFadeIn 0.5s ease 1s both;
+    }
+
+
+    //--slide in up animation--
+    .mrm-fixed-on-bottom.mrm-slide-in-up,
+    .mrm-fixed-on-top.mrm-slide-in-up {
+        -webkit-animation: mrmSlideInUp 0.5s ease 0.5s both;
+        animation: mrmSlideInUp 0.5s ease 0.5s both;
+    }
+
+
+}//---./mintmrm
+
+
+//-------responsive style--------
+@media only screen and (max-width: 991px) {
+    .mintmrm .mrm-fixed-on-bottom .mrm-form-wrapper-inner .mrm-form-close, 
+    .mintmrm .mrm-fixed-on-top .mrm-form-wrapper-inner .mrm-form-close {
+        right: 3px;
+        top: 6px;
+        transform: translateY(0);
+    }
+}

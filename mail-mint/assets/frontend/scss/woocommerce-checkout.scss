@@ -1,0 +1,32 @@
+// .mintmrm-add-contact-consent-content {
+//   display: flex;
+//   align-items: flex-start;
+//   margin-bottom: 5rem;
+
+//   & > label {
+//     width: calc(100% - 34px);
+//     margin: 0!important;
+//     padding-left: 8px!important;
+//   }
+
+//   #mintmrm_add_contact_consent_checkbox {
+//     position: relative;
+//     top: 5px;
+//   }
+// }
+
+#mintmail_woocommerce_optin_consent_field {
+  label.woocommerce-form__label-for-checkbox {
+    input[type=checkbox] {
+      display: inline-block!important;
+      // margin: 0;
+      // margin-right: 3px;
+    }
+
+    .optional {
+      &::before {
+        display: none!important;
+      }
+    }
+  }
+}

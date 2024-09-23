@@ -1,0 +1,47 @@
+.mintmrm {
+    .mrm-flyins {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        z-index: 999;
+
+        .mrm-form-wrapper-inner {
+            // background: #4cd79d;
+            // padding: 5px;
+
+            .mrm-form-close {
+                right: inherit;
+                left: -12px;
+                background: #fff;
+            }
+        }
+
+        .mrm-form-overflow {
+            overflow: auto;
+            max-height: calc(100vh - 20px);
+        }
+    }
+
+    
+    //--fade in animation--
+    .mrm-flyins.mrm-fade-in {
+        -webkit-animation: mrmFadeIn 0.5s ease 1s both;
+        animation: mrmFadeIn 0.5s ease 1s both;
+    }
+
+
+    //--slide in animation--
+    .mrm-flyins.mrm-slide-in-up {
+        -webkit-animation: mrmSlideInUp 0.6s linear 1s both;
+        animation: mrmSlideInUp 0.6s linear 1s both;
+    }
+
+
+
+    //-------responsive style--------
+    @media only screen and (max-width: 575px) {
+    
+    }
+
+
+}//---./mintmrm

@@ -1,0 +1,20 @@
+{
+  "name": "mailmint-form-block",
+  "version": "1.0.0",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "wp-scripts start",
+    "build": "wp-scripts build"
+  },
+  "dependencies": {
+    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
+    "@wordpress/api-fetch": "^3.21.0"
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-object-rest-spread": "^7.22.15",
+    "@wordpress/scripts": "^19.1.0"
+  }
+}

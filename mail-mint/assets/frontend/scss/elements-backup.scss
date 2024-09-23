@@ -1,0 +1,170 @@
+//1. checkbox style
+//2. redio button style
+
+
+.mintmrm-page-template-main {
+  //------1. checkbox style-------
+  .mintmrm-checkbox {
+    input[type="checkbox"] {
+      display: block;
+      position: relative;
+      top: 9px;
+      left: 9px;
+      width: 0;
+      height: 0;
+      opacity: 0;
+    }
+
+    &.no-title label {
+      min-height: 20px;
+    }
+
+    label {
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: #344054;
+      position: relative;
+      padding-left: 29px;
+      display: inline-block;
+      text-transform: capitalize;
+      cursor: pointer;
+
+      &:before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: -2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid #bdc7eb;
+        background-color: #f6f6f8;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      }
+      &:after {
+        content: "";
+        position: absolute;
+        left: 6px;
+        top: 4px;
+        width: 9px;
+        height: 5px;
+        transform: rotate(-45deg);
+        border-bottom: 2px solid #fff;
+        border-left: 2px solid #fff;
+        transition: all 0.3s ease;
+        opacity: 0;
+        visibility: hidden;
+        box-sizing: border-box;
+      }
+    }
+
+    input[type="checkbox"]:focus + label::before {
+      border-color: $primary-color;
+    }
+    input[type="checkbox"]:checked + label::before {
+      background-color: $primary-color;
+      border-color: $primary-color;
+    }
+    input[type="checkbox"]:checked + label::after {
+      opacity: 1;
+      visibility: visible;
+    }
+  }
+
+  //----2. radio button style-------
+  .mintmrm-radiobtn {
+    input[type="radio"] {
+      display: none;
+    }
+
+    &.no-title label {
+      height: 16px;
+    }
+
+    label {
+      font-size: 15px;
+      line-height: 1.2;
+      font-weight: 400;
+      color: #7a8b9a;
+      position: relative;
+      padding-left: 29px;
+      display: inline-block;
+      text-transform: capitalize;
+      cursor: pointer;
+
+      &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: -3px;
+        width: 20px;
+        height: 20px;
+        border-radius: 100%;
+        background: #f7f7fa;
+        border: 1px solid #bdc7eb;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      &::after {
+        content: "";
+        position: absolute;
+        left: 5px;
+        top: 2px;
+        width: 10px;
+        height: 10px;
+        border-radius: 100%;
+        background: $primary-color;
+        transform: scale(0);
+        transition: all 0.3s ease;
+      }
+    }
+
+    input[type="radio"]:checked + label::before {
+      border-color: $primary-color;
+    }
+
+    input[type="radio"]:checked + label::after {
+      transform: scale(1);
+    }
+
+  }
+
+
+  //---5. loader----
+  .mintmrm-loader {
+    border: 2px solid #8265c5;
+    border-radius: 50%;
+    border-top: 2px solid #fff;
+    width: 13px;
+    height: 13px;
+    animation: spin 0.7s linear infinite;
+    display: none;
+    margin-left: 4px;
+
+    &.show {
+      display: block;
+    }
+  }
+
+  @-webkit-keyframes spin {
+    0% {
+      -webkit-transform: rotate(0deg);
+    }
+    100% {
+      -webkit-transform: rotate(360deg);
+    }
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}
