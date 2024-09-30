@@ -98,6 +98,7 @@ class PostPublishedTriggers {
 	 * @param Object $post Post data.
 	 * 
 	 * @since 1.13.0
+     * @since 1.15.4 Remove static post type check.
 	 */
 	public function mint_wordpress_publish_post( $new_status, $old_status, $post ) {
         
@@ -110,11 +111,6 @@ class PostPublishedTriggers {
         if ( $new_status !== 'publish' ) {
             return;
         }
-
-		// Bail if not is a post.
-		if ( $post->post_type !== 'post' ) {
-			return;
-		}
 
         // Set the post ID and post data.
         $this->post_id = $post->ID;
@@ -169,7 +165,7 @@ class PostPublishedTriggers {
                  * @param array $args An array containing information about the automation and step.
                  * @since 1.13.0
                  */
-                as_schedule_single_action( time() + 120, 'mailmint_process_post_published_scheduler', $args, $group );
+                as_schedule_single_action( time() + 60, 'mailmint_process_post_published_scheduler', $args, $group );
             }
         }
 	}
@@ -243,7 +239,7 @@ class PostPublishedTriggers {
 				'per_page'      => $per_batch,
                 'post_id'       => $post_id
 			);
-			as_schedule_single_action( time() + 120, 'mailmint_process_post_published_scheduler', $args, $group );
+			as_schedule_single_action( time() + 60, 'mailmint_process_post_published_scheduler', $args, $group );
 		}
 		return $has_more;
     }
@@ -288,9 +284,22 @@ class PostPublishedTriggers {
      * 
      * @return bool
      * @since 1.13.0
+     * @since 1.15.4 Add post type check.
      */
     public function validate_published_criteria( $settings, $post_id ) {
         $criteria = isset( $settings['criteria'] ) ? $settings['criteria'] : 'any';
+        $types    = isset( $settings['post_types'] ) ? $settings['post_types'] : array();
+
+        // Return false if $types is empty.
+        if ( empty( $types ) ) {
+            return false;
+        }
+
+        $post_type = get_post_type($post_id);
+
+        if ( !in_array( $post_type, array_column( $types, 'value' ) ) ) {
+            return false;
+        }
 
         if ( 'any' === $criteria ) {
             return true;

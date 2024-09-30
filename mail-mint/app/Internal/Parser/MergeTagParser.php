@@ -12,7 +12,10 @@
 
 namespace Mint\MRM\Internal\Parser;
 
+use MailMintPro\Mint\Internal\AbandonedCart\Helper\Common;
+use MailMintPro\Mint\Internal\AbandonedCart\Helper\Model;
 use Mint\Utilities\Arr;
+use MailMintPro\App\Internal\EmailCustomization\Parser\EddMergeTagParser;
 use MRM\Common\MrmCommon;
 
 /**
@@ -33,12 +36,13 @@ class MergeTagParser
 	 * @param array        $data            The data to use for parsing.
 	 * @param int|null     $post_id         The post ID to use for parsing.
 	 * @param int|null     $order_id        The order ID to use for parsing.
+	 * @param array        $params          The additional parameters to use for parsing.
 	 *
 	 * @return string|array The parsed string or array of strings.
 	 *
 	 * @since 1.13.4
 	 */
-	public function parse($template_string, $data, $post_id = null, $order_id = null)
+	public function parse($template_string, $data, $post_id = null, $order_id = null, $params = array())
 	{
 		$result    = array();
 		$is_single = false;
@@ -48,7 +52,7 @@ class MergeTagParser
 		}
 
 		foreach ((array) $template_string as $key => $string) {
-			$result[$key] = $this->parse_merge_tag($string, $data, $post_id, $order_id);
+			$result[$key] = $this->parse_merge_tag($string, $data, $post_id, $order_id, $params);
 		}
 
 		if ($is_single) {
@@ -65,17 +69,17 @@ class MergeTagParser
 	 * @param array  $data   The data to use for parsing.
 	 * @param int|null $post_id The post ID to use for parsing.
 	 * @param int|null $order_id The order ID to use for parsing.
+	 * @param array  $params The additional parameters to use for parsing.
 	 *
 	 * @return string The parsed string.
 	 *
 	 * @since 1.13.4
 	 */
-	public function parse_merge_tag($string, $data, $post_id = null, $order_id = null)
-	{
+	public function parse_merge_tag($string, $data, $post_id, $order_id, $params){
 		return preg_replace_callback(
 			'/({{|##)+(.*?)(}}|##)/',
-			function ($matches) use ($data, $post_id, $order_id) {
-				return $this->replace($matches, $data, $post_id, $order_id);
+			function ($matches) use ($data, $post_id, $order_id, $params) {
+				return $this->replace($matches, $data, $post_id, $order_id, $params);
 			},
 			$string
 		);
@@ -88,13 +92,13 @@ class MergeTagParser
 	 * @param array $contact The contact data to use for parsing.
 	 * @param int   $post_id The post ID to use for parsing.
 	 * @param int   $order_id The order ID to use for parsing.
+	 * @param array $params The additional parameters to use for parsing.
 	 *
 	 * @return string The replaced value.
 	 *
 	 * @since 1.13.4
 	 */
-	protected function replace($matches, $contact, $post_id, $order_id)
-	{
+	protected function replace($matches, $contact, $post_id, $order_id, $params){
 		if (empty($matches[2])) {
 			return apply_filters('mint_merge_tag_fallback', $matches[0], $contact);
 		}
@@ -106,9 +110,9 @@ class MergeTagParser
 			return apply_filters('mint_merge_tag_fallback', $matches[0], $contact);
 		}
 
-		$data_key = trim(array_shift($matched));
-
+		$data_key  = trim(array_shift($matched));
 		$value_key = trim(implode('.', $matched));
+
 		if (!$value_key) {
 			return apply_filters('mint_merge_tag_fallback', $matches[0], $contact);
 		}
@@ -165,6 +169,22 @@ class MergeTagParser
 			case 'shipping':
 				$value = $this->get_shipping_details_value($value_key, $default_value, $order_id);
 				break;
+			case 'cart':
+				$abandoned_id = isset($params['abandoned_id']) ? $params['abandoned_id'] : 0;
+				$value = $this->get_cart_abandonment_value($value_key, $default_value, $abandoned_id);
+				break;
+			case 'edd':
+				$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
+				$value      = $edd_parser->parse_edd_merge_tag();
+				break;
+			case 'edd_customer':
+				$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
+				$value      = $edd_parser->parse_edd_customer_merge_tag();
+				break;
+			case 'edd_billing':
+				$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
+				$value      = $edd_parser->parse_edd_billing_merge_tag();
+				break;
 			default:
 				$value = apply_filters('mint_merge_tag_group_callback_' . $data_key, $matches[0], $value_key, $default_value, $contact);
 		}
@@ -202,6 +222,77 @@ class MergeTagParser
 		}
 
 		return $value;
+	}
+
+	/**
+	 * Get the value from the cart abandonment data.
+	 *
+	 * @param string $value_key  The key to get the value.
+	 * @param string $default_value The default value to return if the key is not found.
+	 * @param int    $abandoned_id    The abandoned cart ID to use for parsing.
+	 *
+	 * @return string The value.
+	 *
+	 * @since 1.14.4
+	 */
+	protected function get_cart_abandonment_value($value_key, $default_value, $abandoned_id){
+		// Check if the method exists in the Model class.
+		if (!method_exists(Model::class, 'get_cart_details_by_id')) {
+			return $default_value;
+		}
+		$cart_details = Model::get_cart_details_by_id( $abandoned_id );
+		
+		switch ($value_key) {
+			case 'billing_email':
+				return !empty( $cart_details['email'] ) ? $cart_details['email'] : $default_value;
+			case 'items':
+				$cart_details = Common::get_abandoned_cart_totals($cart_details);
+				return Common::generate_cart_items_table_block_from_placeholder($cart_details);
+			case 'recovery_url':
+				$automation_id = isset($cart_details['automation_id']) ? $cart_details['automation_id'] : '';
+				$checkout_id   = Common::get_woocommerce_checkout_page_id();
+				$cart_url      = Common::get_cart_recovery_url($cart_details, $automation_id, $checkout_id);
+				return !empty($cart_url) ? $cart_url : $default_value;
+			case 'total':
+				$cart_details = Common::get_abandoned_cart_totals($cart_details);
+				return !empty($cart_details['total']) ? $cart_details['total'] : $default_value;
+			case 'currency':
+				return get_woocommerce_currency_symbol();
+			case 'billing_first_name':
+			case 'billing_last_name':
+			case 'billing_address_1':
+			case 'billing_address_2':
+			case 'billing_company':
+			case 'billing_city':
+			case 'billing_state':
+			case 'billing_postcode':
+			case 'billing_country':
+			case 'billing_phone':
+			case 'shipping_first_name':
+			case 'shipping_last_name':
+			case 'shipping_address_1':
+			case 'shipping_address_2':
+			case 'shipping_company':
+			case 'shipping_city':
+			case 'shipping_state':
+			case 'shipping_postcode':
+			case 'shipping_country':
+			case 'shipping_phone':
+				$checkout_data   = isset($cart_details['checkout_data']) ? maybe_unserialize($cart_details['checkout_data']) : array();
+				$checkout_fields = isset($checkout_data['fields']) ? $checkout_data['fields'] : array();
+				$checkout_fields = array_combine(
+					array_map(function ($key) {
+						return str_replace('-', '_', $key);
+					}, array_keys($checkout_fields)),
+					$checkout_fields
+				);
+				$value           = Arr::get($checkout_fields, $value_key);
+				return ($value) ? $value : $default_value;
+			case 'abandoned_date':
+				return MrmCommon::date_time_format_with_core( $cart_details['created_at'] ) ? MrmCommon::date_time_format_with_core( $cart_details['created_at'] ) : $default_value;
+			default:
+				return $default_value;
+		}
 	}
 
 	/**
@@ -324,7 +415,9 @@ class MergeTagParser
 			case 'name':
 				return !empty($order->get_formatted_billing_full_name()) ? $order->get_formatted_billing_full_name() : $default_value;
 			case 'note':
-				return !empty($order->get_customer_note()) ? $order->get_customer_note() : $default_value;
+				$notes       = $order->get_customer_order_notes();
+				$latest_note = reset($notes);
+				return !empty($latest_note->comment_content) ? wpautop( wptexturize( make_clickable( $latest_note->comment_content ) ) ) : $default_value;
 			case 'first_name':
 				return !empty($order->get_billing_first_name()) ? $order->get_billing_first_name() : $default_value;
 			case 'last_name':
@@ -369,7 +462,9 @@ class MergeTagParser
 			case 'order_status':
 				return !empty(wc_get_order_status_name($order->get_status())) ? wc_get_order_status_name($order->get_status()) : $default_value;
 			case 'order_note':
-				return !empty($order->get_customer_note()) ? $order->get_customer_note() : $default_value;
+				$notes       = $order->get_customer_order_notes();
+				$latest_note = reset($notes);
+				return !empty($latest_note->comment_content) ? wpautop( wptexturize( make_clickable( $latest_note->comment_content ) ) ) : $default_value;
 			case 'order_fully_refunded':
 			case 'order_partial_refund':
 				$refunds     = $order->get_refunds();

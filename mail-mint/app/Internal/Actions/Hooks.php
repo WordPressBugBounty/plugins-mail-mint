@@ -15,7 +15,6 @@ namespace MailMint\App\Actions;
 use Mint\MRM\DataBase\Models\EmailModel;
 use MailMint\App\Helper;
 use MailMintPro\Internal\LeadMagnet\LeadMagnetDownloader;
-use MailMintPro\Mint\DataBase\Tables\LeadMagnet;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\Internal\Optin\UnsubscribeConfirmation;
 use Mint\MRM\Utilites\Helper\Campaign;
@@ -32,7 +31,7 @@ class Hooks {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		add_action( 'wp', array( $this, 'redirect_email_url' ) );
+		add_action( 'wp_loaded', array( $this, 'handle_redirection_from_url' ) );
 		add_action( 'woocommerce_new_order', array( $this, 'track_buying_product_through_link' ), 10, 2 );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'track_revenue_on_order' ), 10, 3 );
 		add_action( 'add_meta_boxes', array( $this, 'add_custom_meta_box' ) );
@@ -45,6 +44,30 @@ class Hooks {
 		add_action('action_scheduler_failed_action', array( $this, 'handle_failed_action' ), 10, 1);
 		add_action('action_scheduler_failed_execution', array( $this, 'handle_failed_action' ), 10, 2);
 		add_action('init', array($this, 'handle_email_open_tracking'));
+		add_filter( 'mint_merge_tag_fallback', array( $this, 'mint_merge_tag_fallback' ), 10, 2 );
+	}
+
+	public function mint_merge_tag_fallback( $value_key, $contact ) {
+		switch ($value_key) {
+			case '{{first_name}}':
+				return isset($contact['first_name']) ? $contact['first_name'] : '';
+			case '{{last_name}}':
+				return isset($contact['last_name']) ? $contact['last_name'] : '';
+			case '{{email}}':
+				return isset($contact['email']) ? $contact['email'] : '';
+			case '{{city}}':
+				return isset($contact['city']) ? $contact['city'] : '';
+			case '{{state}}':
+				return isset($contact['state']) ? $contact['state'] : '';
+			case '{{country}}':
+				return isset($contact['country']) ? $contact['country'] : '';
+			case '{{company}}':
+				return isset($contact['company']) ? $contact['company'] : '';
+			case '{{state}}':
+				return isset($contact['designation']) ? $contact['designation'] : '';
+			default:
+				return $value_key;
+		}
 	}
 
 	/**
@@ -104,6 +127,8 @@ class Hooks {
 			$store = \ActionScheduler::store();
 			$action = $store->fetch_action($action_id);
 
+			$args = array();
+			$group = '';
 			if ('mailmint_send_scheduled_emails' === $action->get_hook()) {
 				// Extract properties.
 				$args  = $action->get_args();
@@ -191,122 +216,20 @@ class Hooks {
 	}
 
 	/**
-	 * Remove Hash from Sting.
+	 * Handles redirection based on URL parameters.
 	 *
-	 * @param string $query_string Get Query string.
-	 * @return string[]
-	 * @since 1.2.7
-	 */
-	public function filter_params_by_hash( $query_string ) {
-		if ( !$query_string ) {
-			return array();
-		}
-		$params = explode( '&amp;', $query_string );
-		$params = array_filter(
-			$params,
-			function( $param ) {
-				return strpos( $param, 'hash=' ) !== 0;
-			}
-		);
-		return $params;
-	}
-
-
-	/**
-	 * Generate Targeted URl Using Parameter
+	 * This function retrieves sanitized GET and SERVER parameters, checks if the 'action' parameter
+	 * is set to 'mint_action', and if so, calls the redirection handler to perform the redirection.
 	 *
-	 * @param string $query_string Get Query string.
-	 * @return string
-	 * @since 1.2.7
+	 * @return void
+	 * @since 1.14.0
 	 */
-	public function get_target_url( $query_string ) {
-		$params = $this->filter_params_by_hash( $query_string );
-		$url    = '';
-		$count  = count( $params );
-		if ( strpos( $query_string, 'target=' ) !== false ) {
-			for ( $i = 1; $i < $count; $i++ ) {
-				if ( $i > 1 ) {
-					$url .= '&';
-				}
-				$url .= $params[ $i ];
-			}
-		}
-		return substr( $url, 7 );
-	}
-
-	/**
-	 * Redirect email url & count click
-	 */
-	public function redirect_email_url() {
+	public function handle_redirection_from_url() {
 		$get_server = MrmCommon::get_sanitized_get_post();
 		$get        = isset( $get_server[ 'get' ] ) ? $get_server[ 'get' ] : array();
+		$server     = isset( $get_server[ 'server' ] ) ? $get_server[ 'server' ] : array();
 		if ( isset( $get['action'] ) && 'mint_action' === $get['action'] ) {
-			$target_url = ! empty( $get[ 'target' ] ) ? $get[ 'target' ] : '#';
-
-			if ( !empty( $get_server['server']['QUERY_STRING'] ) ) {
-				$target_url = $this->get_target_url( $get_server['server']['QUERY_STRING'] );
-			}
-			$hash     = ! empty( $get[ 'hash' ] ) ? $get[ 'hash' ] : '';
-			$route    = ! empty( $get[ 'route' ] ) ? $get[ 'route' ] : '';
-			$email_id = EmailModel::get_broadcast_email_by_hash( $hash );
-
-			if ( 'unsubscribe' === $route ) {
-				$contact_hash = EmailModel::get_contact_id_by_hash( $hash );
-				$contact_id   = isset( $contact_hash[ 'contact_id' ] ) ? $contact_hash[ 'contact_id' ] : false;
-				// Get compliance and unsubscribe settings.
-				$compliance = get_option( '_mint_compliance' );
-				$one_click  = isset( $compliance['one_click_unsubscribe'] ) ? $compliance['one_click_unsubscribe'] : 'no';
-				$settings   = get_option( '_mrm_general_unsubscriber_settings' );
-
-				// Process redirection or one-click confirmation based on configuration and contact status.
-				$unsubscribe = new UnsubscribeConfirmation();
-				if ( 'no' === $one_click ) {
-					$unsubscribe->process_redirect_confirmation( $hash, $settings );
-				} elseif ( 'yes' === $one_click ) {
-					$unsubscribe->process_one_click_confirmation( $hash, $settings, $contact_id );
-				}
-			} elseif ( 'mrm-preference' === $route ) {
-				$preference_url = add_query_arg(
-					array(
-						'mrm'   => '1',
-						'route' => 'mrm-preference',
-						'hash'  => $hash,
-					),
-					MrmCommon::get_default_preference_page_id_title()
-				);
-				EmailModel::insert_or_update_email_meta( 'is_preference', 1, $email_id );
-				exit( wp_redirect( $preference_url ) ); //phpcs:ignore
-			} elseif ( 'lead-magnet' === $route ) {
-				new LeadMagnetDownloader( $get );
-			} else {
-				// WooCommmerce active check.
-				$is_wc_active = MrmCommon::is_wc_active();
-
-				if ( $is_wc_active ) {
-					// Set cookie to track product buying from the link.
-					$cookie = MrmCommon::get_sanitized_get_post();
-					$cookie = !empty( $cookie[ 'cookie' ] ) ? $cookie[ 'cookie' ] : array();
-					if ( isset( $cookie['mail_mint_link_trigger'] ) ) {
-						setcookie( 'mail_mint_link_trigger', '', time() -3600 );
-						unset( $cookie['mail_mint_link_trigger'] );
-					}
-					MrmCommon::set_cookie( 'mail_mint_link_trigger', $hash, time() + HOUR_IN_SECONDS );
-				}
-
-				Campaign::track_email_link_click_performance( $email_id, $target_url );
-				EmailModel::insert_or_update_email_meta( 'is_click', 1, $email_id );
-				EmailModel::insert_or_update_email_meta( 'user_click_agent', Helper::get_user_agent(), $email_id );
-				$is_ip_store = get_option( '_mint_compliance' );
-				$is_ip_store = isset( $is_ip_store['anonymize_ip'] ) ? $is_ip_store['anonymize_ip'] : 'no';
-				if ( 'no' === $is_ip_store ) {
-					EmailModel::insert_or_update_email_meta( 'user_click_ip', Helper::get_user_ip(), $email_id );
-				}
-
-				do_action( 'mailmint_after_email_click', $email_id );
-
-				header( 'Location: ' . $target_url );
-				exit();
-			}
+			MM()->redirection_handler->redirect( $get, $server );
 		}
 	}
 

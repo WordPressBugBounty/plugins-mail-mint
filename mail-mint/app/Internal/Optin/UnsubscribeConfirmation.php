@@ -57,21 +57,38 @@ class UnsubscribeConfirmation {
 		// Retrieve the hash from the URL.
 		$hash = isset( $get[ 'hash' ] ) ? $get[ 'hash' ] : '';
 
+		// Process the unsubscribe confirmation.
+		$this->process_unsubscribe( $hash );
+	}
+
+	/**
+	 * Process the unsubscribe confirmation.
+	 *
+	 * This method processes the unsubscribe confirmation based on the configuration settings.
+	 *
+	 * @access public
+	 *
+	 * @param string $hash The unsubscribe confirmation hash.
+	 *
+	 * @return void
+	 *
+	 * @since 1.14.0
+	 */
+	public function process_unsubscribe( $hash ){
 		// Get the contact ID associated with the hash.
-		$contact_hash   = EmailModel::get_contact_id_by_hash( $hash );
-		$contact_id     = isset( $contact_hash[ 'contact_id' ] ) ? $contact_hash[ 'contact_id' ] : false;
-		$contact        = ContactModel::get( $contact_id );
-		$contact_status = isset( $contact[ 'status' ] ) ? $contact[ 'status' ] : '';
+		$contact_hash = EmailModel::get_contact_id_by_hash( $hash );
+		$contact_id   = isset($contact_hash['contact_id']) ? $contact_hash['contact_id'] : false;
 
 		// Get compliance and unsubscribe settings.
-		$compliance = get_option( '_mint_compliance' );
-		$one_click  = isset( $compliance['one_click_unsubscribe'] ) ? $compliance['one_click_unsubscribe'] : 'no';
-		$settings   = get_option( '_mrm_general_unsubscriber_settings' );
+		$compliance = get_option('_mint_compliance');
+		$one_click  = isset($compliance['one_click_unsubscribe']) ? $compliance['one_click_unsubscribe'] : 'no';
+		$settings   = get_option('_mrm_general_unsubscriber_settings');
+
 		// Process redirection or one-click confirmation based on configuration and contact status.
-		if ( 'no' === $one_click ) {
-			$this->process_redirect_confirmation( $hash, $settings );
-		} elseif ( 'yes' === $one_click ) {
-			$this->process_one_click_confirmation( $hash, $settings, $contact_id );
+		if ('no' === $one_click) {
+			$this->process_redirect_confirmation($hash, $settings);
+		} elseif ('yes' === $one_click) {
+			$this->process_one_click_confirmation($hash, $settings, $contact_id);
 		}
 	}
 

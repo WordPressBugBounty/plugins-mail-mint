@@ -72,6 +72,7 @@ class ComposerStaticInit31326e18067c664e680bb1a1fec7abc5
         'Mint\\App\\Classes\\Message' => __DIR__ . '/../..' . '/app/DataStores/Message.php',
         'Mint\\App\\Classes\\WPRemoteRequestHandler' => __DIR__ . '/../..' . '/app/DataStores/WPRemoteRequestHandler.php',
         'Mint\\App\\Database\\Repositories\\Email\\Template' => __DIR__ . '/../..' . '/app/Database/Repositories/Email/Template.php',
+        'Mint\\App\\Internal\\Actions\\Handlers\\RedirectionHandler' => __DIR__ . '/../..' . '/app/Internal/Actions/Handlers/RedirectionHandler.php',
         'Mint\\App\\Internal\\Cron\\BackgroundProcessHelper' => __DIR__ . '/../..' . '/app/Internal/Cron/BackgroundProcessHelper.php',
         'Mint\\App\\Internal\\EmailCustomization\\Render\\BlockRender' => __DIR__ . '/../..' . '/app/Internal/EmailCustomization/Render/BlockRender.php',
         'Mint\\App\\Internal\\EmailCustomization\\Render\\EmailRender' => __DIR__ . '/../..' . '/app/Internal/EmailCustomization/Render/EmailRender.php',

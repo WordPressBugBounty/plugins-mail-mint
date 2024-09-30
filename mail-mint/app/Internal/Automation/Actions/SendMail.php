@@ -79,6 +79,8 @@ class SendMail extends AbstractAutomationAction {
 			$contact_id  = HelperFunctions::get_contact_id_by_broadcast_table( $user_email );
 			$post_id     = isset( $data['data']['post_id'] ) ? $data['data']['post_id'] : '';
 			$order_id	 = isset( $data['data']['order_id'] ) ? $data['data']['order_id'] : '';
+			$abandoned_id = isset($data['data']['abandoned_id']) ? $data['data']['abandoned_id'] : '';
+			$payment_id   = isset($data['data']['payment_id']) ? $data['data']['payment_id'] : '';
 
 			$step_data   = HelperFunctions::get_step_data( $data['automation_id'], $data['step_id'] );
 			$log_payload = array(
@@ -100,7 +102,7 @@ class SendMail extends AbstractAutomationAction {
 			do_action( 'mailmint_before_automation_send_mail', $data['automation_id'], $data['data']['user_email'] );
 			do_action( 'mint_before_automation_send_mail', $data['automation_id'], $data['data'] );
 
-			if ( !empty( $step_data['settings']['message_data'] ) && HelperFunctions::maybe_user( $data['data']['user_email'] ) && !Email::is_email_already_sent( $data['automation_id'], $data['step_id'], $data['step_id'], $contact_id, 'sent' ) ) {
+			if (!empty($step_data['settings']['message_data']) && HelperFunctions::maybe_user($data['data']['user_email'])) {
 				$headers = array( //phpcs:ignore
 					'MIME-Version: 1.0',
 					'Content-type: text/html;charset=UTF-8',
@@ -125,7 +127,7 @@ class SendMail extends AbstractAutomationAction {
 					unset($contact['meta_fields']);
 				}
 
-				$preview   = Parser::parse( $preview, $contact, $post_id, $order_id );
+				$preview   = Parser::parse( $preview, $contact, $post_id, $order_id, array( 'abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id ) );
 				$headers[] = 'X-PreHeader: ' . $preview;
 
 				$unsubscribe_url = Helper::get_unsubscribed_url( $rand_hash );
@@ -144,25 +146,11 @@ class SendMail extends AbstractAutomationAction {
 					'editor_type'    => !empty( $step_data['settings']['message_data']['json_body']['editor'] ) ? $step_data['settings']['message_data']['json_body']['editor'] : 'advanced-builder',
 				);
 
-				$email_data['subject'] = Parser::parse( $email_data['subject'], $contact, $post_id, $order_id );
+				$email_data['subject'] = Parser::parse( $email_data['subject'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id) );
 				$email_data['body']    = Helper::replace_url( $email_data['body'], $rand_hash );
-				$email_data['body']    = Parser::parse( $email_data['body'], $contact, $post_id, $order_id );
+				$email_data['body']    = Parser::parse( $email_data['body'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id) );
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );
-
-				/**
-				 * Summary: Applies the 'mint_replace_abandoned_carts_placeholder' filter to replace abandoned carts placeholders in the email body.
-				 *
-				 * Description: This code section applies the 'mint_replace_abandoned_carts_placeholder' filter hook to the email body.
-				 * The filter allows for customization of the replacement of abandoned carts placeholders with actual values in the email body.
-				 *
-				 * @param string $email_data['body'] The email body to be filtered.
-				 * @param array  $data            An array containing data to be passed to the filter hook.
-				 *
-				 * @return string The filtered email body with replaced abandoned carts placeholders.
-				 * @since 1.5.0
-				 */
-				$email_data['body'] = apply_filters( 'mint_automation_email_body', $email_data['body'], $data );
-				$email_data['body'] = Email::inject_preview_text_on_email_body( $preview, $email_data['body'] );
+				$email_data['body']    = Email::inject_preview_text_on_email_body( $preview, $email_data['body'] );
 
 				// Call EmailRender class to dynamically render the custom blocks.
 				if ( $order_id && class_exists('MailMintPro\Internal\EmailCustomization\Render\EmailRender') ) {
@@ -177,6 +165,14 @@ class SendMail extends AbstractAutomationAction {
 					);
 
 					$email_data['body'] = $email_render->render();
+				}
+
+				// Process URL for lead-magnet tracking if MailMint Pro is active.
+				if (MrmCommon::is_mailmint_pro_active()) {
+					$email_data['body'] = Mint_Pro_Helper::replace_automatic_latest_content($email_data['body'], get_post_type($post_id));
+					if (MrmCommon::is_mailmint_pro_version_compatible('1.15.1')) {
+						$email_data['body'] = Mint_Pro_Helper::process_lead_magnet_tracking($email_data['body'], $user_email);
+					}
 				}
 
 				$is_sent = $this->send_message( $email_data, $rand_hash );
@@ -247,13 +243,6 @@ class SendMail extends AbstractAutomationAction {
 		$subject = isset( $data['subject'] ) ? $data['subject'] : 'Mail from Mint Email';
 		$body    = isset( $data['body'] ) ? html_entity_decode( $data['body'] ) : ''; //phpcs:ignore
 
-		// Process URL for lead-magnet tracking if MailMint Pro is active.
-		if ( MrmCommon::is_mailmint_pro_active() ) {
-			$body = Mint_Pro_Helper::replace_automatic_latest_content( $body );
-			if( MrmCommon::is_mailmint_pro_version_compatible('1.15.1') ){
-				$body = Mint_Pro_Helper::process_lead_magnet_tracking($body, $to);
-			}
-		}
 
 		$body = Email::inject_tracking_image_on_email_body($rand_hash, $body);
 

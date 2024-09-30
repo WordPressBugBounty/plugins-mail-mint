@@ -48,6 +48,7 @@ return array(
     'Mint\\App\\Classes\\Message' => $baseDir . '/app/DataStores/Message.php',
     'Mint\\App\\Classes\\WPRemoteRequestHandler' => $baseDir . '/app/DataStores/WPRemoteRequestHandler.php',
     'Mint\\App\\Database\\Repositories\\Email\\Template' => $baseDir . '/app/Database/Repositories/Email/Template.php',
+    'Mint\\App\\Internal\\Actions\\Handlers\\RedirectionHandler' => $baseDir . '/app/Internal/Actions/Handlers/RedirectionHandler.php',
     'Mint\\App\\Internal\\Cron\\BackgroundProcessHelper' => $baseDir . '/app/Internal/Cron/BackgroundProcessHelper.php',
     'Mint\\App\\Internal\\EmailCustomization\\Render\\BlockRender' => $baseDir . '/app/Internal/EmailCustomization/Render/BlockRender.php',
     'Mint\\App\\Internal\\EmailCustomization\\Render\\EmailRender' => $baseDir . '/app/Internal/EmailCustomization/Render/EmailRender.php',

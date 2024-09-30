@@ -136,6 +136,18 @@ class HomeScreen {
 			)
 		);
 
+		add_submenu_page(
+			self::MENU_SLUG,
+			__( 'Tools', 'mrm' ),
+			__( 'Tools', 'mrm' ),
+			'manage_options',
+			'mrm-admin#/tools/link-triggers/',
+			array(
+				$this,
+				'load_wrapper',
+			)
+		);
+
 		if( MrmCommon::is_wc_active() ){
 			add_submenu_page(
 				self::MENU_SLUG,

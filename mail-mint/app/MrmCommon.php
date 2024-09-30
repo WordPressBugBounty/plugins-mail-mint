@@ -1293,26 +1293,25 @@ class MrmCommon {
 	 * @return array An array of objects containing the names and labels of allowed post types.
 	 *
 	 * @since 1.0.8
+	 * @since 1.14.4 Remove default post type checking and retrieve all post types.
 	 */
 	public static function get_all_post_types() {
-		$args       = array(
-			'public' => true,
-		);
-		$post_types = get_post_types( $args, 'objects' );
+		$post_types = get_post_types( array(), 'objects' );
 
-		$allowed_post_types = array();
-		$allowed_types      = array( 'post', 'page', 'product' );
-		foreach ( $post_types as $post_type ) {
-			if ( in_array( $post_type->name, $allowed_types ) ) { //phpcs:ignore
-				$single_type          = (object) array(
-					'value' => $post_type->name,
-					'label' => $post_type->label,
-				);
-				$allowed_post_types[] = $single_type;
-			}
+		// Early return if no post types are found.
+		if ( empty( $post_types ) ) {
+			return array();
 		}
 
-		return $allowed_post_types;
+		// Use array_map for cleaner array transformation.
+		$allowed_types = array_map( function ( $post_type ) {
+			return array(
+				'value' => $post_type->name,
+				'label' => $post_type->label,
+			);
+		}, array_values($post_types) );
+
+		return $allowed_types;
 	}
 
 	/**

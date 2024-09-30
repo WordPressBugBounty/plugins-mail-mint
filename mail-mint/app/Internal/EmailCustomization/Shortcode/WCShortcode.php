@@ -155,8 +155,12 @@ class WCShortcode {
 				}
 			}
 
+			$notes       = $this->order_object->get_customer_order_notes();
+			$latest_note = reset($notes);
+			$latest_note = !empty($latest_note->comment_content) ? wpautop( wptexturize( make_clickable( $latest_note->comment_content ) ) ) : '';
+
 			$shortcodes['{{customer.name}}']      = $this->order_object->get_formatted_billing_full_name();
-			$shortcodes['{{customer.note}}']      = $this->order_object->get_customer_note();
+			$shortcodes['{{customer.note}}']      = $latest_note;
 			$shortcodes['{{customer.first_name}}'] = $this->order_object->get_billing_first_name();
 			$shortcodes['{{customer.last_name}}'] = $this->order_object->get_billing_last_name();
 

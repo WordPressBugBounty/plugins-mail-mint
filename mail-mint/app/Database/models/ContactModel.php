@@ -80,6 +80,13 @@ class ContactModel {
 				self::update_meta_fields( $insert_id, $meta_fields );
 			}
 
+			/**
+			 * Fires after a contact is created.
+			 *
+			 * @param int $insert_id The ID of the newly created contact.
+			 * @since 1.14.4
+			 */
+			do_action('mint_after_contact_creation', $insert_id);
 			return $insert_id;
 		} catch ( \Exception $e ) {
 			return false;
@@ -1036,5 +1043,11 @@ class ContactModel {
 		if ( !empty( $contact ) ) {
 			return $contact['first_name'] . ' ' . $contact['last_name'];
 		}
+	}
+
+	public static function get_meta_value_by_key( $meta_key, $contact_id ){
+		global $wpdb;
+		$table_name = $wpdb->prefix . ContactMetaSchema::$table_name;
+    	return $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $table_name WHERE meta_key = %s AND contact_id = %d", $meta_key, $contact_id ) );
 	}
 }

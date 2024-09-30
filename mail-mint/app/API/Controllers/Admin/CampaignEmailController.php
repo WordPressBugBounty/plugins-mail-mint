@@ -20,7 +20,9 @@ use Mint\MRM\Utilites\Helper\Email;
 use WP_REST_Request;
 use MRM\Common\MrmCommon;
 use MailMint\App\Helper;
+use Mint\MRM\Internal\Parser\Parser;
 use WP_Query;
+use Mint\MRM\DataBase\Models\ContactModel;
 
 require_once ABSPATH . 'wp-admin/includes/image.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -290,15 +292,14 @@ class CampaignEmailController extends AdminBaseController {
 
 		$content    = ! empty( $params[ 'json_data' ][ 'content' ] ) ? html_entity_decode( $params[ 'json_data' ][ 'content' ] ) : '';
 		$headers    = Email::get_mail_header( $header_data, '' );
-		$user_id    = ! empty( $params[ 'json_data' ][ 'current_user' ] ) ? $params[ 'json_data' ][ 'current_user' ] : null;
 		$preview    = ! empty( $params[ 'json_data' ][ 'email_preview_text' ] ) ? $params[ 'json_data' ][ 'email_preview_text' ] : '';
 
 		$editor_type = !empty( $params[ 'json_data' ][ 'editor_type' ] ) ? $params[ 'json_data' ][ 'editor_type' ] : 'advanced-builder';
-
-        $subject = CampaignModel::replace_test_mail_dynamic_placeholders( $subject,$user_id );
-        $content = CampaignModel::replace_test_mail_dynamic_placeholders( $content,$user_id );
-		$preview = CampaignModel::replace_test_mail_dynamic_placeholders( $preview,$user_id );
-		$content = Email::inject_preview_text_on_email_body( $preview, $content );
+		
+		$post_id     = isset($params['data']['post_id']) ? $params['data']['post_id'] : '';
+		$order_id	 = isset($params['data']['order_id']) ? $params['data']['order_id'] : '';
+		$abandoned_id = isset($params['data']['abandoned_id']) ? $params['data']['abandoned_id'] : '';
+		$payment_id   = isset($params['data']['payment_id']) ? $params['data']['payment_id'] : '';
 
 		// Check for '{{post.' in the content and replace merge tags.
 		if ( false !== strpos( $content, '{{post.' ) ) {
@@ -330,7 +331,22 @@ class CampaignEmailController extends AdminBaseController {
 			if ( ! is_email( $receiver ) ) {
 				$false_emails[] = $receiver;
 			}
-			MM()->mailer->send( $receiver, $subject, $content, $headers );
+
+			$contact = ContactModel::get_contact_by_email($receiver);
+			$contact = ContactModel::get($contact['id']);
+
+			if (isset($contact['meta_fields']) && is_array($contact['meta_fields'])) {
+				$contact = array_merge($contact, $contact['meta_fields']);
+				unset($contact['meta_fields']);
+			}
+
+			// Reset subject, content, and preview for each receiver
+			$parsed_subject = Parser::parse($subject, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
+			$parsed_content = Parser::parse($content, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
+			$parsed_preview = Parser::parse($preview, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
+			$final_content = Email::inject_preview_text_on_email_body($parsed_preview, $parsed_content);
+
+			MM()->mailer->send($receiver, $parsed_subject, $final_content, $headers);
 		}
 
 		if ( count( $false_emails ) ){

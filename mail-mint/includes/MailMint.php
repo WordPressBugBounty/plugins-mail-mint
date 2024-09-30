@@ -12,10 +12,13 @@
  * @subpackage Mrm/includes
  */
 
+use MailMintPro\Mint\Internal\LinkTrigger\LinkTriggerHandler;
 use Mint\App\Classes\Mailer;
 use Mint\App\Classes\WPRemoteRequestHandler;
+use Mint\App\Internal\Actions\Handlers\RedirectionHandler;
 use Mint\MRM\App;
 use Mint\MRM\Internal\Constants;
+use MRM\Common\MrmCommon;
 
 /**
  * The core plugin class.
@@ -91,7 +94,23 @@ class MailMint {
 	 * @var object|WPRemoteRequestHandler
 	 * @since 1.12.0
 	 */
-	public $wp_remote_request_handler;
+	public $wp_remote_request_handler = null;
+
+	/**
+	 * RedirectionHandler object
+	 * 
+	 * @var object|RedirectionHandler
+	 * @since 1.14.0
+	 */
+	public $redirection_handler;
+
+	/**
+	 * LinkTriggerHandler object
+	 * 
+	 * @var object|LinkTriggerHandler
+	 * @since 1.14.0
+	 */
+	public $link_trigger_handler;
 
 	/**
 	 * Main MRM Instance.
@@ -108,6 +127,11 @@ class MailMint {
 
 		self::$instance->mailer                    = new Mailer();
 		self::$instance->wp_remote_request_handler = new WPRemoteRequestHandler();
+		self::$instance->redirection_handler       = new RedirectionHandler();
+		if( MrmCommon::is_mailmint_pro_active() && class_exists('MailMintPro\Mint\Internal\LinkTrigger\LinkTriggerHandler' ) ) {
+			self::$instance->link_trigger_handler = new LinkTriggerHandler();
+		}
+
 		return self::$instance;
 	}
 

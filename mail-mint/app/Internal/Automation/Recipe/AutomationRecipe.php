@@ -13,6 +13,7 @@
 namespace MintMail\App\Internal\Automation\Recipe;
 
 use MintMail\App\Internal\Automation\HelperFunctions;
+use MRM\Common\MrmCommon;
 
 /**
  * This is the main class that controls the automation Recipe. Its responsibilities are:
@@ -67,6 +68,7 @@ class AutomationRecipe {
 		$recipe = array_merge( $recipe, self::mint_woocommerce_recipe() );
 		$recipe = array_merge( $recipe, self::mint_edd_recipe() );
 		$recipe = array_merge( $recipe, self::mint_abandoned_cart_recipe() );
+		$recipe = array_merge( $recipe, self::mint_pro_recipe() );
 		return apply_filters( 'mailmint_all_automation_recipe', $recipe );
 	}
 
@@ -195,6 +197,31 @@ class AutomationRecipe {
 		if ( HelperFunctions::is_wc_active() ) {
 			return apply_filters( 'mintmail_automation_abandoned_cart_recipe', $cart_recipe );
 		}
+		return array();
+	}
+
+
+	public static function mint_pro_recipe(){
+		if(MrmCommon::is_mailmint_pro_active()){
+			$mint_recipe =
+			array(
+				array(
+					'id'                    => 13,
+					'isPro'                 => true,
+					'type'                  => 'mailmint',
+					'automationTitle'       => 'Automate Birthday Wishes',
+					'automationDescription' => "Celebrate your customers' birthdays with a special email, delivered right on time to make their day even more memorable.",
+					'icon'                  => '<svg width="22" height="22" fill="none" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_9905_2788)"><path fill="#573BFF" stroke="#fff" stroke-width=".1" d="M18.283 18.334v.05h.884a.783.783 0 110 1.567H.833a.783.783 0 010-1.567h.884v-6.717A4.122 4.122 0 015.833 7.55h3.384V5l-.03-.013a2.033 2.033 0 01-1.22-1.856A6.027 6.027 0 019.422.307h0a.783.783 0 011.156 0h0a6.028 6.028 0 011.455 2.824 2.034 2.034 0 01-1.22 1.856l-.03.013v2.55h3.384a4.122 4.122 0 014.116 4.117v6.667zm-1.622-4.967l.056.006v-1.706a2.55 2.55 0 00-2.55-2.55H5.833a2.55 2.55 0 00-2.55 2.55v1.706l.055-.005a1.89 1.89 0 00.938-.35c.112-.083.2-.174.261-.262a.471.471 0 00.096-.255.783.783 0 111.567 0c0 .079.042.173.11.267.07.095.17.195.3.286.26.182.634.33 1.098.33.456 0 .83-.14 1.091-.318.131-.09.234-.188.305-.285a.5.5 0 00.113-.28.783.783 0 111.566 0c0 .079.042.173.11.267.07.095.171.195.3.286.26.182.634.33 1.099.33.455 0 .83-.14 1.09-.318a1.27 1.27 0 00.306-.285.5.5 0 00.112-.28.783.783 0 111.567 0c0 .073.035.158.094.242.06.086.147.177.258.262.222.17.543.32.942.362zm-13.33 1.566l-.048.002v3.448h13.434v-3.449l-.048-.002a3.414 3.414 0 01-2.053-.803l-.032-.027-.033.027a3.54 3.54 0 01-4.52.012L10 14.115l-.032.026a3.54 3.54 0 01-4.52-.012l-.032-.027-.032.027a3.414 3.414 0 01-2.053.804z"></path></g><defs><clipPath id="clip0_9905_2788"><path fill="#fff" d="M0 0h20v20H0z"></path></clipPath></defs></svg>',
+					'tags'					=> ["Mail Mint"],
+					'category'				=> ['mail_mint'],
+				),
+
+			);
+			if ( true ) {
+				return apply_filters( 'mintmail_automation_mailmint_pro_recipe', $mint_recipe );
+			}
+		}
+		
 		return array();
 	}
 

@@ -173,7 +173,7 @@ class Helper {
 			$address_2       = isset( $contact['meta_fields']['address_line_2'] ) ? $contact['meta_fields']['address_line_2'] : '';
 			$contact_hash    = isset( $contact['hash'] ) ? $contact['hash'] : '#';
 			$unsubscribe_url = self::get_unsubscribed_url( $hash );
-			$preference_url  = self::get_preferance_url( $contact_hash );
+			$preference_url  = self::get_preference_url( $contact_hash );
 			$meta_fields     = !empty( $contact['meta_fields'] ) ? $contact['meta_fields'] : array();
 		}
 		$data = self::helper_for_replace_business_setting_data( $data, $business_settings, $unsubscribe_url, $preference_url );
@@ -432,7 +432,7 @@ class Helper {
 		// Prepare unsubscribe and preference url for individual contact.
 
 		$unsubscribe_url = self::get_unsubscribed_url( $hash );
-		$preference_url  = self::get_preferance_url( $hash );
+		$preference_url  = self::get_preference_url( $hash );
 		$data            = self::helper_for_replace_business_setting_data( $data, $business_settings, $unsubscribe_url, $preference_url );
 
 		return $data;
@@ -534,7 +534,7 @@ class Helper {
 	 * @param string $hash get String.
 	 * @return string
 	 */
-	public static function get_preferance_url( $hash ) {
+	public static function get_preference_url( $hash ) {
 		return add_query_arg(
 			array(
 				'mrm'   => '1',

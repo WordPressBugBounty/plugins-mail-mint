@@ -31,7 +31,7 @@ class AddTag extends AbstractAutomationAction {
 	/**
 	 * Action scheduler.
 	 *
-	 * @var $action_scheduler
+	 * @var object $action_scheduler
 	 */
 	private $action_scheduler;
 
