@@ -34,6 +34,7 @@ class DBUpgradeNotice {
 	 * Show user a notice with a button if he wants to update the database
 	 *
 	 * @since 1.6.0
+	 * @since 1.14.0 Added check for database update notice.
 	 */
 	public function database_update_notice() {
 		if ( !self::should_show_notice() ) {
@@ -43,8 +44,7 @@ class DBUpgradeNotice {
 		/**
 		 * Check if there are any migration required.
 		 */
-		if ( DatabaseMigrator::needs_db_update()) {
-
+		if ( DatabaseMigrator::needs_db_update() && 'no' === get_option( 'mail_mint_db_1140_version_updated', 'no' ) ) {
 			/**
 			 * Checks if a scheduled queue is running or if the user has initiated the process.
 			 * If a queue is running, indicates that the database migration action is in progress.
@@ -67,9 +67,21 @@ class DBUpgradeNotice {
 	 * @return mixed|void
 	 *
 	 * @since 1.6.0
+	 * @since 1.14.0 Added check for new notice.
 	 */
 	public static function should_show_notice() {
-		return 'no' === get_option('mail_mint_hide_database_update_notice', 'no');
+		$previous_notice = get_option( 'mail_mint_hide_database_update_notice', 'no' );
+		$new_notice      = get_option( 'mail_mint_hide_wc_database_update_notice', 'no' );
+
+		if ( 'yes' === $previous_notice && 'no' === $new_notice ) {
+			return true;
+		} else if ( 'no' === $previous_notice && 'no' === $new_notice ) {
+			return true;
+		} else if ( 'yes' === $previous_notice && 'yes' === $new_notice ) {
+			return false;
+		} else {
+			return false;
+		}
 	}
 
 }

@@ -127,7 +127,7 @@ class MrmActivator {
 
 		set_transient( 'mailmint_installing', 'yes', MINUTE_IN_SECONDS * 10 );
 
-		if ( self::is_new_install() ) {
+		if ( true ) {
 			$upgrade = \Mint\MRM\DataBase\Upgrade::get_instance();
 
 			$upgrade->maybe_upgrade();

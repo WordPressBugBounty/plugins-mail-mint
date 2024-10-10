@@ -56,6 +56,24 @@ class SpecialOccasionBanner
     }
 
     /**
+     * Calculate time remaining until Halloween
+     *
+     * @return array Time remaining in days, hours, and minutes
+     */
+    function mint_get_halloween_countdown() {
+        $halloween = strtotime('2024-10-21 23:59:59'); // Set this to the next Halloween
+        $now = current_time('timestamp');
+        $diff = $halloween - $now;
+
+        return array(
+            'days' => floor($diff / (60 * 60 * 24)),
+            'hours' => floor(($diff % (60 * 60 * 24)) / (60 * 60)),
+            'mins' => floor(($diff % (60 * 60)) / 60),
+        );
+    }
+
+
+    /**
      * Displays the special occasion banner if the current date and time are within the specified range.
      */
     public function display_banner()
@@ -68,7 +86,7 @@ class SpecialOccasionBanner
             return;
         }
 
-        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_mint_eid_promotion') || MrmCommon::is_wpfnl_active() || 'no' === get_option('_is_wpfnl_eid_promotion')) {
+        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_mint_hallowen_promotion_24') || MrmCommon::is_wpfnl_active() || 'no' === get_option('_is_wpfnl_hallowen_promotion_24')) {
             return;
         }
 
@@ -77,7 +95,10 @@ class SpecialOccasionBanner
 
 ?>
 
-
+        <?php 
+            $dir_url = MRM_DIR_URL . 'admin/assets/';
+            $countdown = $this->mint_get_halloween_countdown();
+        ?>
 
         <!-- Name: WordPress Anniversary Notification Banner -->
         <div class="<?php echo esc_attr($this->occasion); ?>-banner notice">
@@ -85,101 +106,49 @@ class SpecialOccasionBanner
                 <div class="mailmint-tb__notification">
 
                     <div class="banner-overflow">
-                        <div class="mailmint-anniv__container-area">
 
-                            <div class="mailmint-anniv__image mailmint-anniv__image--left">
+                        <section class="mint-notification-counter default-notification" aria-labelledby="mint-halloween-offer-title">
+                            <div class="mint-notification-counter__container">
+                                <div class="mint-notification-counter__content">
 
+                                    <figure class="mint-notification-counter__figure-logo">
+                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/halloween/halloween-default.webp '); ?>" alt="Halloween special offer banner" class="mint-notification-counter__img">
+                                    </figure>
 
-                                <figure>
-                                    <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/banner-image/eid-ul-adha-moon.webp'); ?>"
-                                        alt="Eid Ul Adha Moon" />
-                                </figure>
-                            </div>
+                                    <figure class="mint-notification-counter__figure-percentage">
+                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/halloween/percentage.png'); ?>" alt="Halloween special offer banner" class="mint-notification-counter__img">
+                                    </figure>
 
-                            <div class="mailmint-anniv__content-area">
+                                    <div id="mint-halloween-countdown" class="mint-notification-counter__countdown" aria-live="polite">
+                                        <h3 class="screen-reader-text"><?php echo __('Offer Countdown', 'mrm'); ?></h3>
+                                        <ul class="mint-notification-counter__list">
 
-
-                                <div class="mailmint-anniv__image--group">
-
-                                    <div class='mailmint-anniv__image mailmint-anniv__image--eid-mubarak'>
-                                        <figure>
-                                            <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/banner-image/eid-utl-adha-text.webp'); ?>"
-                                                alt="Eid Ul Adha Moon" />
-                                        </figure>
+                                             <?php foreach (['days', 'hours', 'mins'] as $unit): ?>
+                                                <li class="mint-notification-counter__item ">
+                                                    <span id="mint-halloween-<?php echo esc_attr($unit); ?>" class="mint-notification-counter__time">
+                                                        <?php echo esc_html($countdown[$unit]); ?>
+                                                    </span>
+                                                    <span class="mint-notification-counter__label">
+                                                        <?php echo esc_html($unit); ?>
+                                                    </span>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
                                     </div>
 
-                                    <div class='mailmint-anniv__image mailmint-anniv__image--wpfunnel-logo'>
-                                        <figure>
-                                            <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/banner-image/eid-ul-adha-mailMint.webp'); ?>"
-                                                alt="Mail Mint Logo" />
-                                        </figure>
+                                    <div class="mint-notification-counter__btn-area">
+                                        <a href="<?php echo esc_url('https://getwpfunnels.com/pricing/?utm_source=website&utm_medium=mm-ui&utm_campaign=halloween24#mail-mint'); ?>" class="mint-notification-counter__btn" role="button">
+
+                                        <span class="mint-btn-inner">
+                                            <span class="screen-reader-text"><?php echo __('Click to view Halloween sale products', 'mrm'); ?></span>
+                                            <span aria-hidden="true" class="mint-notification-counter__mint-button"> <?php echo __('FLAT', 'mrm'); ?> <strong class="mint-notification-counter__stroke-font">30%</strong> <?php echo __('OFF', 'mrm'); ?></span>
+                                        </span>
+                                            
+                                        </a>
                                     </div>
-
-                                    <div class="mailmint-anniv__image mailmint-anniv__image--four">
-                                        <figure>
-                                            <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/banner-image/eid-ul-adha-tweenty.webp'); ?>"
-                                                alt="Eid Ul Adha Discount" />
-                                        </figure>
-                                    </div>
-
-
-
-                                    <div class="mailmint-anniv__text-divider">
-
-                                        <div class="mailmint-anniv__lead-text">
-                                            <span>
-                                                <svg width="33" height="30" fill="none" viewBox="0 0 33 30"
-                                                    xmlns="http://www.w3.org/2000/svg">
-                                                    <path fill="#FFFFFF" stroke="#FFFFFF"
-                                                        d="M28.584 25.483a257.608 257.608 0 00-.525-1.495c-.28-.795-.569-1.614-.769-2.199a1.432 1.432 0 01-.084-.552c.014-.211.106-.57.487-.726a.828.828 0 01.416-.064.754.754 0 01.38.161c.139.11.248.274.309.366l.02.032.003.004c.127.191.203.355.265.49l.04.09.572 1.176a185.411 185.411 0 011.49 3.11c.193.412.306.86.404 1.245l.027.106h0c.077.301.093.67-.128.977-.224.313-.587.415-.925.429h0a54.91 54.91 0 01-3.43.022h-.001l-.166-.003c-1.395-.027-2.84-.055-4.268-.29h-.003c-.312-.053-.574-.138-.78-.299a1.212 1.212 0 01-.371-.523l-.01-.024-.008-.024a.692.692 0 01.175-.694c.137-.136.31-.205.428-.243.248-.08.538-.105.687-.117a5.511 5.511 0 011.039 0c.766.051 1.528.104 2.297.157l.16.01c-5.037-2.4-9.838-5.23-14.007-9.083C7.962 13.508 4.206 9.005 1.53 3.652h0l-.002-.004-.02-.04c-.183-.377-.397-.817-.517-1.283A2.45 2.45 0 00.985 2.3c-.025-.088-.08-.28-.068-.479.016-.273.144-.526.401-.728l.027-.02.029-.018a.729.729 0 01.792.026c.18.117.325.3.442.47.17.24.35.506.507.787l.001.002c2.4 4.35 5.404 8.244 8.893 11.79l-.343.338.343-.338c4.39 4.463 9.63 7.735 15.16 10.655.463.242.93.466 1.415.697z" />
-                                                </svg>
-                                            </span>
-
-                                            <h2 class="mailmint-wp-anniversary__title-end">
-                                                <?php echo __("Ends <br> Soon", 'wpfnl') ?>
-                                            </h2>
-
-                                        </div>
-
-                                    </div>
-
                                 </div>
-
-                                <!-- .mailmint-anniv__image end -->
-                                <div class="mailmint-anniv__btn-area">
-
-                                    <a href="https://getwpfunnels.com/email-marketing-automation-mail-mint/?utm_source=mm-plugin&utm_medium=banner-cta&utm_campaign=eid2024#price" role="button" class="mailmint-anniv__btn"
-                                        target="_self">
-                                        <?php echo __('Get It Now', 'mrm') ?>
-                                    </a>
-                                    <svg width="70" height="63" viewBox="0 0 81 91" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M4.60726 7.08212C5.63427 5.17372 6.26181 3.5466 6.19789 1.74546C5.24817 1.083 4.10149 0.76304 2.94599 0.838064C2.93589 2.70538 2.37727 4.52856 1.33954 6.08101C2.82572 5.97643 3.71203 6.14281 4.60726 7.08212Z"
-                                            fill="white" />
-                                        <path
-                                            d="M67.7906 55.9479C66.0001 55.8367 64.2446 54.9871 61.2859 51.7876C60.0803 53.3512 59.4088 55.2606 59.3701 57.2345C61.4304 59.134 63.9435 60.4731 66.6691 61.124C66.4742 59.3228 66.8676 57.5069 67.7906 55.9479Z"
-                                            fill="white" />
-                                        <path
-                                            d="M60.7242 14.3636C58.8533 15.8746 56.7019 17.0004 54.3939 17.6763C54.6919 18.9167 55.3888 20.025 56.3776 20.8311C58.7543 20.1875 61.0193 19.1862 63.0949 17.8615C61.3805 16.7802 60.6869 15.9535 60.7242 14.3636Z"
-                                            fill="white" />
-                                        <path
-                                            d="M79.4201 90.0494C79.4696 88.9021 79.7633 87.7785 80.2816 86.7538C78.014 86.8946 75.7377 86.7304 73.5138 86.2657C72.7494 87.1074 72.329 88.2054 72.3358 89.3423C74.6605 89.8601 77.0389 90.0975 79.4201 90.0494Z"
-                                            fill="white" />
-                                    </svg>
-
-
-                                </div>
-
                             </div>
-
-                            <div class="mailmint-anniv__image mailmint-anniv__image--right">
-                                <figure>
-                                    <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/banner-image/eid-ul-adha-right.webp'); ?>"
-                                        alt="Eid-ul-adha-mosque" />
-                                </figure>
-                            </div>
-
-                        </div>
+                        </section>
 
                     </div>
 
@@ -197,10 +166,41 @@ class SpecialOccasionBanner
         <script>
             var timeRemaining = <?php echo esc_js($time_remaining); ?>;
 
+            function updateCountdown() {
+                var endDate = new Date("2024-10-20 23:59:59").getTime();
+                var now = new Date().getTime();
+                var timeLeft = endDate - now;
+
+                var days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+
+                var daysElement = document.getElementById('mint-halloween-days');
+                var hoursElement = document.getElementById('mint-halloween-hours');
+                var minsElement = document.getElementById('mint-halloween-mins');
+
+                if (daysElement) {
+                    daysElement.innerHTML = days;
+                }
+
+                if (hoursElement) {
+                    hoursElement.innerHTML = hours;
+                }
+
+                if (minsElement) {
+                    minsElement.innerHTML = minutes;
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                updateCountdown();
+                setInterval(updateCountdown, 60000); // Update every minute
+            });
+
             // Update the countdown every second
             // setInterval(function() {
             //     var countdownElement    = document.getElementById('mailmint_countdown');
-            //     var daysElement         = document.getElementById('mailmint_days');
+            //     var daysElement         = document.getElementById('mint-halloween-days');
             //     var hoursElement        = document.getElementById('mailmint_hours');
             //     var minutesElement      = document.getElementById('mailmint_minutes');
 
@@ -223,10 +223,10 @@ class SpecialOccasionBanner
             //     hoursElement.textContent = hours;
             //     minutesElement.textContent = minutes;
 
-            //     // Check if the countdown has ended
-            //     if (timeRemaining <= 0) {
-            //         countdownElement.innerHTML = 'Campaign Ended';
-            //     }
+            //     // // Check if the countdown has ended
+            //     // if (timeRemaining <= 0) {
+            //     //     countdownElement.innerHTML = 'Campaign Ended';
+            //     // }
             // }, 1000); // Update every second
         </script>
     <?php
@@ -502,12 +502,13 @@ class SpecialOccasionBanner
                 overflow: hidden;
                 position: relative;
                 width: 100%;
+                z-index: 1;
             }
 
             .wp-anniversary-banner.notice {
                 border: none;
                 padding: 0;
-                display: block;
+                display: block !important;
                 background: transparent;
                 margin: 0;
             }
@@ -940,10 +941,6 @@ class SpecialOccasionBanner
 
             @media only screen and (max-width: 768px) {
 
-                .mailmint-tb__notification {
-                    margin: 60px 0 20px;
-                }
-
                 .mailmint-anniv__container-area {
                     padding: 0 15px;
                 }
@@ -1028,15 +1025,6 @@ class SpecialOccasionBanner
             }
 
             @media only screen and (max-width: 767px) {
-                .wpvr-promotional-banner {
-                    padding-top: 20px;
-                    padding-bottom: 30px;
-                    max-height: none;
-                }
-
-                .wpvr-promotional-banner {
-                    max-height: none;
-                }
 
                 .mailmint-anniv__image--right,
                 .mailmint-anniv__image--left {
@@ -1067,6 +1055,203 @@ class SpecialOccasionBanner
                 .mailmint-anniv__image--group {
                     gap: 10px;
                     padding: 0;
+                }
+            }
+
+
+            /* Halloween */
+
+            .mint-notification-counter {
+                position: relative;
+                background-image: url(<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/halloween/promotional-banner.png'); ?>);
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: 100% 100%;
+                object-fit: cover;
+                background-color: #03031E;
+                z-index: 1111;
+                padding: 9px 0 4px;
+            }
+
+            .mint-notification-counter__container {
+                position: relative;
+                width: 100%;
+                max-height: 110px;
+                max-width: 1310px;
+                margin: 0 auto;
+                padding: 0px 15px;
+            }
+
+            .mint-notification-counter__content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .mint-notification-counter__figure-logo {
+                max-width: 268px;
+            }
+
+            .mint-notification-counter__figure-percentage {
+                max-width: 248px;
+                margin-left: -75px;
+            }
+
+            .mint-notification-counter__img {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .mint-notification-counter__list {
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+
+            .mint-notification-counter__item {
+                display: flex;
+                flex-direction: column;
+                width: 56.14px;
+                font-family: "Circular Std Book";
+                font-size: 15px;
+                font-style: normal;
+                font-weight: 500;
+                line-height: normal;
+                letter-spacing: 0.75px;
+                text-transform: uppercase;
+                text-align: center;
+                color: #FFF;
+            }
+
+            .mint-notification-counter__time {
+                font-size: 32px;
+                font-family: "Inter";
+                font-style: normal;
+                font-weight: 700;
+                line-height: normal;
+                color: #fff;
+                text-align: center;
+                margin-bottom: 6px;
+                border-radius: 3px 3px 10px 10px;
+                border-top: 1px solid #5440f4;
+                border-right: 1px solid #5440f4;
+                border-bottom: 5px solid #5440f4;
+                border-left: 1px solid #5440f4;
+                background: linear-gradient(155deg, #201CFE 2.02%, #5440f4 55.1%, #100E35 131.47%);
+            }
+
+            .mint-notification-counter__btn-area {
+                display: flex;
+                align-items: flex-end;
+                justify-content: flex-end;
+                margin-bottom: 30px;
+            }
+
+            .mint-notification-counter__btn {
+                position: relative;
+                font-family: "Inter";
+                font-size: 20px;
+                line-height: normal;
+                color: #FFF;
+                text-align: center;
+                filter: drop-shadow(0px 30px 60px rgba(21, 19, 119, 0.20));
+                padding: 12px 22px;
+                display: inline-block;
+                cursor: pointer;
+                text-transform: uppercase;
+                background: #573BFF;
+                text-decoration: none;
+                border-radius: 10px;
+                font-weight: 400;
+                transition: all 0.3s ease;
+            }
+
+            .mint-notification-counter__btn:hover {
+                background-color: #201cfe;
+                color: #ffffff;
+            }
+
+            .mint-notification-counter__stroke-font {
+                font-size: 26px;
+                font-family: "Inter";
+                font-weight: 700;
+            }
+
+            /* Media Queries */
+            @media only screen and (max-width: 1199px) {
+                .mint-notification-counter__container {
+                    max-width: 1010px;
+                }
+                .mint-notification-counter__figure-percentage {
+                    margin-left: -60px;
+                }
+                .mint-notification-counter__figure-percentage,
+                .mint-notification-counter__figure-logo {
+                    max-width: 220px;
+                }
+                .mint-notification-counter__btn {
+                    font-size: 15px;
+                    line-height: 20px;
+                    padding: 10px 16px;
+                    font-weight: 400;
+                }
+                .mint-notification-counter__stroke-font {
+                    font-size: 20px;
+                }
+
+                .mint-notification-counter {
+                    padding: 5px 0 4px;
+                }
+                .mint-notification-counter__figure-percentage {
+                    margin-left: 0px;
+                }
+                .mint-notification-counter__figure-logo {
+                    max-width: 160px;
+                }
+                .mint-notification-counter__figure-percentage {
+                    max-width: 150px;
+                }
+                .mint-notification-counter__btn {
+                    font-size: 14px;
+                    line-height: 18px;
+                    padding: 9px 10px;
+                }
+                .mint-notification-counter__stroke-font {
+                    font-size: 18px;
+                }
+                .mint-notification-counter__time {
+                    font-size: 24px;
+                }
+            }
+
+            @media only screen and (max-width: 767px) {
+                .mint-notification-counter {
+                    padding: 50px 0;
+                    background-image: url(<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/halloween/promotional-banner-mobile.webp'); ?>);
+                }
+                .mint-notification-counter__container {
+                    max-height: none;
+                }
+                .mint-notification-counter__figure-logo {
+                    max-width: 174px;
+                }
+                .mint-notification-counter__figure-percentage {
+                    max-width: 150px;
+                }
+                .mint-notification-counter__content {
+                    flex-flow: column;
+                    gap: 12px;
+                    text-align: center;
+                }
+                .mint-notification-counter__btn {
+                    font-size: 16px;
+                    padding: 11px 16px;
+                }
+                .mint-notification-counter__stroke-font {
+                    font-size: 22px;
                 }
             }
         </style>

@@ -164,6 +164,7 @@ class App {
 			}
 
 			update_option( "mail_mint_hide_{$notice_name}_notice", 'yes' );
+			update_option( "mail_mint_hide_wc_database_update_notice", 'yes' );
 		}
 	}
 

@@ -321,6 +321,7 @@ class TransStrings
 			'Before' => __('Before', 'mrm'),
 			'After' => __('After', 'mrm'),
 			'InTheDate' => __('In the date', 'mrm'),
+			'Between' => __('Between', 'mrm'),
 			'GreaterThan' => __('Greater than', 'mrm'),
 			'LessThan' => __('Less than', 'mrm'),
 			'Equal' => __('Equal', 'mrm'),

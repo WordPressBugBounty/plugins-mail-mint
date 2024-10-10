@@ -786,4 +786,58 @@ class Helper {
 		$content = preg_replace('/\[[^\[\]]*\]/', '', $content);
 		return $content;
 	}
+
+	public static function getDbCustomerFromOrder($order){
+		global $wpdb;
+        if ($customerUserId = $order->get_customer_id()) {
+			$customer = $wpdb->get_row(
+				$wpdb->prepare("SELECT * FROM {$wpdb->prefix}wc_customer_lookup WHERE user_id = %d", $customerUserId)
+			);
+            if ($customer) {
+                return $customer;
+            }
+        }
+
+        $customerId = false;
+        
+		$lookup = $wpdb->get_row(
+			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}wc_order_product_lookup WHERE order_id = %d", $order->get_id())
+		);
+
+        if ($lookup) {
+            $customerId = $lookup->customer_id;
+        } else {
+            if (class_exists('\Automattic\WooCommerce\Admin\API\Reports\Customers\DataStore')) {
+                if (!is_a($order, '\Automattic\WooCommerce\Admin\Overrides\Order')) {
+                    $order = new \Automattic\WooCommerce\Admin\Overrides\Order($order);
+                }
+
+                $customerId = \Automattic\WooCommerce\Admin\API\Reports\Customers\DataStore::get_or_create_customer_from_order($order);
+            }
+        }
+
+        if (!$customerId) {
+			$lookup = $wpdb->get_row(
+				$wpdb->prepare("SELECT * FROM {$wpdb->prefix}wc_order_stats WHERE order_id = %d", $order->get_id())
+			);
+            if ($lookup) {
+                $customerId = $lookup->customer_id;
+            }
+        }
+
+        if (!$customerId) {
+            $customerEmail = $order->get_billing_email();
+            if ($customerEmail) {
+                return $wpdb->get_row(
+					$wpdb->prepare("SELECT * FROM {$wpdb->prefix}wc_customer_lookup WHERE email = %s", $customerEmail)
+				);
+            } else {
+                return false;
+            }
+        }
+
+        return $wpdb->get_row(
+			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}wc_customer_lookup WHERE customer_id = %d", $customerId)
+		);
+    }
 }

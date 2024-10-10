@@ -72,14 +72,42 @@ jQuery(document).ready(function ($) {
             })
     })
 
+    function modifyQueryString(input) {
+        // Split the input string into key-value pairs
+        const pairs = input.split('&');
+        const result = [];
+        const mrmList = [];
+    
+        pairs.forEach(pair => {
+            const [key, value] = pair.split('=');
+    
+            // Keep the key-value pairs that are not list items
+            if (!/^\d+$/.test(key)) {
+                result.push(`${key}=${value}`);
+            } else {
+                // Collect list item keys
+                mrmList.push(key);
+            }
+        });
+    
+        // Append the mrm_list items in the desired format
+        mrmList.forEach(item => {
+            result.push(`mrm_list%5B%5D=${item}`);
+        });
+    
+        // Join the result array into a string
+        return result.join('&');
+    }
 
-    $(".mrm-preferance-form-wrapper form").on("submit", function (e) {
+    $("#mrm-preference-form").on("submit", function (e) {
         e.preventDefault();
         jQuery(".response").html("");
         $(".mrm-pref-submit-button").addClass("show-loader");
         var data = new FormData();
         var postData = jQuery("#mrm-preference-form").serialize();
-        data.append( "post_data", postData );
+        var modifiedQueryString = modifyQueryString(postData);
+        postData = modifiedQueryString;
+        data.append( "post_data", modifiedQueryString );
         data.append( "wp_nonce", window.MRM_Frontend_Vars.nonce ); // This nonce is created in the following file: /app/Internal/Frontend/FrontendAssets.php
         data.append( "action", "mrm_preference_update_by_user");
         fetch(window.MRM_Frontend_Vars.rest_api_url+"mint-mail/v1/mint-preference-submit",
@@ -180,4 +208,98 @@ jQuery(document).ready(function ($) {
          $(this).parent().parent().find('#mrm-popup').css("display","flex");
     })
 
+    
+    $('#mrm-unsubscribe-cancel').on('click', function(e) {
+        e.preventDefault();
+        window.close();
+    });
+
+    // Toggle dropdown visibility
+    $('.mintmrm-dropdown-button').on('click', function(e) {
+        e.preventDefault();
+        $(this).toggleClass('show');
+        $('.add-contact.mintmrm-dropdown').toggleClass('show');
+    });
+
+    // Close dropdown when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.mintmrm-dropdown-button, .add-contact.mintmrm-dropdown').length) {
+            $('.mintmrm-dropdown-button').removeClass('show');
+            $('.add-contact.mintmrm-dropdown').removeClass('show');
+        }
+    });
+
+    const updateDropdownButton = () => {
+        const $dropdownButton = $('.mintmrm-dropdown-button');
+        const $checkboxes = $('.mintmrm-dropdown-list input[type="checkbox"]').not('#all-items-create');
+        const $checkedCheckboxes = $checkboxes.filter(':checked');
+
+        $dropdownButton.empty();
+        if ($checkedCheckboxes.length > 0) {
+            $checkedCheckboxes.each(function() {
+                const title = $(this).next('label').text();
+                $dropdownButton.append(
+                    `<span class="single-list mintmrm-tag-list">${title}
+                        <span class="close-list" title="Delete">&#10005;</span>
+                    </span>`
+                );
+            });
+        } else {
+            $dropdownButton.text('Select Tag');
+        }
+    };
+
+    // Handle individual checkbox selection
+    $('.mintmrm-dropdown-list input[type="checkbox"]').not('#all-items-create').on('change', function() {
+        const $allItemsCheckbox = $('#all-items-create');
+        const $checkboxes = $('.mintmrm-dropdown-list input[type="checkbox"]').not($allItemsCheckbox);
+        const $checkedCheckboxes = $checkboxes.filter(':checked');
+
+        // Update "Select All Items" checkbox
+        if ($checkedCheckboxes.length === $checkboxes.length) {
+            $allItemsCheckbox.prop('checked', true);
+        } else {
+            $allItemsCheckbox.prop('checked', false);
+        }
+
+        updateDropdownButton();
+    });
+
+    // Handle "Select All Items" checkbox
+    $('#all-items-create').on('change', function() {
+        const $checkboxes = $('.mintmrm-dropdown-list input[type="checkbox"]').not(this);
+        $checkboxes.prop('checked', $(this).is(':checked'));
+        updateDropdownButton();
+    });
+
+    // Remove item from button when close icon is clicked
+    $(document).on('click', '.close-list', function() {
+        const $checkbox = $(`input[type="checkbox"][value="${$(this).parent().text().trim()}"]`);
+        $checkbox.prop('checked', false).trigger('change');
+    });
+
+    // Search functionality on input
+    $('.searchbar.mintmrm-dropdown-list input[type="search"]').on('input', function() {
+        const searchValue = $(this).val().toLowerCase();
+        const $items = $('.option-section .single-column');
+        let hasMatch = false;
+
+        $items.each(function() {
+            const itemText = $(this).find('label').text().toLowerCase();
+            const isMatch = itemText.includes(searchValue);
+            $(this).toggle(isMatch);
+            if (isMatch) {
+                hasMatch = true;
+            }
+        });
+
+        // Show "No items found" if no matches
+        if (!hasMatch) {
+            if (!$('.no-items-found').length) {
+                $('.option-section').append('<div class="no-items-found">No items found</div>');
+            }
+        } else {
+            $('.no-items-found').remove();
+        }
+    });
 });

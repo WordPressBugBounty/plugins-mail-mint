@@ -102,7 +102,7 @@ class SendMail extends AbstractAutomationAction {
 			do_action( 'mailmint_before_automation_send_mail', $data['automation_id'], $data['data']['user_email'] );
 			do_action( 'mint_before_automation_send_mail', $data['automation_id'], $data['data'] );
 
-			if (!empty($step_data['settings']['message_data']) && HelperFunctions::maybe_user($data['data']['user_email'])) {
+			if (!empty($step_data['settings']['message_data']) && HelperFunctions::maybe_user($data['data']['user_email']) && !Email::is_email_already_sent($data['automation_id'], $data['step_id'], $data['step_id'], $contact_id, 'sent')) {
 				$headers = array( //phpcs:ignore
 					'MIME-Version: 1.0',
 					'Content-type: text/html;charset=UTF-8',

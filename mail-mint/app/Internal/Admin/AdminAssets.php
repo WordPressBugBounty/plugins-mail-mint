@@ -393,6 +393,7 @@ class AdminAssets {
                     'contacts_map_attrs'             => MrmCommon::import_contacts_map_attrs(),
                     'address'                        => MrmCommon::get_business_full_address(),
                     'current_user_email'             => $current_user_email,
+                    'condition_fields'               => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.16.1') ? Mint_Pro_Helper::get_automation_condition_fields() : false,
 		        )
 	        );
         }

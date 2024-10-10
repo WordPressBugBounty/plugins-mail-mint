@@ -1050,4 +1050,32 @@ class ContactModel {
 		$table_name = $wpdb->prefix . ContactMetaSchema::$table_name;
     	return $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $table_name WHERE meta_key = %s AND contact_id = %d", $meta_key, $contact_id ) );
 	}
+
+	/**
+	 * Run SQL Query to get a single contact information by email.
+	 *
+	 * @param mixed $email Contact email address.
+	 *
+	 * @return array
+	 * @since 1.14.5
+	 */
+	public static function get_contact_data_by_email( $email ) {
+		global $wpdb;
+		$contacts_table = $wpdb->prefix . ContactSchema::$table_name;
+
+		$contact    = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $contacts_table WHERE email = %s", array( $email ) ), ARRAY_A ); // db call ok. ; no-cache ok.
+		$contact_id = isset( $contact['id'] ) ? $contact['id'] : '';
+		$new_meta   = self::get_meta( $contact_id );
+
+		if ( is_array( $contact ) && is_array( $new_meta ) ) {
+			$contact = array_merge( $contact, $new_meta );
+		}
+
+		if (isset($contact['meta_fields']) && is_array($contact['meta_fields'])) {
+			$contact = array_merge($contact, $contact['meta_fields']);
+			unset($contact['meta_fields']);
+		}
+
+		return is_array( $contact ) ? $contact : array();
+	}
 }

@@ -14,10 +14,7 @@ namespace MailMint\App\Actions;
 
 use Mint\MRM\DataBase\Models\EmailModel;
 use MailMint\App\Helper;
-use MailMintPro\Internal\LeadMagnet\LeadMagnetDownloader;
 use Mint\MRM\DataBase\Models\ContactModel;
-use Mint\MRM\Internal\Optin\UnsubscribeConfirmation;
-use Mint\MRM\Utilites\Helper\Campaign;
 use MRM\Common\MrmCommon;
 
 /**
@@ -41,10 +38,12 @@ class Hooks {
 		add_filter( 'plugin_row_meta', array( $this, 'mailmint_plugin_row_meta' ), 10, 2 );
 		add_action( 'admin_footer', array( $this, 'remove_jetpack_note_from_mail_mint' ) );
 		add_action( 'init', array( $this, 'clear_litespeed_cache' ) );
+		add_action( 'woocommerce_new_order', array( $this, 'insert_mint_woocommerce_customer_data' ), 10, 2 );
 		add_action('action_scheduler_failed_action', array( $this, 'handle_failed_action' ), 10, 1);
 		add_action('action_scheduler_failed_execution', array( $this, 'handle_failed_action' ), 10, 2);
 		add_action('init', array($this, 'handle_email_open_tracking'));
 		add_filter( 'mint_merge_tag_fallback', array( $this, 'mint_merge_tag_fallback' ), 10, 2 );
+		add_action('woocommerce_order_status_changed', array($this, 'handlePaymentStatusChanged'), 100, 4);
 	}
 
 	public function mint_merge_tag_fallback( $value_key, $contact ) {
@@ -740,11 +739,287 @@ class Hooks {
 
 				if(window.location.href.includes('setup-wizard')){
 					document.documentElement.classList.add('mrm-setup-wizard');
+
+					// Select all elements with the 'notice' and 'notice-success' classes
+    				const notices = document.querySelectorAll('.notice-success');
+
+					// Loop through each element and apply styles
+					notices.forEach(notice => {
+						notice.style.display = 'none';
+					});
 				}
 			</script>
 			<?php
 		}
 	}
 
+	/**
+	 * Insert or update Mail Mint WooCommerce customer data.
+	 * This function is called when a new order is placed in WooCommerce.
+	 * 
+	 * @param int $order_id The order ID.
+	 * @param object $order The WooCommerce order object.
+	 * @since 1.14.0
+	 */
+	public function insert_mint_woocommerce_customer_data( $order_id, $order ) {
+		if ( ! empty( $order ) ) {
+			$customer = Helper::getDbCustomerFromOrder($order);
+			$email_address = $customer->email;
+			$order_date    = $order->get_date_created()->format('Y-m-d H:i:s');
+			$total_value   = $order->get_total();
+			$items         = $order->get_items();
 
+			// Retrieve existing data for the email.
+			global $wpdb;
+			$mint_wc_table = $wpdb->prefix . 'mint_wc_customers';
+			$existing_data = $wpdb->get_row( $wpdb->prepare("SELECT * FROM $mint_wc_table WHERE email_address = %s", $email_address), ARRAY_A );
+
+			// Initialize or update customer data.
+			if ( $existing_data ) {
+				// Update existing data
+				$existing_data['l_order_date'] = max( $existing_data['l_order_date'], $order_date );
+				$existing_data['f_order_date'] = min( $existing_data['f_order_date'], $order_date );
+
+				// Only count parent orders for `total_order_count`
+				if ( $order->get_parent_id() == 0 ) {
+					$existing_data['total_order_count'] += 1;
+				}
+
+				$existing_data['total_order_value'] += $total_value;
+
+				$existing_products = json_decode( $existing_data['purchased_products'], true );
+				$existing_cats     = json_decode( $existing_data['purchased_products_cats'], true );
+				$existing_tags     = json_decode( $existing_data['purchased_products_tags'], true );
+				$existing_coupons  = json_decode( $existing_data['used_coupons'], true );
+
+				foreach ( $items as $item ) {
+					$product = $item->get_product();
+					if ( $product ) {
+						$existing_products[] = $product->get_id();
+						$product_cats  = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+						$product_tags  = wp_get_post_terms( $product->get_id(), 'product_tag', array( 'fields' => 'ids' ) );
+						$existing_cats = array_merge( $existing_cats, $product_cats );
+						$existing_tags = array_merge( $existing_tags, $product_tags );
+					}
+				}
+
+				$existing_coupons = array_merge( $existing_coupons, $order->get_coupon_codes() );
+
+				// Remove duplicates
+				$existing_data['purchased_products']      = array_values( array_unique( $existing_products ) );
+				$existing_data['purchased_products_cats'] = array_values( array_unique( $existing_cats ) );
+				$existing_data['purchased_products_tags'] = array_values( array_unique( $existing_tags ) );
+				$existing_data['used_coupons']            = array_values( array_unique( $existing_coupons ) );
+
+				// Calculate AOV (Average Order Value)
+				if ( $existing_data['total_order_count'] > 0 ) {
+					$existing_data['aov'] = number_format((float) ($existing_data['total_order_value'] / $existing_data['total_order_count']), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator());
+				} else {
+					$existing_data['aov'] = number_format((float) (0), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator());
+				}
+
+				// Update the custom table.
+				if ($existing_data['total_order_count'] > 0) {
+					$wpdb->update(
+						$mint_wc_table,
+						array(
+							'l_order_date'            => $existing_data['l_order_date'],
+							'f_order_date'            => $existing_data['f_order_date'],
+							'total_order_count'       => $existing_data['total_order_count'],
+							'total_order_value'       => $existing_data['total_order_value'],
+							'aov'                     => $existing_data['aov'],
+							'purchased_products'      => wp_json_encode( $existing_data['purchased_products'] ),
+							'purchased_products_cats' => wp_json_encode( $existing_data['purchased_products_cats'] ),
+							'purchased_products_tags' => wp_json_encode( $existing_data['purchased_products_tags'] ),
+							'used_coupons'            => wp_json_encode( $existing_data['used_coupons'] ),
+						),
+						array( 'email_address' => $email_address )
+					);
+				}
+			} else {
+				// Initialize new data.
+				$purchased_products      = array();
+				$purchased_products_cats = array();
+				$purchased_products_tags = array();
+				foreach ( $items as $item ) {
+					$product = $item->get_product();
+					if ( $product ) {
+						$purchased_products[]    = $product->get_id();
+						$product_cats            = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+						$product_tags            = wp_get_post_terms( $product->get_id(), 'product_tag', array( 'fields' => 'ids' ) );
+						$purchased_products_cats = array_merge( $purchased_products_cats, $product_cats );
+						$purchased_products_tags = array_merge( $purchased_products_tags, $product_tags );
+					}
+				}
+
+				// Collecting used coupons.
+				$used_coupons = $order->get_coupon_codes();
+
+				// Calculate AOV (Average Order Value)
+				$aov = ($order->get_parent_id() == 0) ? number_format((float) ($total_value), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()) : number_format((float) (0), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator());
+
+				// Insert new data into the custom table.
+				if ($order->get_parent_id() == 0) {
+					$wpdb->insert(
+						$mint_wc_table,
+						array(
+							'email_address'           => $email_address,
+							'l_order_date'            => $order_date,
+							'f_order_date'            => $order_date,
+							'total_order_count'       => 1,
+							'total_order_value'       => $total_value,
+							'aov'                     => $aov,
+							'purchased_products'      => wp_json_encode(array_values(array_unique($purchased_products))),
+							'purchased_products_cats' => wp_json_encode(array_values(array_unique($purchased_products_cats))),
+							'purchased_products_tags' => wp_json_encode(array_values(array_unique($purchased_products_tags))),
+							'used_coupons'            => wp_json_encode(array_values(array_unique($used_coupons))),
+						)
+					);
+				}
+			}
+		}
+	}
+
+	public function handlePaymentStatusChanged($paymentId, $oldStatus, $newStatus, $order)
+	{
+		if ($oldStatus == $newStatus) {
+			return false;
+		}
+
+		$paidStatuses= array('wc-completed', 'wc-processing', 'wc-on-hold');
+		if (in_array($oldStatus, $paidStatuses) && in_array($newStatus, $paidStatuses)) {
+			return false;
+		}
+
+		$requireSync = false;
+		if (!in_array($newStatus, $paidStatuses)) {
+			// It maybe a refund so we have sync all the orders. Sorry!
+			$requireSync = true;
+		}
+
+		return $this->syncWooOrder($order, $requireSync);
+	}
+
+	private function syncWooOrder($order, $requireSync = false)
+	{
+		$customer = Helper::getDbCustomerFromOrder($order);
+		if (!$customer) {
+			return false;
+		}
+		$email_address = $customer->email;
+		$order_date    = $order->get_date_created()->format('Y-m-d H:i:s');
+		$total_value   = $order->get_total();
+		$items         = $order->get_items();
+
+		// Retrieve existing data for the email.
+		global $wpdb;
+		$mint_wc_table = $wpdb->prefix . 'mint_wc_customers';
+		$existing_data = $wpdb->get_row($wpdb->prepare("SELECT * FROM $mint_wc_table WHERE email_address = %s", $email_address), ARRAY_A);
+
+		// Initialize or update customer data.
+		if ($existing_data) {
+			// Update existing data
+			$existing_data['l_order_date'] = max($existing_data['l_order_date'], $order_date);
+			$existing_data['f_order_date'] = min($existing_data['f_order_date'], $order_date);
+
+			// Only count parent orders for `total_order_count`
+			if ($order->get_parent_id() == 0) {
+				$existing_data['total_order_count'] -= 1;
+			}
+
+			$existing_data['total_order_value'] -= $total_value;
+
+			$existing_products = json_decode($existing_data['purchased_products'], true);
+			$existing_cats     = json_decode($existing_data['purchased_products_cats'], true);
+			$existing_tags     = json_decode($existing_data['purchased_products_tags'], true);
+			$existing_coupons  = json_decode($existing_data['used_coupons'], true);
+
+			foreach ($items as $item) {
+				$product = $item->get_product();
+				if ($product) {
+					$existing_products[] = $product->get_id();
+					$product_cats  = wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'ids'));
+					$product_tags  = wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'ids'));
+					$existing_cats = array_merge($existing_cats, $product_cats);
+					$existing_tags = array_merge($existing_tags, $product_tags);
+				}
+			}
+
+			$existing_coupons = array_merge($existing_coupons, $order->get_coupon_codes());
+
+			// Remove duplicates
+			$existing_data['purchased_products']      = array_values(array_unique($existing_products));
+			$existing_data['purchased_products_cats'] = array_values(array_unique($existing_cats));
+			$existing_data['purchased_products_tags'] = array_values(array_unique($existing_tags));
+			$existing_data['used_coupons']            = array_values(array_unique($existing_coupons));
+
+			// Calculate AOV (Average Order Value)
+			if ($existing_data['total_order_count'] > 0) {
+				$existing_data['aov'] = number_format((float) ($existing_data['total_order_value'] / $existing_data['total_order_count']), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator());
+			} else {
+				$existing_data['aov'] = number_format((float) (0), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator());
+			}
+
+			// Update the custom table.
+			if ($existing_data['total_order_count'] > 0) {
+				$wpdb->update(
+					$mint_wc_table,
+					array(
+						'l_order_date'            => $existing_data['l_order_date'],
+						'f_order_date'            => $existing_data['f_order_date'],
+						'total_order_count'       => $existing_data['total_order_count'],
+						'total_order_value'       => $existing_data['total_order_value'],
+						'aov'                     => $existing_data['aov'],
+						'purchased_products'      => wp_json_encode($existing_data['purchased_products']),
+						'purchased_products_cats' => wp_json_encode($existing_data['purchased_products_cats']),
+						'purchased_products_tags' => wp_json_encode($existing_data['purchased_products_tags']),
+						'used_coupons'            => wp_json_encode($existing_data['used_coupons']),
+					),
+					array('email_address' => $email_address)
+				);
+			}
+		} else {
+			// Initialize new data.
+			$purchased_products      = array();
+			$purchased_products_cats = array();
+			$purchased_products_tags = array();
+			foreach ($items as $item) {
+				$product = $item->get_product();
+				if ($product) {
+					$purchased_products[]    = $product->get_id();
+					$product_cats            = wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'ids'));
+					$product_tags            = wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'ids'));
+					$purchased_products_cats = array_merge($purchased_products_cats, $product_cats);
+					$purchased_products_tags = array_merge($purchased_products_tags, $product_tags);
+				}
+			}
+
+			// Collecting used coupons.
+			$used_coupons = $order->get_coupon_codes();
+
+			// Calculate AOV (Average Order Value)
+			$aov = ($order->get_parent_id() == 0) ? number_format((float) ($total_value), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator()) : number_format((float) (0), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator());
+
+			// Insert new data into the custom table.
+			if ($order->get_parent_id() == 0) {
+				$wpdb->insert(
+					$mint_wc_table,
+					array(
+						'email_address'           => $email_address,
+						'l_order_date'            => $order_date,
+						'f_order_date'            => $order_date,
+						'total_order_count'       => 1,
+						'total_order_value'       => $total_value,
+						'aov'                     => $aov,
+						'purchased_products'      => wp_json_encode(array_values(array_unique($purchased_products))),
+						'purchased_products_cats' => wp_json_encode(array_values(array_unique($purchased_products_cats))),
+						'purchased_products_tags' => wp_json_encode(array_values(array_unique($purchased_products_tags))),
+						'used_coupons'            => wp_json_encode(array_values(array_unique($used_coupons))),
+					)
+				);
+			}
+		}
+
+		return true;
+	}
 }

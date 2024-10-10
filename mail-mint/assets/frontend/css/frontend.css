@@ -327,6 +327,7 @@
 
 .mintmrm-page-template-main {
   padding: 50px 0;
+  width: 100%;
 }
 
 .mrm-preferance-form-wrapper .mrm-block-label {
@@ -658,6 +659,657 @@
 }
 #mintmail_woocommerce_optin_consent_field label.woocommerce-form__label-for-checkbox .optional::before {
   display: none !important;
+}
+
+.mintmrm-default-pages {
+    background: #FFF;
+    text-align: center;
+    border-radius: 8px;
+    padding: 40px;
+    box-shadow: 0px 30px 20px 30px rgba(228, 232, 235, 0.38);
+}
+.mintmrm-default-pages .mintmrm-card-wrapper {
+    border-radius: 8px;
+    background: #F6F8FA;
+    padding: 100px 200px;
+}
+.mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card {
+    background: #FFF;
+    filter: drop-shadow(0px 1px 1px rgba(182, 185, 191, 0.30));
+    border-radius: 10px;
+    padding: 80px;
+}
+.mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-title {
+    color: #2D3149;
+    font-family: sans-serif;
+    font-size: 36px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.8px;
+    margin: 30px 0 0;
+}
+.mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-subtitle {
+    color: #9398A5;
+    font-family: sans-serif;
+    font-size: 14px;
+    line-height: 1;
+    margin: 16px 0 0;
+}
+.mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-buttons{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 40px;
+}
+.mintmrm-default-pages .mintmrm-card-button {
+    text-decoration: none;
+    border-radius: 6px;
+    background: #573BFF;
+    box-shadow: 0px 10px 16px 0px rgba(189, 193, 200, 0.50);
+    color: #FFF;
+    font-family: sans-serif;
+    font-size: 16px;
+    padding: 14px 30px;
+    font-weight: 500;
+    border: 1px solid transparent;
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+.mintmrm-default-pages .mintmrm-card-button:hover {
+    background: #4c25a5;
+}
+.no-items-found {
+  text-align: left;
+  padding-left: 12px;
+  font-size: 14px;
+  color: red;
+}
+
+.mintmrm-default-pages  .mintmrm-card-button.mintmrm-card-button-outline {
+    background: none;
+    border: 1px solid #EBEDF0;
+    box-shadow: none;
+    color: #2D3149;
+}
+.mintmrm-default-pages .mintmrm-card-button.mintmrm-card-button-outline:hover{
+    background: #573BFF;
+    border: 1px solid #573BFF;
+    color: #FFF;
+}
+
+/* Preference Page */
+.mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper{
+    padding: 57px 80px;
+}
+.mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper .mintmrm-card{
+    padding: 40px;
+    max-width: 540px;
+    margin: 0 auto;
+}
+.mintmrm-preference-page .mintmrm-card-wrapper .mintmrm-card-title {
+    color: #2D3149;
+    font-family: sans-serif;
+    font-size: 40px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.8px;
+    margin: 0 0 30px;
+}
+.mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper .mintmrm-card .mrm-form-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+.mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper .mintmrm-card .mrm-form-group label.mrm-block-label {
+    color: #2D3149;
+    font-family: sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    line-height: normal;
+}
+.mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper .mintmrm-card .mrm-form-group input {
+    border-radius: 6px;
+    border: 1px solid #E4E6EB;
+    padding: 15px;
+    font-size: 14px;
+}
+.mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper .mintmrm-card .mrm-form-group .input-custom-wrapper{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+.mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper .mintmrm-card .mrm-form-group .input-custom-wrapper input{
+    margin: 0;
+    padding: 0;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn {
+    position: relative;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn input[type="radio"] {
+    position: absolute;
+    top: 7px;
+    z-index: -1;
+    width: 0;
+    height: auto;
+    opacity: 0;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn input[type="radio"]:active + label::before,
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn input[type="radio"]:focus + label::before {
+    border-color: #573bff;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn.no-title label {
+    height: 16px;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn label {
+    font-size: 14px;
+    line-height: 14px;
+    font-weight: 500;
+    color: #2D3149;
+    position: relative;
+    padding-left: 29px;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn label::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: -3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 100%;
+    background: #f7f7fa;
+    border: 1px solid #bdc7eb;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn label::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    background: #573bff;
+    transform: scale(0);
+    transition: all 0.3s ease;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn input[type="radio"]:checked + label::before {
+    border-color: #573bff;
+}
+
+.mintmrm-default-pages .input-custom-wrapper .mintmrm-radiobtn input[type="radio"]:checked + label::after {
+    transform: scale(1);
+}
+
+.mintmrm-default-pages .mintmrm-preference-form {
+  display: flex;
+  flex-direction: column;
+}
+.mintmrm-default-pages .mintmrm-preference-form .mintmrm-status{
+  order: 4;
+}
+.mintmrm-default-pages .mintmrm-preference-form .tag-lists-dropdown{
+  order: 3;
+  position: relative;
+  margin-bottom: 24px;
+}
+.mintmrm-default-pages .mintmrm-preference-form .mintmrm-submit{
+  order: 5;
+}
+
+/* Dropdown */
+.mintmrm-default-pages .drop-down-button {
+    position: relative;
+    width: 100%;
+    border: 1px solid #ebedf0;
+    border-radius: 6px;
+    padding: 13px 33px 13px 12px;
+    background-color: transparent;
+    text-align: left;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.21;
+    color: #6a707c;
+    cursor: pointer;
+}
+
+.mintmrm-default-pages .drop-down-button::before {
+    content: url(data:image/svg+xml,%3Csvg%20fill%3D%22none%22%20viewBox%3D%220%200%2012%207%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20stroke%3D%22%23A7A8B3%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.8%22%20d%3D%22M11%201L6%206%201%201%22%2F%3E%3C%2Fsvg%3E);
+    width: 12px;
+    display: block;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    margin-top: -9px;
+    transition: all 0.3s ease;
+}
+
+.mintmrm-default-pages .drop-down-button.show::before {
+    transform: rotate(180deg);
+}
+
+.mintmrm-default-pages .drop-down-button.focus {
+    color: #2D3149;
+}
+.mintmrm-default-pages .mintmrm-tag-list {
+    border: 1px solid #e4e6eb;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: #667085;
+    display: inline-block;
+    padding: 3px 25px 5px 6px;
+    margin: 3px;
+    position: relative;
+    vertical-align: middle;
+}
+.mintmrm-default-pages .mintmrm-tag-list .close-list{
+    background: transparent;
+    padding: 2px 4px 0;
+    border-radius: 2px;
+    font-size: 10px;
+    cursor: pointer;
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    border: none;
+    border-left: 1px solid #e4e6eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mintmrm-default-pages .mintmrm-tag-list .close-list svg{
+    width: 7px;
+    height: 7px;
+    display: block;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown {
+  position: absolute;
+  background: #fff;
+  left: 0;
+  top: calc(100% + 8px);
+  width: 300px;
+  border: 1px solid #e2e5ed;
+  z-index: 5;
+  transition: all 0.3s ease;
+  box-shadow: 0px 10px 20px rgb(0 0 0 / 6%);
+  border-radius: 6px;
+  padding: 8px;
+  display: none;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f2f5f8;
+  overflow: hidden;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown.show {
+  display: block;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown.timezone,
+.mintmrm-default-pages .mintmrm-dropdown.country {
+  width: 320px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown.dropdown-left {
+  right: inherit;
+  left: 0;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown.width-120px {
+  width: 120px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .mintmrm-dropdown-list {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 17px;
+  color: #2d3149;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .mintmrm-dropdown-list svg {
+  margin-right: 7px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .mintmrm-dropdown-list:not(.searchbar):not(.list-title):not(.button-area):hover,
+.mintmrm-default-pages .mintmrm-dropdown .mintmrm-dropdown-list:not(.searchbar):not(.list-title).active {
+  background: #f6f8fa;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .mintmrm-dropdown-list:first-child a {
+  border-radius: 5px 5px 0 0;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .mintmrm-dropdown-list:last-child {
+  border-bottom: 0;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .mintmrm-dropdown-list:last-child a {
+  border-radius: 0 0 5px 5px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .delete {
+  color: #ec5956;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .searchbar {
+  background: transparent;
+  padding: 8px 8px 14px;
+  display: list-item;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .searchbar svg {
+  position: absolute;
+  top: 9px;
+  left: 16px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .searchbar input[type="search"] {
+  font-weight: 400;
+  height: 34px;
+  padding: 4px 15px 4px 10px;
+  background: #FFF;
+  display: block;
+  width: 100%;
+  border: 1px solid #ebedf0;
+  border-radius: 6px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .single-column {
+  display: block;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .list-title {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 15px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #667085;
+  border-top: 1px solid #ebedf0;
+  border-bottom: 1px solid #ebedf0;
+  border-radius: 0;
+  background: #f9fafb;
+  position: relative;
+  padding: 8px 18px;
+  left: -8px;
+  width: calc(100% + 16px);
+  cursor: text;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .list-title.not-found {
+  color: #ec5956;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .button-area {
+  border-top: 1px solid #ebedf0;
+  border-radius: 0;
+  position: relative;
+  left: -12px;
+  width: calc(100% + 16px);
+  padding: 20px 20px 8px;
+  display: flex;
+  align-items: center;
+  background: transparent;
+  margin-top: 10px;
+  margin-left: 4px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .button-area button {
+  cursor: pointer;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .button-area .cancel-btn {
+  margin-left: auto;
+  margin-right: 12px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .has-sub-dropdown {
+  position: relative;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .has-sub-dropdown::before {
+  content: url("data:image/svg+xml,%3Csvg%20fill%3D%22none%22%20viewBox%3D%220%200%206%2010%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20stroke%3D%22%23A7A8B3%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22M1%201l4%204-4%204%22%2F%3E%3C%2Fsvg%3E");
+  position: absolute;
+  width: 6px;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .has-sub-dropdown .mintmrm-dropdown {
+  left: calc(100% + 8px);
+  top: -10px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .has-sub-dropdown.show::before {
+  top: 25%;
+  transform: rotate(90deg);
+  transition: all 0.3s ease;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .group-item {
+  transition: all 0.3s ease;
+  padding-left: 20px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .no-found {
+  background-color: #f9fafb;
+  padding: 5px 0 5px 20px;
+  border-radius: 0;
+  background: #f9fafb;
+  position: relative;
+  left: -12px;
+  width: calc(100% + 24px);
+  cursor: text;
+  margin-top: 10px;
+  display: none;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .no-found span {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 15px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ec5956;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .add-action {
+  display: flex;
+  align-items: center;
+  padding: 15px 17px 10px;
+  color: #573bff;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 17px;
+  border-top: 1px solid #e2e5ed;
+  position: relative;
+  text-decoration: underline;
+  left: -12px;
+  width: calc(100% + 24px);
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .add-action svg {
+  margin-right: 5px;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .add-action svg path {
+  stroke: #573bff;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .add-action:hover {
+  color: #4c25a5;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .add-action:hover svg path {
+  stroke: #4c25a5;
+}
+
+.mintmrm-default-pages .mintmrm-dropdown .option-section {
+  max-height: 200px;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f2f5f8;
+  text-align: left;
+}
+
+.mintmrm-default-pages .mintmrm-checkbox input[type="checkbox"] {
+  display: none;
+}
+
+.mintmrm-default-pages .mintmrm-checkbox.no-title label {
+  min-height: 20px;
+}
+
+.mintmrm-default-pages .mintmrm-checkbox label {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: #2d3149;
+  position: relative;
+  padding-left: 29px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.mintmrm-default-pages .mintmrm-checkbox label::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid #e3e4e8;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.mintmrm-default-pages .mintmrm-checkbox label::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 4px;
+  width: 9px;
+  height: 5px;
+  transform: rotate(-45deg);
+  border-bottom: 2px solid #fff;
+  border-left: 2px solid #fff;
+  transition: all 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+  box-sizing: border-box;
+}
+
+.mintmrm-default-pages .mintmrm-checkbox input[type="checkbox"]:checked + label {
+  font-weight: 500;
+}
+
+.mintmrm-default-pages .mintmrm-checkbox input[type="checkbox"]:checked + label::before {
+  background-color: #573BFF; /* Replace with actual color value */
+  border-color: #573BFF; /* Replace with actual color value */
+}
+
+.mintmrm-default-pages .mintmrm-checkbox input[type="checkbox"]:checked + label::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media only screen and (max-width: 1199px) {
+    .mintmrm-default-pages .mintmrm-card-wrapper {
+        padding: 80px 100px;
+    }
+}
+
+@media only screen and (max-width: 991px) {
+    .mintmrm-default-pages {
+        padding: 20px;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper {
+        padding: 50px;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card {
+        padding: 50px;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-header svg {
+        width: 150px;
+        height: 150px;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-title{
+        font-size: 36px;
+    }
+}
+
+@media only screen and (max-width: 767px) {
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-title {
+        font-size: 24px;
+        margin: 10px 0 0;
+    }
+    .mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper{
+      padding: 20px;
+    }
+
+}
+
+@media only screen and (max-width: 575px) {
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-header svg {
+        width: 100px;
+        height: 100px;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card {
+        padding: 16px;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-title{
+        font-size: 20px;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-subtitle{
+        margin-top: 10px;
+        line-height: 1.2;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper {
+        padding: 30px;
+    }
+    .mintmrm-default-pages .mintmrm-card-wrapper .mintmrm-card .mintmrm-card-buttons{
+        margin-top: 20px;
+    }
+    .mintmrm-default-pages .mintmrm-card-button {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+    .mintmrm-default-pages.mintmrm-preference-page .mintmrm-card-wrapper .mintmrm-card{
+      padding: 20px;
+    }
 }
 
 /*# sourceMappingURL=frontend.css.map */

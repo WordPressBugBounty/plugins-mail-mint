@@ -68,6 +68,7 @@ class PreferencePage {
 		$attributes = shortcode_atts(
 			array(
 				'class' => '',
+				'title' => 'Preference',
 			),
 			$attributes
 		);
@@ -121,17 +122,22 @@ class PreferencePage {
 		}
 		ob_start();
 		?>
-		<div class="mrm-preferance-form-wrapper <?php echo esc_html( $this->attributes['class'] ); ?>">
-			<form method="post" id="mrm-preference-form">
-				<input type="hidden" name="contact_hash" value="<?php echo esc_attr( $hash ); ?>">
-				<?php
-				echo wp_kses( $get_no_contact_manage, $this->allowed_wp_kses() );
-				echo wp_kses( $get_assign_list, $this->allowed_wp_kses() );
-				echo wp_kses( $get_all_manage, $this->allowed_wp_kses() );
-				?>
-			</form>
-			<div class="response"></div>
-		</div>
+		<section class="mintmrm-default-pages mintmrm-preference-page <?php echo esc_html( $this->attributes['class'] ); ?>">
+			<div class="mintmrm-card-wrapper">
+				<h2 class="mintmrm-card-title"><?php echo esc_html( $this->attributes['title'] ); ?></h2>
+				<div class="mintmrm-card">
+					<div class="response"></div>
+					<form method="post" id="mrm-preference-form" class="mintmrm-preference-form">
+						<input type="hidden" name="contact_hash" value="<?php echo esc_attr( $hash ); ?>">
+						<?php
+							echo wp_kses( $get_no_contact_manage, $this->allowed_wp_kses() );
+							echo wp_kses( $get_assign_list, $this->allowed_wp_kses() );
+							echo wp_kses( $get_all_manage, $this->allowed_wp_kses() );
+						?>
+					</form>
+				</div>
+			</div>
+		</section>
 		<?php
 		return ob_get_clean();
 	}
@@ -157,8 +163,8 @@ class PreferencePage {
 			$html .= $this->form_group_primary_filed( $fields, $hash, $html );
 			if ( $is_true ) {
 				$html .= '
-				<div class="mrm-form-group">
-					<button type="submit" class="mrm-pref-submit-button">'
+				<div class="mrm-form-group mintmrm-submit">
+					<button type="submit" class="mrm-pref-submit-button mintmrm-card-button">'
 						. __( 'Submit', 'mrm' ) . 
 						'<span class="mintmrm-loader"></span>
 					</button>
@@ -186,8 +192,8 @@ class PreferencePage {
 
 			$html .= $this->contact_assign_list( $fields, $hash, $html_list );
 			$html .= '
-				<div class="mrm-form-group">
-					<button type="submit" class="mrm-pref-submit-button">'
+				<div class="mrm-form-group mintmrm-submit">
+					<button type="submit" class="mrm-pref-submit-button mintmrm-card-button">'
 					. __( 'Submit', 'mrm' ) .  
 						'<span class="mintmrm-loader"></span>
 					</button>
@@ -213,8 +219,8 @@ class PreferencePage {
 
 		$html .= $this->contact_all_list( $hash, $html_list );
 		$html .= '
-            <div class="mrm-form-group">
-                <button type="submit" class="mrm-pref-submit-button">'
+            <div class="mrm-form-group mintmrm-submit">
+                <button type="submit" class="mrm-pref-submit-button mintmrm-card-button">'
 				. __( 'Submit', 'mrm' ) .  
                     '<span class="mintmrm-loader">
                 </button>
@@ -248,26 +254,30 @@ class PreferencePage {
 		foreach ( $fields as $key => $field ) {
 			if ( $field ) {
 				if ( 'first_name' === $key ) {
-					$html .= '<div class="mrm-form-group">
-                                <label class="mrm-block-label" for="">'. __( 'First Name', 'mrm' ) . '</label>
-                                <input type="text" name="first_name" value="' . $first_name . '">
-                              </div>';
+					$html .= '<div class="mrm-form-group mintmrm-first-name">
+								<label class="mrm-block-label" for="">'. __( 'First Name', 'mrm' ) . '</label>
+								<input placeholder="'. __( 'Enter first name', 'mrm' ) . '" type="text" name="first_name" value="' . $first_name . '">
+							  </div>';
 				}
+
 				if ( 'last_name' === $key ) {
-					$html .= '<div class="mrm-form-group">
-                                    <label class="mrm-block-label" for="">'. __( 'Last Name', 'mrm' ) . '</label>
-                                    <input type="text" name="last_name" value="' . $last_name . '">
-                            </div>';
+					$html .= '<div class="mrm-form-group mintmrm-last-name">
+								<label class="mrm-block-label" for="">'. __( 'Last Name', 'mrm' ) . '</label>
+								<input placeholder="'. __( 'Enter last name', 'mrm' ) . '" type="text" name="last_name" value="' . $last_name . '">
+							  </div>';
 				}
 				if ( 'status' === $key ) {
-					$html .= '<div class="mrm-form-group">
-                                    <label class="mrm-block-label" for="">'. __( 'Status', 'mrm' ) . '</label>
-                                    <select name="status" id="">';
+					$html .= '<div class="mrm-form-group mintmrm-status">
+					<label class="mrm-block-label" for="">'. __( 'Status', 'mrm' ) . '</label>
+					<div class="input-custom-wrapper">';
 					foreach ( $status_array as $value ) {
-						$selected = $status === $value['value'] ? 'selected' : '';
-						$html    .= "<option value='{$value['value']}' {$selected}>{$value['name']}</option>";
+						$checked = $status === $value['value'] ? 'checked' : '';
+						$html   .= '<span class="mintmrm-radiobtn">
+										<input id="status-' . $value['value'] . '" type="radio" name="status" value="' . $value['value'] . '" ' . $checked . '>
+										<label for="status-' . $value['value'] . '">' . $value['name'] . '</label>
+									</span>';
 					}
-					$html .= '</select></div>';
+					$html .= '</div></div>';
 				}
 			}
 		}
@@ -309,16 +319,58 @@ class PreferencePage {
 	 */
 	public function contact_assign_list( $fields, $hash, $html ) {
 		$get_assign_list = $this->get_contact_assign_lists( $hash );
-		$html           .= ' <div class="mrm-form-group"><label class="mrm-block-label">' . esc_html( __( 'Your List', 'mrm' ) ) . '</label></div>';
-		foreach ( $fields as $field ) {
-			$checked = $this->is_checked_list( $field['id'], $get_assign_list ) ? 'checked' : '';
-			$html   .= '
-            <div class="mrm-form-group">
-				<span class="mintmrm-checkbox">
-					<input type="checkbox" id="mrm_field-' . $field['id'] . '" name="mrm_list[]" ' . $checked . ' value="' . $field['id'] . '">
-					<label for="mrm_field-' . $field['id'] . '">' . $field['title'] . '</label>
-				</span>
-            </div>';
+		$is_at_least_one_list_checked = false;
+		$is_all_lists_checked = true;
+		if ( ! empty( $fields ) ) {
+			$html .= '<div class="mrm-form-group"><label class="mrm-block-label">'. __( 'Subscribed Lists', 'mrm' ) . '</label>';
+			$html .= '<div class="form-group tag-lists-dropdown">
+						<button type="button" class="drop-down-button mintmrm-dropdown-button" id="mintmrm-dropdown-button">';
+						foreach ($fields as $field) {
+							if ($this->is_checked_list($field['id'], $get_assign_list)) {
+								$is_at_least_one_list_checked = true;
+								$html .= '<span class="single-list mintmrm-tag-list">' . esc_html($field['title']) . '
+										<span class="close-list" title="Delete">
+											&#10005;
+										</span>
+									</span>';
+							}else{
+								$is_all_lists_checked = false;
+							}
+						}
+						if (!$is_at_least_one_list_checked) {
+							$html .= '<span>' . esc_html__('No lists selected', 'mrm') . '</span>';
+						}
+						$html .= '</button>
+						<div class="add-contact mintmrm-dropdown" id="mintmrm-dropdown">
+							<div class="searchbar mintmrm-dropdown-list">
+								<span class="pos-relative">
+									<svg width="15" height="16" fill="none" viewBox="0 0 15 16" xmlns="http://www.w3.org/2000/svg">
+										<path fill="#C5C7D3" fill-rule="evenodd" d="M6.75 2.423c-2.9 0-5.25 2.28-5.25 5.091 0 2.812 2.35 5.091 5.25 5.091S12 10.325 12 7.515c0-2.812-2.35-5.092-5.25-5.092zM0 7.514C0 3.9 3.022.97 6.75.97S13.5 3.9 13.5 7.515c0 3.615-3.022 6.546-6.75 6.546S0 11.13 0 7.514z" clip-rule="evenodd"></path>
+										<path fill="#C5C7D3" fill-rule="evenodd" d="M10.72 11.363a.767.767 0 011.06 0l3 2.91a.712.712 0 010 1.028.767.767 0 01-1.06 0l-3-2.91a.712.712 0 010-1.028z" clip-rule="evenodd"></path>
+									</svg>
+									<input type="search" name="column-search" id="mintmrm-search-input placeholder="Search or create" value="">
+								</span>
+							</div>
+							<div class="list-title mintmrm-dropdown-list">CHOOSE LIST</div>
+							<div class="option-section">
+								<div class="single-column mintmrm-dropdown-list">
+									<div class="mintmrm-checkbox">
+										<input type="checkbox" name="all-items" id="all-items-create" ' . ( $is_all_lists_checked ? 'checked' : '' ) . '>
+										<label for="all-items-create" class="mrm-custom-select-label">Select All Items</label>
+									</div>
+								</div>';
+			foreach ( $fields as $field ) {
+				$checked = $this->is_checked_list( $field['id'], $get_assign_list ) ? 'checked' : '';
+				$html   .= '<div class="single-column mintmrm-dropdown-list' . ( $checked ? ' mrm-custom-select-single-column-selected' : '' ) . '">
+								<div class="mintmrm-checkbox">
+									<input type="checkbox" name="' . esc_attr( $field['id'] ) . '" id="create' . esc_attr( $field['id'] ) . '" data-custom-id="' . esc_attr( $field['id'] ) . '" value="' . esc_attr( $field['title'] ) . '" ' . $checked . '>
+									<label for="create' . esc_attr( $field['id'] ) . '" class="mrm-custom-select-label">' . esc_html( $field['title'] ) . '</label>
+								</div>
+							</div>';
+			}
+			$html .= '       </div>
+						</div>
+					</div></div>';
 		}
 		return $html;
 	}
@@ -334,17 +386,58 @@ class PreferencePage {
 		$get_all_list    = ContactGroupModel::get_all_to_custom_select( 'lists' );
 		$fields          = isset( $get_all_list['data'] ) ? $get_all_list['data'] : array();
 		$get_assign_list = $this->get_contact_assign_lists( $hash );
+		$is_at_least_one_list_checked = false;
+		$is_all_lists_checked = true;
 		if ( ! empty( $fields ) ) {
-			foreach ( $fields as $key => $field ) {
+			$html .= '<div class="mrm-form-group"><label class="mrm-block-label">'. __( 'Subscribed Lists', 'mrm' ) . '</label>';
+			$html .= '<div class="form-group tag-lists-dropdown">
+						<button type="button" class="drop-down-button mintmrm-dropdown-button" id="mintmrm-dropdown-button">';
+						foreach ($fields as $field) {
+							if ($this->is_checked_list($field['id'], $get_assign_list)) {
+								$is_at_least_one_list_checked = true;
+								$html .= '<span class="single-list mintmrm-tag-list">' . esc_html($field['title']) . '
+										<span class="close-list" title="Delete">
+											&#10005;
+										</span>
+									</span>';
+							}else{
+								$is_all_lists_checked = false;
+							}
+						}
+						if (!$is_at_least_one_list_checked) {
+							$html .= '<span>' . esc_html__('No lists selected', 'mrm') . '</span>';
+						}
+						$html .= '</button>
+						<div class="add-contact mintmrm-dropdown" id="mintmrm-dropdown">
+							<div class="searchbar mintmrm-dropdown-list">
+								<span class="pos-relative">
+									<svg width="15" height="16" fill="none" viewBox="0 0 15 16" xmlns="http://www.w3.org/2000/svg">
+										<path fill="#C5C7D3" fill-rule="evenodd" d="M6.75 2.423c-2.9 0-5.25 2.28-5.25 5.091 0 2.812 2.35 5.091 5.25 5.091S12 10.325 12 7.515c0-2.812-2.35-5.092-5.25-5.092zM0 7.514C0 3.9 3.022.97 6.75.97S13.5 3.9 13.5 7.515c0 3.615-3.022 6.546-6.75 6.546S0 11.13 0 7.514z" clip-rule="evenodd"></path>
+										<path fill="#C5C7D3" fill-rule="evenodd" d="M10.72 11.363a.767.767 0 011.06 0l3 2.91a.712.712 0 010 1.028.767.767 0 01-1.06 0l-3-2.91a.712.712 0 010-1.028z" clip-rule="evenodd"></path>
+									</svg>
+									<input type="search" name="column-search" id="mintmrm-search-input placeholder="Search or create" value="">
+								</span>
+							</div>
+							<div class="list-title mintmrm-dropdown-list">CHOOSE LIST</div>
+							<div class="option-section">
+								<div class="single-column mintmrm-dropdown-list">
+									<div class="mintmrm-checkbox">
+										<input type="checkbox" name="all-items" id="all-items-create" ' . ( $is_all_lists_checked ? 'checked' : '' ) . '>
+										<label for="all-items-create" class="mrm-custom-select-label">Select All Items</label>
+									</div>
+								</div>';
+			foreach ( $fields as $field ) {
 				$checked = $this->is_checked_list( $field['id'], $get_assign_list ) ? 'checked' : '';
-				$html   .= '
-				<div class="mrm-form-group">
-					<span class="mintmrm-checkbox">
-						<input type="checkbox" id="mrm_field-' . $field['id'] . '" name="mrm_list[]" ' . $checked . ' value="' . $field['id'] . '">
-						<label for="mrm_field-' . $field['id'] . '">' . $field['title'] . '</label>
-					</span>
-				</div>';
+				$html   .= '<div class="single-column mintmrm-dropdown-list' . ( $checked ? ' mrm-custom-select-single-column-selected' : '' ) . '">
+								<div class="mintmrm-checkbox">
+									<input type="checkbox" name="' . esc_attr( $field['id'] ) . '" id="create' . esc_attr( $field['id'] ) . '" data-custom-id="' . esc_attr( $field['id'] ) . '" value="' . esc_attr( $field['title'] ) . '" ' . $checked . '>
+									<label for="create' . esc_attr( $field['id'] ) . '" class="mrm-custom-select-label">' . esc_html( $field['title'] ) . '</label>
+								</div>
+							</div>';
 			}
+			$html .= '       </div>
+						</div>
+					</div></div>';
 		}
 		return $html;
 	}
