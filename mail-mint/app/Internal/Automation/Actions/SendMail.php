@@ -73,14 +73,15 @@ class SendMail extends AbstractAutomationAction {
 			$business_settings         = get_option( '_mrm_business_basic_info_setting', $default_business_settings );
 			$business_settings         = is_array( $business_settings ) && ! empty( $business_settings ) ? $business_settings : $default_business_settings;
 			// Prepare replay to information.
-			$reply_name  = isset( $global_email_settings['reply_name'] ) ? $global_email_settings['reply_name'] : '';
-			$reply_email = isset( $global_email_settings['reply_email'] ) ? $global_email_settings['reply_email'] : '';
-			$user_email  = !empty( $data['data']['user_email'] ) ? $data['data']['user_email'] : '';
-			$contact_id  = HelperFunctions::get_contact_id_by_broadcast_table( $user_email );
-			$post_id     = isset( $data['data']['post_id'] ) ? $data['data']['post_id'] : '';
-			$order_id	 = isset( $data['data']['order_id'] ) ? $data['data']['order_id'] : '';
-			$abandoned_id = isset($data['data']['abandoned_id']) ? $data['data']['abandoned_id'] : '';
-			$payment_id   = isset($data['data']['payment_id']) ? $data['data']['payment_id'] : '';
+			$reply_name      = isset( $global_email_settings['reply_name'] ) ? $global_email_settings['reply_name'] : '';
+			$reply_email     = isset( $global_email_settings['reply_email'] ) ? $global_email_settings['reply_email'] : '';
+			$user_email      = !empty( $data['data']['user_email'] ) ? $data['data']['user_email'] : '';
+			$contact_id      = HelperFunctions::get_contact_id_by_broadcast_table( $user_email );
+			$post_id         = isset( $data['data']['post_id'] ) ? $data['data']['post_id'] : '';
+			$order_id	     = isset( $data['data']['order_id'] ) ? $data['data']['order_id'] : '';
+			$abandoned_id    = isset($data['data']['abandoned_id']) ? $data['data']['abandoned_id'] : '';
+			$payment_id      = isset($data['data']['payment_id']) ? $data['data']['payment_id'] : '';
+			$subscription_id = isset($data['data']['subscription_id']) ? $data['data']['subscription_id'] : '';
 
 			$step_data   = HelperFunctions::get_step_data( $data['automation_id'], $data['step_id'] );
 			$log_payload = array(
@@ -102,7 +103,7 @@ class SendMail extends AbstractAutomationAction {
 			do_action( 'mailmint_before_automation_send_mail', $data['automation_id'], $data['data']['user_email'] );
 			do_action( 'mint_before_automation_send_mail', $data['automation_id'], $data['data'] );
 
-			if (!empty($step_data['settings']['message_data']) && HelperFunctions::maybe_user($data['data']['user_email']) && !Email::is_email_already_sent($data['automation_id'], $data['step_id'], $data['step_id'], $contact_id, 'sent')) {
+			if (!empty($step_data['settings']['message_data']) && HelperFunctions::maybe_user($data['data']['user_email'])) {
 				$headers = array( //phpcs:ignore
 					'MIME-Version: 1.0',
 					'Content-type: text/html;charset=UTF-8',
@@ -127,7 +128,7 @@ class SendMail extends AbstractAutomationAction {
 					unset($contact['meta_fields']);
 				}
 
-				$preview   = Parser::parse( $preview, $contact, $post_id, $order_id, array( 'abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id ) );
+				$preview   = Parser::parse( $preview, $contact, $post_id, $order_id, array( 'abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id ) );
 				$headers[] = 'X-PreHeader: ' . $preview;
 
 				$unsubscribe_url = Helper::get_unsubscribed_url( $rand_hash );
@@ -146,9 +147,9 @@ class SendMail extends AbstractAutomationAction {
 					'editor_type'    => !empty( $step_data['settings']['message_data']['json_body']['editor'] ) ? $step_data['settings']['message_data']['json_body']['editor'] : 'advanced-builder',
 				);
 
-				$email_data['subject'] = Parser::parse( $email_data['subject'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id) );
+				$email_data['subject'] = Parser::parse( $email_data['subject'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id ) );
 				$email_data['body']    = Helper::replace_url( $email_data['body'], $rand_hash );
-				$email_data['body']    = Parser::parse( $email_data['body'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id) );
+				$email_data['body']    = Parser::parse( $email_data['body'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id ) );
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );
 				$email_data['body']    = Email::inject_preview_text_on_email_body( $preview, $email_data['body'] );
 
@@ -218,11 +219,7 @@ class SendMail extends AbstractAutomationAction {
 				if ( $next_step ) {
 					$next_step['data']       = $data['data'];
 					$next_step['identifier'] = $data['identifier'];
-					$scheduler_data          = array( $next_step );
-					if ( $this->action_scheduler->hasScheduledAction( MINT_PROCESS_AUTOMATION ) ) {
-						return;
-					}
-					$this->action_scheduler->enqueue( MINT_PROCESS_AUTOMATION, $scheduler_data );
+					do_action(MINT_PROCESS_AUTOMATION, $next_step);
 				}
 			}
 		}

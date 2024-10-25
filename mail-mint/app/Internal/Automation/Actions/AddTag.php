@@ -142,15 +142,10 @@ class AddTag extends AbstractAutomationAction {
 			$next_step = HelperFunctions::get_next_step( $data['automation_id'], $data['step_id'] );
 			HelperFunctions::update_job( $data['automation_id'], isset( $next_step['step_id'] ) ? $next_step['step_id'] : null, isset( $next_step['step_id'] ) ? 'processing' : 'completed' );
 
-			$prev_step = HelperFunctions::get_prev_step( $data['automation_id'], $data['step_id'] );
 			if ( $next_step ) {
 				$next_step['data']       = $data['data'];
 				$next_step['identifier'] = $data['identifier'];
-				$scheduler_data          = array( $next_step );
-				if ( $this->action_scheduler->hasScheduledAction( MINT_PROCESS_AUTOMATION ) ) {
-					return;
-				}
-				$this->action_scheduler->enqueue( MINT_PROCESS_AUTOMATION, $scheduler_data );
+				do_action(MINT_PROCESS_AUTOMATION, $next_step);
 			}
 		}
 	}

@@ -13,7 +13,6 @@ namespace Mint\MRM\Frontend\API\Routes;
 
 use WP_REST_Server;
 use Mint\MRM\Frontend\API\Controllers\PreferenceController;
-use Mint\MRM\Frontend\API\Actions\ActionCreator;
 /**
  * Manages Preference
  *

@@ -109,6 +109,7 @@ class Server {
 			'form'       => 'FormRoute',
 			'preference' => 'PreferenceRoute',
 			'cookie'     => 'CookieRoute',
+			'bounce'	 => 'BounceHandlerRoute',
 		);
 
 		return apply_filters(

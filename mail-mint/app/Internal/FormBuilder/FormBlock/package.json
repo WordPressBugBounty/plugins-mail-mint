@@ -10,7 +10,6 @@
     "build": "wp-scripts build"
   },
   "dependencies": {
-    "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
     "@wordpress/api-fetch": "^3.21.0"
   },
   "devDependencies": {

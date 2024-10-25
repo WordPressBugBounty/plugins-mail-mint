@@ -20,6 +20,7 @@ use Mint\MRM\DataStores\ContactData;
 use Mint\MRM\Utilites\Helper\Contact;
 use MRM\Common\MrmCommon;
 use Mint\Mrm\Internal\Traits\Singleton;
+use Mint\Utilities\Arr;
 
 /**
  * ContactModel class
@@ -1077,5 +1078,62 @@ class ContactModel {
 		}
 
 		return is_array( $contact ) ? $contact : array();
+	}
+
+	/**
+	 * Records an unsubscribe event for a contact based on the provided data.
+	 *
+	 * This function updates the contact's status and records the reason for the unsubscribe event.
+	 * If the contact does not exist, it creates a new contact record with the provided data.
+	 *
+	 * @param array $data {
+	 *     The data for the unsubscribe event.
+	 *
+	 *     @type string $email    The email address of the contact.
+	 *     @type string $status   The new status of the contact (e.g., 'bounced', 'unsubscribed'). Default 'bounced'.
+	 *     @type string $reason   The reason for the status change. Default empty string.
+	 *     @type string $provider The email service provider (e.g., 'Mailgun', 'SendGrid'). Default empty string.
+	 * }
+	 * @return bool True if the unsubscribe event was recorded successfully, false otherwise.
+	 * @since 1.15.0
+	 */
+	public static function record_unsubscribe($data){
+		if(empty($data['email']) || !is_email($data['email'])) {
+			return false;
+		}
+
+		$contact  = self::get_contact_by_email($data['email']);
+		$status   = isset($data['status']) ? $data['status'] : 'bounced';
+		$reason   = isset($data['reason']) ? $data['reason'] : '';
+		$provider = isset($data['provider']) ? $data['provider'] : '';
+
+		$key = $status === 'unsubscribed' ? 'unsubscribe_reason' : 'reason';
+
+		$user_data = array(
+			'meta_fields' => array(
+				$key => $reason,
+			),
+			'status' => $status,
+			'source' => $provider,
+		);
+
+		if ($contact) {
+			$old_status = isset($contact['status']) ? $contact['status'] : 'subscribed';
+			ContactModel::update($user_data, $contact['id']);
+
+			/*
+			 * Fires when a contact's status is changed to 'bounced', 'unsubscribed', or 'pending'.
+			 *
+			 * @param int    $contact_id The ID of the contact.
+			 * @param string $old_status The previous status of the contact.
+			 * @since 1.15.0
+			 */
+			do_action('mint_subscriber_status_to_' . $status, $contact['id'], $old_status);
+		} else {
+			$contact = new ContactData($data['email'], $user_data);
+			ContactModel::insert($contact);
+		}
+
+		return true;
 	}
 }

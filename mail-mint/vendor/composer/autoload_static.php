@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit31326e18067c664e680bb1a1fec7abc5
+class ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302
 {
     public static $prefixLengthsPsr4 = array (
         'M' => 
@@ -204,10 +204,12 @@ class ComposerStaticInit31326e18067c664e680bb1a1fec7abc5
         'Mint\\MRM\\DataStores\\SegmentData' => __DIR__ . '/../..' . '/app/DataStores/SegmentData.php',
         'Mint\\MRM\\DataStores\\TagData' => __DIR__ . '/../..' . '/app/DataStores/TagData.php',
         'Mint\\MRM\\DataStores\\WordkflowData' => __DIR__ . '/../..' . '/app/DataStores/WordkflowData.php',
+        'Mint\\MRM\\Frontend\\API\\Controllers\\BounceHandlerController' => __DIR__ . '/../..' . '/app/API/Controllers/Frontend/BounceHandlerController.php',
         'Mint\\MRM\\Frontend\\API\\Controllers\\CookieController' => __DIR__ . '/../..' . '/app/API/Controllers/Frontend/CookieController.php',
         'Mint\\MRM\\Frontend\\API\\Controllers\\FormSubmissionController' => __DIR__ . '/../..' . '/app/API/Controllers/Frontend/FormSubmissionController.php',
         'Mint\\MRM\\Frontend\\API\\Controllers\\FrontendBaseController' => __DIR__ . '/../..' . '/app/API/Controllers/Frontend/FrontendBaseController.php',
         'Mint\\MRM\\Frontend\\API\\Controllers\\PreferenceController' => __DIR__ . '/../..' . '/app/API/Controllers/Frontend/PreferenceController.php',
+        'Mint\\MRM\\Frontend\\API\\Routes\\BounceHandlerRoute' => __DIR__ . '/../..' . '/app/API/Routes/Frontend/BounceHandlerRoute.php',
         'Mint\\MRM\\Frontend\\API\\Routes\\CookieRoute' => __DIR__ . '/../..' . '/app/API/Routes/Frontend/CookieRoute.php',
         'Mint\\MRM\\Frontend\\API\\Routes\\FormRoute' => __DIR__ . '/../..' . '/app/API/Routes/Frontend/FormRoute.php',
         'Mint\\MRM\\Frontend\\API\\Routes\\FrontendRoute' => __DIR__ . '/../..' . '/app/API/Routes/Frontend/FrontendRoute.php',
@@ -252,6 +254,7 @@ class ComposerStaticInit31326e18067c664e680bb1a1fec7abc5
         'Mint\\MRM\\Utilites\\Helper\\Email' => __DIR__ . '/../..' . '/app/Utilities/Helper/Email.php',
         'Mint\\MRM\\Utilites\\Helper\\Import' => __DIR__ . '/../..' . '/app/Utilities/Helper/Import.php',
         'Mint\\MRM\\Utilities\\Helper\\TranslationString\\TransStrings' => __DIR__ . '/../..' . '/app/Utilities/TranslationString/TransStrings.php',
+        'Mint\\MRM\\Utilities\\Integrations\\EmailBounce' => __DIR__ . '/../..' . '/app/Utilities/Integrations/EmailBounce.php',
         'Mint\\Mrm\\Internal\\Traits\\Singleton' => __DIR__ . '/../..' . '/app/Internal/Traits/Singleton.php',
         'Mint\\Utilities\\Arr' => __DIR__ . '/../..' . '/app/Utilities/Arr.php',
         'Mint\\Utilities\\MacroableTrait' => __DIR__ . '/../..' . '/app/Utilities/MacroableTrait.php',
@@ -262,6 +265,7 @@ class ComposerStaticInit31326e18067c664e680bb1a1fec7abc5
         'WP_Block_Parser' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser.php',
         'WP_Block_Parser_Block' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-block.php',
         'WP_Block_Parser_Frame' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-frame.php',
+        'WP_Navigation_Block_Renderer' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-library/src/navigation/index.php',
         'WP_Style_Engine' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine.php',
         'WP_Style_Engine_CSS_Declarations' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-declarations.php',
         'WP_Style_Engine_CSS_Rule' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-rule.php',
@@ -272,9 +276,9 @@ class ComposerStaticInit31326e18067c664e680bb1a1fec7abc5
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit31326e18067c664e680bb1a1fec7abc5::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit31326e18067c664e680bb1a1fec7abc5::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit31326e18067c664e680bb1a1fec7abc5::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302::$classMap;
 
         }, null, ClassLoader::class);
     }

@@ -1753,4 +1753,79 @@ class MrmCommon {
 
 		return $settings['business_name'];
 	}
+
+	/**
+	 * Retrieve the bounce handler configurations for various email services.
+	 *
+	 * @return array An array containing the bounce handler configurations for various email services.
+	 * @since 1.15.0
+	 */
+	public static function get_bounce_configs(){
+        $security_code = get_option('mint_bounce_key');
+        if ( !$security_code ) {
+            $security_code = 'mint_' . substr( md5( wp_generate_uuid4() ), 0, 14 );
+            update_option('mint_bounce_key', $security_code);
+        }
+
+        $bounce_settings = array(
+            'mailgun' => array(
+				'label'       => __('Mailgun', 'mrm'),
+                'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/mailgun/handle/' . $security_code),
+                'doc_url'     => '',
+                'input_title' => __('Mailgun Bounce Handler Webhook URL', 'mrm'),
+                'input_info'  => __('Please paste this URL into your Mailgun\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+            'sendgrid' => array(
+				'label'       => __('SendGrid', 'mrm'),
+                'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/sendgrid/handle/' . $security_code),
+                'doc_url'     => '',
+                'input_title' => __('SendGrid Bounce Handler Webhook URL', 'mrm'),
+                'input_info'  => __('Please paste this URL into your SendGrid\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'ses' => array(
+				'label'       => __('Amazon SES', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/ses/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('Amazon SES Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please use this bounce handler url in your Amazon SES + SNS settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'postmark' => array(
+				'label'       => __('Postmark', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/postmark/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('Postmark Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please paste this URL into your Postmark\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'brevo' => array(
+				'label'       => __('Brevo (Sendinblue)', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/brevo/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('Brevo Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please paste this URL into your Brevo\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'sparkpost' => array(
+				'label'       => __('SparkPost', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/sparkpost/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('SparkPost Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please paste this URL into your SparkPost\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'pepipost' => array(
+				'label'       => __('Pepipost', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/pepipost/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('Pepipost Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please paste this URL into your Pepipost\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'mailjet' => array(
+				'label'       => __('Mailjet', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/mailjet/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('Mailjet Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please paste this URL into your Mailjet\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+		);
+
+        return apply_filters('mint_bounce_handlers', $bounce_settings, $security_code);
+    }
 }

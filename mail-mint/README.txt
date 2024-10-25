@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.6.2
 Requires PHP: 7.4
-Stable tag:  1.14.6
+Stable tag:  1.15.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -501,6 +501,14 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.15.0 (2024-10-25) =
+* New: Introduced Email Bounce Handling for Various Email Sending Services
+* Improvement: Inline Text Editor Accessibility and Usability on the Visual Editor
+* Improvement: Full-screen Mode on the Form Editor for Better Usability
+* Improvement: Form Settings are now Split into Two Distinct Sections—Form Settings and Block Settings
+* Bugfix: Multiple Emails Sent from the Automation Email 
+* Bugfix: Campaign Details Page is not loading
 
 = 1.14.6 (2024-10-10) =
 * Bugfix: WordPress Database Error to Unsubscribe a Contact

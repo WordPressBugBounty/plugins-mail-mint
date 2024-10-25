@@ -1401,6 +1401,8 @@ class TransStrings
 			'CheckoutURL'								  => __('Checkout URL', 'mrm'),
 			'ResetPassword'								  => __('Reset Password', 'mrm'),
 			'PaymentURL'								  => __('Payment URL', 'mrm'),
+			'BounceTracking'						      => __('Bounce Tracking', 'mrm'),
+			'BounceTrackingEnableTooltip'				  => __('Enable to capture bounced emails from the email service and mark Contact as Bounced.', 'mrm'),
 		);
 	}
 }

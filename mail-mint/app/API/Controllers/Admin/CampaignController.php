@@ -497,12 +497,14 @@ class CampaignController extends AdminBaseController {
 		$date_format           = get_option( 'date_format' );
 		$time_format           = get_option( 'time_format' );
 		$campaign['scheduled_at'] = sprintf( esc_html__( 'Schedule at %s', 'mrm' ), $time->format($date_format . ' ' . $time_format) );
-
+		
 		// Prepare campaign data for response.
 		$campaign['meta']['recipients'] = !empty( $campaign['meta_value'] ) ? maybe_unserialize( $campaign['meta_value'] ) : [];
 		unset( $campaign['meta_key'] );
 		unset( $campaign['meta_value'] );
 		// Verify saved campaigns selected group ids if they still exist.
+		$campaign['meta']['recipients'] = ModelsCampaign::get_campaign_meta_value($campaign_id, 'recipients');
+		$campaign['meta']['recipients'] = maybe_unserialize($campaign['meta']['recipients']);
 		$campaign['meta']['recipients'] = MrmCommon::filter_recipients( $campaign['meta']['recipients'], $campaign[ 'status' ] );
 		ModelsCampaign::update_campaign_recipients( maybe_serialize($campaign['meta']['recipients']), $campaign_id );
 

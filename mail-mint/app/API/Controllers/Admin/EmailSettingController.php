@@ -83,15 +83,17 @@ class EmailSettingController extends SettingBaseController {
 		if ( ! is_email( $reply_email ) || empty( $reply_email ) ) {
 			return $this->get_error_response( __( 'Enter a valid email address where to reply email', 'mrm' ) );
 		}
+
         $email_frequency = !empty( $params['email_frequency'] ) ? $params['email_frequency'] : [];
 		$email_settings = array(
-			'from_name'   => $from_name,
-			'from_email'  => $from_email,
-			'reply_name'  => $reply_name,
-			'reply_email' => $reply_email,
-            'email_frequency' => $email_frequency
+			'from_name'       => $from_name,
+			'from_email'      => $from_email,
+			'reply_name'      => $reply_name,
+			'reply_email'     => $reply_email,
+            'email_frequency' => $email_frequency,
+			'bounce_tracking' => !empty( $params['bounce_tracking'] ) ? $params['bounce_tracking'] : array('enable' => false, 'esp'  => array('value' => 'mailgun', 'label' => 'Mailgun')),
 		);
-		// enque to wp option table.
+		// enqueue to wp option table.
 		update_option( '_mrm_email_settings', $email_settings );
 		return $this->get_success_response( __( 'Email settings have been successfully saved.', 'mrm' ) );
 	}
@@ -114,6 +116,13 @@ class EmailSettingController extends SettingBaseController {
 			// If it doesn't exist, add the default 'email_frequency' array to $settings.
 			$settings = array_merge($settings, ['email_frequency' => $default['email_frequency']]);
 		}
+
+		// Check if the 'bounce_tracking' key exists in $settings.
+		if (!isset($settings['bounce_tracking'])) {
+			// If it doesn't exist, add the default 'bounce_tracking' array to $settings.
+			$settings = array_merge($settings, ['bounce_tracking' => $default['bounce_tracking']]);
+		}
+
 		return $this->get_success_response_data( $settings );
 	}
 

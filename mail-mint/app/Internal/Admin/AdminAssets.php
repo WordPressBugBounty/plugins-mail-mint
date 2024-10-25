@@ -301,6 +301,8 @@ class AdminAssets {
                     'admin_email'                    => $admin_email,
                     'address'                        => MrmCommon::get_business_full_address(),
                     'current_user_email'             => $current_user_email,
+                    'bounce_configs'                 => MrmCommon::get_bounce_configs(),
+                    'is_wcs_active'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.0') ? Mint_Pro_Helper::is_woocommerce_subscription_active() : false,
 		        )
 	        );
         }

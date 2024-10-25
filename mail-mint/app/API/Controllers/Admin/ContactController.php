@@ -91,6 +91,7 @@ class ContactController extends AdminBaseController {
             }
 
 			$exist = ContactModel::is_contact_exist( $email );
+
 			if ( $exist && ! isset( $params['contact_id'] ) ) {
 				return $this->get_error_response( __( 'Email address already assigned to another contact.', 'mrm' ), 200 );
 			}
@@ -100,15 +101,7 @@ class ContactController extends AdminBaseController {
 		try {
 			if ( isset( $params['contact_id'] ) ) {
 				$contact_id = isset( $params['contact_id'] ) ? $params['contact_id'] : '';
-				// Existing contact email address check.
-				$contact_email     = ContactModel::get_email_by_id( $contact_id );
-				$is_contact_exists = ContactModel::is_contact_exist( $contact_email );
-				$is_email_exists   = ContactModel::is_contact_exist_by_id( $contact_email, $contact_id );
-
-				if ( $is_contact_exists && ! $is_email_exists ) {
-					return $this->get_error_response( __( 'Email address already assigned to another contact.', 'mrm' ), 200 );
-				}
-				
+				// Existing contact email address check.				
 				$contact_id = ContactModel::update( $params, $contact_id );
 			} else {
 				$params     = $this->get_contact_status( $params );

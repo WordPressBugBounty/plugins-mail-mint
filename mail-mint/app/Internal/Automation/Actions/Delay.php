@@ -108,7 +108,7 @@ class Delay extends AbstractAutomationAction {
 					$this->action_scheduler->schedule( time() + $time, MINT_PROCESS_AUTOMATION, $scheduler_data );
 				} else {
 					if ( !isset( $data['double_optin'] ) ) {
-						$this->action_scheduler->enqueue( MINT_PROCESS_AUTOMATION, $scheduler_data );
+						do_action(MINT_PROCESS_AUTOMATION, $next_step);
 					}
 				}
 			}

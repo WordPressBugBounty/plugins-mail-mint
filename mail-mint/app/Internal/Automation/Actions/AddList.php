@@ -144,11 +144,7 @@ class AddList extends AbstractAutomationAction {
 			if ( $next_step ) {
 				$next_step['data']       = $data['data'];
 				$next_step['identifier'] = $data['identifier'];
-				$scheduler_data          = array( $next_step );
-				if ( $this->action_scheduler->hasScheduledAction( MINT_PROCESS_AUTOMATION ) ) {
-					return;
-				}
-				$this->action_scheduler->enqueue( MINT_PROCESS_AUTOMATION, $scheduler_data );
+				do_action(MINT_PROCESS_AUTOMATION, $next_step);
 			}
 		}
 	}

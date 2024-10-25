@@ -120,6 +120,13 @@ class Email {
 				'emails' => 25,
 				'host'   => '',
 			),
+            'bounce_tracking' => array(
+                'enable' => false,
+                'esp'  => array(
+                    'value' => 'mailgun',
+                    'label' => 'Mailgun',
+                ),
+            ),
 		);
 	}
 

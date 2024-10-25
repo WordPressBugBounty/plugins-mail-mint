@@ -16,6 +16,7 @@ use MailMintPro\Mint\Internal\AbandonedCart\Helper\Common;
 use MailMintPro\Mint\Internal\AbandonedCart\Helper\Model;
 use Mint\Utilities\Arr;
 use MailMintPro\App\Internal\EmailCustomization\Parser\EddMergeTagParser;
+use MailMintPro\App\Internal\EmailCustomization\Parser\WCMergeTagParser;
 use MRM\Common\MrmCommon;
 
 /**
@@ -184,6 +185,10 @@ class MergeTagParser
 			case 'edd_billing':
 				$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
 				$value      = $edd_parser->parse_edd_billing_merge_tag();
+				break;
+			case 'wc_subscription':
+				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
+				$value     = $wc_parser->parse_wc_subscription_merge_tag();
 				break;
 			default:
 				$value = apply_filters('mint_merge_tag_group_callback_' . $data_key, $matches[0], $value_key, $default_value, $contact);
