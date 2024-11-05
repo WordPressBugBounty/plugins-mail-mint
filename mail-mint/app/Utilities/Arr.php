@@ -535,4 +535,18 @@ class Arr
     public static function value( $value ){
         return $value instanceof \Closure ? $value() : $value;
     }
+
+    public static function get_multidimensional($array, $target_key){
+        foreach ($array as $key => $value) {
+            if ($key === $target_key) {
+                return $value;
+            } elseif (is_array($value)) {
+                $result = self::get_multidimensional($value, $target_key);
+                if ($result !== null) {
+                    return $result;
+                }
+            }
+        }
+        return null;
+    }
 }

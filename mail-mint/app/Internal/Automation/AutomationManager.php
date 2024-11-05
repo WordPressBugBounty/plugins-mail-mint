@@ -89,6 +89,36 @@ class AutomationManager {
 							$data = apply_filters( 'mint_bricks_form_fields_map', $data, $step_data );
 						}
 
+						if (isset($data['trigger_name']) && 'fluentform_submission_inserted' === $data['trigger_name']) {
+							/**
+							 * Filters the data mapped from Fluent Form fields before processing.
+							 *
+							 * This filter allows modification of the data array before it is processed for a specific step in an automation.
+							 *
+							 * @param array $data      The data array mapped from Fluent Form fields.
+							 * @param array $step_data Additional data related to the step or automation.
+							 *
+							 * @return array The filtered data array.
+							 * @since 1.14.0
+							 */
+							$data = apply_filters('mint_fluent_form_fields_map', $data, $step_data);
+						}
+
+						if (isset($data['trigger_name']) && 'gform_after_submission' === $data['trigger_name']) {
+							/**
+							 * Filters the data mapped from Fluent Form fields before processing.
+							 *
+							 * This filter allows modification of the data array before it is processed for a specific step in an automation.
+							 *
+							 * @param array $data      The data array mapped from Fluent Form fields.
+							 * @param array $step_data Additional data related to the step or automation.
+							 *
+							 * @return array The filtered data array.
+							 * @since 1.14.0
+							 */
+							$data = apply_filters('mint_gravity_form_fields_map', $data, $step_data);
+						}
+
 						if ( isset( $data['trigger_name'] ) && 'wc_price_dropped' === $data['trigger_name'] ) {
 							/**
 							 * Apply filters for actions after a WooCommerce price drop event.
