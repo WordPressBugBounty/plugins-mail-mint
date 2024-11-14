@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302
+class ComposerStaticInit0ef686e349e8d435e93562ec163b5858
 {
     public static $prefixLengthsPsr4 = array (
         'M' => 
@@ -265,7 +265,6 @@ class ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302
         'WP_Block_Parser' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser.php',
         'WP_Block_Parser_Block' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-block.php',
         'WP_Block_Parser_Frame' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-frame.php',
-        'WP_Navigation_Block_Renderer' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-library/src/navigation/index.php',
         'WP_Style_Engine' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine.php',
         'WP_Style_Engine_CSS_Declarations' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-declarations.php',
         'WP_Style_Engine_CSS_Rule' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-rule.php',
@@ -276,9 +275,9 @@ class ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInita3ac9d4ddf0df9bdf363b8f01fc08302::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit0ef686e349e8d435e93562ec163b5858::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit0ef686e349e8d435e93562ec163b5858::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit0ef686e349e8d435e93562ec163b5858::$classMap;
 
         }, null, ClassLoader::class);
     }

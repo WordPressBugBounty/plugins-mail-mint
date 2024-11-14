@@ -3,9 +3,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: email marketing, email automation, newsletter, woocommerce emails, cart abandonment, lead form
 Requires at least: 5.8
-Tested up to: 6.6.2
+Tested up to: 6.7.0
 Requires PHP: 7.4
-Stable tag:  1.15.1
+Stable tag:  1.15.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -505,6 +505,12 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.15.2 (2024-11-14) =
+* Improvement: Compatibility with WordPress 6.7.0
+* Improvement: Hide or Show Option for Read More Button on Post Block
+* Bugfix: Typography Issues on the Form Editor
+* Bugfix: Unsubscription does not Working from Automation in few cases
 
 = 1.15.1 (2024-11-05) =
 * Bugfix: Visual Editor not Opening on the Safari Browser

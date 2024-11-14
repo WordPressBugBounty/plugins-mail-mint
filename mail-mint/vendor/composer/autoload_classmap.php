@@ -241,7 +241,6 @@ return array(
     'WP_Block_Parser' => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser.php',
     'WP_Block_Parser_Block' => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-block.php',
     'WP_Block_Parser_Frame' => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-frame.php',
-    'WP_Navigation_Block_Renderer' => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/block-library/src/navigation/index.php',
     'WP_Style_Engine' => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine.php',
     'WP_Style_Engine_CSS_Declarations' => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-declarations.php',
     'WP_Style_Engine_CSS_Rule' => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-rule.php',

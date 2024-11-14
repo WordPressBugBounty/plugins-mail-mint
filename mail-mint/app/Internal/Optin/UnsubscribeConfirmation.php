@@ -77,7 +77,13 @@ class UnsubscribeConfirmation {
 	public function process_unsubscribe( $hash ){
 		// Get the contact ID associated with the hash.
 		$contact_hash = EmailModel::get_contact_id_by_hash( $hash );
-		$contact_id   = isset($contact_hash['contact_id']) ? $contact_hash['contact_id'] : false;
+
+		if (empty($contact_hash)) {
+			$contact = ContactModel::get_by_hash($hash);
+			$contact_hash = $contact;
+		}
+
+		$contact_id = isset($contact_hash['contact_id']) ? $contact_hash['contact_id'] : $contact_hash['id'];
 
 		// Get compliance and unsubscribe settings.
 		$compliance = get_option('_mint_compliance');

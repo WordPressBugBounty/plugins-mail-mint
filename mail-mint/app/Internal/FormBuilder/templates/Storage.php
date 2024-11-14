@@ -50,9 +50,9 @@ class Storage {
                 <h1 class="has-text-align-center has-white-color has-text-color" style="font-size:50px">' . __( '10% Off Your Next', 'mrm' ) . ' <mark style="background-color:rgba(0, 0, 0, 0);color:#d68743" class="has-inline-color">Order</mark></h1>
                 <!-- /wp:heading -->
 
-                <!-- wp:paragraph {"align":"center","style":{"typography":{"fontStyle":"normal","fontWeight":"400"}},"textColor":"white","fontSize":"small"} -->
-                <p class="has-text-align-center has-white-color has-text-color has-small-font-size" style="font-style:normal;font-weight:400">' . __( 'Subscribe to our valued customer\'s list and claim your coupon to get a 10% discount the next time you dine in', 'mrm' ) . '.</p>
-                <!-- /wp:paragraph -->
+                <!-- wp:paragraph {"align":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":15}},"textColor":"white"} -->
+				<p class="has-text-align-center has-white-color has-text-color has-link-color" style="font-size:15px">Subscribe to our valued customer\'s list and claim your coupon to get a 10% discount the next time you dine in.</p>
+				<!-- /wp:paragraph -->
 
 				<!-- wp:mrmformfield/email-field-block {"inputTextColor":"#9398a5","inputBgColor":"#000000","inputBorderRadius":8,"inputBorderColor":"#232323"} -->
 				<div class="mrm-form-group mrm-input-group alignment-left email" style="margin-bottom:12px ;width:100% ;max-width:px "><label for="mrm-email" style="color:#363B4E;margin-bottom:7px"></label><div class="input-wrapper"><input type="email" name="email" id="mrm-email" placeholder="' . __( 'Email', 'mrm' ) . '" required style="background-color:#000000;color:#9398a5;font-size:14px;border-radius:8px;padding-top:11px;padding-right:14px;padding-bottom:11px;padding-left:14px;border-style:solid;border-width:1px;border-color:#232323" pattern="[^@\s]+@[^@\s]+\.[^@\s]+"/></div></div>
@@ -87,9 +87,9 @@ class Storage {
                 <h1 class="has-text-align-center has-primary-color has-text-color" style="font-size:50px">' . __( 'Get 10% OFF', 'mrm' ) . '</h1>
                 <!-- /wp:heading -->
 
-                <!-- wp:paragraph {"align":"center","style":{"typography":{"fontStyle":"normal","fontWeight":"500"},"color":{"text":"#9398a5"}},"fontSize":"small"} -->
-                <p class="has-text-align-center has-text-color has-small-font-size" style="color:#9398a5;font-style:normal;font-weight:500">' . __( 'Sign up for a 10% discount on your first order', 'mrm' ) . '!</p>
-                <!-- /wp:paragraph -->
+                <!-- wp:paragraph {"align":"center","style":{"color":{"text":"#9398a5"},"elements":{"link":{"color":{"text":"#9398a5"}}},"typography":{"fontSize":14}}} -->
+				<p class="has-text-align-center has-text-color has-link-color" style="color:#9398a5;font-size:14px">Sign up for a 10% discount on your first order!</p>
+				<!-- /wp:paragraph -->
 
 				<!-- wp:mrmformfield/email-field-block {"inputTextColor":"#9398a5","inputBgColor":"#fff","inputBorderRadius":8,"inputBorderColor":"#e9e9e9"} -->
 				<div class="mrm-form-group mrm-input-group alignment-left email" style="margin-bottom:12px ;width:100% ;max-width:px "><label for="mrm-email" style="color:#363B4E;margin-bottom:7px"></label><div class="input-wrapper"><input type="email" name="email" id="mrm-email" placeholder="' . __( 'Email', 'mrm' ) . '" required style="background-color:#fff;color:#9398a5;font-size:14px;border-radius:8px;padding-top:11px;padding-right:14px;padding-bottom:11px;padding-left:14px;border-style:solid;border-width:1px;border-color:#e9e9e9" pattern="[^@\s]+@[^@\s]+\.[^@\s]+"/></div></div>
@@ -156,9 +156,9 @@ class Storage {
                 <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/envelope.png" alt="" class="wp-image-256"/></figure>
                 <!-- /wp:image -->
 
-                <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontStyle":"normal","fontWeight":"700"},"color":{"text":"#2d3149"}},"fontSize":"larger"} -->
-                <h2 class="has-text-align-center has-text-color has-larger-font-size" style="color:#2d3149;font-style:normal;font-weight:700">' . __( 'Don\'t Miss Out', 'mrm' ) . '</h2>
-                <!-- /wp:heading -->
+                <!-- wp:heading {"textAlign":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|black"}}},"typography":{"fontSize":32,"fontWeight":800}},"textColor":"black"} -->
+				<h2 class="wp-block-heading has-text-align-center has-black-color has-text-color has-link-color" style="font-size:32px;font-weight:800">Don\'t Miss Out</h2>
+				<!-- /wp:heading -->
 
                 <!-- wp:paragraph {"align":"center","style":{"typography":{"fontSize":16},"color":{"text":"#9398a5"}}} -->
                 <p class="has-text-align-center has-text-color" style="color:#9398a5;font-size:16px">' . __( 'Subscribe to get exclusive deals sent directly to your email', 'mrm' ) . '.</p>
@@ -281,10 +281,9 @@ class Storage {
                 <h1 class="has-text-align-center has-text-color" style="color:#323232;margin-top:20px;font-size:56px;font-style:normal;font-weight:700">' . __( 'Get Free Shipping Fast', 'mrm' ) . '</h1>
                 <!-- /wp:heading -->
 
-                <!-- wp:paragraph {"align":"center","style":{"color":{"text":"#9398a5"},"spacing":{"margin":{"top":"10px","right":"0px","bottom":"30px","left":"0px"}},"typography":{"fontStyle":"normal","fontWeight":"400"}},"fontSize":"medium"} -->
-                <p class="has-text-align-center has-text-color has-medium-font-size" style="color:#9398a5;margin-top:10px;margin-right:0px;margin-bottom:30px;margin-left:0px;font-style:normal;font-weight:400">' . __( 'And there’s more to that—be the first to hear about', 'mrm' ) . '<br> ' . __( 'exclusive deals and new arrivals', 'mrm' ) . '.</p>
-
-                <!-- /wp:paragraph -->
+                <!-- wp:paragraph {"align":"center","style":{"color":{"text":"#9398a5"},"elements":{"link":{"color":{"text":"#9398a5"}}},"typography":{"fontSize":16,"lineHeight":1.5}}} -->
+				<p class="has-text-align-center has-text-color has-link-color" style="color:#9398a5;font-size:16px;line-height:1.5">And there’s more to that—be the first to hear about <br> exclusive deals and new arrivals.</p>
+				<!-- /wp:paragraph -->
 
 				<!-- wp:mrmformfield/email-field-block {"emailPlaceholder":"Enter your email","rowSpacing":20,"inputBorderRadius":8,"inputPaddingTop":15,"inputPaddingRight":20,"inputPaddingBottom":15,"inputPaddingLeft":20} -->
 				<div class="mrm-form-group mrm-input-group alignment-left email" style="margin-bottom:20px ;width:100% ;max-width:px "><label for="mrm-email" style="color:#363B4E;margin-bottom:7px"></label><div class="input-wrapper"><input type="email" name="email" id="mrm-email" placeholder="' . __( 'Enter your email', 'mrm' ) . '" required style="background-color:#ffffff;color:#7A8B9A;font-size:14px;border-radius:8px;padding-top:15px;padding-right:20px;padding-bottom:15px;padding-left:20px;border-style:solid;border-width:1px;border-color:#DFE1E8" pattern="[^@\s]+@[^@\s]+\.[^@\s]+"/></div></div>
@@ -327,9 +326,9 @@ class Storage {
                 <h1 class="has-text-align-center has-text-color" style="color:#232b69;margin-top:30px;margin-bottom:0px;font-size:56px;font-style:normal;font-weight:700">' . __( 'Don\'t Miss Out', 'mrm' ) . '</h1>
                 <!-- /wp:heading -->
 
-                <!-- wp:paragraph {"align":"center","style":{"color":{"text":"#9398a5"},"spacing":{"margin":{"bottom":"25px","top":"10px"}}},"fontSize":"medium"} -->
-                <p class="has-text-align-center has-text-color has-medium-font-size" style="color:#9398a5;margin-top:10px;margin-bottom:25px">' . __( 'Subscribe to our email newsletter today to receive updates on', 'mrm' ) . '<br> ' . __( 'the latest news, tutorials, and amazing offers', 'mrm' ) . ' !</p>
-                <!-- /wp:paragraph -->
+                <!-- wp:paragraph {"align":"center","style":{"color":{"text":"#9398a5"},"elements":{"link":{"color":{"text":"#9398a5"}}},"typography":{"lineHeight":1.5,"fontSize":18}}} -->
+				<p class="has-text-align-center has-text-color has-link-color" style="color:#9398a5;font-size:18px;line-height:1.5">Subscribe to our email newsletter today to receive updates on <br> the latest news, tutorials, and amazing offers !</p>
+				<!-- /wp:paragraph -->
 
                 <!-- wp:mrmformfield/email-field-block {"inputBorderRadius":8,"inputPaddingTop":12,"inputPaddingBottom":12} -->
 				<div class="mrm-form-group mrm-input-group alignment-left email" style="margin-bottom:12px ;width:100% ;max-width:px "><label for="mrm-email" style="color:#363B4E;margin-bottom:7px"></label><div class="input-wrapper"><input type="email" name="email" id="mrm-email" placeholder="' . __( 'Email', 'mrm' ) . '" required style="background-color:#ffffff;color:#7A8B9A;font-size:14px;border-radius:8px;padding-top:12px;padding-right:14px;padding-bottom:12px;padding-left:14px;border-style:solid;border-width:1px;border-color:#DFE1E8" pattern="[^@\s]+@[^@\s]+\.[^@\s]+"/></div></div>
@@ -520,8 +519,8 @@ class Storage {
 									<!-- /wp:column -->
 
 									<!-- wp:column {"verticalAlignment":"center"} -->
-									<div class="wp-block-column is-vertically-aligned-center"><!-- wp:heading {"textAlign":"center","level":1,"style":{"color":{"text":"#333333"},"typography":{"fontStyle":"normal","fontWeight":"600"},"spacing":{"margin":{"top":"0px"}}},"fontSize":"large"} -->
-									<h1 class="wp-block-heading has-text-align-center has-text-color has-large-font-size" style="color:#333333;margin-top:0px;font-style:normal;font-weight:600"><img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f31f.svg" alt="🌟"> Stay in Style! <img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f31f.svg" alt="🌟"></h1>
+									<div class="wp-block-column is-vertically-aligned-center"><!-- wp:heading {"textAlign":"center","style":{"typography":{"fontSize":24,"fontWeight":700,"lineHeight":1.2},"elements":{"link":{"color":{"text":"#333333"}}},"color":{"text":"#333333"}}} -->
+									<h2 class="wp-block-heading has-text-align-center has-text-color has-link-color" style="color:#333333;font-size:24px;font-weight:700;line-height:1.2"><img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f31f.svg" alt="🌟"> Stay in Style! <img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f31f.svg" alt="🌟"></h2>
 									<!-- /wp:heading -->
 
 									<!-- wp:paragraph {"align":"center","style":{"typography":{"fontStyle":"normal","fontWeight":"400","fontSize":16},"color":{"text":"#848484"},"spacing":{"margin":{"bottom":"25px","right":"30px","left":"30px"}}}} -->
@@ -556,17 +555,18 @@ class Storage {
 										<figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/newsletter-image.png" alt="" class="wp-image-172"/></figure>
 										<!-- /wp:image -->
 
-										<!-- wp:heading {"textAlign":"center","level":1,"textColor":"white","fontSize":"large"} -->
-										<h1 class="wp-block-heading has-text-align-center has-white-color has-text-color has-large-font-size">' . __( '', 'mrm' ) . 'Technically Trendy Insights!</h1>
+										<!-- wp:heading {"textAlign":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":24}},"textColor":"white"} -->
+										<h2 class="wp-block-heading has-text-align-center has-white-color has-text-color has-link-color" style="font-size:24px">Technically Trendy Insights!</h2>
 										<!-- /wp:heading -->
 
 										<!-- wp:group {"layout":{"type":"constrained"}} -->
-										<div class="wp-block-group"><!-- wp:paragraph {"align":"center","textColor":"white","fontSize":"small"} -->
-										<p class="has-text-align-center has-white-color has-text-color has-small-font-size">' . __( 'Keep in touch with the latest trends in the tech industry! Get the newest updates on ', 'mrm' ) . '<br>' . __( 'web development trends, cutting-edge technologies, and success stories that inspire', 'mrm' ) . '.</p>
+										<div class="wp-block-group"><!-- wp:paragraph {"align":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":14,"lineHeight":1.5}},"textColor":"white"} -->
+										<p class="has-text-align-center has-white-color has-text-color has-link-color" style="font-size:14px;line-height:1.5">Keep in touch with the latest trends in the tech industry! Get the newest updates on <br>web development trends, cutting-edge technologies, and success stories that inspire.</p>
 										<!-- /wp:paragraph --></div>
 										<!-- /wp:group --></div>
 										<!-- /wp:column --></div>
 										<!-- /wp:columns -->
+
 
 										<!-- wp:columns {"style":{"color":{"background":"#297de8"}}} -->
 										<div class="wp-block-columns has-background" style="background-color:#297de8"><!-- wp:column -->
@@ -582,8 +582,8 @@ class Storage {
 										<div class="mrm-form-group submit" style="margin-bottom:12px;text-align:left"><button class="mrm-submit-button mintmrm-btn" aria-label="Submit" type="submit" style="background-color:#fd5f32;color:;border-radius:5px;padding:15px 20px;line-height:1;letter-spacing:0;border-style:none;font-size:15px;border-width:0;border-color:;width:100%">' . __( 'Sign Up Now', 'mrm' ) . '</button><div id="mint-google-recaptcha" style="padding-top:10px;"></div><div class="response"></div></div>
 										<!-- /wp:mrmformfield/mrm-button-block -->
 
-										<!-- wp:paragraph {"align":"center","textColor":"white"} -->
-										<p class="has-text-align-center has-white-color has-text-color">' . __( 'We don’t spam! Read more in our privacy policy', 'mrm' ) . '</p>
+										<!-- wp:paragraph {"align":"center","style":{"color":{"text":"#af9997"},"elements":{"link":{"color":{"text":"#af9997"}}},"typography":{"fontSize":15}}} -->
+										<p class="has-text-align-center has-text-color has-link-color" style="color:#af9997;font-size:15px">We don’t spam! Read more in our privacy policy</p>
 										<!-- /wp:paragraph --></div>
 										<!-- /wp:column --></div>
 										<!-- /wp:columns -->',
@@ -612,8 +612,8 @@ class Storage {
 
 									<!-- wp:columns -->
 									<div class="wp-block-columns"><!-- wp:column -->
-									<div class="wp-block-column"><!-- wp:heading {"textAlign":"center","level":1,"style":{"typography":{"fontStyle":"normal","fontWeight":"700"},"color":{"text":"#573bff"},"spacing":{"margin":{"top":"20px","bottom":"10px"}}},"fontSize":"large"} -->
-									<h1 class="wp-block-heading has-text-align-center has-text-color has-large-font-size" style="color:#573bff;margin-top:20px;margin-bottom:10px;font-style:normal;font-weight:700"><strong>' . __( 'Stay Informed About Our Latest Offers', 'mrm' ) . '!</strong></h1>
+									<div class="wp-block-column"><!-- wp:heading {"textAlign":"center","style":{"color":{"text":"#573bff"},"elements":{"link":{"color":{"text":"#573bff"}}},"typography":{"fontWeight":700,"fontSize":26}}} -->
+									<h2 class="wp-block-heading has-text-align-center has-text-color has-link-color" style="color:#573bff;font-size:26px;font-weight:700">Stay Informed About Our Latest Offers!</h2>
 									<!-- /wp:heading -->
 
 									<!-- wp:paragraph {"align":"center","style":{"color":{"text":"#9398a5"},"spacing":{"margin":{"bottom":"30px","top":"0px","right":"0px","left":"0px"}},"typography":{"fontSize":16,"fontStyle":"normal","fontWeight":"400"}}} -->
@@ -652,9 +652,10 @@ class Storage {
 
 									<!-- wp:columns -->
 									<div class="wp-block-columns"><!-- wp:column -->
-									<div class="wp-block-column"><!-- wp:heading {"textAlign":"center","level":1,"style":{"typography":{"fontStyle":"normal","fontWeight":"700"},"spacing":{"margin":{"top":"20px","bottom":"10px"}}},"textColor":"white","fontSize":"large"} -->
-									<h1 class="wp-block-heading has-text-align-center has-white-color has-text-color has-large-font-size" style="margin-top:20px;margin-bottom:10px;font-style:normal;font-weight:700"><img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f383.svg" alt="🎃"> Join Us To Get Spooky Halloween Treats! <img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f383.svg" alt="🎃"></h1>
-									<!-- /wp:heading -->
+									<div class="wp-block-column"><!-- wp:paragraph {"align":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":26,"fontWeight":700}},"textColor":"white"} -->
+									<p class="has-text-align-center has-white-color has-text-color has-link-color" style="font-size:26px;font-weight:700"><img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f383.svg" alt="🎃"> Join Us To Get Spooky Halloween Treats! <img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f383.svg" alt="🎃"></p>
+									<!-- /wp:paragraph -->
+
 
 									<!-- wp:paragraph {"align":"center","style":{"color":{"text":"#9398a5"},"spacing":{"margin":{"bottom":"30px","top":"0px","right":"0px","left":"0px"}},"typography":{"fontSize":16,"fontStyle":"normal","fontWeight":"400"}}} -->
 									<p class="has-text-align-center has-text-color" style="color:#9398a5;margin-top:0px;margin-right:0px;margin-bottom:30px;margin-left:0px;font-size:16px;font-style:normal;font-weight:400">' . __( 'Get ready for a hauntingly good time! Be the first to know about eerie discounts', 'mrm' ) . ', <br>' . __( 'spine-chilling events, and ghostly giveaways', 'mrm' ) . '. <img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f577.svg" alt="🕷️"><img draggable="false" role="img" class="emoji" src="https://s.w.org/images/core/emoji/14.0.0/svg/1f36c.svg" alt="🍬"><br>Sign up now and get a 31% discount on all Halloween items!</p>
@@ -690,8 +691,8 @@ class Storage {
 				<h2 class="wp-block-heading has-white-color has-text-color" style="font-size:24px;font-style:normal;font-weight:700"><strong>' . __( 'Embark on Your Path to Mindfulness', 'mrm' ) . '</strong></h2>
 				<!-- /wp:heading -->
 				
-				<!-- wp:paragraph {"textColor":"white","fontSize":"small"} -->
-				<p class="has-white-color has-text-color has-small-font-size">' . __( 'Subscribe to Wellness Wisdom Newsletter for fitness tips, nutritional advice, and mental wellness strategies from our experienced coaches', 'mrm' ) . '.</p>
+				<!-- wp:paragraph {"style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":14}},"textColor":"white"} -->
+				<p class="has-white-color has-text-color has-link-color" style="font-size:14px">Subscribe to Wellness Wisdom Newsletter for fitness tips, nutritional advice, and mental wellness strategies from our experienced coaches.</p>
 				<!-- /wp:paragraph --></div>
 				<!-- /wp:column -->
 				
@@ -725,8 +726,8 @@ class Storage {
 									<div class="wp-block-columns has-white-background-color has-background" style="border-radius:16px;padding-top:20px;padding-right:20px;padding-bottom:20px;padding-left:20px"><!-- wp:column {"verticalAlignment":"top","width":""} -->
 									<div class="wp-block-column is-vertically-aligned-top"><!-- wp:columns -->
 									<div class="wp-block-columns"><!-- wp:column -->
-									<div class="wp-block-column"><!-- wp:heading {"textAlign":"center","level":1,"style":{"typography":{"fontStyle":"normal","fontWeight":"700"},"spacing":{"margin":{"top":"0px","right":"0px","bottom":"0px","left":"0px"},"padding":{"top":"0px","right":"0px","bottom":"10px","left":"0px"}}},"textColor":"black","fontSize":"larger"} -->
-									<h1 class="wp-block-heading has-text-align-center has-black-color has-text-color has-larger-font-size" style="margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:10px;padding-left:0px;font-style:normal;font-weight:700">Join Our Affiliate Program</h1>
+									<div class="wp-block-column"><!-- wp:heading {"textAlign":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|black"}}},"typography":{"fontWeight":800,"fontSize":40}},"textColor":"black"} -->
+									<h2 class="wp-block-heading has-text-align-center has-black-color has-text-color has-link-color" style="font-size:40px;font-weight:800">Join Our Affiliate Program</h2>
 									<!-- /wp:heading -->
 
 									<!-- wp:paragraph {"align":"center","style":{"spacing":{"margin":{"bottom":"30px","top":"0px","right":"0px","left":"0px"},"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"}},"typography":{"fontStyle":"normal","fontWeight":"400","fontSize":"16px"}},"textColor":"black"} -->
@@ -763,8 +764,8 @@ class Storage {
 									<!-- /wp:column --></div>
 									<!-- /wp:columns -->
 
-									<!-- wp:paragraph {"align":"center","style":{"typography":{"fontSize":16},"spacing":{"margin":{"top":"0px","right":"0px","bottom":"0px","left":"0px"},"padding":{"top":"0px","right":"0px","bottom":"10px","left":"0px"}}},"textColor":"dark-gray"} -->
-									<p class="has-text-align-center has-dark-gray-color has-text-color" style="margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:10px;padding-left:0px;font-size:14px">We don’t spam! Read more in our<a style="color:#323232cc;" href="#"> </a>privacy policy</p>
+									<!-- wp:paragraph {"align":"center","style":{"typography":{"fontSize":16},"color":{"text":"#323232cc"},"elements":{"link":{"color":{"text":"#323232cc"}}}}} -->
+									<p class="has-text-align-center has-text-color has-link-color" style="color:#323232cc;font-size:16px">We don\'t spam! Read more in our<a href="#"> privacy policy</a></p>
 									<!-- /wp:paragraph --></div>
 									<!-- /wp:column --></div>
 									<!-- /wp:columns -->',
@@ -800,8 +801,8 @@ class Storage {
 									<h1 class="wp-block-heading has-text-align-center has-text-color" style="color:#4feefa;margin-top:0px;margin-bottom:0px;font-size:56px;font-style:normal;font-weight:700">We\'re Here to Help</h1>
 									<!-- /wp:heading -->
 
-									<!-- wp:paragraph {"align":"center","style":{"spacing":{"margin":{"bottom":"25px","top":"10px"}}},"textColor":"white","fontSize":"medium"} -->
-									<p class="has-text-align-center has-white-color has-text-color has-medium-font-size" style="margin-top:10px;margin-bottom:25px">Reach out to us with your inquiries, feedback, or support requests. Our team is ready to assist you.</p>
+									<!-- wp:paragraph {"align":"center","style":{"typography":{"fontSize":16},"elements":{"link":{"color":{"text":"var:preset|color|white"}}}},"textColor":"white"} -->
+									<p class="has-text-align-center has-white-color has-text-color has-link-color" style="font-size:16px">Reach out to us with your inquiries, feedback, or support requests. Our team is ready to assist you.</p>
 									<!-- /wp:paragraph -->
 
 									<!-- wp:mrmformfield/mrm-custom-field {"field_name":"Full Name","customFields":[{"id":"14","title":"My Custom Field 1","slug":"my-custom-field-1","group_id":"1","type":"number","meta":{"placeholder":"My Custom Field","label":"My Custom Field 1"},"created_at":"2024-07-29 03:03:40","updated_at":null},{"id":"15","title":"My Custom Field 2","slug":"my-custom-field-2","group_id":"1","type":"text","meta":{"placeholder":"My Custom Field","label":"My Custom Field 2"},"created_at":"2024-07-29 03:03:57","updated_at":null}],"custom_text_placeholder":"Your Full Name","field_slug":"full-name","rowSpacing":8,"labelColor":"#FFFFFF","inputTextColor":"#FFFFFF","inputBgColor":"#163f47","inputBorderStyle":"none"} -->
@@ -844,8 +845,8 @@ class Storage {
 									<h2 class="wp-block-heading has-white-color has-text-color" style="margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;font-size:24px;font-style:normal;font-weight:700"><strong>Stay Tuned</strong></h2>
 									<!-- /wp:heading -->
 
-									<!-- wp:paragraph {"style":{"spacing":{"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"},"margin":{"top":"10px","right":"0px","bottom":"0px","left":"0px"}}},"textColor":"white","fontSize":"small"} -->
-									<p class="has-white-color has-text-color has-small-font-size" style="margin-top:10px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px">Be the first to hear about our upcoming album release!</p>
+									<!-- wp:paragraph {"style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":15}},"textColor":"white"} -->
+									<p class="has-white-color has-text-color has-link-color" style="font-size:15px">Be the first to hear about our upcoming album release!</p>
 									<!-- /wp:paragraph --></div>
 									<!-- /wp:column -->
 
@@ -914,14 +915,14 @@ class Storage {
 
 				<!-- wp:columns {"style":{"spacing":{"margin":{"top":"0px","bottom":"0px"},"padding":{"top":"10px","right":"40px","bottom":"20px","left":"40px"}}},"backgroundColor":"black"} -->
 				<div class="wp-block-columns has-black-background-color has-background" style="margin-top:0px;margin-bottom:0px;padding-top:10px;padding-right:40px;padding-bottom:20px;padding-left:40px"><!-- wp:column {"width":"66.66%","style":{"spacing":{"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"}}}} -->
-				<div class="wp-block-column" style="padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;flex-basis:66.66%"><!-- wp:paragraph {"style":{"spacing":{"margin":{"top":"0px","right":"0px","bottom":"0px","left":"0px"},"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"}},"elements":{"link":{"color":{"text":"var:preset|color|white"}}}},"textColor":"white"} -->
-				<p class="has-white-color has-text-color has-link-color" style="margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px"><span style="font-size: 16px">Subscribe today to receive a 20% off on your next orders instantly. Hurry, this offer won\'t last long!</span></p>
+				<div class="wp-block-column" style="padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;flex-basis:66.66%"><!-- wp:paragraph {"style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":16}},"textColor":"white"} -->
+				<p class="has-white-color has-text-color has-link-color" style="font-size:16px">Subscribe today to receive a 20% off on your next orders instantly. Hurry, this offer won\'t last long!</p>
 				<!-- /wp:paragraph --></div>
 				<!-- /wp:column -->
 
 				<!-- wp:column {"width":"33.33%"} -->
-				<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:paragraph {"style":{"spacing":{"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"},"margin":{"top":"0px","right":"0px","bottom":"0px","left":"0px"}},"elements":{"link":{"color":{"text":"var:preset|color|white"}}}},"textColor":"white"} -->
-				<p class="has-white-color has-text-color has-link-color" style="margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px"><span style="font-size: 16px">We don’t spam! Read more in our&nbsp;<a href="#" style="color: blue">privacy policy</a></span></p>
+				<div class="wp-block-column" style="flex-basis:33.33%"><!-- wp:paragraph {"style":{"spacing":{"padding":{"top":"0px","right":"0px","bottom":"0px","left":"0px"},"margin":{"top":"0px","right":"0px","bottom":"0px","left":"0px"}},"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":16}},"textColor":"white"} -->
+				<p class="has-white-color has-text-color has-link-color" style="margin-top:0px;margin-right:0px;margin-bottom:0px;margin-left:0px;padding-top:0px;padding-right:0px;padding-bottom:0px;padding-left:0px;font-size:16px">We don’t spam! Read more in our <a href="#">privacy policy</a></p>
 				<!-- /wp:paragraph --></div>
 				<!-- /wp:column --></div>
 				<!-- /wp:columns -->',
