@@ -205,7 +205,7 @@ class Hooks {
 	 *
 	 * @since 1.13.1
 	 */
-	public function clear_litespeed_cache() {		
+	public function clear_litespeed_cache() {
 		if (strpos($_SERVER['REQUEST_URI'], 'mrm') !== FALSE) {
             if ( class_exists( '\LiteSpeed\Purge' ) ) {
 				// Purge LiteSpeed Cache programmatically.

@@ -189,6 +189,7 @@ class ComposerStaticInit0ef686e349e8d435e93562ec163b5858
         'Mint\\MRM\\DataBase\\Tables\\CustomFieldSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/CustomField.php',
         'Mint\\MRM\\DataBase\\Tables\\EmailMetaSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/MessageMeta.php',
         'Mint\\MRM\\DataBase\\Tables\\EmailSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/Message.php',
+        'Mint\\MRM\\DataBase\\Tables\\EmailTemplatesSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/EmailTemplatesSchema.php',
         'Mint\\MRM\\DataBase\\Tables\\FormMetaSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/FormMeta.php',
         'Mint\\MRM\\DataBase\\Tables\\FormSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/Form.php',
         'Mint\\MRM\\DataBase\\Tables\\InteractionSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/Interaction.php',

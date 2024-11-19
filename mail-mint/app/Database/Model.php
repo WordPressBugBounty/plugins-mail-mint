@@ -53,6 +53,7 @@ class Model {
 				'automation_step_meta'          => 'AutomationStepMetaSchema',
 				'automation_job'                => 'AutomationJobSchema',
 				'automation_log'                => 'AutomationLogSchema',
+				'email_templates'				=> 'EmailTemplatesSchema',
 			)
 		);
 	}

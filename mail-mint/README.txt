@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.0
 Requires PHP: 7.4
-Stable tag:  1.15.2
+Stable tag:  1.15.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,9 +26,6 @@ Mail Mint helps you optimize your email marketing campaigns using a simple tool 
 ✅ Get simplified email automation flows for your next marketing campaign!
 
 It is specially built for marketers and funnel creators like you to use email marketing automation easily in a clutter-free UI and increase your conversions.
-
-🥳 We are celebrating the 3rd anniversary of WPFunnels! 🎉
-<a href="https://getwpfunnels.com/pricing/?utm_source=mm-repo-cta&utm_medium=wp-repo&utm_campaign=wpf3rdanniv#mail-mint" target="_blank"> 👉 Enjoy 40% OFF on Mail Mint Pro!</a>
 
 
 👉<a href="https://getwpfunnels.com/docs/mail-mint/" target="_blank"> Documentation </a>
@@ -505,6 +502,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.15.3 (2024-11-19) =
+* Improvement: Optimize Email Templates Database Queries
+* Bugfix: Email Template Saving Issue
+* Bugfix: Missing Text Block Typography Settings in Visual Editor
+* Bugfix: Placeholder Image for Missing Thumbnails in Template Selection Modal
+* Bugfix: Form ID is Showing on the Contacts List Source Column
 
 = 1.15.2 (2024-11-14) =
 * Improvement: Compatibility with WordPress 6.7.0

@@ -44,7 +44,9 @@ class DBUpgradeNotice {
 		/**
 		 * Check if there are any migration required.
 		 */
-		if ( DatabaseMigrator::needs_db_update() && 'no' === get_option( 'mail_mint_db_1140_version_updated', 'no' ) ) {
+		if ( DatabaseMigrator::needs_db_update() && 
+			('no' === get_option( 'mail_mint_db_1140_version_updated', 'no' )
+			|| 'no' === get_option( 'mail_mint_db_1152_version_updated', 'no' ) ) ) {
 			/**
 			 * Checks if a scheduled queue is running or if the user has initiated the process.
 			 * If a queue is running, indicates that the database migration action is in progress.
@@ -72,12 +74,15 @@ class DBUpgradeNotice {
 	public static function should_show_notice() {
 		$previous_notice = get_option( 'mail_mint_hide_database_update_notice', 'no' );
 		$new_notice      = get_option( 'mail_mint_hide_wc_database_update_notice', 'no' );
+		$another_notice  = get_option( 'mail_mint_hide_template_table_update_notice', 'no' );
 
-		if ( 'yes' === $previous_notice && 'no' === $new_notice ) {
+		if ( 'yes' === $previous_notice && 'no' === $new_notice && 'no' === $another_notice ) {
 			return true;
-		} else if ( 'no' === $previous_notice && 'no' === $new_notice ) {
+		} else if ( 'no' === $previous_notice && 'no' === $new_notice && 'no' === $another_notice ) {
 			return true;
-		} else if ( 'yes' === $previous_notice && 'yes' === $new_notice ) {
+		} else if ( 'yes' === $previous_notice && 'yes' === $new_notice && 'no' === $another_notice ) {
+			return true;
+		} else if ( 'yes' === $previous_notice && 'yes' === $new_notice && 'yes' === $another_notice ) {
 			return false;
 		} else {
 			return false;

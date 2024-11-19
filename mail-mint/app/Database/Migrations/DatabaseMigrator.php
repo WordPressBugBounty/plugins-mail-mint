@@ -60,6 +60,9 @@ class DatabaseMigrator {
 		'1.14.0' => array(
 			'mm_update_1140_migrate_woocommerce_order_custom_table',
 		),
+		'1.15.2' => array(
+			'mm_update_1152_migrate_templates_table',
+		),
 	);
 
 
@@ -117,7 +120,7 @@ class DatabaseMigrator {
 		$loop               = 0;
 
 		foreach ( self::get_db_update_callbacks() as $version => $update_callbacks ) {
-			if ( version_compare( $current_db_version, $version, '<=' ) ) {
+			if ( version_compare( $current_db_version, $version, '<' ) ) {
 				foreach ( $update_callbacks as $update_callback ) {
 					if ( false === as_has_scheduled_action( 'mail_mint_run_update_callback' ) ) {
 						as_schedule_single_action(
@@ -305,7 +308,7 @@ class DatabaseMigrator {
 			}
 
 			// Batch processing setup.
-			$batch_size = 100;
+			$batch_size = 200;
 			$offset = ! empty( $args['offset'] ) ? $args['offset'] : 0;
 			$valid_statuses = array('wc-completed', 'wc-processing', 'wc-on-hold');
 		
@@ -445,7 +448,7 @@ class DatabaseMigrator {
 		
 				// Schedule the next batch if there are more orders to process
 				$next_offset = $offset + $batch_size;
-				as_schedule_single_action( time() + 120, 'mail_mint_run_update_callback', array(
+				as_schedule_single_action( time() + 60, 'mail_mint_run_update_callback', array(
 					'update_callback' => 'mm_update_1140_migrate_woocommerce_order_custom_table',
 					'args'            => array(
 						'offset'  => $next_offset,
@@ -462,6 +465,130 @@ class DatabaseMigrator {
 			update_option( 'mail_mint_db_version', $version, false );
 			update_option( 'mail_mint_db_1140_version_updated', 'yes' );
 		}
+	}
+
+	/**
+	 * Migrate templates table to a new table.
+	 *
+	 * This function is designed to migrate the templates table to a new table named `wp_mint_templates`.
+	 * It retrieves a batch of templates and processes them to calculate the Last Modified Date, Created Date,
+	 * Total Template Count, and Total Template Categories. It then inserts or updates the data into the new table.
+	 *
+	 * @param array $args An associative array containing the batch and offset for processing.
+	 *
+	 * @return void
+	 *
+	 * @since 1.15.2
+	 */
+	public function mm_update_1152_migrate_templates_table( $args = array() ) {
+		$version = $args[ 'version' ];
+		global $wpdb;
+
+		// Define the table name.
+		$table = $wpdb->prefix . 'mint_email_templates';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table'" ) !== $table ) {
+			$charset_collate = $wpdb->get_charset_collate();
+			$create_table_query = "
+				CREATE TABLE IF NOT EXISTS {$table} (
+					`id` BIGINT UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT,
+					`title` VARCHAR(250) NOT NULL,
+					`thumbnail` longtext NULL,
+					`thumbnail_data` longtext NULL,
+					`html_content` longtext NULL,
+					`json_content` longtext NULL,
+					`editor_type` VARCHAR(50) NOT NULL,
+					`email_type` VARCHAR(50) NOT NULL,
+					`customizable` TINYINT(1) NOT NULL DEFAULT 0,
+					`author_id` BIGINT UNSIGNED NOT NULL,
+					`status` VARCHAR(50) NOT NULL DEFAULT 'draft',
+					`newsletter_type` VARCHAR(50) NULL,
+					`newsletter_id` BIGINT UNSIGNED NULL,
+					`created_at` TIMESTAMP NULL,
+					`updated_at` TIMESTAMP NULL,
+					INDEX `template_id_index` (`id` ASC)
+				) $charset_collate;";
+			require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+			dbDelta( $create_table_query );
+		}
+
+		// Define the SQL query to get the posts and meta data.
+		$sql = "
+			SELECT p.ID, p.post_title, p.post_date, p.post_modified, pm.meta_key, pm.meta_value
+			FROM {$wpdb->posts} p
+			INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+			WHERE p.post_type = 'mint_email_template'
+			ORDER BY p.ID
+		";
+
+		// Execute the query and get the results.
+		$results = $wpdb->get_results($sql, ARRAY_A);
+
+		// Initialize an array to hold the combined results.
+		$combined_results = array();
+
+		// Process the results to combine meta_key and meta_value.
+		foreach ($results as $row) {
+			$post_id = $row['ID'];
+
+			// Initialize the post array if it doesn't exist.
+			if (!isset($combined_results[$post_id])) {
+				$combined_results[$post_id] = array(
+					'title'           => $row['post_title'],
+					'thumbnail'       => '',
+					'thumbnail_data'  => '',
+					'html_content'    => '',
+					'json_content'    => '',
+					'editor_type'     => '',
+					'email_type'      => '',
+					'customizable'    => 0,
+					'author_id'       => get_post_field('post_author', $post_id),
+					'status'          => 'draft',
+					'newsletter_type' => '',
+					'newsletter_id'   => null,
+					'created_at'      => $row['post_date'],
+					'updated_at'      => $row['post_modified'],
+				);
+			}
+
+			// Add the meta_key and meta_value to the post array.
+			switch ($row['meta_key']) {
+				case 'mailmint_email_template_thumbnail':
+					$combined_results[$post_id]['thumbnail'] = $row['meta_value'];
+					break;
+				case 'mailmint_email_template_html_content':
+					$combined_results[$post_id]['html_content'] = $row['meta_value'];
+					break;
+				case 'mailmint_email_template_json_content':
+					$combined_results[$post_id]['json_content'] = $row['meta_value'];
+					break;
+				case 'mailmint_email_editor_type':
+					$combined_results[$post_id]['editor_type'] = $row['meta_value'];
+					break;
+				case 'mailmint_wc_email_type':
+					$combined_results[$post_id]['email_type'] = $row['meta_value'];
+					break;
+				case 'mailmint_wc_customize_enable':
+					$combined_results[$post_id]['customizable'] = $row['meta_value'] ? 1 : 0;
+					break;
+				case 'mailmint_email_template_thumbnail_data':
+					$combined_results[$post_id]['thumbnail_data'] = $row['meta_value'];
+					break;
+				case 'mailmint_newsletter_type':
+					$combined_results[$post_id]['newsletter_type'] = $row['meta_value'];
+					break;
+				case 'mailmint_newsletter_id':
+					$combined_results[$post_id]['newsletter_id'] = $row['meta_value'];
+					break;
+			}
+		}
+
+		// Insert the combined results into the new table
+		foreach ($combined_results as $data) {
+			$wpdb->insert($table, $data);
+		}
+
+		update_option( 'mail_mint_db_version', $version, false );
+		update_option( 'mail_mint_db_1152_version_updated', 'yes' );
 	}
 
 

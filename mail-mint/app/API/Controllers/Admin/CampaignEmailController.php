@@ -413,6 +413,10 @@ class CampaignEmailController extends AdminBaseController {
 	 * @since 1.0.0
 	 */
 	public function save_campaign_email_template( WP_REST_Request $request ) {
+		global $wpdb;
+
+        // Define the table name
+        $table_name = $wpdb->prefix . 'mint_email_templates';
 		// Receive params from POST API request and prepare email data.
 		$params = MrmCommon::get_api_params_values( $request );
 
@@ -423,41 +427,59 @@ class CampaignEmailController extends AdminBaseController {
 			return $this->get_error_response( __('Please set content to set as template.', 'mrm'), 201 );
 		}
 
-		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'mint_email_template',
-				'post_title'   => sanitize_text_field( $params[ 'title' ] ),
-				'post_status'  => 'draft',
-				'post_author'  => isset( $params[ 'post_author' ] ) ? $params[ 'post_author' ] : 0,
-			)
+		$title           = isset($params['title']) ? sanitize_text_field($params['title']) : '';
+        $html_content    = isset($params['html']) ? $params['html'] : '';
+        $json_content    = isset($params['json_content']) ? $params['json_content'] : '';
+        $editor_type     = isset($params['editor']) ? $params['editor'] : 'advanced-builder';
+        $thumbnail       = isset($params['thumbnail']) ? $this->upload_template_thumnail($params[ 'thumbnail' ]) : '';
+        $thumbnail_data  = isset($params['thumbnail']) ? $params['thumbnail'] : '';
+        $email_type      = isset($params['wooCommerce_email_type']) ? $params['wooCommerce_email_type'] : 'default';
+        $customizable    = isset($params['wooCommerce_email_enable']) ? (int) $params['wooCommerce_email_enable'] : 0;
+        $status          = isset($params['status']) ? $params['status'] : 'draft';
+        $newsletter_type = isset($params['newsletter_type']) ? $params['newsletter_type'] : NULL;
+        $newsletter_id   = isset($params['newsletter_id']) ? (int) $params['newsletter_id'] : NULL;
+		$author_id       = isset($params['post_author']) ? (int) $params['post_author'] : get_current_user_id();
+
+		// Prepare the data to be inserted
+		$data = array(
+			'title' => $title,
+			'html_content' => $html_content,
+			'json_content' => maybe_serialize($json_content),
+			'editor_type' => $editor_type,
+			'thumbnail' => maybe_serialize($thumbnail),
+			'thumbnail_data' => maybe_serialize($thumbnail_data),
+			'email_type' => $email_type,
+			'customizable' => $customizable,
+			'author_id' => $author_id,
+			'status' => $status,
+			'newsletter_type' => $newsletter_type,
+			'newsletter_id' => $newsletter_id,
+			'created_at' => current_time('mysql'),
+			'updated_at' => current_time('mysql'),
+		);
+	
+		// Specify the format of the data.
+		$format = array('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%d', '%s', '%s');
+	
+		// Insert the data into the table.
+		$inserted = $wpdb->insert($table_name, $data, $format);
+
+		// Check for errors
+		if ($inserted === false) {
+			return $this->get_error_response( __('Template could not be saved.', 'mrm'), 401 );
+		}
+
+		$result = array(
+			'id' 	       => $wpdb->insert_id,
+			'title'        => $params[ 'title' ],
+			'created_at'   => current_time('mysql'),
+			'json_content' => $params[ 'json_content' ],
+			'thumbnail'    => $thumbnail,
 		);
 
-		$params['wooCommerce_email_type']   = isset( $params['wooCommerce_email_type'] ) ? $params['wooCommerce_email_type'] : 'default';
-		$params['wooCommerce_email_enable'] = isset( $params['wooCommerce_email_enable'] ) ? $params['wooCommerce_email_enable'] : false;
-
-		if ( $post_id ) {
-			if ( !empty( $params[ 'html' ] ) ) {
-				$editor        = isset( $params['editor'] ) ? $params['editor'] : 'advanced-builder';
-				$thumbnail_url = $this->upload_template_thumnail($params[ 'thumbnail' ]);
-				update_post_meta( $post_id, 'mailmint_email_template_thumbnail', $thumbnail_url );
-				update_post_meta( $post_id, 'mailmint_email_template_html_content', $params[ 'html' ] );
-				update_post_meta( $post_id, 'mailmint_email_template_json_content', $params[ 'json_content' ] );
-				update_post_meta( $post_id, 'mailmint_email_editor_type', $editor );
-				update_post_meta( $post_id, 'mailmint_wc_email_type', $params[ 'wooCommerce_email_type' ] );
-				update_post_meta( $post_id, 'mailmint_wc_customize_enable', $params['wooCommerce_email_enable'] );
-			}
-
-			$data = array(
-				'id' 	          => $post_id,
-				'title'           => $params[ 'title' ],
-				'created_at'      => current_time('mysql'),
-				'html_content'    => $params[ 'html' ],
-				'json_content'    => $params[ 'json_content' ],
-				'thumbnail_image' => $thumbnail_url,
-			);
-			return $this->get_success_response( __('Email template has been saved successfully.', 'mrm'), 200, $data );
+		if ( $wpdb->insert_id ) {
+			return $this->get_success_response( __('Email template has been saved successfully.', 'mrm'), 200, $result );
 		}
-		return $this->get_error_response( __('Template could not be saved.', 'mrm'), 401 );
 	}
 
 	/**
@@ -531,13 +553,12 @@ class CampaignEmailController extends AdminBaseController {
 			if ( '' === $thumbnail_data ) {
 				return;
 			}
-		}
-		else {
+		}else {
 			return;
 		}
 
-		$template_thumbnail_dir = MRM_UPLOAD_DIR . '/template-thumbnails/campaigns';
-		$template_thumbnail_url = MRM_UPLOAD_URL . '/template-thumbnails/campaigns';
+		$template_thumbnail_dir = MRM_UPLOAD_DIR . 'template-thumbnails/campaigns';
+		$template_thumbnail_url = MRM_UPLOAD_URL . 'template-thumbnails/campaigns';
 
 		if ( !file_exists( $template_thumbnail_dir ) ) {
 			wp_mkdir_p( $template_thumbnail_dir );

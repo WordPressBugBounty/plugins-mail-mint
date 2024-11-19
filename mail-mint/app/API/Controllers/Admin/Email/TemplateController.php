@@ -142,4 +142,19 @@ class TemplateController extends AdminBaseController {
             )
         );
     }
+
+    /**
+     * Handles POST requests for updating WooCommerce email template.
+     *
+     * This method updates WooCommerce email template based on the parameters provided in the request.
+     * It uses the `update_woocommerce_email_template` method of the `TemplateAction` object to update the WooCommerce email template.
+     *
+     * @param WP_REST_Request $request The request object.
+     * @return WP_REST_Response The response object.
+     *
+     * @since @since 1.15.3
+     */
+    public function retrieve_template_value_by_key( $id, $key ) {
+        return $this->action->retrieve_template_value_by_key( $id, $key );
+    }
 }

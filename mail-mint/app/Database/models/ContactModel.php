@@ -370,6 +370,14 @@ class ContactModel {
 		foreach ( $query_results as $query_result ) {
 			$q_id      = isset( $query_result['id'] ) ? $query_result['id'] : '';
 			$new_meta  = self::get_meta( $q_id );
+
+			if (isset($query_result['source']) && preg_match('/Form-(\d+)/', $query_result['source'], $matches)) {
+				$form_id = $matches[1];
+				// Assuming you have a method to get the form title by ID
+				$form_title = FormModel::get_form_title( $form_id );
+				$query_result['source'] =  'Mail Mint Form - ' . $form_title;
+			}
+
 			$results[] = array_merge( $query_result, $new_meta );
 		}
 
@@ -572,6 +580,14 @@ class ContactModel {
 			foreach ( $query_results as $query_result ) {
 				$q_id      = isset( $query_result['id'] ) ? $query_result['id'] : '';
 				$new_meta  = self::get_meta( $q_id );
+
+				if (isset($query_result['source']) && preg_match('/Form-(\d+)/', $query_result['source'], $matches)) {
+					$form_id = $matches[1];
+					// Assuming you have a method to get the form title by ID
+					$form_title = FormModel::get_form_title($form_id);
+					$query_result['source'] =  'Mail Mint Form - ' . $form_title;
+				}
+
 				$results[] = array_merge( $query_result, $new_meta );
 			}
 

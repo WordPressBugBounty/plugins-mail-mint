@@ -640,4 +640,19 @@ class FormModel {
 		$table = $wpdb->prefix . ContactMetaSchema::$table_name;
 		return $wpdb->delete( $table, array( 'id' => $contact_meta_id ) ); // db call ok. ; no-cache ok.
 	}
+
+	/**
+	 * Get form title by form id
+	 *
+	 * @param int $id Form ID.
+	 *
+	 * @return string
+	 * @since 1.15.3
+	 */
+	public static function get_form_title( $id) {
+		global $wpdb;
+		$form_table = $wpdb->prefix . FormSchema::$table_name;
+		$form_query = $wpdb->prepare("SELECT `title` FROM $form_table WHERE id = %d", array($id));
+		return $wpdb->get_var($form_query);
+	}
 }

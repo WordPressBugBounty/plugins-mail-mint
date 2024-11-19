@@ -35,6 +35,8 @@ class TemplateAction implements Action {
      */
     public function retrieve_and_format_templates( $params ) {
         global $wpdb;
+        // Define the table name.
+        $table_name = $wpdb->prefix . 'mint_email_templates';
         // Extract parameters or use default values.
         $page     = isset( $params['page'] ) ? $params['page'] : 1;
         $per_page = isset( $params['per-page'] ) ? $params['per-page'] : 10;
@@ -43,7 +45,7 @@ class TemplateAction implements Action {
         // Map 'order-by' parameter to actual database fields.
         $order_by_map = array(
             'created_at' => 'ID',
-            'title'      => 'post_title',
+            'title'      => 'title',
         );
 
         // Get 'order-by' and 'order-type' parameters or use default values.
@@ -53,67 +55,54 @@ class TemplateAction implements Action {
         // Get 'search' parameter or use default value.
         $search = isset( $params['search'] ) ? $params['search'] : '';
 
-        // Fetch templates from the database here.
-        $templates_data = $wpdb->get_results($wpdb->prepare("SELECT * 
-                FROM {$wpdb->prefix}posts 
-                LEFT JOIN {$wpdb->prefix}postmeta ON {$wpdb->prefix}posts.ID = {$wpdb->prefix}postmeta.post_id 
-                WHERE {$wpdb->prefix}posts.post_type = 'mint_email_template' 
-                AND {$wpdb->prefix}posts.post_status = 'draft' 
-                AND (
-                    ({$wpdb->prefix}postmeta.meta_key = 'mailmint_wc_email_type' AND {$wpdb->prefix}postmeta.meta_value = %s) 
-                    OR 
-                    ({$wpdb->prefix}postmeta.meta_key = 'mailmint_wc_email_type' AND {$wpdb->prefix}postmeta.meta_value IS NULL)
-                )
-                AND {$wpdb->prefix}posts.post_title LIKE %s
-                ORDER BY {$wpdb->prefix}posts.{$order_by} {$order_type}
-                LIMIT %d OFFSET %d
-            ", 'default', '%' . $wpdb->esc_like($search) . '%', $per_page, $offset));
+        // Define the query.
+        $query = "
+            SELECT id, title, thumbnail, thumbnail_data, json_content, editor_type, email_type, customizable, author_id, status, newsletter_type, newsletter_id, created_at, updated_at
+            FROM $table_name
+            WHERE (email_type = %s OR email_type IS NULL OR email_type = '')
+            AND title LIKE %s
+            ORDER BY $order_by $order_type
+            LIMIT %d OFFSET %d
+        ";
 
-        if ( ! empty( $templates_data ) ) {
-            $templates = array();
-            foreach ( $templates_data as $template ) {
-                if ( ! isset( $template->ID ) ) {
-                    continue;
-                }
+        // Prepare the query with pagination and search parameters.
+        $query = $wpdb->prepare($query, 'default', '%' . $wpdb->esc_like($search) . '%', $per_page, $offset);
+        // Execute the query.
+        $results = $wpdb->get_results($query, ARRAY_A);
 
-                $templates['templates'][] = array(
-                    'id'              => $template->ID,
-                    'title'           => $template->post_title,
-                    'created_at'      => MrmCommon::date_time_format_with_core( $template->post_date ),
-                    'html_content'    => get_post_meta( $template->ID, 'mailmint_email_template_html_content', true ),
-                    'json_content'    => get_post_meta( $template->ID, 'mailmint_email_template_json_content', true ),
-                    'thumbnail_image' => get_post_meta( $template->ID, 'mailmint_email_template_thumbnail', true ),
-                    'wc_email_type'   => get_post_meta($template->ID, 'mailmint_wc_email_type', true),
-                );
-
-                $filtered_data = array_filter( $templates['templates'], function( $item ) {
-                    return $item['wc_email_type'] === 'default' || $item['wc_email_type'] === '';
-                } );
-
-                $templates['templates'] = $filtered_data;
+        // Unserialize specific fields in the results
+        foreach ($results as &$result) {
+            if (isset($result['thumbnail'])) {
+                $result['thumbnail'] = maybe_unserialize($result['thumbnail']);
             }
-
-            $search_term = '%' . $wpdb->esc_like($search) . '%'; // Escaping search string
-
-            $templates['total_count'] = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) 
-                FROM {$wpdb->prefix}posts 
-                LEFT JOIN {$wpdb->prefix}postmeta ON {$wpdb->prefix}posts.ID = {$wpdb->prefix}postmeta.post_id 
-                WHERE {$wpdb->prefix}posts.post_type = 'mint_email_template' 
-                AND {$wpdb->prefix}posts.post_status = 'draft' 
-                AND (
-                    ({$wpdb->prefix}postmeta.meta_key = 'mailmint_wc_email_type' AND {$wpdb->prefix}postmeta.meta_value = 'default') 
-                    OR 
-                    ({$wpdb->prefix}postmeta.meta_key = 'mailmint_wc_email_type' AND {$wpdb->prefix}postmeta.meta_value IS NULL)
-                )
-                AND {$wpdb->prefix}posts.post_title LIKE %s
-            ", $search_term));
-
-            $templates['total_pages'] = ( 0 !== $per_page ) ? ceil( $templates['total_count'] / $per_page ) : 0;
-            return $templates;
+            if (isset($result['thumbnail_data'])) {
+                $result['thumbnail_data'] = maybe_unserialize($result['thumbnail_data']);
+            }
+            if (isset($result['json_content'])) {
+                $result['json_content'] = maybe_unserialize($result['json_content']);
+            }
         }
 
+        // Define the count query.
+        $count_query = "
+            SELECT COUNT(*)
+            FROM $table_name
+            WHERE (email_type = %s OR email_type IS NULL OR email_type = '')
+            AND title LIKE %s
+        ";
+
+        // Prepare the count query with the search parameter
+        $count_query = $wpdb->prepare($count_query, 'default', '%' . $wpdb->esc_like($search) . '%');
+
+        // Execute the count query
+        $total_count = (int) $wpdb->get_var($count_query);
+
+        // Calculate total pages
+        $total_pages = (0 !== $per_page) ? ceil($total_count / $per_page) : 0;
         return array(
-            'templates' => array(),
+            'templates'   => $results,
+            'total_count' => $total_count,
+            'total_pages' => $total_pages,
         );
     }
 
@@ -130,14 +119,13 @@ class TemplateAction implements Action {
     public function delete_template( $params ) {
         // Extract parameters or use default values.
         $template_ids = isset( $params['template_ids'] ) ? $params['template_ids'] : array();
-        
         foreach ($template_ids as $template_id) {
-            $thumbnail = get_post_meta( $template_id, 'mailmint_email_template_thumbnail', true );
-            $thumbnail = ! empty( $thumbnail[ 'path' ] ) ? $thumbnail[ 'path' ] : null;
+            $thumbnail = $this->get_template_thumbnail( $template_id );
+            $path      = ! empty( $thumbnail['thumbnail'][ 'path' ] ) ? $thumbnail['thumbnail'][ 'path' ] : null;
     
-            if ( $template_id && wp_delete_post( $template_id ) ) {
-                if ( ! empty( $thumbnail ) ) {
-                    unlink( $thumbnail );
+            if ( $template_id && $this->delete_template_by_id( $template_id ) ) {
+                if ( ! empty( $path ) ) {
+                    unlink( $path );
                 }
             } else {
                 // Return false if any deletion fails.
@@ -147,6 +135,42 @@ class TemplateAction implements Action {
     
         // Return true if all deletions are successful.
         return true;
+    }
+
+    /**
+     * Delete template based on specified parameters.
+     *
+     * @param int $template_id The template id to delete.
+     *
+     * @return bool True if the template was deleted successfully, false otherwise.
+     * 
+     * @since 1.9.0
+     */
+    public function delete_template_by_id( $template_id ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'mint_email_templates';
+        $result = $wpdb->delete( $table_name, array( 'id' => $template_id ) );
+        return $result !== false;
+    }
+
+    /**
+     * Retrieve template thumbnail based on specified parameters.
+     *
+     * @param array $params An associative array of parameters:
+     *                      - 'template_id' : The template id to retrieve thumbnail.
+     *
+     * @return array An array containing information about template thumbnail.
+     * 
+     * @since 1.9.0
+     */
+    public function get_template_thumbnail( $template_id ) {
+        global $wpdb;
+        $thumbnail = $wpdb->get_row( $wpdb->prepare( "SELECT thumbnail, thumbnail_data FROM {$wpdb->prefix}mint_email_templates WHERE id = %d", $template_id ), ARRAY_A );
+        if ( ! empty( $thumbnail ) ) {
+            $thumbnail['thumbnail'] = maybe_unserialize( $thumbnail['thumbnail'] );
+            $thumbnail['thumbnail_data'] = maybe_unserialize( $thumbnail['thumbnail_data'] );
+        }
+        return $thumbnail;
     }
 
     /**
@@ -167,38 +191,59 @@ class TemplateAction implements Action {
      * @since 1.10.5
      */
     public function update_template( $params ) {
+        global $wpdb;
+
+        // Define the table name
+        $table_name = $wpdb->prefix . 'mint_email_templates';
         // Extract parameters or use default values.
-        $template_id = isset( $params['template_id'] ) ? $params['template_id'] : 0;
+        $template_id     = isset( $params['template_id'] ) ? $params['template_id'] : 0;
+        $title           = isset($params['title']) ? sanitize_text_field($params['title']) : '';
+        $html_content    = isset($params['html']) ? $params['html'] : '';
+        $json_content    = isset($params['json_content']) ? $params['json_content'] : '';
+        $editor_type     = isset($params['editor_type']) ? $params['editor_type'] : 'advanced-builder';
+        $thumbnail       = isset($params['thumbnail']) ? $this->upload_template_thumnail($params[ 'thumbnail' ]) : '';
+        $thumbnail_data  = isset($params['thumbnail']) ? $params['thumbnail'] : '';
+        $email_type      = isset($params['wooCommerce_email_type']) ? $params['wooCommerce_email_type'] : 'default';
+        $customizable    = isset($params['wooCommerce_email_enable']) ? (int) $params['wooCommerce_email_enable'] : 0;
+        $status          = isset($params['status']) ? $params['status'] : 'draft';
+        $newsletter_type = isset($params['newsletter_type']) ? $params['newsletter_type'] : NULL;
+        $newsletter_id   = isset($params['newsletter_id']) ? (int) $params['newsletter_id'] : NULL;
+        // Update the template in the database
+        $result = $wpdb->update(
+                $table_name,
+                array(
+                    'title' => $title,
+                    'html_content' => $html_content,
+                    'json_content' => maybe_serialize($json_content),
+                    'editor_type' => $editor_type,
+                    'thumbnail' => maybe_serialize($thumbnail),
+                    'thumbnail_data' => maybe_serialize($thumbnail_data),
+                    'email_type' => $email_type,
+                    'customizable' => $customizable,
+                    'status' => $status,
+                    'newsletter_type' => $newsletter_type,
+                    'newsletter_id' => $newsletter_id,
+                    'updated_at' => current_time('mysql', 1)
+                ),
+                array('id' => $template_id),
+                array(
+                    '%s',
+                    '%s',
+                    '%s',
+                    '%s',
+                    '%s',
+                    '%s',
+                    '%s',
+                    '%d',
+                    '%s',
+                    '%s',
+                    '%d',
+                    '%s'
+                ),
+                array('%d')
+            );
 
-        $post_id = wp_update_post(
-            array(
-                'ID'           => $template_id,
-                'post_type'    => 'mint_email_template',
-                'post_title'   => sanitize_text_field( $params[ 'title' ] ),
-                'post_status'  => 'draft',
-                'post_author'  => get_current_user_id(),
-            )
-        );
-        
-        $params['wooCommerce_email_type']   = isset( $params['wooCommerce_email_type'] ) ? $params['wooCommerce_email_type'] : 'default';
-        $params['wooCommerce_email_enable'] = isset( $params['wooCommerce_email_enable'] ) ? $params['wooCommerce_email_enable'] : false;
-
-        if ( $post_id ) {
-			if ( !empty( $params[ 'html' ] ) ) {
-				$editor        = isset( $params['editor'] ) ? $params['editor'] : 'advanced-builder';
-
-                if( 'default' === $params['wooCommerce_email_type'] ) {
-                    $thumbnail_url = $this->upload_template_thumnail($params[ 'thumbnail' ]);
-				    update_post_meta( $post_id, 'mailmint_email_template_thumbnail', $thumbnail_url );
-                }
-				update_post_meta( $post_id, 'mailmint_email_template_html_content', $params[ 'html' ] );
-				update_post_meta( $post_id, 'mailmint_email_template_json_content', $params[ 'json_content' ] );
-				update_post_meta( $post_id, 'mailmint_email_editor_type', $editor );
-				update_post_meta( $post_id, 'mailmint_wc_email_type', $params['wooCommerce_email_type'] );
-                update_post_meta( $post_id, 'mailmint_wc_customize_enable', $params['wooCommerce_email_enable'] );
-			}
-		}
-        return true;
+        return $result !== false;
     }
 
     /**
@@ -217,13 +262,12 @@ class TemplateAction implements Action {
 			if ( '' === $thumbnail_data ) {
 				return;
 			}
-		}
-		else {
+		}else {
 			return;
 		}
 
-		$template_thumbnail_dir = MRM_UPLOAD_DIR . '/template-thumbnails/campaigns';
-		$template_thumbnail_url = MRM_UPLOAD_URL . '/template-thumbnails/campaigns';
+		$template_thumbnail_dir = MRM_UPLOAD_DIR . 'template-thumbnails/campaigns';
+		$template_thumbnail_url = MRM_UPLOAD_URL . 'template-thumbnails/campaigns';
 
 		if ( !file_exists( $template_thumbnail_dir ) ) {
 			wp_mkdir_p( $template_thumbnail_dir );
@@ -247,37 +291,60 @@ class TemplateAction implements Action {
      * @since 1.10.5
      */
     public function get_woocommerce_email_template( $params ) {
-        $type = isset( $params['type'] ) ? $params['type'] : 'default';
-
         global $wpdb;
-        $templates_data = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}posts LEFT JOIN {$wpdb->prefix}postmeta ON {$wpdb->prefix}posts.ID = {$wpdb->prefix}postmeta.post_id 
-                WHERE {$wpdb->prefix}posts.post_type = 'mint_email_template' 
-                AND {$wpdb->prefix}posts.post_status = 'draft' 
-                AND {$wpdb->prefix}postmeta.meta_key = 'mailmint_wc_email_type' 
-                AND {$wpdb->prefix}postmeta.meta_value = %s
-            ", $type ) );
+        // Define the table name.
+        $table_name = $wpdb->prefix . 'mint_email_templates';
+        $type       = isset( $params['type'] ) ? $params['type'] : 'default';
+
+        // Define the query.
+        $query = "
+            SELECT id, title, thumbnail, thumbnail_data, json_content, editor_type, email_type, customizable, author_id, status, newsletter_type, newsletter_id, created_at, updated_at
+            FROM $table_name
+            WHERE email_type = %s
+            ORDER BY ID DESC LIMIT 1
+        ";
+
+        // Prepare the query with pagination and search parameters.
+        $query = $wpdb->prepare($query, $type);
+        // Execute the query.
+        $results = $wpdb->get_results($query, ARRAY_A);
         
         $templates = array();
 
-        if ( ! empty( $templates_data ) ) {
-            foreach ( $templates_data as $template ) {
-                if ( ! isset( $template->ID ) ) {
+        if ( ! empty( $results ) ) {
+            foreach ( $results as $result ) {
+                if ( ! isset( $result['id'] ) ) {
                     continue;
                 }
 
                 $templates['templates'] = array(
-                    'id'                        => $template->ID,
-                    'title'                     => $template->post_title,
-                    'created_at'                => MrmCommon::date_time_format_with_core( $template->post_date ),
-                    'html_content'              => get_post_meta( $template->ID, 'mailmint_email_template_html_content', true ),
-                    'json_content'              => get_post_meta( $template->ID, 'mailmint_email_template_json_content', true ),
-                    'thumbnail_image'           => get_post_meta( $template->ID, 'mailmint_email_template_thumbnail', true ),
-                    'wc_email_type'             => get_post_meta($template->ID, 'mailmint_wc_email_type', true),
-                    'wooCommerce_email_enable' => get_post_meta($template->ID, 'mailmint_wc_customize_enable', true),
+                    'id'                       => $result['id'],
+                    'title'                    => $result['title'],
+                    'json_content'             => maybe_unserialize($result['json_content']),
+                    'wc_email_type'            => $result['email_type'],
+                    'wooCommerce_email_enable' => (int) $result['customizable'],
+                    'thumbnail_image'          => maybe_unserialize($result['thumbnail']),
                 );
             }
         }
+
         return $templates;
     }
-        
+
+    /**
+     * Retrieve template value based on specified parameters.
+     *
+     * @param int $id The template id to retrieve value.
+     * @param string $key The key to retrieve value.
+     *
+     * @return string The value of the template.
+     * 
+     * @since 1.15.3
+     */
+    public function retrieve_template_value_by_key( $id, $key ) {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'mint_email_templates';
+        $result = $wpdb->get_var( $wpdb->prepare( "SELECT $key FROM $table_name WHERE id = %d", $id ) );
+        return $result;
+    }   
 }

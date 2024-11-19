@@ -165,6 +165,7 @@ return array(
     'Mint\\MRM\\DataBase\\Tables\\CustomFieldSchema' => $baseDir . '/app/Database/Schemas/CustomField.php',
     'Mint\\MRM\\DataBase\\Tables\\EmailMetaSchema' => $baseDir . '/app/Database/Schemas/MessageMeta.php',
     'Mint\\MRM\\DataBase\\Tables\\EmailSchema' => $baseDir . '/app/Database/Schemas/Message.php',
+    'Mint\\MRM\\DataBase\\Tables\\EmailTemplatesSchema' => $baseDir . '/app/Database/Schemas/EmailTemplatesSchema.php',
     'Mint\\MRM\\DataBase\\Tables\\FormMetaSchema' => $baseDir . '/app/Database/Schemas/FormMeta.php',
     'Mint\\MRM\\DataBase\\Tables\\FormSchema' => $baseDir . '/app/Database/Schemas/Form.php',
     'Mint\\MRM\\DataBase\\Tables\\InteractionSchema' => $baseDir . '/app/Database/Schemas/Interaction.php',
