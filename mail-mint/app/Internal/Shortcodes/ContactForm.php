@@ -190,7 +190,7 @@ class ContactForm {
 					$class = 'custom-background';
 				}
 			}
-
+			
 			$block_html .= render_block( $block );
 		}
 		$settings           = get_option( '_mint_recaptcha_settings' );

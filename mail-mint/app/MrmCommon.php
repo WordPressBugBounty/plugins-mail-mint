@@ -1020,12 +1020,21 @@ class MrmCommon {
 				'name'  => true,
 				'id'    => true,
 				'style' => true,
+				'required' => array()
 			),
 			'option' => array(
 				'value' => true,
 			),
 			'script' => array(
 				'src' => array(),
+			),
+			'textarea' => array(
+				'name'     => array(),
+				'id'       => array(),
+				'class'    => array(),
+				'rows'     => array(),
+				'cols'     => array(),
+				'required' => array(),
 			),
 		);
 

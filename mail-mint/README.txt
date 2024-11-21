@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.0
 Requires PHP: 7.4
-Stable tag:  1.15.3
+Stable tag:  1.15.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -502,6 +502,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.15.4 (2024-11-21) =
+* Bugfix: Email Sender Information Issues on the Automation
+* Bugfix: Required Field Issues on the Form Submission
 
 = 1.15.3 (2024-11-19) =
 * Improvement: Optimize Email Templates Database Queries
