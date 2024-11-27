@@ -18,6 +18,7 @@ use Mint\MRM\Internal\Constants;
 use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Utilites\Helper\Email;
 use Mint\MRM\Utilities\Helper\TranslationString\TransStrings;
+use Mint\Utilities\CustomFonts;
 use MintMail\App\Internal\Automation\HelperFunctions;
 use MintMailPro\Mint_Pro_Helper;
 use MRM\Common\MrmCommon;
@@ -218,6 +219,9 @@ class AdminAssets {
 
         $recaptcha_default = MrmCommon::recaptcha_default_configuration();
         $wc_active         = MrmCommon::is_wc_active();
+
+        $custom_fonts = new CustomFonts();
+        $custom_fonts->enqueue_style();
 
         // Broadcasts.
         wp_tinymce_inline_scripts();

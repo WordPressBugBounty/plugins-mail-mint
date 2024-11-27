@@ -11,6 +11,7 @@
 
 namespace Mint\MRM\Admin\API\Routes;
 
+use Mint\MRM\Admin\API\Controllers\AdvancedSettingController;
 use Mint\MRM\Admin\API\Controllers\ComplianceSettingController;
 use Mint\MRM\Admin\API\Controllers\GeneralSettingController;
 use Mint\MRM\Admin\API\Controllers\WCSettingController;
@@ -125,6 +126,14 @@ class SettingRoute {
 	 * @since 1.0.0
 	 */
 	protected $recaptcha_controller;
+
+	/**
+	 * AdvancedSettingsController class instance variable
+	 *
+	 * @var object
+	 * @since 1.15.5
+	 */
+	protected $advanced_settings_controller;
 
 
 	/**
@@ -452,5 +461,47 @@ class SettingRoute {
 			)
 		);
 
+		// API routes for advanced settings.
+		$this->advanced_settings_controller = new AdvancedSettingController();
+        register_rest_route(
+            $this->namespace,
+            '/' . $this->rest_base . '/advanced',
+            array(
+                array(
+                    'methods'             => \WP_REST_Server::CREATABLE,
+                    'callback'            => array(
+                        $this->advanced_settings_controller,
+                        'create_or_update',
+                    ),
+                    'permission_callback' => array(
+                        $this->advanced_settings_controller,
+                        'rest_permissions_check',
+                    ),
+                ),
+                array(
+                    'methods'             => \WP_REST_Server::READABLE,
+                    'callback'            => array(
+                        $this->advanced_settings_controller,
+                        'get',
+                    ),
+                    'permission_callback' => array(
+                        $this->advanced_settings_controller,
+                        'rest_permissions_check',
+                    ),
+                ),
+            )
+        );
+
+		register_rest_route(
+			$this->namespace,
+			'transient/delete',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array($this->advanced_settings_controller, 'delete_transients'),
+					'permission_callback' => array($this->advanced_settings_controller, 'rest_permissions_check'),
+				),
+			)
+		);
 	}
 }

@@ -61,7 +61,7 @@ class SpecialOccasionBanner
      * @return array Time remaining in days, hours, and minutes
      */
     function mint_get_halloween_countdown() {
-        $halloween = strtotime('2024-11-15 23:59:59'); // Set this to the next Halloween
+        $halloween = strtotime('2024-12-05 23:59:59'); // Set this to the next Halloween
         $now = current_time('timestamp');
         $diff = $halloween - $now;
 
@@ -86,7 +86,7 @@ class SpecialOccasionBanner
             return;
         }
 
-        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_mint_wpfnl_anniversary_24') || MrmCommon::is_wpfnl_active() || 'no' === get_option('_is_wpfnl_3rd_anniversy_promotion')) {
+        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_mint_black_friday_24') || MrmCommon::is_wpfnl_active() || 'no' === get_option('_is_wpfnl_black_friday_24')) {
             return;
         }
 
@@ -112,15 +112,15 @@ class SpecialOccasionBanner
                                 <div class="mint-notification-counter__content">
 
                                     <figure class="mint-notification-counter__figure-logo">
-                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/funnel-anniversary/funnel-logo.png'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
+                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/black-friday/promotional-text.png'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
                                     </figure>
 
                                     <figure class="mint-notification-counter__figure-occasion">
-                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/funnel-anniversary/anniversary-text.png'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
+                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/black-friday/event-img.png'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
                                     </figure>
 
                                     <figure class="mint-notification-counter__figure-percentage">
-                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/funnel-anniversary/discount-text.webp'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
+                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/black-friday/discount-img.png'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
                                     </figure>
 
                                     <div id="mint-halloween-countdown" class="mint-notification-counter__countdown" aria-live="polite">
@@ -141,11 +141,11 @@ class SpecialOccasionBanner
                                     </div>
 
                                     <div class="mint-notification-counter__btn-area">
-                                        <a href="<?php echo esc_url('https://getwpfunnels.com/pricing/?utm_source=website&utm_medium=mm-ui&utm_campaign=halloween24#mail-mint'); ?>" class="mint-notification-counter__btn" role="button">
+                                        <a href="<?php echo esc_url('https://getwpfunnels.com/pricing/?utm_source=plugin-mm&utm_medium=banner-cta&utm_campaign=wpfbf24#mail-mint'); ?>" target="_blank" class="mint-notification-counter__btn" role="button">
 
                                         <span class="mint-btn-inner">
                                             <span class="screen-reader-text"><?php echo __('Click to view Halloween sale products', 'mrm'); ?></span>
-                                            <span aria-hidden="true" class="mint-notification-counter__mint-button"> <?php echo __('Get The Discount', 'mrm'); ?></span>
+                                            <span aria-hidden="true" class="mint-notification-counter__mint-button"> <?php echo __('Get Discount Now', 'mrm'); ?></span>
                                         </span>
                                             
                                         </a>
@@ -171,7 +171,7 @@ class SpecialOccasionBanner
             var timeRemaining = <?php echo esc_js($time_remaining); ?>;
 
             function updateCountdown() {
-                var endDate = new Date("2024-11-15 23:59:59").getTime();
+                var endDate = new Date("2024-12-05 23:59:59").getTime();
                 var now = new Date().getTime();
                 var timeLeft = endDate - now;
 
@@ -297,192 +297,6 @@ class SpecialOccasionBanner
                 font-style: normal;
                 font-display: swap;
             }
-
-            @font-face {
-                font-family: 'Syncopate';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Syncopate-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Abril Fatface';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/AbrilFatface-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Alegreya';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Alegreya-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Alegreya Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/AlegreyaSans-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Anton';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Anton-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Arimo';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Arimo-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Arvo';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Arvo-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Catamaran';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Catamaran-Thin.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Della Respira';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/DellaRespira-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'DM Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/DMSans-9ptRegular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Gilda Display';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/GildaDisplay-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Lato';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Lato-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Lora';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Lora-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Marcellus';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Marcellus-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Merriweather';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Merriweather-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Merriweather Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/MerriweatherSans-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Montserrat';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Montserrat.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Nanum Gothic Coding';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/NanumGothicCoding.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Open Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/OpenSans-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Neuton';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Neuton-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Noticia Text';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/NoticiaText-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Noto Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/NotoSans-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Noto Sans Georgian';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/NotoSansGeorgian-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Playfair Display';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/PlayfairDisplay-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Recursive Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/RecursiveSans-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Roboto';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Roboto-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Source Code Roman';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/SourceCodeRoman.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Source Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/SourceSans.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Space Mono';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/SpaceMono-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Tiro Bangla';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/TiroBangla-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Work Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/WorkSans-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Raleway';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Raleway.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Poppins';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Poppins-Regular.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Josefin Sans';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/JosefinSans-VariableFont_wght.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Quicksand';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/Quicksand-VariableFont_wght.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Jeanne Moderno';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/jeanne-moderno.woff2'; ?>) format("woff2");
-            }
-
-            @font-face {
-                font-family: 'Jeanne Moderno';
-                src: url(<?php echo MRM_DIR_URL . 'admin/assets/fonts/jeanne-moderno.woff'; ?>) format("woff");
-            }
-
 
             .mailmint-tb__notification,
             .mailmint-tb__notification * {
@@ -1066,7 +880,7 @@ class SpecialOccasionBanner
 
             .mint-notification-counter {
                 position: relative;
-                background-image: url(<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/funnel-anniversary/funnel-anniversary-banner-bg.webp'); ?>);
+                background-image: url(<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/black-friday/banner-bg.png'); ?>);
                 background-position: center;
                 background-repeat: no-repeat;
                 background-size: 100% 100%;
@@ -1079,7 +893,7 @@ class SpecialOccasionBanner
             .mint-notification-counter__container {
                 position: relative;
                 width: 100%;
-                max-width:1500px;
+                max-width:1280px;
                 margin: 0 auto;
                 max-height: 100%;
                 overflow: hidden;
@@ -1093,19 +907,19 @@ class SpecialOccasionBanner
             }
 
             .mint-notification-counter__figure-logo {
-                max-width: 176px;
+                max-width: 188px;
                 margin: 0;
                 line-height: 0;
             }
             .mint-notification-counter__figure-occasion {
-                max-width: 275px;
-                margin: 0;
+                max-width: 232px;
+                margin:0;
                 line-height: 0;
             }
 
             .mint-notification-counter__figure-percentage {
-                max-width: 200px;
-                margin: 0;
+                max-width: 270px;
+                margin: 6px 0 0px 0;
                 line-height: 0;
             }
 
@@ -1150,7 +964,7 @@ class SpecialOccasionBanner
                 margin-bottom: 6px;
                 border-radius: 10px;
                 border: 1px solid #47C4FB;
-                background: linear-gradient(147.76deg, #573BFF 17.69%, #2A1D78 80.41%);
+                background: linear-gradient(105.19deg, #02C4FB 5.13%, #003C4D 89.46%);
                 box-shadow: 0px 3px 0px #02C4FB;
             }
 
@@ -1164,8 +978,8 @@ class SpecialOccasionBanner
                 position: relative;
                 font-family: "Inter";
                 font-weight: 600;
-                padding: 18px 30px;
-                border-radius: 10px;
+                padding: 16px 30px;
+                border-radius: 16px;
                 font-size: 20px;
                 line-height: normal;
                 color: #FFF;
@@ -1174,9 +988,10 @@ class SpecialOccasionBanner
                 display: inline-block;
                 cursor: pointer;
                 text-transform: capitalize;
-                background: linear-gradient(94.45deg, #02C4FB 3.29%, #01ACDD 87.38%);
+                background: #573BFF;
                 text-decoration: none;
                 transition: all 0.3s ease;
+                box-shadow: 0px 30px 60px rgba(21, 19, 119, 0.2);
             }
 
             .mint-notification-counter__btn:hover {
@@ -1193,42 +1008,48 @@ class SpecialOccasionBanner
             /* Media Queries */
             @media only screen and (max-width: 1710px) {
                 .mint-notification-counter__container {
-                    max-width: 1320px;
+                    max-width: 1280px;
                 }
             }
             @media only screen and (max-width: 1550px) {
                 .mint-notification-counter__container {
-                    max-width: 1180px;
+                    max-width: 1140px;
                 }
                 .mint-notification-counter__figure-logo {
-                    max-width: 132px;
+                    max-width: 180px;
                 }
                 .mint-notification-counter__figure-occasion {
-                    max-width: 220px;
+                    max-width: 180px;
                 }
                 .mint-notification-counter__figure-percentage {
-                    max-width: 165px;
-                    margin: 0;
+                    max-width: 230px;
+                    margin: 6px 0 0px 0; 
+                }
+                .wpf-notification-counter__btn {
+                    padding: 14px 22px;
+                    font-size: 18px;
+                    border-radius: 14px;
                 }
             }
 
             @media only screen and (max-width: 1440px) {
                 .mint-notification-counter__container {
-                    max-width: 1080px;
+                    max-width: 1024px;
                 }
                 .mint-notification-counter__figure-logo {
-                    max-width: 140px;
+                    max-width: 180px;
                 }
                 .mint-notification-counter__figure-occasion {
-                    max-width: 190px;
+                    max-width: 160px;
                 }
                 .mint-notification-counter__figure-percentage {
-                    max-width: 142px;
-                    margin: 0;
+                    max-width: 210px;
+                    margin: 6px 0 0px 0;   
                 }
                 .mint-notification-counter__btn {
                     font-size: 18px;
                     padding: 15px 24px;
+                    border-radius: 12px;
                 }
                 .mint-notification-counter__time {
                     display: flex;
@@ -1248,26 +1069,33 @@ class SpecialOccasionBanner
                     max-width: 940px;
                 }
                 .mint-notification-counter__figure-logo {
-                    max-width: 125px;
+                    max-width: 145px;
                 }
                 .mint-notification-counter__figure-occasion {
-                    max-width: 160px;
+                    max-width: 130px;
                 }
                 .mint-notification-counter__figure-percentage {
-                    max-width: 120px;
+                    max-width: 180px;
+                    margin: 6px 0 0 0;
                 }
                 .mint-notification-counter__btn {
-                    font-size: 18px;
-                    padding: 15px 24px;
+                    font-size: 17px;
+                    padding: 12px 20px;
+                    border-radius: 10px;
                 }
                 .mint-notification-counter__time {
                     display: flex;
-                    width: 45px;
-                    height: 37px;
-                    font-size: 24px;
+                    width: 40px;
+                    height: 32px;
+                    font-size: 22px;
                 }
                 .mint-notification-counter__list{
                     gap: 5px;
+                }
+                .mint-notification-counter__item {
+                    font-size: 14px;
+                    align-items: center;
+                    width: 50px;
                 }
             }
 
@@ -1279,13 +1107,14 @@ class SpecialOccasionBanner
                     font-size: 20px;
                 }
                 .mint-notification-counter__figure-logo {
-                    max-width: 110px;
+                    max-width: 130px;
                 }
                 .mint-notification-counter__figure-occasion {
                     max-width: 130px;
                 }
                 .mint-notification-counter__figure-percentage {
-                    max-width: 100px;
+                    max-width: 160px;
+                    margin: 3px 0 0 0;
                 }
                 .mint-notification-counter__btn {
                     font-size: 16px;
@@ -1314,30 +1143,45 @@ class SpecialOccasionBanner
                 .mint-notification-counter__container {
                     max-width: 750px;
                 }
+                .mint-notification-counter__figure-logo {
+                    max-width: 130px;
+                }
+                .mint-notification-counter__figure-occasion {
+                    max-width: 100px;
+                }
+                .mint-notification-counter__figure-percentage {
+                    max-width: 150px;
+                    margin: 9px 0 6px 0;
+                }
+                .mint-notification-counter__btn {
+                    font-size: 15px;
+                    padding: 10px 16px;
+                }
             }
 
             @media only screen and (max-width: 991px) {
                 .mint-notification-counter__container {
-                    max-width: 660px;
+                    max-width: 680px;
                 }
                 .mint-notification-counter__stroke-font {
                     font-size: 20px;
                 }
                 .mint-notification-counter__figure-logo {
-                    max-width: 100px;
+                    max-width: 110px;
                 }
                 .mint-notification-counter__figure-occasion {
-                    max-width: 120px;
+                    max-width: 90px;
                 }
                 .mint-notification-counter__figure-percentage {
-                    max-width: 90px;
+                    max-width: 130px;
+                    margin: 6px 0 3px 0;
                 }
                 .mint-notification-counter__btn {
                     font-size: 14px;
                     padding: 10px 12px;
                 }
                 .mint-notification-counter__time {
-                    font-size: 14px;
+                    font-size: 16px;
                 }
                 .mint-notification-counter__list {
                     gap: 0;
@@ -1352,7 +1196,7 @@ class SpecialOccasionBanner
                 }
                 .mint-notification-counter__item{
                     font-size: 12px;
-                    width: 50px;
+                    width: 45px;
                 }
             }
         </style>

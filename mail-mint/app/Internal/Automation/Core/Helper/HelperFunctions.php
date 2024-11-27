@@ -1620,16 +1620,26 @@ class HelperFunctions { //phpcs:ignore
 		if ( self::is_jetform_active() ) {
 			if ( class_exists( 'Jet_Form_Builder\Classes\Tools' ) ) {
 				$forms       = Tools::get_forms_list_for_js();
-				$forms_merge = array_merge(
+
+				$formatted_forms = array(
 					array(
-						array(
-							'value' => '',
-							'label' => 'Select form',
-						),
+						'value' => '',
+						'label' => 'Choose a form',
+						'fields' => array(),
 					),
-					$forms
 				);
-				return $forms_merge;
+
+				if ( is_array( $forms ) ) {
+					foreach ($forms as $form) {
+						$formatted_forms[] = array(
+							'value' => $form['value'],
+							'label' => $form['label'],
+							'fields' => self::get_jet_builder_form_fields($form['value']),
+						);
+					}
+
+					return $formatted_forms;
+				}
 			}
 		}
 		return false;
@@ -2777,6 +2787,43 @@ class HelperFunctions { //phpcs:ignore
 				'type'  => $field->type,
 				'label' => $field->label,
 				'value' => $field->id
+			);
+		}
+
+		return $fields;
+	}
+
+	/**
+	 * Get the list of JetFormBuilder fields.
+	 *
+	 * @param int $form_id The ID of the JetFormBuilder form.
+	 * 
+	 * @return array The list of JetFormBuilder fields.
+	 * @since 1.15.5
+	 */
+	private static function get_jet_builder_form_fields($form_id){
+		if (empty($form_id)) {
+			return array();
+		}
+
+		$blocks = \Jet_Form_Builder\Blocks\Block_Helper::get_blocks_by_post( $form_id );
+
+		if ( empty( $blocks ) || ! is_array( $blocks ) ) {
+			return array();
+		}
+
+		$fields = array();
+		foreach ($blocks as $block) {
+			$attrs = isset($block['attrs']) ? $block['attrs'] : array();
+
+			if( empty( $attrs ) || ! is_array( $blocks ) || empty( $block['blockName'] ) || empty( $attrs['label'] )  ) {
+				continue;
+			}
+
+			$fields[] = array(
+				'type'  => $block['blockName'],
+				'label' => isset($attrs['label']) ? $attrs['label'] : '',
+				'value' => isset($attrs['name']) ? $attrs['name'] : ''
 			);
 		}
 

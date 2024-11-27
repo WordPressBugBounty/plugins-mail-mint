@@ -119,6 +119,21 @@ class AutomationManager {
 							$data = apply_filters('mint_gravity_form_fields_map', $data, $step_data);
 						}
 
+						if (isset($data['trigger_name']) && 'jetform_after_submit' === $data['trigger_name']) {
+							/**
+							 * Filters the data mapped from JetFormBuilder fields before processing.
+							 *
+							 * This filter allows modification of the data array before it is processed for a specific step in an automation.
+							 *
+							 * @param array $data      The data array mapped from JetFormBuilder fields.
+							 * @param array $step_data Additional data related to the step or automation.
+							 *
+							 * @return array The filtered data array.
+							 * @since 1.14.0
+							 */
+							$data = apply_filters('mint_jet_form_builder_fields_map', $data, $step_data);
+						}
+
 						if ( isset( $data['trigger_name'] ) && 'wc_price_dropped' === $data['trigger_name'] ) {
 							/**
 							 * Apply filters for actions after a WooCommerce price drop event.

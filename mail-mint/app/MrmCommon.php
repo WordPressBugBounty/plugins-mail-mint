@@ -1837,4 +1837,16 @@ class MrmCommon {
 
         return apply_filters('mint_bounce_handlers', $bounce_settings, $security_code);
     }
+
+	/**
+	 * Retrieve the default advanced settings for the plugin.
+	 * 
+	 * @return array An array containing the default advanced settings for the plugin.
+	 * @since 1.15.5
+	 */
+	public static function default_advanced_settings() {
+		return array(
+			'load_3rd_party_libraries' => 'no',
+		);
+	}
 }

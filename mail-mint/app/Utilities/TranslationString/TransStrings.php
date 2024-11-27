@@ -606,6 +606,17 @@ class TransStrings
 			'DeleteAllDataOnPluginDeletion' => __('Delete All Data on Plugin Deletion', 'mrm'),
 			'DeleteAllDataOnPluginDeletionToolTip' => __('Check this option to delete all the data from Mail Mint while deleting the plugin.', 'mrm'),
 
+			// Advanced Settings
+			'Advanced' => __('Advanced', 'mrm'),
+			'ThirdPartyLibraries' => __('Load 3rd-Party Libraries', 'mrm'),
+			'ThirdPartyLibraryTooltip' => __('E.g. Google Fonts for email templates and forms. When disabled, fonts will not load from external sources.', 'mrm'),
+			'EnableThirdPartyLibrary' => __('Yes', 'mrm'),
+			'DisabledPartyLibrary' => __('No', 'mrm'),
+			'RemoveMailMintTransientCache' => __('Remove Mail Mint Transient Cache', 'mrm'),
+			'RemoveMailMintTransientCacheTooltip' => __('If you are facing issues such as not getting plugin updates or license not working, clear the transient cache and try again.', 'mrm'),
+			'DeleteTransients' => __('Delete Transients', 'mrm'),
+			
+
 			// WooCommerce Settings
 			'Settings' => __('Settings', 'mrm'),
 			'OptinOnCheckout' => __('Opt-in on Checkout', 'mrm'),
@@ -918,7 +929,7 @@ class TransStrings
 			// Contact Forms - After Submit Trigger for Automation
 			'FormSubmitted' => __('Form Submitted', 'mrm'),
 			'FormSubmittedDescription' => __('This automation will trigger when someone submits form selected from below.', 'mrm'),
-			'SelectAForm' => __('Select a form', 'mrm'),
+			'SelectAForm' => __('Select Form to Trigger Automation', 'mrm'),
 			'MapEmailTooltip' => __('Select a form field to map with the contact email.', 'mrm'),
 			'MapFirstNameTooltip' => __('Select a form field to map with the contact first name.', 'mrm'),
 			'NotSetUpYet' => __('Not set up yet.', 'mrm'),
