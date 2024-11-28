@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.0
 Requires PHP: 7.4
-Stable tag:  1.16.0
+Stable tag:  1.16.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -505,6 +505,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.16.1 (2024-11-28) =
+* Bugfix: WooCommerce Email Customization Failed to Replace Default Email
 
 = 1.16.0 (2024-11-27) =
 * New: Settings Option to Clear the Transient Cache

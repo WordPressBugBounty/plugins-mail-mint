@@ -51,27 +51,24 @@ class Template {
 	 */
 	public function get_custom_wc_email_template( $type ) {
 		global $wpdb;
-		$post      = $wpdb->prefix . 'posts';
-		$post_meta = $wpdb->prefix . 'postmeta';
+		$table_name = $wpdb->prefix . 'mint_email_templates';
 
 		$email = array();
 
 		$result = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT posts.ID as post_id FROM {$post} as posts 
-            LEFT JOIN {$post_meta} as postmeta ON (posts.ID = postmeta.post_id) 
-            WHERE postmeta.meta_key = 'mailmint_wc_email_type' AND postmeta.meta_value = '%s'
-            ORDER BY posts.ID DESC
-            LIMIT 1",
+				"SELECT html_content, customizable FROM {$table_name} 
+            	WHERE email_type = %s
+            	ORDER BY ID DESC
+            	LIMIT 1",
 				sanitize_text_field( $type )
 			),
 			ARRAY_A
 		);
 
-		if ( !empty( $result['post_id'] ) ) {
-			$postmeta                  = get_post_meta( intval( $result['post_id'] ) );
-			$email['template']         = ( !empty( $postmeta['mailmint_email_template_html_content'][0] ) ) ? $postmeta['mailmint_email_template_html_content'][0] : '';
-			$email['customize_enable'] = isset( $postmeta['mailmint_wc_customize_enable'] ) ? $postmeta['mailmint_wc_customize_enable'][0] : false;
+		if ( !empty( $result ) ) {
+			$email['template']         = ( !empty( $result['html_content'] ) ) ? $result['html_content'] : '';
+			$email['customize_enable'] = isset( $result['customizable'] ) ? $result['customizable'] : false;
 		}
 
 		return $email;
