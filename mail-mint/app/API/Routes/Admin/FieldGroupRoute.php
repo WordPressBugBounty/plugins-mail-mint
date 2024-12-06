@@ -74,10 +74,7 @@ class FieldGroupRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -85,10 +82,7 @@ class FieldGroupRoute {
 						$this->controller,
 						'get_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
@@ -108,10 +102,7 @@ class FieldGroupRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
@@ -119,10 +110,7 @@ class FieldGroupRoute {
 						$this->controller,
 						'delete_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -130,10 +118,7 @@ class FieldGroupRoute {
 						$this->controller,
 						'get_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);

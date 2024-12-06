@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\CampaignEmailController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use WP_REST_Server;
 
 /**
@@ -69,10 +70,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'create_email',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 			)
 		);
@@ -87,10 +85,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'get_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
@@ -98,10 +93,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
 				),
 			)
 		);
@@ -116,10 +108,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'create_new_campaign_email',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 			)
 		);
@@ -139,10 +128,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'send_test_email',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 			)
 		);
@@ -158,10 +144,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'upload_media',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 			)
 		);
@@ -176,10 +159,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'get_email_builder_data',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 			)
 		);
@@ -194,10 +174,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'save_campaign_email_template',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -205,10 +182,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'get_email_templates',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 			)
 		);
@@ -223,10 +197,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'delete_template',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
 				),
 			)
 		);
@@ -241,10 +212,7 @@ class CampaignEmailRoute {
 						$this->controller,
 						'get_default_email_templates',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 			)
 		);

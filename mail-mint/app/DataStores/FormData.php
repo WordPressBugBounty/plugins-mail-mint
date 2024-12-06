@@ -126,6 +126,7 @@ class FormData {
 		if ( ! is_serialized( $this->form_body ) ) {
 			return maybe_serialize( $this->form_body );
 		}
+		return $this->form_body;
 	}
 
 	/**
@@ -158,6 +159,7 @@ class FormData {
 		if ( ! is_serialized( $this->group_ids ) ) {
 			return maybe_serialize( $this->group_ids );
 		}
+		return $this->group_ids;
 	}
 
 
@@ -168,7 +170,7 @@ class FormData {
 	 * @since 1.0.0
 	 */
 	public function get_created_by() {
-		return $this->created_by;
+		return get_current_user_id();
 	}
 
 	/**

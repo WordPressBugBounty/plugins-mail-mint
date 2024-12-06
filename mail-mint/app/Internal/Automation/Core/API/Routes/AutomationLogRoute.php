@@ -14,6 +14,7 @@ namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\AutomationController;
 use Mint\MRM\Admin\API\Controllers\AutomationLogController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use WP_REST_Server;
 
 /**
@@ -80,10 +81,7 @@ class AutomationLogRoute {
 						$this->controller,
 						'get_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 			)
 		);
@@ -103,10 +101,7 @@ class AutomationLogRoute {
 						$this->controller,
 						'get_automation_performance_analytics',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 			)
 		);
@@ -126,10 +121,7 @@ class AutomationLogRoute {
 						$this->controller,
 						'get_automation_overall_analytics',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 			)
 		);

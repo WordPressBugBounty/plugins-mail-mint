@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\ContactImportController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use WP_REST_Server;
 
 /**
@@ -65,7 +66,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'get_mailchimp_lists_attributes' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -83,7 +84,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'handle_mailchimp_member_headers' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -101,7 +102,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_edd_contacts_total' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -119,7 +120,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'validate_and_import_contact_attributes' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'delimiter' => array(
 							'description' 		=> __( 'The delimiter used to separate values in the CSV file being imported.', 'mrm' ),
@@ -145,7 +146,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'import_contacts_raw_get_attrs' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'delimiter' => array(
 							'description' 		=> __( 'The delimiter used to separate values in the data being imported.', 'mrm' ),
@@ -172,7 +173,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'retrieve_and_format_native_wp_roles' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -190,7 +191,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'import_contacts_with_native_wp_roles' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'roles' => array(
 							'description' 		=> __( 'The mapping of WordPress user roles for the imported content.', 'mrm' ),
@@ -216,7 +217,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'import_contacts_from_csv' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'map' => array(
 							'description' 		=> __( 'The mapping of data fields in the imported content.', 'mrm' ),
@@ -260,7 +261,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'import_contacts_from_raw' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'map' => array(
 							'description' 		=> __( 'The mapping of data fields in the imported content.', 'mrm' ),
@@ -298,7 +299,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'insert_native_wp_contacts' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'roles' => array(
 							'description' 		=> __( 'The WordPress roles in the imported content.', 'mrm' ),
@@ -324,7 +325,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'map_contacts_with_learndash' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedCourses' => array(
 							'description' 		=> __( 'The selected courses from which to import contacts.', 'mrm' ),
@@ -350,7 +351,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'insert_learndash_contacts' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedCourses' => array(
 							'description' 		=> __( 'The selected courses from which to import contacts.', 'mrm' ),
@@ -376,7 +377,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'map_contacts_with_tutorlms' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedCourses' => array(
 							'description' 		=> __( 'The selected courses from which to import contacts.', 'mrm' ),
@@ -402,7 +403,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'insert_tutorlms_contacts' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedCourses' => array(
 							'description' 		=> __( 'The selected courses from which to import contacts.', 'mrm' ),
@@ -428,7 +429,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'map_contacts_with_memberpress' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedLevels' => array(
 							'description' 		=> __( 'The selected level from which to import contacts.', 'mrm' ),
@@ -454,7 +455,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'insert_memberpress_contacts' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedLevels' => array(
 							'description' 		=> __( 'The selected level from which to import contacts.', 'mrm' ),
@@ -480,7 +481,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'map_contacts_with_lifterlms' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedCourses' => array(
 							'description' 		=> __( 'The selected courses from which to import contacts.', 'mrm' ),
@@ -506,7 +507,7 @@ class ContactImportRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'insert_lifterlms_contacts' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedCourses' => array(
 							'description' 		=> __( 'The selected courses from which to import contacts.', 'mrm' ),

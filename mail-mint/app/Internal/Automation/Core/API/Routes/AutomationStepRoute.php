@@ -13,6 +13,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\AutomationStepController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use WP_REST_Server;
 
 /**
@@ -79,10 +80,7 @@ class AutomationStepRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -90,10 +88,7 @@ class AutomationStepRoute {
 						$this->controller,
 						'get_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 				array(
 					'methods'             => WP_REST_Server::DELETABLE,
@@ -101,10 +96,7 @@ class AutomationStepRoute {
 						$this->controller,
 						'delete_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 			)
 		);
@@ -124,10 +116,7 @@ class AutomationStepRoute {
 						$this->controller,
 						'get_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
@@ -135,10 +124,7 @@ class AutomationStepRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 				array(
 					'methods'             => WP_REST_Server::DELETABLE,
@@ -146,10 +132,7 @@ class AutomationStepRoute {
 						$this->controller,
 						'delete_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 
 			)
@@ -171,10 +154,7 @@ class AutomationStepRoute {
 						$this->controller,
 						'status_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 
 			)

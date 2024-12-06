@@ -13,6 +13,7 @@ namespace Mint\MRM\Admin\API\Routes;
 
 use WP_REST_Server;
 use Mint\MRM\Admin\API\Controllers\TemplateController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Handle template related API callbacks]
@@ -63,7 +64,7 @@ class TemplateRoute extends AdminRoute {
             array(
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => array( $this->controller, 'get_templates' ),
-                'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+                'permission_callback' => PermissionManager::current_user_can('mint_manage_email_templates'),
             ),
         ) );
 
@@ -77,7 +78,7 @@ class TemplateRoute extends AdminRoute {
             array(
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => array( $this->controller, 'delete_template' ),
-                'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+                'permission_callback' => PermissionManager::current_user_can('mint_manage_email_templates'),
             ),
         ) );
 
@@ -91,7 +92,7 @@ class TemplateRoute extends AdminRoute {
             array(
                 'methods'             => WP_REST_Server::CREATABLE,
                 'callback'            => array( $this->controller, 'update_template' ),
-                'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+                'permission_callback' => PermissionManager::current_user_can('mint_manage_email_templates'),
             ),
         ) );
 
@@ -105,7 +106,7 @@ class TemplateRoute extends AdminRoute {
             array(
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => array( $this->controller, 'get_woocommerce_email_template' ),
-                'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+                'permission_callback' => '__return_true',
             ),
         ) );
     }

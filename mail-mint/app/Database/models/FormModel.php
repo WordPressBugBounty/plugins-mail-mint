@@ -68,7 +68,6 @@ class FormModel {
 	public static function insert( FormData $form ) {
 		global $wpdb;
 		$form_table = $wpdb->prefix . FormSchema::$table_name;
-
 		try {
 			$wpdb->insert(
 				$form_table,

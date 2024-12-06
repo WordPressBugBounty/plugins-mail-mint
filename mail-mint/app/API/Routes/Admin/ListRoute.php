@@ -13,6 +13,7 @@ namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\ListController;
 use WP_REST_Server;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Handle List Module related API callbacks]
@@ -66,12 +67,12 @@ class ListRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'create_or_update' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check'),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_manage_contact_cats' ),
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_all' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_read_contacts' ),
 				),
 			)
 		);
@@ -90,7 +91,7 @@ class ListRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'delete_all' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contact_cats_delete'),
 				),
 			)
 		);
@@ -109,19 +110,7 @@ class ListRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this->controller, 'create_or_update' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
-					'args'                => array(
-						'list_id' => array(
-							'type'     			=> 'integer',
-							'required' 			=> true,
-							'sanitize_callback' => 'sanitize_text_field',
-						),
-					),
-				),
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array( $this->controller, 'get_single' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contact_cats'),
 					'args'                => array(
 						'list_id' => array(
 							'type'     			=> 'integer',
@@ -146,7 +135,7 @@ class ListRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'delete_single' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contact_cats_delete'),
 					'args'                => array(
 						'list_id' => array(
 							'type'     			=> 'integer',
@@ -165,7 +154,7 @@ class ListRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_lists_for_dropdown' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_read_contacts' ),
 				),
 			)
 		);

@@ -14,6 +14,7 @@ namespace Mint\MRM\Internal\Admin\Page;
 use Mint\MRM\Internal\Admin\Notices\DBUpgradeNotice;
 use Mint\MRM\Internal\Admin\SpecialOccasionBanner;
 use Mint\Mrm\Internal\Traits\Singleton;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use MRM\Common\MrmCommon;
 
 /**
@@ -60,7 +61,7 @@ class HomeScreen {
 		add_menu_page(
 			__( 'Mail Mint', 'mrm' ),
 			__( 'Mail Mint', 'mrm' ),
-			'manage_options',
+			'mint_view_dashboard',
 			self::MENU_SLUG,
 			array( $this, 'load_wrapper' ),
 			$this->get_menu_icon(),
@@ -71,7 +72,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Dashboard', 'mrm' ),
 			__( 'Dashboard', 'mrm' ),
-			'manage_options',
+			'mint_view_dashboard',
 			self::MENU_SLUG,
 			array( $this, 'load_wrapper' )
 		);
@@ -80,7 +81,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Contacts', 'mrm' ),
 			__( 'Contacts', 'mrm' ),
-			'manage_options',
+			'mint_read_contacts',
 			'mrm-admin#/contacts/',
 			array( $this, 'load_wrapper' )
 		);
@@ -88,7 +89,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Campaigns', 'mrm' ),
 			__( 'Campaigns', 'mrm' ),
-			'manage_options',
+			'mint_read_campaigns',
 			'mrm-admin#/campaigns/',
 			array(
 				$this,
@@ -99,7 +100,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Automations', 'mrm' ),
 			__( 'Automations', 'mrm' ),
-			'manage_options',
+			'mint_read_automations',
 			'mrm-admin#/automations/',
 			array($this, 'load_wrapper_automation_editor'),
 		);
@@ -107,7 +108,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Automation', 'mrm' ),
 			__( 'Automation', 'mrm' ),
-			'manage_options',
+			'mint_read_automations',
 			'mint-mail-automation-editor',
 			array($this, 'load_wrapper_automation_editor'),
 		);
@@ -116,7 +117,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Forms', 'mrm' ),
 			__( 'Forms', 'mrm' ),
-			'manage_options',
+			'mint_read_forms',
 			'mrm-admin#/forms/',
 			array(
 				$this,
@@ -128,7 +129,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Email Templates', 'mrm' ),
 			__( 'Email Templates', 'mrm' ),
-			'manage_options',
+			'mint_manage_email_templates',
 			'mrm-admin#/email-templates/',
 			array(
 				$this,
@@ -140,7 +141,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Tools', 'mrm' ),
 			__( 'Tools', 'mrm' ),
-			'manage_options',
+			'mint_read_tools',
 			'mrm-admin#/tools/link-triggers/',
 			array(
 				$this,
@@ -153,7 +154,7 @@ class HomeScreen {
 				self::MENU_SLUG,
 				__( 'Abandoned Cart', 'mrm' ),
 				__( 'Abandoned Cart', 'mrm' ),
-				'manage_options',
+				'mint_manage_settings',
 				'mrm-admin#/abandoned-cart/',
 				array(
 					$this,
@@ -166,7 +167,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Integrations', 'mrm' ),
 			__( 'Integrations', 'mrm' ),
-			'manage_options',
+			'mint_manage_integrations',
 			'mrm-admin#/integrations/',
 			array(
 				$this,
@@ -178,7 +179,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Settings', 'mrm' ),
 			__( 'Settings', 'mrm' ),
-			'manage_options',
+			'mint_manage_settings',
 			'mrm-admin#/settings/business-info/',
 			array(
 				$this,

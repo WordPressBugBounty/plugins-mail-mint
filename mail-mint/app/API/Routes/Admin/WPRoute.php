@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\WPController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Manage WP Page related API]
@@ -67,10 +68,7 @@ class WPRoute {
 						$this->controller,
 						'get_pages',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
@@ -86,10 +84,7 @@ class WPRoute {
 						$this->controller,
 						'get_posts',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
@@ -105,10 +100,7 @@ class WPRoute {
 						$this->controller,
 						'get_products',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
@@ -125,7 +117,7 @@ class WPRoute {
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_categories' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
@@ -142,7 +134,7 @@ class WPRoute {
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_tags' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);

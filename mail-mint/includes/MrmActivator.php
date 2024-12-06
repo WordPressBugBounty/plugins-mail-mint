@@ -9,6 +9,7 @@
  * @subpackage Mrm/includes
  */
 
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use MRM\Common\MrmCommon;
 
 /**
@@ -134,6 +135,7 @@ class MrmActivator {
 
 			self::set_activation_transient();
 			self::create_pages();
+			PermissionManager::assign_capabilities_to_admin();
 		}
 		self::create_files();
 		self::update_mint_version();

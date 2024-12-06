@@ -168,15 +168,4 @@ class EmailBuilderController extends WP_REST_Controller {
         }
 		return rest_ensure_response( $posts );
     }
-
-    /**
-	 * User accessability check for REST API
-	 *
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public function rest_permissions_check() {
-		return true;
-	}
-
 }

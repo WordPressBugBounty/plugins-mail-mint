@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\ContactController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Handle Contact Module related API callbacks]
@@ -74,10 +75,7 @@ class ContactRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -85,10 +83,7 @@ class ContactRoute {
 						$this->controller,
 						'get_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_read_contacts' ),
 				)
 			)
 		);
@@ -109,10 +104,7 @@ class ContactRoute {
 						$this->controller,
 						'delete_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts_delete'),
 				),
 			)
 		);
@@ -134,10 +126,7 @@ class ContactRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -145,10 +134,7 @@ class ContactRoute {
 						$this->controller,
 						'get_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -168,10 +154,7 @@ class ContactRoute {
 						$this->controller,
 						'delete_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts_delete'),
 				)
 			)
 		);
@@ -192,10 +175,7 @@ class ContactRoute {
 						$this->controller,
 						'set_groups',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -215,10 +195,7 @@ class ContactRoute {
 						$this->controller,
 						'delete_groups',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -238,10 +215,7 @@ class ContactRoute {
 						$this->controller,
 						'update_contact_avatar',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -262,10 +236,7 @@ class ContactRoute {
 						$this->controller,
 						'set_groups_to_multiple',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -273,10 +244,7 @@ class ContactRoute {
 						$this->controller,
 						'get_contact_groups_count',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -297,10 +265,7 @@ class ContactRoute {
 						$this->controller,
 						'remove_groups_from_multiple_contacts',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'tags' => array(
 							'type'     => 'array',
@@ -335,10 +300,7 @@ class ContactRoute {
 						$this->controller,
 						'import_contacts_native_wc',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -359,10 +321,7 @@ class ContactRoute {
 						$this->controller,
 						'get_native_wc_customers',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -383,10 +342,7 @@ class ContactRoute {
 						$this->controller,
 						'import_contacts_native_edd',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -407,10 +363,7 @@ class ContactRoute {
 						$this->controller,
 						'send_double_opt_in',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -431,10 +384,7 @@ class ContactRoute {
 						$this->controller,
 						'get_filtered_contacts',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -455,10 +405,7 @@ class ContactRoute {
 						$this->controller,
 						'get_total_count',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -477,7 +424,7 @@ class ContactRoute {
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'import_contacts_mailchimp' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -498,10 +445,7 @@ class ContactRoute {
 						$this->controller,
 						'send_double_optin_to_multiple_contacts',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'contact_ids' => array(
 							'type'     => 'array',
@@ -528,10 +472,7 @@ class ContactRoute {
 						$this->controller,
 						'change_status_to_multiple_contacts',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'contact_ids' => array(
 							'type'     => 'array',

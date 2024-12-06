@@ -13,6 +13,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\AutomationController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use WP_REST_Server;
 
 /**
@@ -79,10 +80,7 @@ class AutomationRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_automations'),
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -90,10 +88,7 @@ class AutomationRoute {
 						$this->controller,
 						'get_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 			)
 		);
@@ -108,10 +103,7 @@ class AutomationRoute {
 						$this->controller,
 						'delete_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_automations_delete'),
 				),
 			)
 		);
@@ -131,10 +123,7 @@ class AutomationRoute {
 						$this->controller,
 						'get_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
@@ -142,10 +131,7 @@ class AutomationRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_automations'),
 				),
 			)
 		);
@@ -160,10 +146,7 @@ class AutomationRoute {
 						$this->controller,
 						'delete_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_automations_delete'),
 				),
 			)
 		);
@@ -184,10 +167,7 @@ class AutomationRoute {
 						$this->controller,
 						'status_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_automations'),
 				),
 
 			)
@@ -208,10 +188,7 @@ class AutomationRoute {
 						$this->controller,
 						'export_automation',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_automations_export'),
 				),
 
 			)
@@ -232,10 +209,7 @@ class AutomationRoute {
 						$this->controller,
 						'duplicate_automation',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_automations'),
 				),
 
 			)
@@ -256,10 +230,7 @@ class AutomationRoute {
 						$this->controller,
 						'get_all_recipe',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 
 			)
@@ -280,10 +251,7 @@ class AutomationRoute {
 						$this->controller,
 						'get_single_recipe',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
 				),
 
 			)
@@ -304,10 +272,7 @@ class AutomationRoute {
 						$this->controller,
 						'import_automation',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_automations'),
 				),
 
 			)

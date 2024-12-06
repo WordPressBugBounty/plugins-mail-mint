@@ -19,6 +19,8 @@ use Mint\MRM\DataStores\FormData;
 use Mint\Mrm\Internal\Traits\Singleton;
 use WP_Query;
 use WP_REST_Request;
+use WP_REST_Response;
+
 use MRM\Common\MrmCommon;
 
 /**
@@ -31,6 +33,7 @@ use MRM\Common\MrmCommon;
  * @package Mint\MRM\Admin\API\Controllers
  */
 class FormController extends AdminBaseController {
+
 
 	/**
 	 * Form object arguments
@@ -368,22 +371,68 @@ class FormController extends AdminBaseController {
 	}
 
 	/**
+	 * Duplicates a form based on the provided form ID and optional override parameters.
+	 *
+	 * @param WP_REST_Request $request The REST API request object containing form data.
+	 *
+	 * @return WP_REST_Response JSON response indicating success or failure.
+	 * @since 1.16.2
+	 */
+	public function duplicate_form(WP_REST_Request $request) {
+		// Retrieve parameters from the request.
+		$params = MrmCommon::get_api_params_values($request);
+		$form_id = $params['id'] ?? 0;
+
+		// Fetch the original form using the provided form ID.
+		$original_form = FormModel::get($form_id);
+		if (empty($original_form)) {
+			return $this->get_error_response(__('Failed to retrieve form data.', 'mrm'), 400);
+		}
+
+		// Prepare duplicate form data.
+		$duplicate_form_data = [
+			'title'         => $original_form['title'] . ' [Duplicate]',
+			'form_body'     => $original_form['form_body'] ?? '',
+			'form_position' => $original_form['form_position'] ?? [],
+			'status'        => 'draft',
+			'group_ids'     => $original_form['group_ids'] ?? [],
+			'meta_fields'   => $original_form['meta_fields'] ?? [],
+		];
+
+		$form_obj = new FormData( $duplicate_form_data );
+
+		// Insert the duplicate form into the database.
+		$duplicate_form_id = FormModel::insert($form_obj, 'forms');
+
+		if ($duplicate_form_id) {
+			return $this->get_success_response(
+				__('Form has been duplicated successfully.', 'mrm'),
+				201,
+				$duplicate_form_id
+			);
+		}
+
+		// Return error response if form duplication failed.
+		return $this->get_error_response(__('Failed to duplicate form data.', 'mrm'), 400);
+	}
+
+	/**
 	 * Import form template
 	 *
 	 * @param WP_REST_Request $request
 	 *
 	 * @return array|\WP_Error
 	 */
-	public function import_form_template( WP_REST_Request $request ) {
-		$params = MrmCommon::get_api_params_values( $request );
-        if( isset($params['form_id']) && !empty($params['form_id']) ){
-            $form_id = $params['form_id'];
-	        $get_single_form = Storage::get_form($form_id);
-            if ( !empty( $get_single_form ) ) {
-                return $this->get_success_response( __( 'Query Successful.', 'mrm' ), 200, $get_single_form );
-            }
-        }
-        return $this->get_error_response( __( 'Failed to get data.', 'mrm' ), 400 );
+	public function import_form_template(WP_REST_Request $request)
+	{
+		$params = MrmCommon::get_api_params_values($request);
+		if (isset($params['form_id']) && !empty($params['form_id'])) {
+			$form_id = $params['form_id'];
+			$get_single_form = Storage::get_form($form_id);
+			if (!empty($get_single_form)) {
+				return $this->get_success_response(__('Query Successful.', 'mrm'), 200, $get_single_form);
+			}
+		}
+		return $this->get_error_response(__('Failed to get data.', 'mrm'), 400);
 	}
-
 }

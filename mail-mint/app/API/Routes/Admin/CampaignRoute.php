@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\CampaignController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use WP_REST_Server;
 
 /**
@@ -74,10 +75,7 @@ class CampaignRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -85,10 +83,7 @@ class CampaignRoute {
 						$this->controller,
 						'get_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 			)
 		);
@@ -108,10 +103,7 @@ class CampaignRoute {
 						$this->controller,
 						'delete_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns_delete'),
 				),
 			)
 		);
@@ -131,10 +123,7 @@ class CampaignRoute {
 						$this->controller,
 						'get_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
@@ -142,10 +131,7 @@ class CampaignRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
 				),
 			)
 		);
@@ -165,10 +151,7 @@ class CampaignRoute {
 						$this->controller,
 						'delete_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns_delete'),
 				),
 
 			)
@@ -190,10 +173,7 @@ class CampaignRoute {
 						$this->controller,
 						'status_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
 				),
 
 			)
@@ -214,10 +194,7 @@ class CampaignRoute {
 						$this->controller,
 						'delete_campaign_email',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
 				),
 
 			)
@@ -234,10 +211,7 @@ class CampaignRoute {
 						$this->controller,
 						'get_subscribers',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 
 			)
@@ -254,10 +228,7 @@ class CampaignRoute {
 						$this->controller,
 						'rest_campaign_duplicate_callback',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
 				),
 
 			)
@@ -274,10 +245,7 @@ class CampaignRoute {
 						$this->controller,
 						'hide_smtp_notice',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
 				),
 
 			)

@@ -21,6 +21,7 @@ use Mint\MRM\Admin\API\Controllers\EmailSettingController;
 use Mint\MRM\Admin\API\Controllers\OptinSettingController;
 use Mint\MRM\Admin\API\Controllers\reCaptchaSettingController;
 use Mint\MRM\Admin\API\Controllers\SMTPSettingController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Manage double opt-in settings API routes]
@@ -157,10 +158,7 @@ class SettingRoute {
 						$this->wc_controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->wc_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -168,10 +166,7 @@ class SettingRoute {
 						$this->wc_controller,
 						'get',
 					),
-					'permission_callback' => array(
-						$this->wc_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);
@@ -193,10 +188,7 @@ class SettingRoute {
 						$this->email_controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->email_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -204,10 +196,7 @@ class SettingRoute {
 						$this->email_controller,
 						'get',
 					),
-					'permission_callback' => array(
-						$this->email_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);
@@ -231,10 +220,7 @@ class SettingRoute {
 						$this->optin_controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->optin_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 
 				// GET request for retrieving double opt-in settings.
@@ -244,10 +230,7 @@ class SettingRoute {
 						$this->optin_controller,
 						'get',
 					),
-					'permission_callback' => array(
-						$this->optin_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);
@@ -273,10 +256,7 @@ class SettingRoute {
 						$this->business_basic_controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->business_basic_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 
 				// GET request for retrieving Business settings.
@@ -286,10 +266,7 @@ class SettingRoute {
 						$this->business_basic_controller,
 						'get',
 					),
-					'permission_callback' => array(
-						$this->business_basic_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);
@@ -315,10 +292,7 @@ class SettingRoute {
 						$this->business_social_controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->business_social_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 
 				// GET request for retrieving Business settings.
@@ -328,10 +302,7 @@ class SettingRoute {
 						$this->business_social_controller,
 						'get',
 					),
-					'permission_callback' => array(
-						$this->business_social_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);
@@ -350,10 +321,7 @@ class SettingRoute {
 						$this->general_controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->general_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -361,10 +329,7 @@ class SettingRoute {
 						$this->general_controller,
 						'get',
 					),
-					'permission_callback' => array(
-						$this->general_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);
@@ -384,10 +349,7 @@ class SettingRoute {
                         $this->compliance_controller,
                         'create_or_update',
                     ),
-                    'permission_callback' => array(
-                        $this->compliance_controller,
-                        'rest_permissions_check',
-                    ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
                 ),
                 array(
                     'methods'             => \WP_REST_Server::READABLE,
@@ -395,10 +357,7 @@ class SettingRoute {
                         $this->compliance_controller,
                         'get',
                     ),
-                    'permission_callback' => array(
-                        $this->compliance_controller,
-                        'rest_permissions_check',
-                    ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
                 ),
             )
         );
@@ -422,10 +381,7 @@ class SettingRoute {
 						$this->recaptcha_controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->recaptcha_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 
 				// GET request for retrieving double opt-in settings.
@@ -435,10 +391,7 @@ class SettingRoute {
 						$this->recaptcha_controller,
 						'get',
 					),
-					'permission_callback' => array(
-						$this->recaptcha_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);
@@ -453,10 +406,7 @@ class SettingRoute {
 						$this->email_controller,
 						'handle_contact_creation',
 					),
-					'permission_callback' => array(
-						$this->email_controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				)
 			)
 		);
@@ -473,10 +423,7 @@ class SettingRoute {
                         $this->advanced_settings_controller,
                         'create_or_update',
                     ),
-                    'permission_callback' => array(
-                        $this->advanced_settings_controller,
-                        'rest_permissions_check',
-                    ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
                 ),
                 array(
                     'methods'             => \WP_REST_Server::READABLE,
@@ -484,10 +431,7 @@ class SettingRoute {
                         $this->advanced_settings_controller,
                         'get',
                     ),
-                    'permission_callback' => array(
-                        $this->advanced_settings_controller,
-                        'rest_permissions_check',
-                    ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
                 ),
             )
         );
@@ -499,7 +443,7 @@ class SettingRoute {
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => array($this->advanced_settings_controller, 'delete_transients'),
-					'permission_callback' => array($this->advanced_settings_controller, 'rest_permissions_check'),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);

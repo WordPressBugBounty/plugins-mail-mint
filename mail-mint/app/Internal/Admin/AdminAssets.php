@@ -17,6 +17,7 @@ use Mint\MRM\DataBase\Models\ContactGroupModel;
 use Mint\MRM\Internal\Constants;
 use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Utilites\Helper\Email;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use Mint\MRM\Utilities\Helper\TranslationString\TransStrings;
 use Mint\Utilities\CustomFonts;
 use MintMail\App\Internal\Automation\HelperFunctions;
@@ -307,6 +308,7 @@ class AdminAssets {
                     'current_user_email'             => $current_user_email,
                     'bounce_configs'                 => MrmCommon::get_bounce_configs(),
                     'is_wcs_active'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.0') ? Mint_Pro_Helper::is_woocommerce_subscription_active() : false,
+                    'permissions'                    => PermissionManager::get_readable_permissions(),
 		        )
 	        );
         }

@@ -13,6 +13,7 @@ namespace Mint\MRM\Admin\API\Routes;
 
 use WP_REST_Server;
 use Mint\MRM\Admin\API\Controllers\ContactProfileController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Handle contact profile related API callbacks]
@@ -66,7 +67,7 @@ class ContactProfileRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_contact_forms' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -84,7 +85,7 @@ class ContactProfileRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'delete_contact_forms' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -102,12 +103,12 @@ class ContactProfileRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'create_or_update_note' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_notes_to_contact' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				)
 			)
 		);
@@ -125,7 +126,7 @@ class ContactProfileRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this->controller, 'create_or_update_note' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				)
 			)
 		);
@@ -143,7 +144,7 @@ class ContactProfileRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'delete_contact_note' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -161,7 +162,7 @@ class ContactProfileRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_contact_emails' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);
@@ -179,7 +180,7 @@ class ContactProfileRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'delete_contact_emails' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);
@@ -197,7 +198,7 @@ class ContactProfileRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'delete_contact_email' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				)
 			)
 		);

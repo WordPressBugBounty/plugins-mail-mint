@@ -53,6 +53,8 @@ class TransStrings
 			'Unsubscribed' => __('Unsubscribed', 'mrm'),
 			'Subscribed' => __('Subscribed', 'mrm'),
 			'Pending' => __('Pending', 'mrm'),
+			'Bounced' => __('Bounced', 'mrm'),
+			'Complained' => __('Complained', 'mrm'),
 			'ClickRate' => __('Click rate', 'mrm'),
 			'OpenRate' => __('Open rate', 'mrm'),
 			'NoDataFound' => __('No data Found', 'mrm'),
@@ -615,6 +617,19 @@ class TransStrings
 			'RemoveMailMintTransientCache' => __('Remove Mail Mint Transient Cache', 'mrm'),
 			'RemoveMailMintTransientCacheTooltip' => __('If you are facing issues such as not getting plugin updates or license not working, clear the transient cache and try again.', 'mrm'),
 			'DeleteTransients' => __('Delete Transients', 'mrm'),
+
+			// Roles and Permissions Settings
+			'RolesAndPermissions' => __('Roles & Capabilities', 'mrm'),
+			'AddRolesAndPermissions' => __('Manage What Users Can Edit In Mail Mint', 'mrm'),
+			'Role' => __('Role', 'mrm'),
+			'NumberOfUsers' => __('Number Of Users', 'mrm'),
+			'EditRolesAndPermissions' => __('Edit Roles & Permissions', 'mrm'),
+			'RoleEmails' => __('Emails Under This Role', 'mrm'),
+			'RolePermissions' => __('Permissions', 'mrm'),
+			'CheckAll' => __('Check All', 'mrm'),
+			'DashboardPermissions' => __('Dashboard Permissions', 'mrm'),
+			'Granted' => __('Granted', 'mrm'),
+			'Assign' => __('Assign', 'mrm'),
 			
 
 			// WooCommerce Settings
@@ -889,6 +904,7 @@ class TransStrings
 			'AutomationDuplicating' => __('Automation Duplicating...', 'mrm'),
 			'NoAutomationFound' => __('No Automation found', 'mrm'),
 			'ImportAutomation' => __('Import Automation', 'mrm'),
+			'ImportForm' => __('Import Form', 'mrm'),
 			'ChangeJSON' => __('Change JSON', 'mrm'),
 			'SupportedFormatJSON' => __('Supported formats: JSON file', 'mrm'),
 			'ago' => __('ago', 'mrm'),

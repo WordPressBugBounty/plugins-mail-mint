@@ -29,9 +29,6 @@ abstract class AdminBaseController extends BaseController {
 	 * @since 1.0.0
 	 */
     public function rest_permissions_check() {
-		if (!MrmCommon::rest_check_manager_permissions() ) {
-            return new \WP_Error('MailMint_rest_cannot_edit', __('Sorry, you cannot edit this resources.', 'mrm'), ['status' => rest_authorization_required_code()]);
-        }
 		return true;
 	}
 }

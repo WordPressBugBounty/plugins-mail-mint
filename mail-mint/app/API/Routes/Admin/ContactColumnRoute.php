@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\ContactController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Handle contact list columns related API callbacks]
@@ -74,10 +75,7 @@ class ContactColumnRoute {
 						$this->controller,
 						'get_columns',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_read_contacts' ),
 				),
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
@@ -85,10 +83,7 @@ class ContactColumnRoute {
 						$this->controller,
 						'save_contact_columns',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 
 			)
@@ -104,10 +99,7 @@ class ContactColumnRoute {
 						$this->controller,
 						'get_stored_columns',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
 				),
 			)
 		);

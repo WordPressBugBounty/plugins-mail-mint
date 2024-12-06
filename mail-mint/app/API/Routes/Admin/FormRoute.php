@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\FormController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Handle Form Module related API callbacks]
@@ -75,10 +76,7 @@ class FormRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -86,10 +84,7 @@ class FormRoute {
 						$this->controller,
 						'get_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
 				),
 			)
 		);
@@ -111,10 +106,7 @@ class FormRoute {
 						$this->controller,
 						'delete_all',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms_delete'),
 				),
 			)
 		);
@@ -136,10 +128,7 @@ class FormRoute {
 						$this->controller,
 						'create_or_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms'),
 				),
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -147,10 +136,7 @@ class FormRoute {
 						$this->controller,
 						'get_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
 				),
 			)
 		);
@@ -172,10 +158,7 @@ class FormRoute {
 						$this->controller,
 						'delete_single',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms_delete'),
 				),
 			)
 		);
@@ -196,10 +179,7 @@ class FormRoute {
 						$this->controller,
 						'get_all_id_title',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
 				),
 			)
 		);
@@ -220,10 +200,7 @@ class FormRoute {
 						$this->controller,
 						'form_status_update',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms'),
 				),
 			)
 		);
@@ -244,10 +221,7 @@ class FormRoute {
 						$this->controller,
 						'get_form_settings',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
 				),
 			)
 		);
@@ -268,10 +242,7 @@ class FormRoute {
 						$this->controller,
 						'get_title_group',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
 				),
 			)
 		);
@@ -292,10 +263,7 @@ class FormRoute {
 						$this->controller,
 						'get_form_body',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
 				),
 			)
 		);
@@ -316,13 +284,32 @@ class FormRoute {
 						$this->controller,
 						'get_form_templates',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
 				),
 			)
 		);
+
+		/**
+		 * Route to duplicate a form
+		 *
+		 * @return void
+		 *  @since 1.16.2
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[\d]+)/duplicate',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'duplicate_form',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms'),
+				),
+			)
+		);
+
 		/**
 		 * Route to get all form templates
 		 *
@@ -347,5 +334,4 @@ class FormRoute {
 			)
 		);
 	}
-
 }

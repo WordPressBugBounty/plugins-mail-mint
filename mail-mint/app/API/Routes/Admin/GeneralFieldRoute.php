@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\GeneralFieldController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use WP_REST_Server;
 
 /**
@@ -74,7 +75,7 @@ class GeneralFieldRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_all' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
 			)
 		);
@@ -91,7 +92,7 @@ class GeneralFieldRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_single' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 					'args'                => array(
 						'slug' => array(
 							'type'     			=> 'string',
@@ -103,7 +104,7 @@ class GeneralFieldRoute extends AdminRoute {
 				array(
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( $this->controller, 'create_or_update' ),
-					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 					'args'                => array(
 						'slug' => array(
 							'type'     			=> 'string',

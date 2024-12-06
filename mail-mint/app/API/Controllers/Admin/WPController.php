@@ -215,17 +215,4 @@ class WPController {
         }
         return rest_ensure_response( [ 'data' => $tags, 'status' => 200 ] );
     }
-
-    /**
-     * User accessibility check for REST API
-     *
-     * @return \WP_Error|bool
-     * @since 1.0.0
-     */
-    public function rest_permissions_check() {
-        if ( !MrmCommon::rest_check_manager_permissions() ) {
-            return new \WP_Error('MailMint_rest_cannot_edit', __('Sorry, you cannot edit this resources.', 'mrm'), ['status' => rest_authorization_required_code()]);
-        }
-        return true;
-    }
 }

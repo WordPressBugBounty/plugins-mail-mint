@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\DashboardController;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
  * [Handle Dashboard Module related API callbacks]
@@ -75,16 +76,10 @@ class DashboardRoute {
 						$this->controller,
 						'get_reports',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_view_dashboard' ),
 				),
 			)
 		);
-
-
-
 
         register_rest_route(
             $this->namespace,
@@ -93,13 +88,10 @@ class DashboardRoute {
                 array(
                     'methods'             => \WP_REST_Server::READABLE,
                     'callback'            => array(
-                        $this->controller,
+                        $this->controller,	
                         'get_campaign_analytics_data',
                     ),
-                    'permission_callback' => array(
-	                    $this->controller,
-	                    'rest_permissions_check',
-                    ),
+                    'permission_callback' => PermissionManager::current_user_can( 'mint_view_dashboard' ),
                 ),
             )
         );

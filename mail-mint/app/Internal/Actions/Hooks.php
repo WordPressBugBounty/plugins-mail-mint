@@ -15,6 +15,7 @@ namespace MailMint\App\Actions;
 use Mint\MRM\DataBase\Models\EmailModel;
 use MailMint\App\Helper;
 use Mint\MRM\DataBase\Models\ContactModel;
+use Mint\MRM\Utilities\Helper\PermissionManager;
 use MRM\Common\MrmCommon;
 
 /**
@@ -44,7 +45,29 @@ class Hooks {
 		add_action('init', array($this, 'handle_email_open_tracking'));
 		add_filter( 'mint_merge_tag_fallback', array( $this, 'mint_merge_tag_fallback' ), 10, 2 );
 		add_action('woocommerce_order_status_changed', array($this, 'handlePaymentStatusChanged'), 100, 4);
+		add_action( 'init', array( $this, 'check_and_assign_capabilities_on_update' ) );
 	}
+
+	/**
+	 * Check and assign capabilities on update.
+	 *
+	 * This function checks if the capabilities have already been assigned to the admin.
+	 * If not, it assigns the necessary capabilities using the PermissionManager and updates
+	 * the option to indicate that the capabilities have been assigned.
+	 *
+	 * @return void
+	 * @since 1.16.2
+	 */
+	public function check_and_assign_capabilities_on_update() {
+		// Check if capabilities are already assigned.
+		$capabilities_assigned = get_option('mail_mint_capabilities_assigned_to_admin', false);
+
+		if (!$capabilities_assigned) {
+			PermissionManager::assign_capabilities_to_admin();
+			update_option('mail_mint_capabilities_assigned_to_admin', true);
+		}
+	}
+	
 
 	public function mint_merge_tag_fallback( $value_key, $contact ) {
 		switch ($value_key) {

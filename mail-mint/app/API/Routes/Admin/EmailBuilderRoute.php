@@ -68,10 +68,7 @@ class EmailBuilderRoute {
 						$this->controller,
 						'create_countdown_timer',
 					),
-					'permission_callback' => array(
-						$this->controller,
-						'rest_permissions_check',
-					),
+					'permission_callback' => '__return_true',
 				),
 			)
 		);
