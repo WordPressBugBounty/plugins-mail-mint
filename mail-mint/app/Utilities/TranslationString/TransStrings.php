@@ -78,6 +78,7 @@ class TransStrings
 			'Recovered' => __('Recovered', 'mrm'),
 			'Lost' => __('Lost', 'mrm'),
 			'CHOOSELIST' => __('CHOOSE LIST', 'mrm'),
+			'ChooseAutomation' => __('Choose Automation', 'mrm'),
 			'CHOOSETAG' => __('CHOOSE TAG', 'mrm'),
 			'CHOOSEStatus' => __('CHOOSE Status', 'mrm'),
 			'NoDataFound' => __('No Data Found', 'mrm'),
@@ -86,6 +87,7 @@ class TransStrings
 			'AssignTagS' => __('Assign tag(s)', 'mrm'),
 			'RemoveFromListS' => __('Remove from list(s)', 'mrm'),
 			'RemoveTagS' => __('Remove tag(s)', 'mrm'),
+			'TriggerAutomation' => __('Trigger Automation', 'mrm'),
 			'AssignToStatus' => __('Assign to status', 'mrm'),
 			'SendDoubleOptin' => __('Send double optin', 'mrm'),
 			'ExportContact' => __('Export contact', 'mrm'),
@@ -1430,6 +1432,8 @@ class TransStrings
 			'PaymentURL'								  => __('Payment URL', 'mrm'),
 			'BounceTracking'						      => __('Bounce Tracking', 'mrm'),
 			'BounceTrackingEnableTooltip'				  => __('Enable to capture bounced emails from the email service and mark Contact as Bounced.', 'mrm'),
+			'MarkThisEmailAsTransactional'			      => __('Mark this email as Transactional', 'mrm'),
+			'MarkThisEmailAsTransactionalTooltip'		  => __('Contacts with status Unsubscribed will get the transactional email. Emails such as Order Summary, Renewal Reminders, and Admin notifications are transactional emails.', 'mrm'),
 		);
 	}
 }

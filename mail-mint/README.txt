@@ -3,9 +3,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: email marketing, email automation, newsletter, woocommerce emails, cart abandonment, lead form
 Requires at least: 5.8
-Tested up to: 6.7.0
+Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag:  1.16.2
+Stable tag:  1.16.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,9 +26,6 @@ Mail Mint helps you optimize your email marketing campaigns using a simple tool 
 ✅ Get simplified email automation flows for your next marketing campaign!
 
 It is specially built for marketers and funnel creators like you to use email marketing automation easily in a clutter-free UI and increase your conversions.
-
-🥳 Special Black Friday Deal 🎉
-<a href="https://getwpfunnels.com/pricing/?utm_source=repo-cta&utm_medium=mm-wp-repo&utm_campaign=wpfbf24#mail-mint" target="_blank"> 👉 Enjoy 30% OFF on Mail Mint Pro!</a>
 
 
 👉<a href="https://getwpfunnels.com/docs/mail-mint/" target="_blank"> Documentation </a>
@@ -505,6 +502,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.16.3 (2024-12-19) =
+* Improvement: Allow Sending Transactional Emails to Pending Contacts in Automation
+* Improvement: Allow Automation Creation through Trigger Names Instead of Default 'Untitled'
+* Bugfix: Form Builder Not Working with Custom Fields
 
 = 1.16.2 (2024-11-28) =
 * Improvement: SQL Query Optimization Used for Form Duplication

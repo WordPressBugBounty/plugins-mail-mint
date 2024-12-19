@@ -36,6 +36,9 @@ class AutomationManager {
 	 * @param array $data data.
 	 */
 	public function trigger_automation( $data ) {
+
+
+
 		if ( isset( $data['trigger_name'], $data['connector_name'] ) ) {
 			if ( isset( $data['manually_run_automation'] ) && $data['manually_run_automation'] && !empty( $data['data']['manual_automation_id'] ) ) {
 				$automations = HelperFunctions::get_specific_automation_by_trigger( $data['trigger_name'], $data['data']['manual_automation_id'] );
@@ -104,6 +107,23 @@ class AutomationManager {
 							$data = apply_filters('mint_fluent_form_fields_map', $data, $step_data);
 						}
 
+
+						if (isset($data['trigger_name']) && 'wpforms_submission_inserted' === $data['trigger_name']) {
+							/**
+							 * Filters the data mapped from WPForms fields before processing.
+							 *
+							 * This filter allows modification of the data array before it is processed for a specific step in an automation.
+							 *
+							 * @param array $data      The data array mapped from WPForms fields.
+							 * @param array $step_data Additional data related to the step or automation.
+							 *
+							 * @return array The filtered data array.
+							 * @since 1.16.2
+							 */
+							$data = apply_filters('mint_wpforms_form_fields_map', $data, $step_data);
+
+						}
+
 						if (isset($data['trigger_name']) && 'gform_after_submission' === $data['trigger_name']) {
 							/**
 							 * Filters the data mapped from Fluent Form fields before processing.
@@ -150,14 +170,17 @@ class AutomationManager {
 							$data = apply_filters( 'mint_after_wc_price_drop_event', $data, $step_data );
 						}
 
+
+
 						if ( is_array( $step_data ) ) {
 							if ( isset( $step_data['step_type'], $step_data['step_id'] ) && 'trigger' === $step_data['step_type'] ) {
 								$maybe_validate_trigger_settings = true;
+
 								$class_name                      = "MintMail\\App\\Internal\\Automation\\Connector\\trigger\\" . $data['connector_name'] . 'Triggers';
+
 								if ( class_exists( $class_name ) ) {
 									$maybe_validate_trigger_settings = $class_name::get_instance()->validate_settings( $step_data, $data );
 								}
-
 								if ( !$maybe_validate_trigger_settings ) {
 									continue;
 								}

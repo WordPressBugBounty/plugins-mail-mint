@@ -1152,4 +1152,22 @@ class ContactModel {
 
 		return true;
 	}
+
+	/**
+	 * Get contact meta value by key
+	 *
+	 * @param string $email Contact email address.
+	 * @param string $meta_key Meta key.
+	 *
+	 * @return string
+	 * @since 1.16.5
+	 */
+	public static function get_contact_meta_value_by_key( $email, $meta_key ) {
+		global $wpdb;
+		$main_table = $wpdb->prefix . ContactSchema::$table_name;
+		$meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
+		return $wpdb->get_var(
+			$wpdb->prepare("SELECT meta.meta_value FROM {$main_table} AS t1 INNER JOIN {$meta_table} AS meta ON t1.id = meta.contact_id WHERE t1.email = %s AND meta.meta_key = %s", $email, $meta_key)
+		);
+	}
 }
