@@ -20,6 +20,7 @@ use Mint\MRM\DataBase\Tables\CampaignSchema;
 use Mint\Mrm\Internal\Traits\Singleton;
 use MRM\Common\MrmCommon;
 use MailMintPro\Mint\Internal\Admin\Segmentation\FilterSegmentContacts;
+use Mint\MRM\Utilites\Helper\Campaign;
 
 /**
  * CampaignModel class
@@ -1387,5 +1388,49 @@ class CampaignModel {
 
 			return $contacts;
 		}
+	}
+
+	/**
+	 * Retrieve URLs from the email body of a specified campaign.
+	 *
+	 * This function queries the database to get the email body content of a specified campaign
+	 * and extracts all URLs from the email body.
+	 *
+	 * @param int $campaign_id The ID of the campaign.
+	 * 
+	 * @return array An array of URLs with each URL as an associative array containing 'value' and 'label'.
+	 * @since 1.17.0
+	 */
+	public static function get_urls_from_campaign_email( $campaign_id ) {
+		global $wpdb;
+		$campaign_emails_table = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
+		$email_builder_table   = $wpdb->prefix . CampaignEmailBuilderSchema::$table_name;
+
+		// Query to get email_body
+		$select_query = $wpdb->prepare( "SELECT b.email_body FROM {$campaign_emails_table} e
+				INNER JOIN {$email_builder_table} b
+				ON e.id = b.email_id
+				WHERE e.campaign_id = %d
+        	",
+			$campaign_id
+		);
+
+		$emails = $wpdb->get_results( $select_query, ARRAY_A ); // db call ok. ; no-cache ok.
+
+		$urls = array();
+		if (! empty($emails)) {
+			foreach ($emails as $email) {
+				// Merge the arrays of URLs from each email
+				$urls = array_merge($urls, Campaign::extract_urls_from_html($email['email_body']));
+			}
+		}
+
+		// Remove duplicates and return the array of URLs.
+		$urls      = array_unique($urls);
+		$url_pairs = array_map(function($url) {
+			return array('value' => $url, 'label' => $url);
+		}, $urls);
+
+		return $url_pairs;
 	}
 }

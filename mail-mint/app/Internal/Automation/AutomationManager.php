@@ -26,7 +26,7 @@ class AutomationManager {
 		add_action( MINT_AUTOMATION_AFTER_DOUBLE_OPTIN, array( $this, 'process_automation_after_double_optin' ), 10 );
 		add_action( 'mailmint_after_confirm_double_optin', array( $this, 'mintmail_contact_status_change' ), 10, 1 );
 		add_action( 'mailmint_after_email_open', array( $this, 'process_after_email_open' ), 10, 1 );
-		add_action( 'mailmint_after_email_click', array( $this, 'process_after_email_click' ), 10, 1 );
+		add_action( 'mailmint_after_email_click', array( $this, 'process_after_email_click' ), 10, 2 );
 	}
 
 
@@ -36,9 +36,6 @@ class AutomationManager {
 	 * @param array $data data.
 	 */
 	public function trigger_automation( $data ) {
-
-
-
 		if ( isset( $data['trigger_name'], $data['connector_name'] ) ) {
 			if ( isset( $data['manually_run_automation'] ) && $data['manually_run_automation'] && !empty( $data['data']['manual_automation_id'] ) ) {
 				$automations = HelperFunctions::get_specific_automation_by_trigger( $data['trigger_name'], $data['data']['manual_automation_id'] );
@@ -154,28 +151,9 @@ class AutomationManager {
 							$data = apply_filters('mint_jet_form_builder_fields_map', $data, $step_data);
 						}
 
-						if ( isset( $data['trigger_name'] ) && 'wc_price_dropped' === $data['trigger_name'] ) {
-							/**
-							 * Apply filters for actions after a WooCommerce price drop event.
-							 *
-							 * This function applies the 'mint_after_wc_price_drop_event' filter to the provided data,
-							 * allowing other functions or plugins to modify the data after a WooCommerce price drop event.
-							 *
-							 * @param mixed $data      The data related to the WooCommerce price drop event.
-							 * @param array $step_data Additional data related to the specific step of the event.
-							 *
-							 * @return mixed The filtered data after applying modifications.
-							 * @since 1.8.1
-							 */
-							$data = apply_filters( 'mint_after_wc_price_drop_event', $data, $step_data );
-						}
-
-
-
 						if ( is_array( $step_data ) ) {
 							if ( isset( $step_data['step_type'], $step_data['step_id'] ) && 'trigger' === $step_data['step_type'] ) {
 								$maybe_validate_trigger_settings = true;
-
 								$class_name                      = "MintMail\\App\\Internal\\Automation\\Connector\\trigger\\" . $data['connector_name'] . 'Triggers';
 
 								if ( class_exists( $class_name ) ) {
@@ -210,29 +188,7 @@ class AutomationManager {
 									);
 
 									$key = $step_data['key'];
-
-									if ( 'wc_price_dropped' === $data['trigger_name'] && isset( $data['recipients'] ) && !empty( $data['recipients'] ) ) {
-										// Maximum execution time for the script.
-										$max_execution_time = 30;
-										// Start time for the script.
-										$start_time = time();
-
-										foreach ( $data['recipients'] as $recipient ) {
-											$_data['data']['user_email'] = $recipient['email'];
-											$this->action_process( $_data, $key );
-
-											// Check the elapsed time and introduce a delay if needed.
-											$elapsed_time = time() - $start_time;
-											if ( $elapsed_time > $max_execution_time ) {
-												// Introduce a delay (e.g., 1 second) to avoid script timeout.
-												sleep( 1 );
-												// Reset start time for the next iteration.
-												$start_time = time();
-											}
-										}
-									}
-
-									if ( 'wc_price_dropped' !== $data['trigger_name'] ) {
+									if ( $data['trigger_name'] ) {
 										$this->action_process( $_data, $key );
 									}
 								}
@@ -369,7 +325,7 @@ class AutomationManager {
 						$automation_id = $log['automation_id'];
 						$identifier    = $log['identifier'];
 						$step_data     = HelperFunctions::get_step_data( $automation_id, $step_id );
-						if ( isset( $step_data['key'] ) && ( 'sendMail' === $step_data['key'] || 'sequence' === $step_data['key'] ) ) {
+						if ( isset( $step_data['key'] ) && ( 'sendMail' === $step_data['key'] || 'sequence' === $step_data['key']|| 'SendMailNotification' === $step_data['key'] ) ) {
 							$data = array(
 								'automation_id' => $automation_id,
 								'step_id'       => $step_id,
@@ -507,7 +463,7 @@ class AutomationManager {
 	 * @return void
 	 * @since 1.2.6
 	 */
-	public function process_after_email_click( $email_id ) {
+	public function process_after_email_click( $email_id, $target_url ) {
 		$email_address = HelperFunctions::get_email_address_by_email_id( $email_id );
 
 		$status = array(
@@ -532,6 +488,7 @@ class AutomationManager {
 							'key'           => $step_data['key'],
 							'data'          => array(
 								'user_email' => $email_address,
+								'target_url' => $target_url,
 							),
 
 						);

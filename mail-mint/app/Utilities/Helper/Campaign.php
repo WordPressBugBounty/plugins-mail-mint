@@ -12,6 +12,7 @@
 
 namespace Mint\MRM\Utilites\Helper;
 
+use DOMDocument;
 use MailMint\App\Helper;
 use Mint\MRM\DataBase\Models\CampaignModel;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
@@ -125,5 +126,34 @@ class Campaign {
 		}
 
 		CampaignModel::insert_or_update_campaign_meta( $campaign_id, 'click_performance', maybe_serialize( $click_performance ) );
+	}
+
+	/**
+	 * Extract URLs from the HTML content of an email body.
+	 *
+	 * This function parses the HTML content of an email body to extract all URLs from anchor tags.
+	 *
+	 * @param string $email_body The HTML content of the email body.
+	 * 
+	 * @return array An array of URLs extracted from the email body.
+	 * @since 1.16.5
+	 */
+	public static function extract_urls_from_html($email_body) {
+		$dom = new DOMDocument();
+		libxml_use_internal_errors(true);
+		$dom->loadHTML($email_body);
+		libxml_clear_errors();
+
+		$urls = array();
+		foreach ($dom->getElementsByTagName('a') as $tag) {
+			if ($tag->hasAttribute('href')) {
+				$href = trim($tag->getAttribute('href'));
+				// Exclude empty, anchor-only hrefs, and placeholder URLs.
+				if (!empty($href) && $href !== '#' && !preg_match('/\{\{.*\}\}/', $href)) {
+					$urls[] = $href;
+				}
+			}
+		}
+		return $urls;
 	}
 }

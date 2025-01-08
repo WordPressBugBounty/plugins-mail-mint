@@ -277,6 +277,18 @@ class AutomationRoute {
 
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/search',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array($this->controller,'search_automation'),
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
 	}
 
 }

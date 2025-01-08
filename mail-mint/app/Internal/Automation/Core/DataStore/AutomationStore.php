@@ -608,4 +608,22 @@ class AutomationModel {
 		}
 		return false;
 	}
+
+	public static function search_automation( $params ){
+		global $wpdb;
+		$term  = isset($params['term']) ? $params['term'] : '';
+		$table = $wpdb->prefix . AutomationSchema::$table_name;
+
+		// Prepare the search string with wildcards for a LIKE query.
+		$search = '%' . $wpdb->esc_like($term) . '%';
+
+		// Query to fetch id as value and name as label.
+		$query = $wpdb->prepare("SELECT id AS value, name AS label
+			FROM {$table}
+			WHERE name LIKE %s
+		", $search);
+
+		// Execute the query and return the results
+		return $wpdb->get_results($query, ARRAY_A);
+	}
 }

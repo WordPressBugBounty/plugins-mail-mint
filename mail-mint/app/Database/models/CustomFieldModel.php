@@ -131,7 +131,7 @@ class CustomFieldModel {
 		global $wpdb;
 		$fields_table = $wpdb->prefix . CustomFieldSchema::$table_name;
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		return $wpdb->get_results( $wpdb->prepare( 'SELECT title as name, slug, meta FROM %1s ', $fields_table ), ARRAY_A ); //phpcs:ignore
+		return $wpdb->get_results( $wpdb->prepare( 'SELECT title as name, slug, type, meta FROM %1s ', $fields_table ), ARRAY_A ); //phpcs:ignore
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 	}
 

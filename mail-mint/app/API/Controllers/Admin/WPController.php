@@ -215,4 +215,23 @@ class WPController {
         }
         return rest_ensure_response( [ 'data' => $tags, 'status' => 200 ] );
     }
+
+    public function get_admins( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+        $term   = isset( $params['term'] ) ? $params['term'] : '';
+
+        $args = array(
+            'search' => '*' . esc_attr($term) . '*',
+            'fields' => array('ID', 'user_email')
+        );
+    
+        $users  = get_users($args);
+        $admins = array_map(function($user) {
+            return array(
+                'label' => $user->user_email,
+                'value' => $user->ID
+            );
+        }, $users);
+        return rest_ensure_response( [ 'admins' => $admins, 'success' => true ] );
+    }
 }

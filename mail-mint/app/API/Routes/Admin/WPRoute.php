@@ -138,5 +138,17 @@ class WPRoute {
 				),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/admins',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_admins' ),
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
 	}
 }

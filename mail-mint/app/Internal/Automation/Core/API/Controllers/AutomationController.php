@@ -479,4 +479,13 @@ class AutomationController extends AdminBaseController {
         );
     }
 
+    public function search_automation( WP_REST_Request $request ){
+        $params      = MrmCommon::get_api_params_values( $request );
+        $response    = array();
+        $automations = AutomationModel::search_automation( $params );
+
+        $response['success']     = true;
+		$response['automations'] = $automations;
+		return rest_ensure_response( $response );
+    }
 }

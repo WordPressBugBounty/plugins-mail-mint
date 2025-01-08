@@ -151,8 +151,7 @@ class RedirectionHandler {
         if ('no' === $is_ip_store) {
             EmailModel::insert_or_update_email_meta('user_click_ip', Helper::get_user_ip(), $email_id);
         }
-
-        do_action('mailmint_after_email_click', $email_id);
+        do_action('mailmint_after_email_click', $email_id, $target_url);
         wp_redirect($target_url, 307);
         exit;
     }

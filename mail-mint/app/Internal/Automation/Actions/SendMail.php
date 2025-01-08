@@ -79,11 +79,16 @@ class SendMail extends AbstractAutomationAction {
 			$contact_id      = HelperFunctions::get_contact_id_by_broadcast_table( $user_email );
 			$post_id         = isset( $data['data']['post_id'] ) ? $data['data']['post_id'] : '';
 			$order_id	     = isset( $data['data']['order_id'] ) ? $data['data']['order_id'] : '';
-			$abandoned_id    = isset($data['data']['abandoned_id']) ? $data['data']['abandoned_id'] : '';
-			$payment_id      = isset($data['data']['payment_id']) ? $data['data']['payment_id'] : '';
-			$subscription_id = isset($data['data']['subscription_id']) ? $data['data']['subscription_id'] : '';
+			$abandoned_id    = isset( $data['data']['abandoned_id'] ) ? $data['data']['abandoned_id'] : '';
+			$payment_id      = isset( $data['data']['payment_id'] ) ? $data['data']['payment_id'] : '';
+			$subscription_id = isset( $data['data']['subscription_id'] ) ? $data['data']['subscription_id'] : '';
+			$product_id	  	 = isset( $data['data']['product_id'] ) ? $data['data']['product_id'] : '';
+			$user_membership_id = isset($data['data']['user_membership_id']) ? $data['data']['user_membership_id'] : '';
+			$wishlist_id 	 = isset($data['data']['wishlist_id']) ? $data['data']['wishlist_id'] : '';
 
-			$step_data   = HelperFunctions::get_step_data( $data['automation_id'], $data['step_id'] );
+			$step_data   = HelperFunctions::get_step_data(  $data['automation_id'], $data['step_id'] );
+
+			
 			$log_payload = array(
 				'automation_id' => $data['automation_id'],
 				'step_id'       => $data['step_id'],
@@ -102,6 +107,9 @@ class SendMail extends AbstractAutomationAction {
 			 */
 			do_action( 'mailmint_before_automation_send_mail', $data['automation_id'], $data['data']['user_email'] );
 			do_action( 'mint_before_automation_send_mail', $data['automation_id'], $data['data'] );
+
+
+
 
 			$transactional_email = isset($step_data['settings']['message_data']['make_transactional']) ? $step_data['settings']['message_data']['make_transactional']: false;
 			if (!empty($step_data['settings']['message_data']) &&
@@ -130,7 +138,8 @@ class SendMail extends AbstractAutomationAction {
 					unset($contact['meta_fields']);
 				}
 
-				$preview   = Parser::parse( $preview, $contact, $post_id, $order_id, array( 'abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id ) );
+				$preview   = Parser::parse( $preview, $contact, $post_id, $order_id, array( 'abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id, 'product_id' => $product_id, 'user_membership_id' => $user_membership_id, 'wishlist_id' => $wishlist_id ) );
+				$preview   = Helper::replace_dynamic_coupon( $preview, $user_email );
 				$headers[] = 'X-PreHeader: ' . $preview;
 
 				$unsubscribe_url = Helper::get_unsubscribed_url( $rand_hash );
@@ -149,11 +158,26 @@ class SendMail extends AbstractAutomationAction {
 					'editor_type'    => !empty( $step_data['settings']['message_data']['json_body']['editor'] ) ? $step_data['settings']['message_data']['json_body']['editor'] : 'advanced-builder',
 				);
 
-				$email_data['subject'] = Parser::parse( $email_data['subject'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id ) );
+				$email_data['subject'] = Parser::parse( $email_data['subject'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id, 'product_id' => $product_id, 'user_membership_id' => $user_membership_id, 'wishlist_id' => $wishlist_id ) );
+				$email_data['subject'] = Helper::replace_dynamic_coupon( $email_data['subject'], $email_data['receiver_email'] );
 				$email_data['body']    = Helper::replace_url( $email_data['body'], $rand_hash );
-				$email_data['body']    = Parser::parse( $email_data['body'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id ) );
+				$email_data['body']    = Parser::parse( $email_data['body'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id, 'product_id' => $product_id, 'user_membership_id' => $user_membership_id, 'wishlist_id' => $wishlist_id ) );
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );
-				$email_data['body']    = Email::inject_preview_text_on_email_body( $preview, $email_data['body'] );
+
+				/**
+				 * Summary: Applies the 'mint_replace_abandoned_carts_placeholder' filter to replace abandoned carts placeholders in the email body.
+				 *
+				 * Description: This code section applies the 'mint_replace_abandoned_carts_placeholder' filter hook to the email body.
+				 * The filter allows for customization of the replacement of abandoned carts placeholders with actual values in the email body.
+				 *
+				 * @param string $email_data['body'] The email body to be filtered.
+				 * @param array  $data            An array containing data to be passed to the filter hook.
+				 *
+				 * @return string The filtered email body with replaced abandoned carts placeholders.
+				 * @since 1.5.0
+				 */
+				$email_data['body'] = apply_filters('mint_automation_email_body', $email_data['body'], $data);
+				$email_data['body'] = Email::inject_preview_text_on_email_body($preview, $email_data['body']);
 
 				// Call EmailRender class to dynamically render the custom blocks.
 				if ( $order_id && class_exists('MailMintPro\Internal\EmailCustomization\Render\EmailRender') ) {

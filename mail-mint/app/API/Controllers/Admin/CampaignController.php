@@ -13,6 +13,7 @@
 namespace Mint\MRM\Admin\API\Controllers;
 
 use Mint\MRM\DataBase\Models\ContactGroupPivotModel;
+use Mint\MRM\DataBase\Tables\CampaignSchema;
 use Mint\MRM\DataBase\Models\EmailModel;
 use MailMintPro\Mint\Internal\Admin\Segmentation\FilterSegmentContacts;
 use Mint\Mrm\Internal\Traits\Singleton;
@@ -461,7 +462,38 @@ class CampaignController extends AdminBaseController {
 		return $this->get_error_response( __( 'Failed to get data', 'mrm' ), 400 );
 	}
 
+		
+	/**
+	 * Function use to get campaigns by name search
+	 *
+	 * @param WP_REST_Request $request Request object used to generate the response.
+	 *
+	 * @return array
+	 * @since 1.18.0
+	 */
+	public function get_campaign_by_name(WP_REST_Request $request) {
+		global $wpdb;
+		$params = MrmCommon::get_api_params_values($request);
+		$term   = isset($params['term']) ? $params['term'] : '';
+		$table  = $wpdb->prefix . CampaignSchema::$campaign_table;
 
+		// Prepare the search string with wildcards for a LIKE query.
+		$search = '%' . $wpdb->esc_like($term) . '%';
+
+		// Query to fetch id as value and name as label.
+		$query = $wpdb->prepare("SELECT id AS value, title AS label
+			FROM {$table}
+			WHERE title LIKE %s
+		", $search);
+
+		// Execute the query and return the results
+		$campaigns = $wpdb->get_results($query, ARRAY_A);
+		$response['success']     = true;
+		$response['campaigns'] = $campaigns;
+		return rest_ensure_response( $response );
+	}
+	
+	
 	/**
 	 * Function use to get single campaign
 	 *
@@ -624,8 +656,7 @@ class CampaignController extends AdminBaseController {
      * @return array|\WP_Error|\WP_HTTP_Response|WP_REST_Response
      * @since 1.4.3
      */
-    public function hide_smtp_notice( WP_REST_Request $request )
-    {
+    public function hide_smtp_notice( WP_REST_Request $request ){
         $params      = MrmCommon::get_api_params_values( $request );
         if( !empty( $params['remove_smtp_notice'] ) ){
             $notice = $params['remove_smtp_notice'];
@@ -634,4 +665,24 @@ class CampaignController extends AdminBaseController {
         }
         return $this->get_error_response( __( 'Failed to update notice status', 'mrm' ), 400 );
     }
+
+	/**
+	 * Retrieve URLs from a campaign email.
+	 *
+	 * This function handles a REST API request to get all URLs from the email body of a specified campaign.
+	 *
+	 * @param WP_REST_Request $request The REST API request object.
+	 * 
+	 * @return WP_REST_Response The response object containing the success status and the list of URLs.
+	 * @since 1.17.2
+	 */
+	public function get_urls_from_campaign( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$campaign_id = isset( $params['campaign_id'] ) ? $params['campaign_id'] : '';
+
+		$urls = ModelsCampaign::get_urls_from_campaign_email( $campaign_id );
+		$response['success'] = true;
+		$response['urls']    = $urls;
+		return rest_ensure_response($response);
+	}
 }

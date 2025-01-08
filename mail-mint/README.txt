@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag:  1.16.3
+Stable tag:  1.16.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -502,6 +502,12 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.16.4 (2025-01-08) =
+* Improvement: Product and Post Custom Blocks on the Visual Email Editor
+* Bugfix: Cart Block does not Render Products Dynamically
+* Bugfix: Contacts Selection Issue on the 'Price Drop / On Sale' Automation Trigger
+* Bugfix: 'Price Drop / On Sale' Automation Trigger Runs After Product Update
 
 = 1.16.3 (2024-12-19) =
 * Improvement: Allow Sending Transactional Emails to Pending Contacts in Automation

@@ -103,23 +103,18 @@ class MergeTagParser
 		if (empty($matches[2])) {
 			return apply_filters('mint_merge_tag_fallback', $matches[0], $contact);
 		}
-
 		$matches[2] = trim($matches[2]);
 		$matched    = explode('.', $matches[2]);
-
 		if (count($matched) <= 1) {
 			return apply_filters('mint_merge_tag_fallback', $matches[0], $contact);
 		}
-
 		$data_key  = trim(array_shift($matched));
 		$value_key = trim(implode('.', $matched));
 
 		if (!$value_key) {
 			return apply_filters('mint_merge_tag_fallback', $matches[0], $contact);
 		}
-
 		$value_keys = explode('|', $value_key);
-
 		$value_key     = $value_keys[0];
 		$default_value = '';
 		$transformer   = '';
@@ -137,7 +132,6 @@ class MergeTagParser
 		}
 
 		$value = '';
-
 		switch ($data_key) {
 			case 'contact':
 			case 'custom':
@@ -189,6 +183,22 @@ class MergeTagParser
 			case 'wc_subscription':
 				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
 				$value     = $wc_parser->parse_wc_subscription_merge_tag();
+				break;
+			case 'product':
+				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
+				$value     = $wc_parser->parse_wc_product_merge_tag();
+				break;
+			case 'review':
+				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
+				$value     = $wc_parser->parse_wc_review_merge_tag();
+				break;
+			case 'wc_membership':
+				$wc_parser = new WCMergeTagParser(  $value_key, $default_value, $params );
+				$value     = $wc_parser->parse_wc_membership_merge_tag();
+				break;
+			case 'wc_wishlist':
+				$wc_parser = new WCMergeTagParser($value_key, $default_value, $params);
+				$value     = $wc_parser->parse_wc_wish_list_merge_tag();
 				break;
 			default:
 				$value = apply_filters('mint_merge_tag_group_callback_' . $data_key, $matches[0], $value_key, $default_value, $contact);
