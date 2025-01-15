@@ -164,8 +164,13 @@ class CampaignController extends AdminBaseController {
 							$email['scheduled_at'] = null;
 							$email['status']       = 'draft';
 						}
-
+						
 						$last_email_id = ModelsCampaign::update_campaign_emails( $email, $campaign_id, $index );
+						$delay_option  = isset( $email['delay_option'] ) ? $email['delay_option'] : '';
+						if ( 'customDate' === $delay_option ) {
+							$schedule_date = isset( $email['scheduleDate'] ) ? $email['scheduleDate'] : '';
+							ModelsCampaign::update_campaign_email_meta( $last_email_id, 'schedule_date', $schedule_date );
+						}
 					}
 					$this->campaign_data['last_email_id'] = $last_email_id;
 				}
@@ -215,6 +220,11 @@ class CampaignController extends AdminBaseController {
 							$email['status']       = 'draft';
 						}
 						$last_email_id = ModelsCampaign::insert_campaign_emails( $email, $campaign_id, $index );
+						$delay_option  = isset( $email['delay_option'] ) ? $email['delay_option'] : '';
+						if ( 'customDate' === $delay_option ) {
+							$schedule_date = isset( $email['scheduleDate'] ) ? $email['scheduleDate'] : '';
+							ModelsCampaign::update_campaign_email_meta( $last_email_id, 'schedule_date', $schedule_date );
+						}
 						$this->campaign_data['emails']['last_email_id'] = $last_email_id;
 					}
 				}

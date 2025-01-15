@@ -374,7 +374,6 @@ class AdminAssets {
                     'images_url'                     => plugins_url( 'Email-Templates/images', __FILE__ ) . '/',
                     'mint_page'                      => 'automation',
                     'is_contact_form_active'         => HelperFunctions::is_contact_form_7_active(),
-                    'contact_forms'                  => HelperFunctions::get_contactform_forms(),
                     'tutor_courses'                  => HelperFunctions::get_tutor_lms_courses(),
                     'tutor_lessons'                  => HelperFunctions::get_tutor_lms_lessons(),
                     'is_learndash_active'            => HelperFunctions::is_learndash_lms_active(),

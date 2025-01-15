@@ -1714,66 +1714,6 @@ class HelperFunctions { //phpcs:ignore
 	}
 
 	/**
-	 * Get Contact Form 7 forms if the Contact Form 7 plugin is active.
-	 *
-	 * This function retrieves a list of Contact Form 7 forms as options if the Contact Form 7 plugin is active.
-	 * Each form is represented as an array with 'value' and 'label' keys.
-	 *
-	 * @return array|bool An array of Contact Form 7 forms with 'value' (form ID) and 'label' (form title) elements if Contact Form 7 is active. Otherwise, it returns false.
-	 * @since 1.5.17
-	 */
-	public static function get_contactform_forms() {
-		if ( self::is_contact_form_7_active() ) {
-			$posts = get_posts(
-				array(
-					'post_type'      => 'wpcf7_contact_form',
-					'posts_per_page' => 99,
-					'orderby'        => 'title',
-					'order'          => 'ASC',
-					'post_status'    => 'publish',
-				)
-			);
-
-			if ( is_array( $posts ) ) {
-				// Use array_map function to format each form object as an array of options.
-				$formatted_forms[] = array(
-					'value'  => 0,
-					'label'  => __( 'Select a Form', 'mrm' ),
-					'fields' => array(),
-				);
-
-				foreach ( $posts as $post ) {
-					$form        = \WPCF7_ContactForm::get_instance( $post->ID );
-					$form_fields = $form->scan_form_tags();
-					$fields      = array();
-
-					if ( empty( $form_fields ) ) {
-						return $fields;
-					}
-
-					foreach ( $form_fields as $field ) {
-						if ( 'submit' === $field->type || false !== strpos( $field->type, 'file' ) ) {
-							continue;
-						}
-						$fields[] = array(
-							'value' => $field->name,
-							'label' => $field->name,
-						);
-					}
-
-					$formatted_forms[] = array(
-						'value'  => $post->ID,
-						'label'  => $post->post_title,
-						'fields' => $fields,
-					);
-				}
-			}
-			return $formatted_forms;
-		}
-		return false;
-	}
-
-	/**
 	 * Retrieve a list of Tutor LMS courses for use in a select field.
 	 *
 	 * This method checks if Tutor LMS is active, and if so, retrieves a list of published courses

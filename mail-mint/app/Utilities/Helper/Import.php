@@ -211,10 +211,12 @@ class Import {
 	 * Import WC customers information from orders and metadata table
 	 *
 	 * @param int $offset The starting point of orders to retrieve customers.
+	 * @param int $per_batch The number of customers to retrieve per batch.
+	 *
 	 * @return array
-	 * @since 1.0.0
+	 * @since 1.16.5 Added the $per_batch parameter.
 	 */
-	public static function get_wc_customers( $offset ) {
+	public static function get_wc_customers( $offset, $per_batch ) {
 		$all_order_ids = wc_get_orders(
 			array(
 				'return'       => 'ids',
@@ -231,17 +233,38 @@ class Import {
 				$orders = wc_get_order( $all_order_id );
 
 				$order_arr = array(
-					'Email'          => $orders->get_billing_email(),
-					'First_name'     => $orders->get_billing_first_name(),
-					'Last_name'      => $orders->get_billing_last_name(),
-					'Address_line_1' => $orders->get_billing_address_1(),
-					'Address_line_2' => $orders->get_billing_address_2(),
-					'City'           => $orders->get_billing_city(),
-					'Company'        => $orders->get_billing_company(),
-					'Country'        => $orders->get_billing_country(),
-					'Postcode'       => $orders->get_billing_postcode(),
-					'State'          => $orders->get_billing_state(),
-					'Phone'          => $orders->get_billing_phone(),
+					'billing_email'       => $orders->get_billing_email(),
+					'billing_first_name'  => $orders->get_billing_first_name(),
+					'billing_last_name'   => $orders->get_billing_last_name(),
+					'customer_id'         => $orders->get_customer_id(),
+					'billing_address_1'   => $orders->get_billing_address_1(),
+					'billing_address_2'   => $orders->get_billing_address_2(),
+					'billing_city'        => $orders->get_billing_city(),
+					'billing_country'     => $orders->get_billing_country(),
+					'billing_postcode'    => $orders->get_billing_postcode(),
+					'billing_state'       => $orders->get_billing_state(),
+					'billing_phone'       => $orders->get_billing_phone(),
+					'shipping_first_name' => $orders->get_shipping_first_name(),
+					'shipping_last_name'  => $orders->get_shipping_last_name(),
+					'shipping_address_1'  => $orders->get_shipping_address_1(),
+					'shipping_address_2'  => $orders->get_shipping_address_2(),
+					'shipping_city'       => $orders->get_shipping_city(),
+					'shipping_country'    => $orders->get_shipping_country(),
+					'shipping_postcode'   => $orders->get_shipping_postcode(),
+					'shipping_state'      => $orders->get_shipping_state(),
+					'registered_date'     => (function () use ($orders) {
+						$customer = new \WC_Customer($orders->get_customer_id());
+						$date_created = $customer->get_date_created();
+						return $date_created ? $date_created->date('Y-m-d H:i:s') : null;
+					})(),
+					'total_spent'         => (function () use ($orders) {
+						$customer = new \WC_Customer($orders->get_customer_id());
+						return $customer->get_total_spent();
+					})(),
+					'total_orders'        => (function () use ($orders) {
+						$customer = new \WC_Customer($orders->get_customer_id());
+						return $customer->get_order_count();
+					})(),
 				);
 
 				return $order_arr;
@@ -595,15 +618,24 @@ class Import {
 		}
 
 		$formatted_users = array_map(
-			function ( $user ) {
-				$user->usermeta = array_map(
-					function ( $user_data ) {
-						return reset( $user_data );
-					},
-					get_user_meta( $user->ID )
+			function ($user) {
+				// Flatten core user data from the "data" property
+				$user_data = (array) $user->data;
+
+				// Merge additional properties of WP_User into the flat array
+				$additional_data = array(
+					'roles'   => $user->roles,
+					'allcaps' => $user->allcaps,
+					'caps'    => $user->caps,
 				);
 
-				return $user;
+				// Fetch and merge user meta
+				$user_meta = get_user_meta($user->ID);
+				foreach ($user_meta as $key => $value) {
+					$user_data[$key] = reset($value); // Flatten meta values
+				}
+
+				return array_merge($user_data, $additional_data);
 			},
 			$users
 		);
@@ -611,24 +643,24 @@ class Import {
 		return $formatted_users;
 	}
 
-		/**
-		 * Prepare Contact Data for Import.
-		 *
-		 * This function prepares the contact data and arguments for the import process.
-		 * It processes mappings and creates contact arguments including status, source, meta fields, and more.
-		 *
-		 * @access public
-		 *
-		 * @param array  $csv_contact The contact data from the CSV.
-		 * @param array  $mappings    The mappings for contact data fields.
-		 * @param string $import_type The type of import, either 'csv' or 'raw'.
-		 * @param string $status      The status of the imported contact.
-		 * @param int    $created_by  The ID of the user who created the contact.
-		 * @return array Prepared contact arguments for the import process.
-		 *
-		 * @since 1.5.4
-		 * @modified 1.7.1 Add lists and tags on the contact_args
-		 */
+	/**
+	 * Prepare Contact Data for Import.
+	 *
+	 * This function prepares the contact data and arguments for the import process.
+	 * It processes mappings and creates contact arguments including status, source, meta fields, and more.
+	 *
+	 * @access public
+	 *
+	 * @param array  $csv_contact The contact data from the CSV.
+	 * @param array  $mappings    The mappings for contact data fields.
+	 * @param string $import_type The type of import, either 'csv' or 'raw'.
+	 * @param string $status      The status of the imported contact.
+	 * @param int    $created_by  The ID of the user who created the contact.
+	 * @return array Prepared contact arguments for the import process.
+	 *
+	 * @since 1.5.4
+	 * @modified 1.7.1 Add lists and tags on the contact_args
+	 */
 	public static function prepare_contact_arguments( $csv_contact, $mappings, $import_type, $status, $created_by ) {
 		$contact_args = array(
 			'status'      => $status,

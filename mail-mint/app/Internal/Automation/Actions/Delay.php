@@ -28,9 +28,10 @@ class Delay extends AbstractAutomationAction {
 	/**
 	 * Action scheduler.
 	 *
-	 * @var $action_scheduler
+	 * @object $action_scheduler
 	 */
 	private $action_scheduler;
+
 	/**
 	 * Initialization
 	 */
@@ -125,7 +126,10 @@ class Delay extends AbstractAutomationAction {
 	private function calculate_seconds( $data ) {
 		$type  = isset( $data['unit'] ) ? strtoupper( $data['unit'] ) : 'MINUTES';
 		$delay = isset( $data['delay'] ) ? $data['delay'] : 1;
+
 		switch ( $type ) {
+			case 'SECONDS':
+				return $delay;
 			case 'MINUTES':
 				return $delay * MINUTE_IN_SECONDS;
 			case 'HOURS':

@@ -190,7 +190,7 @@ class ContactImportRoute extends AdminRoute {
 			array(
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this->controller, 'import_contacts_with_native_wp_roles' ),
+					'callback'            => array( $this->controller, 'retrieve_wordpress_user_map_fields' ),
 					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'roles' => array(

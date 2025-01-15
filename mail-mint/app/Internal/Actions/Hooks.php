@@ -46,6 +46,7 @@ class Hooks {
 		add_action('woocommerce_order_status_changed', array($this, 'handle_payment_status_changed'), 100, 4);
 		add_action('woocommerce_refund_created', array($this, 'handle_partial_refund'), 10, 2);
 		add_action( 'init', array( $this, 'check_and_assign_capabilities_on_update' ) );
+		add_filter( 'mint_wordpress_user_import_headers', array( $this, 'merge_woocommerce_headers' ) );
 	}
 
 	/**
@@ -1020,5 +1021,46 @@ class Hooks {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Merges the provided WooCommerce headers with additional billing and shipping headers.
+	 *
+	 * This function checks if WooCommerce is active using the MrmCommon::is_wc_active() method.
+	 *
+	 * @param array $headers The original WooCommerce headers.
+	 * @return array The merged array of headers.
+	 * 
+	 * @since 1.16.5
+	 */
+	public function merge_woocommerce_headers($headers){
+		// Define another array to merge with.
+		$additional_headers = array(
+			'billing_first_name',
+			'billing_last_name',
+			'billing_address_1',
+			'billing_address_2',
+			'billing_city',
+			'billing_state',
+			'billing_postcode',
+			'billing_country',
+			'billing_phone',
+			'billing_email',
+			'shipping_first_name',
+			'shipping_last_name',
+			'shipping_address_1',
+			'shipping_address_2',
+			'shipping_city',
+			'shipping_state',
+			'shipping_postcode',
+			'shipping_country',
+		);
+
+		if(!MrmCommon::is_wc_active()){
+			return $headers;
+		}
+
+		// Merge the two arrays and return.
+		return array_merge($headers, $additional_headers);
 	}
 }

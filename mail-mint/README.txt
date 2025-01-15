@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag:  1.16.4
+Stable tag:  1.16.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -502,6 +502,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.16.5 (2025-01-15) =
+* Improvement: 'Seconds' Option to Time Delay Action in Automation
+* Improvement: Fields Mapping for WordPress Users Import
+* Improvement: Fields Mapping for WooCommerce Customers Import
+* Bugfix: Infinite Loading Issue with 'Specific Time Delay' Action
+* Bugfix: Validation Issues on the Existing Contact Update
 
 = 1.16.4 (2025-01-08) =
 * Improvement: Product and Post Custom Blocks on the Visual Email Editor

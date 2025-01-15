@@ -238,7 +238,7 @@ class ContactImportController extends AdminBaseController {
      * @return WP_REST_Response The response containing the import process result.
      * @since 1.5.4
      */
-    public function import_contacts_with_native_wp_roles( WP_REST_Request $request ) {
+    public function retrieve_wordpress_user_map_fields( WP_REST_Request $request ) {
         // Define the required parameters for the import process.
         $required_params = array('roles');
 

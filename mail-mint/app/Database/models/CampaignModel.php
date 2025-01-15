@@ -159,6 +159,8 @@ class CampaignModel {
 		unset( $email['email_address'] );
 		unset( $email['contact_id'] );
 		unset( $email['email_hash'] );
+		unset( $email['delay_option'] );
+		unset( $email['scheduleDate'] );
 
 		$email['campaign_id'] = $campaign_id;
 		$email['created_at']  = current_time( 'mysql' );
@@ -320,6 +322,8 @@ class CampaignModel {
 		$fields_table = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
 		unset( $email['email_body'] );
 		unset( $email['email_json'] );
+		unset( $email['delay_option'] );
+		unset( $email['scheduleDate'] );
 		$campaign_email = self::get_campaign_email_by_index( $campaign_id, $email );
 		if ( $campaign_email ) {
 			$wpdb->update(
@@ -330,6 +334,7 @@ class CampaignModel {
 					'id'          => $email['id'],
 				)
 			); // db call ok. ; no-cache ok.
+			return $email['id'];
 		} else {
 			return self::insert_campaign_emails( $email, $campaign_id, $index );
 		}
@@ -448,30 +453,38 @@ class CampaignModel {
 
 		$campaign_emails_query = $wpdb->prepare(
 			"SELECT
-                                               CET.id, delay, delay_count, delay_value,
-                                               send_time, sender_email, sender_name, reply_email, reply_name,
-                                               email_index, email_subject, email_preview_text,
-                                               template_id, CET.status, scheduled_at,
-                                               EBT.json_data, EBT.email_body as body_data
-                                               FROM $campaign_emails_table
-                                               as CET LEFT JOIN $email_builder_table
-                                               as EBT
-                                               on CET.id = EBT.email_id
-                                               WHERE CET.campaign_id = %d",
+				CET.id, delay, delay_count, delay_value,
+				send_time, sender_email, sender_name, reply_email, reply_name,
+				email_index, email_subject, email_preview_text,
+				template_id, CET.status, scheduled_at,
+				EBT.json_data, EBT.email_body as body_data
+				FROM $campaign_emails_table
+				as CET LEFT JOIN $email_builder_table
+				as EBT
+				on CET.id = EBT.email_id
+				WHERE CET.campaign_id = %d",
 			$id
 		);
-		$emails                = $wpdb->get_results( $campaign_emails_query, ARRAY_A ); // db call ok. ; no-cache ok.
+		$emails = $wpdb->get_results( $campaign_emails_query, ARRAY_A ); // db call ok. ; no-cache ok.
 		if ( ! empty( $emails ) ) {
 			$emails = array_map(
 				function ( $email ) {
 					$email_json          = isset( $email['json_data'] ) ? $email['json_data'] : '';
 					$email['email_json'] = unserialize( $email_json );  		 //phpcs:ignore
+
+					$custom_date = self::get_campaign_email_meta( $email['id'], 'schedule_date' );
+					if ( $custom_date ) {
+						$email['scheduleDate'] = $custom_date;
+						$email['delay_option']  = 'customDate';
+					}else{
+						$email['delay_option'] = 'timePeriod';
+					}
+
 					return $email;
 				},
 				$emails
 			);
 		}
-
 		return $emails;
 	}
 

@@ -59,6 +59,7 @@ class ContactController extends AdminBaseController {
 	public function create_or_update( WP_REST_Request $request ) {
 		// Get values from API.
 		$params = MrmCommon::get_api_params_values( $request );
+
 		// Email address validation.
 		if ( isset( $params['email'] ) ) {
 			$email = sanitize_text_field( $params['email'] );
@@ -89,21 +90,27 @@ class ContactController extends AdminBaseController {
                     return $this->get_error_response( __( 'The email address does not exist. Please check the spelling and try again.', 'mrm' ), 200 );
                 }
             }
-
-			$exist = ContactModel::is_contact_exist( $email );
-
-			if ( $exist && ! isset( $params['contact_id'] ) ) {
-				return $this->get_error_response( __( 'Email address already assigned to another contact.', 'mrm' ), 200 );
-			}
 		}
 
 		// Contact object create and insert or update to database.
 		try {
 			if ( isset( $params['contact_id'] ) ) {
 				$contact_id = isset( $params['contact_id'] ) ? $params['contact_id'] : '';
+
+                $current_email = ContactModel::get_contact_email_by_id( $contact_id );
+                $exist         = ContactModel::is_contact_exist($email);
+ 
+                if ($exist && $current_email !== $email) {
+                    return $this->get_error_response(__('Email address already assigned to another contact.', 'mrm'), 200);
+                }
+
 				// Existing contact email address check.				
 				$contact_id = ContactModel::update( $params, $contact_id );
 			} else {
+                $exist = ContactModel::is_contact_exist($email);
+                if ($exist) {
+                    return $this->get_error_response(__('Email address already assigned to another contact.', 'mrm'), 200);
+                }
 				$params     = $this->get_contact_status( $params );
 				$contact    = new ContactData( $email, $params );
 				$contact_id = ContactModel::insert( $contact );
@@ -495,10 +502,11 @@ class ContactController extends AdminBaseController {
             }
             $mappings = isset( $params['map'] ) ? $params['map'] : array();
 
-            $wc_customers = Import::get_wc_customers($params['offset']);
+            $wc_customers = Import::get_wc_customers($params['offset'], $per_batch);
+ 
             foreach ( $wc_customers as $wc_customer ) {
                 if ( isset( $wc_customer ) ) {
-                    $contact_email = $wc_customer['Email'];
+                    $contact_email = $wc_customer['billing_email'];
                 }
                 if ( !is_email( $contact_email ) ){
                     $skipped++;
@@ -602,13 +610,35 @@ class ContactController extends AdminBaseController {
     public function get_native_wc_customers() {
         $total_orders = wc_get_orders(
             array(
-				'return'       => 'ids',
-				'type'         => 'shop_order',
-                'limit'        => -1,
-				'parent'       => 0,
-				'date_created' => '<' . time(),
+                'limit' => -1,
 			)
         );
+        
+        $headers = apply_filters( 'mint_woocommerce_customer_import_headers', array(
+            'billing_email',
+            'billing_first_name',
+            'billing_last_name',
+            'customer_id',
+            'total_spent',
+            'total_orders',
+            'registered_date',
+            'billing_address_1',
+            'billing_address_2',
+            'billing_city',
+            'billing_postcode',
+            'billing_state',
+            'billing_country',
+            'billing_phone',
+            'shipping_first_name',
+            'shipping_last_name',
+            'shipping_address_1',
+            'shipping_address_2',
+            'shipping_city',
+            'shipping_postcode',
+            'shipping_state',
+            'shipping_country',
+        ) );
+
         /**
          * Get the import batch limit per operation.
          *
@@ -621,6 +651,7 @@ class ContactController extends AdminBaseController {
 
         return $this->get_success_response( __( 'Total orders has been retrieved successfully.', 'mrm' ), 200, array(
             'total_batch' => ceil( count( $total_orders ) / (int) $per_batch ),
+            'headers'     => $headers,
         ) );
     }
 

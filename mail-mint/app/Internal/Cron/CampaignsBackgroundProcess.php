@@ -142,8 +142,13 @@ class CampaignsBackgroundProcess {
 			CampaignModel::update_campaign_email_status( $campaign_id, $campaign_email_id, 'scheduled' );
 			$email = CampaignModel::get_first_campaign_email( $campaign_id );
 
+			$custom_date   = CampaignModel::get_campaign_email_meta( $email['id'], 'schedule_date' );
+			$schedule_date = '';
+			if( $custom_date ){
+				$schedule_date = $custom_date;
+			}
 			if ( is_array( $email ) ) {
-				CampaignModel::schedule_campaign_action( $campaign_id, $email, 'active' );
+				CampaignModel::schedule_campaign_action( $campaign_id, $email, 'active', $schedule_date );
 			} else {
 				do_action( 'mailmint_campaign_emails_scheduling_completed', 'mailmint-campaign-schedule-' . $campaign_id );
 			}

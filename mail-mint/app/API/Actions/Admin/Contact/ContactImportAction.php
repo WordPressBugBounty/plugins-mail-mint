@@ -658,8 +658,6 @@ class ContactImportAction implements Action {
             );
         }
 
-        $wp_users    = Import::get_wp_users_by_roles_with_limit_offset( $params['roles'], 5 );
-        $contacts    = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users);
         $count_users = count_users();
         $total_users = 0;
 
@@ -670,6 +668,16 @@ class ContactImportAction implements Action {
             $filtered_roles = array_intersect_key($avail_roles, array_flip($params['roles']));
             $total_users    = array_sum($filtered_roles);
         }
+
+        $headers = apply_filters( 'mint_wordpress_user_import_headers', array(
+            'ID',
+            'user_email',
+            'user_registered',
+            'user_login',
+            'nickname',
+            'first_name',
+            'last_name',
+        ) );
 
         /**
          * Get the import batch limit per operation.
@@ -684,11 +692,11 @@ class ContactImportAction implements Action {
         return array(
             'status'  => 'success',
             'data'    => array(
-                            'contacts'    => $contacts,
-                            'total_batch' => ceil( $total_users / (int) $per_batch ),
-                            'total'       => $total_users,
-                            'roles'       => $params['roles']
-                        ),
+                'headers'     => $headers,
+                'total_batch' => ceil( $total_users / (int) $per_batch ),
+                'total'       => $total_users,
+                'roles'       => $params['roles']
+            ),
             'message' => __('Data retrieval and processing completed successfully.', 'mrm')
         );
     }
@@ -746,6 +754,15 @@ class ContactImportAction implements Action {
 			add_filter( 'mint_automation_trigger_control_on_import', '__return_true');
 		}
 
+        $mappings = isset($params['map']) ? $params['map'] : array();
+
+        if (empty($mappings)) {
+            return array(
+                'status'  => 'failed',
+                'message' => __('Please map at least one field for importing.', 'mrm')
+            );
+        }
+
         /**
          * Get the import batch limit per operation.
          *
@@ -765,13 +782,15 @@ class ContactImportAction implements Action {
             );
         }
 
-        $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users);
-
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_wordpress_user_to_insert($wp_user, $params, 'WordPress');
+            if ( isset( $wp_user['user_email'] ) && ! is_email( $wp_user['user_email'] ) ) {
+                $skipped++;
+                continue;
+            }
+            $result = $this->process_individual_wordpress_user_to_insert($wp_user, $params, $mappings);
 
-            $skipped += $result['skipped'];
-            $exists += $result['exists'];
+            $skipped  += $result['skipped'];
+            $exists   += $result['exists'];
             $imported += $result['imported'];
         }
         // Prepare data for success response.
@@ -803,20 +822,74 @@ class ContactImportAction implements Action {
      * @since 1.5.7
      * @modified 1.8.0 Add contact source as param
      */
-    public function process_individual_wordpress_user_to_insert($wp_user, $params, $source) {
+    public function process_individual_user_to_insert($wp_user, $params, $source){
         $skipped  = 0;
         $exists   = 0;
         $imported = 0;
 
         $contact_args = array(
-            'email'      => isset( $wp_user['user_email'] ) ? $wp_user['user_email'] : '',
-            'first_name' => isset( $wp_user['first_name'] ) ? $wp_user['first_name'] : '',
-            'last_name'  => isset( $wp_user['last_name'] ) ? $wp_user['last_name'] : '',
-            'status'     => isset( $params['status'] ) ? $params['status'] : 'pending',
+            'email'      => isset($wp_user['user_email']) ? $wp_user['user_email'] : '',
+            'first_name' => isset($wp_user['first_name']) ? $wp_user['first_name'] : '',
+            'last_name'  => isset($wp_user['last_name']) ? $wp_user['last_name'] : '',
+            'status'     => isset($params['status']) ? $params['status'] : 'pending',
             'source'     => $source,
-            'created_by' => isset( $params['created_by'] ) ? $params['created_by'] : '',
-            'wp_user_id' => isset( $wp_user['id'] ) ? $wp_user['id'] : 0,
+            'created_by' => isset($params['created_by']) ? $params['created_by'] : '',
+            'wp_user_id' => isset($wp_user['id']) ? $wp_user['id'] : 0,
         );
+
+        if (! array_key_exists('email', $contact_args)) {
+            return 'failed';
+        }
+
+        $contact_email = trim($contact_args['email']);
+
+        if ($contact_email && is_email($contact_email)) {
+            return $this->process_valid_contact($contact_args, $params, $contact_email, $imported, $exists, $skipped);
+        } else {
+            return $this->process_invalid_contact($skipped, $imported, $exists);
+        }
+
+        return compact('skipped', 'exists', 'imported');
+    }
+
+    /**
+     * Process an individual WordPress user for insertion into contacts.
+     * 
+     * @access public
+     * 
+     * @param array $wp_user The WordPress user data.
+     * @param array $params  The import parameters.
+     * @param array $mappings The contact mappings.
+     *
+     * @return array The result of the import process for this user, including skipped, existing, and imported counts.
+     * @since 1.5.7
+     * @since 1.8.0 Add contact source as param
+     * @since 1.16.5 Add $mapping as param
+     */
+    public function process_individual_wordpress_user_to_insert($wp_user, $params, $mappings) {
+        $skipped  = 0;
+        $exists   = 0;
+        $imported = 0;
+
+        $contact_args = array(
+            'status'      => isset($params['status']) ? $params['status'] : 'pending',
+            'source'      => 'WordPress',
+            'meta_fields' => array(),
+            'created_by'  => get_current_user_id(),
+        );
+
+        foreach ( $mappings as $map ) {
+            $target = isset($map['target']) ? $map['target'] : '';
+            $source = isset($map['source']) ? $map['source'] : '';
+
+            if (in_array($target, array('first_name', 'last_name', 'email'), true)) {
+                $contact_args[$target] = $wp_user[$source];
+            } elseif (in_array($target, array('lists', 'tags'), true)) {
+                $contact_args['groups'][$target] = $wp_user[$source];
+            } else {
+                $contact_args['meta_fields'][$target] = $wp_user[$source];
+            }
+        }
 
         if ( ! array_key_exists( 'email', $contact_args ) ) {
             return 'failed';
@@ -912,7 +985,7 @@ class ContactImportAction implements Action {
         $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_wordpress_user_to_insert($wp_user, $params, 'LearnDash');
+            $result = $this->process_individual_user_to_insert($wp_user, $params, 'LearnDash');
 
             $skipped += $result['skipped'];
             $exists += $result['exists'];
@@ -1013,7 +1086,7 @@ class ContactImportAction implements Action {
         $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_wordpress_user_to_insert($wp_user, $params, 'Tutor LMS');
+            $result = $this->process_individual_user_to_insert($wp_user, $params, 'Tutor LMS');
 
             $skipped += $result['skipped'];
             $exists += $result['exists'];
@@ -1114,7 +1187,7 @@ class ContactImportAction implements Action {
         $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_wordpress_user_to_insert($wp_user, $params, 'MemberPress');
+            $result = $this->process_individual_user_to_insert($wp_user, $params, 'MemberPress');
 
             $skipped += $result['skipped'];
             $exists += $result['exists'];
@@ -1215,7 +1288,7 @@ class ContactImportAction implements Action {
         $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_wordpress_user_to_insert($wp_user, $params, 'LifterLMS');
+            $result = $this->process_individual_user_to_insert($wp_user, $params, 'LifterLMS');
 
             $skipped += $result['skipped'];
             $exists += $result['exists'];
