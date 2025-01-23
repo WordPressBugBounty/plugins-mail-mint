@@ -364,9 +364,7 @@ class AdminAssets {
                     'post_types'                     => MrmCommon::get_all_post_types(),
                     'open_ai_key'                    => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.2') ? Integration::get_open_ai_secret_key() : array(),
                     'is_jetform_active'              => HelperFunctions::is_jetform_active(),
-                    'get_jetform_forms'              => HelperFunctions::get_jetform_forms(),
                     'is_fluentform_active'           => HelperFunctions::is_fluentform_active(),
-                    'get_fluentform_forms'           => HelperFunctions::get_fluentform_forms(),
                     'smtp_warring'                   => MrmCommon::find_active_smtp_plugin(),
                     'contact_general_fields'         => MrmCommon::get_contact_general_fields(),
                     'contact_custom_fields'          => MrmCommon::get_contact_custom_fields(),
@@ -393,7 +391,6 @@ class AdminAssets {
                     'lifter_courses'                 => HelperFunctions::get_lifter_lms_courses(),
                     'lifter_memberships'             => HelperFunctions::get_lifter_lms_memberships(),
                     'is_bricks_active'               => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.14.0' ) ? Mint_Pro_Helper::is_bricks_active() : false,
-                    'bricks_forms'                   => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.14.0' ) ? Common::get_bricks_forms() : array(),
                     'is_wcs_active'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.15.0' ) ? Mint_Pro_Helper::is_woocommerce_subscription_active() : false,
                     'wcs_order_statuses'             => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.15.0' ) ? Mint_Pro_Helper::get_wcs_order_statuses() : false,
                     'is_wcm_active'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.15.0' ) ? Mint_Pro_Helper::is_woocommerce_membership_active() : false,
@@ -405,7 +402,6 @@ class AdminAssets {
                     'current_user_email'             => $current_user_email,
                     'condition_fields'               => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.16.1') ? Mint_Pro_Helper::get_automation_condition_fields() : false,
                     'is_wp_form_active'              => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.17.1') ? Mint_Pro_Helper::is_wp_form_active() : false,
-                    'wpforms_forms'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.17.1') ? Mint_Pro_Helper::get_wpforms_forms() : false,
                     'text_fields'                    => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.17.2') ? Mint_Pro_Helper::get_text_type_fields() : false,
 		        )
 	        );

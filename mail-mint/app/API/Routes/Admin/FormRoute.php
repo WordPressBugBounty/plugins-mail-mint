@@ -333,5 +333,27 @@ class FormRoute {
 				),
 			)
 		);
+
+
+				/**
+		 * Route for get id and body
+		 *
+		 * @return void
+		 * @since 1.0.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/(?P<action>[a-zA-Z0-9-_]+)',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'get_form_list_by_search',
+					),
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
 	}
 }

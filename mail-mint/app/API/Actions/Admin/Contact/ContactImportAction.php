@@ -743,7 +743,7 @@ class ContactImportAction implements Action {
      * @param array $params The import parameters.
      *
      * @return array The result of the import process including the number of imported, skipped, and existing contacts.
-     * @since 1.5.7
+     * @since 1.16.4
      */
     public function perform_wordpress_user_import( $params ){
         $skipped     = 0;
@@ -768,17 +768,111 @@ class ContactImportAction implements Action {
          *
          * @param int $per_batch The default import batch limit per operation.
          * @return int The modified import batch limit per operation.
-         * 
+         *
          * @since 1.5.6
          */
         $per_batch = apply_filters( 'mint_import_batch_limit', 500 );
+    
+        try {
+            $wp_users = Import::get_wp_users_by_roles_with_limit_offset_in_a_flat_array( $params['roles'], $per_batch, $params['offset'] );
 
-        $wp_users = Import::get_wp_users_by_roles_with_limit_offset($params['roles'], $per_batch, $params['offset']);
+            if ( ! is_array( $wp_users ) || empty( $wp_users ) ) {
+                return array(
+                    'status'  => 'failed',
+                    'message' => __( 'No WordPress user available to import.', 'mrm' )
+                );
+            }
+            foreach ( $wp_users as $wp_user ) {
 
-        if ( !is_array( $wp_users ) && empty( $wp_users ) ) {
+                if ( isset( $wp_user['user_email'] ) && ! is_email( $wp_user['user_email'] ) ) {
+                    $skipped++;
+                    continue;
+                }
+    
+                $contact_args = array(
+                    'status'      => isset( $params['status'] ) ? $params['status'] : 'pending',
+                    'source'      => 'WordPress',
+                    'meta_fields' => array(),
+                    'created_by'  => isset( $params['created_by'] ) ? $params['created_by'] : '',
+                ); 
+                foreach ( $params['map'] ?? [] as $map ) {
+                    $target = $map['target'] ?? '';
+                    $source = $map['source'] ?? '';
+                    if ( in_array( $target, array( 'first_name', 'last_name', 'email' ), true ) ) {
+                        $contact_args[ $target ] = $wp_user[ $source ] ?? '';
+                    } else {
+                        $contact_args['meta_fields'][ $target ] = $wp_user[ $source ] ?? '';
+                    }
+                }
+                if ( empty( $contact_args['email'] ) ) {
+                    return array(
+                        'status'  => 'failed',
+                        'message' => __( 'The email field is required.', 'mrm' )
+                    );
+                }
+    
+                $contact_email = trim( $contact_args['email'] );
+                $exists = ContactModel::is_contact_exist( $contact_email );
+    
+                if ( ! $exists ) {
+                    $contact      = new ContactData( $contact_email, $contact_args );
+                    $contact_id = ContactModel::insert( $contact );
+    
+                    if ( 'pending' === $contact_args['status'] ) {
+                        MessageController::get_instance()->send_double_opt_in( $contact_id );
+                    }
+    
+                    if ( isset( $params['tags'] ) ) {
+                        ContactGroupModel::set_tags_to_contact( $params['tags'], $contact_id );
+                    }
+    
+                    if ( isset( $params['lists'] ) ) {
+                        ContactGroupModel::set_lists_to_contact( $params['lists'], $contact_id );
+                    }
+                    $imported++;
+                } else {
+                    if ( isset( $params['skip_existing'] ) && $params['skip_existing'] ) {
+                        $skipped++;
+                        $total_count++;
+                        continue;
+                    }
+    
+                    $contact_id     = ContactModel::get_id_by_email( $contact_email );
+                    $contact_update = ContactModel::update( $contact_args, $contact_id );
+    
+                    if ( 'pending' === $contact_args['status'] && isset( $params['optin_confirmation'] ) && $params['optin_confirmation'] ) {
+                        MessageController::get_instance()->send_double_opt_in( $contact_id );
+                    }
+    
+                    if ( isset( $params['tags'] ) ) {
+                        ContactGroupModel::set_tags_to_contact( $params['tags'], $contact_id );
+                    }
+    
+                    if ( isset( $params['lists'] ) ) {
+                        ContactGroupModel::set_lists_to_contact( $params['lists'], $contact_id );
+                    }
+                    $skipped++;
+                }
+                $total_count++;
+            }
+    
+            $result = array(
+                'imported'          => $imported,
+                'total'             => count( $wp_users ),
+                'skipped'           => $skipped,
+                'existing_contacts' => $exists_count,
+                'offset'            => $params['offset'] + (int) $per_batch,
+            );
+    
+            return array(
+                'status'  => 'success',
+                'data'    => $result,
+                'message' => __( 'Import contact has been successful.', 'mrm' )
+            );
+        } catch ( Exception $e ) {
             return array(
                 'status'  => 'failed',
-                'message' => __('No WordPress user available to import.', 'mrm')
+                'message' => __( 'Import has not been successful.', 'mrm' )
             );
         }
 
@@ -808,6 +902,7 @@ class ContactImportAction implements Action {
             'message' => __('Import contact has been successful.', 'mrm')
         );
     }
+    
 
     /**
      * Process an individual WordPress user for insertion into contacts.

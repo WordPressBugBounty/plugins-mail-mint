@@ -435,4 +435,32 @@ class FormController extends AdminBaseController {
 		}
 		return $this->get_error_response(__('Failed to get data.', 'mrm'), 400);
 	}
+
+	/**
+	 * Get form list by search
+	 *
+	 * @param WP_REST_Request $request
+	 *
+	 * @return array
+	 * @since 1.16.6
+	 */
+	public function get_form_list_by_search( WP_REST_Request $request ) {
+		$params = MrmCommon::get_api_params_values( $request );
+		$search = isset( $params['search'] ) ? $params['search'] : '';
+	
+		$formatted_forms=[];
+		$forms = FormModel::get_all('id', 'ASC', 'all', 0, PHP_INT_MAX, $search);
+
+		if ( is_array($forms['data']) && !empty($forms['data']) ) {
+			foreach ($forms['data'] as $post) {
+				$formatted_forms[] = array(
+					'value'  => $post['id'],
+					'label'  => $post['title'],
+				);
+			}
+		}
+		$response['success'] = true;
+		$response['forms']   = $formatted_forms;
+		return $response;
+	}
 }

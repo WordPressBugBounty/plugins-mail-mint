@@ -1609,41 +1609,7 @@ class HelperFunctions { //phpcs:ignore
 		return false;
 	}
 
-	/**
-	 * Get all Mail Mint forms
-	 *
-	 * @return array|object|\stdClass[]|\string[][]|null
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_jetform_forms() {
-		if ( self::is_jetform_active() ) {
-			if ( class_exists( 'Jet_Form_Builder\Classes\Tools' ) ) {
-				$forms       = Tools::get_forms_list_for_js();
-
-				$formatted_forms = array(
-					array(
-						'value' => '',
-						'label' => 'Choose a form',
-						'fields' => array(),
-					),
-				);
-
-				if ( is_array( $forms ) ) {
-					foreach ($forms as $form) {
-						$formatted_forms[] = array(
-							'value' => $form['value'],
-							'label' => $form['label'],
-							'fields' => self::get_jet_builder_form_fields($form['value']),
-						);
-					}
-
-					return $formatted_forms;
-				}
-			}
-		}
-		return false;
-	}
+	
 
 	/**
 	 * Check if the Fluent Forms plugin is active on the WordPress site.
@@ -1685,33 +1651,7 @@ class HelperFunctions { //phpcs:ignore
 		return false;
 	}
 
-	/**
-	 * Retrieves the list of Fluent Forms and formats them as an array of options
-	 * for a dropdown select input
-	 *
-	 * @return array|false Array of formatted form options or false if Fluent Form plugin is not active
-	 *
-	 * @since 1.2.5
-	 */
-	public static function get_fluentform_forms() {
-		if ( self::is_fluentform_active() ) {
-			$forms = Helper::getForms();
 
-			if ( is_array( $forms ) ) {
-				// Use array_map function to format each form object as an array of options.
-				foreach ( $forms as $key => $value ) {
-					$formatted_forms[] = array(
-						'value' => $key,
-						'label' => $value,
-						'fields' => self::get_fluent_form_fields( $key ),
-					);
-				}
-			}
-
-			return $formatted_forms;
-		}
-		return false;
-	}
 
 	/**
 	 * Retrieve a list of Tutor LMS courses for use in a select field.
@@ -2556,151 +2496,8 @@ class HelperFunctions { //phpcs:ignore
 		return false;
 	}
 
-	/**
-	 * Get the list of Fluent Form fields.
-	 *
-	 * @param int $form_id The ID of the Fluent Form.
-	 * 
-	 * @return array The list of Fluent Form fields.
-	 * @since 1.15.1
-	 */
-	private static function get_fluent_form_fields( $form_id ) {
-		$form = wpFluent()->table('fluentform_forms')->find($form_id);
 
-		if (! $form) {
-			return array();
-		}
 
-		$form_fields = json_decode($form->form_fields);
-		$fields_data = array();
-		if (empty($form_fields)) {
-			return $fields_data;
-		}
-
-		$column_field_data = array();
-		foreach ($form_fields as $field_key => $fields) {
-			if (isset($fields->attributes) && isset($fields->attributes->type) && (('submit' === $fields->attributes->type))) {
-				continue;
-			}
-
-			if (is_array($fields) && 0 < count($fields)) {
-				foreach ($fields as $f_key => $field) {
-					$field_label = ! empty($field->settings->label) ? $field->settings->label : '';
-					$field_label = empty($field_label) && ! empty($field->settings->admin_field_label) ? $field->settings->admin_field_label : $field_label;
-					$field_label = empty($field_label) && ! empty($field->attributes->name) ? $field->attributes->name : $field_label;
-
-					if (isset(
-						$field->attributes
-					) && isset($field->attributes->type)) {
-						$fields_data[$field->attributes->name] = $field_label;
-					}
-
-					/** in case fields are in column */
-					if (isset(
-						$field->columns
-					) && ! empty($field->columns)) {
-						$column_field_data[] = self::get_fluent_col_fields($field->columns);
-					}
-
-					/** if both the setting label and admin field label blank then continue  */
-					if ((isset($field->settings->label) && empty($field->settings->label)) && (isset($field->settings->admin_field_label) && empty($field->settings->admin_field_label))) {
-						continue;
-					}
-
-					/** empty field data then get from setting */
-					if (empty($fields_data[$field->attributes->name])) {
-						$fields_data[$field->attributes->name] = $field_label;
-					}
-
-					/** Getting child fields */
-					if (isset(
-						$field->fields
-					) && ! empty($field->fields)) {
-						foreach ($field->fields as $child_field) {
-							if (false === $child_field->settings->visible) {
-								continue;
-							}
-							$label = ! empty($child_field->settings->label) ? $child_field->settings->label : '';
-							$label = empty($label) && ! empty($child_field->attributes->placeholder) ? $child_field->attributes->placeholder : $label;
-							$label = empty($label) && ! empty($child_field->attributes->name) ? $child_field->attributes->name : $label;
-
-							$fields_data[$field->attributes->name . ':' . $child_field->attributes->name] = $label;
-							unset($fields_data[$field->attributes->name]);
-						}
-					}
-				}
-			}
-		}
-
-		if (
-			! empty($column_field_data)
-		) {
-			foreach ($column_field_data as $cf_key => $column_field) {
-				$fields_data = array_merge($fields_data, $column_field);
-			}
-		}
-
-		$fields_data        = array_filter($fields_data);
-		$transformed_fields = array();
-		foreach ($fields_data as $key => $label) {
-			$type = strpos($key, ':') !== false ? substr($key, strpos($key, ':') + 1) : $key;
-			$transformed_fields[] = array(
-				'type' => $type,
-				'label' => $label,
-				'value' => $type
-			);
-		}
-		return $transformed_fields;
-	}
-
-	/**
-	 * Get the list of Fluent Form fields.
-	 * 
-	 * @param array $col_fields The list of column fields.
-	 *
-	 * @return array The list of Fluent Form fields.
-	 * @since 1.15.1
-	 */
-	private static function get_fluent_col_fields($col_fields){
-		$fields_data = array();
-
-		foreach ($col_fields as $col_key => $col_field) {
-
-			if (! isset(
-				$col_field->fields
-			) || empty($col_field->fields)) {
-				continue;
-			}
-
-			foreach ($col_field->fields as $f_key => $field) {
-				if (isset($field->attributes) && isset($field->attributes->type)) {
-					$field_label = ! empty($field->settings->label) ? $field->settings->label : '';
-					$field_label = empty($field_label) && ! empty($field->settings->admin_field_label) ? $field->settings->admin_field_label : $field_label;
-
-					$fields_data[$field->attributes->name] = ! empty($field->attributes->name) ? $field->attributes->name : $field_label;
-				}
-
-				if (isset(
-					$field->fields
-				) && ! empty($field->fields)) {
-					foreach ($field->fields as $child_field) {
-						if (false === $child_field->settings->visible
-						) {
-							continue;
-						}
-						$label = ! empty($child_field->settings->label) ? $child_field->settings->label : '';
-						$label = empty($label) && ! empty($child_field->attributes->placeholder) ? $child_field->attributes->placeholder : $label;
-						$label = empty($label) && ! empty($child_field->attributes->name) ? $child_field->attributes->name : $label;
-						$fields_data[$field->attributes->name . ':' . $child_field->attributes->name] = $label;
-
-						unset($fields_data[$field->attributes->name]);
-					}
-				}
-			}
-		}
-
-		return $fields_data;
-	}
 
 	/**
 	 * Get the list of Gravity Form fields.
@@ -2727,43 +2524,6 @@ class HelperFunctions { //phpcs:ignore
 				'type'  => $field->type,
 				'label' => $field->label,
 				'value' => $field->id
-			);
-		}
-
-		return $fields;
-	}
-
-	/**
-	 * Get the list of JetFormBuilder fields.
-	 *
-	 * @param int $form_id The ID of the JetFormBuilder form.
-	 * 
-	 * @return array The list of JetFormBuilder fields.
-	 * @since 1.15.5
-	 */
-	private static function get_jet_builder_form_fields($form_id){
-		if (empty($form_id)) {
-			return array();
-		}
-
-		$blocks = \Jet_Form_Builder\Blocks\Block_Helper::get_blocks_by_post( $form_id );
-
-		if ( empty( $blocks ) || ! is_array( $blocks ) ) {
-			return array();
-		}
-
-		$fields = array();
-		foreach ($blocks as $block) {
-			$attrs = isset($block['attrs']) ? $block['attrs'] : array();
-
-			if( empty( $attrs ) || ! is_array( $blocks ) || empty( $block['blockName'] ) || empty( $attrs['label'] )  ) {
-				continue;
-			}
-
-			$fields[] = array(
-				'type'  => $block['blockName'],
-				'label' => isset($attrs['label']) ? $attrs['label'] : '',
-				'value' => isset($attrs['name']) ? $attrs['name'] : ''
 			);
 		}
 

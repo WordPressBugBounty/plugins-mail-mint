@@ -597,7 +597,6 @@ class ContactController extends AdminBaseController {
             return $this->get_success_response( __( 'Import has not been successful', 'mrm' ), 400 );
         }
     }
-
     /**
      * Summary: Retrieves native WooCommerce customers.
      * Description: Retrieves the native WooCommerce customers by retrieving the total number of orders.
