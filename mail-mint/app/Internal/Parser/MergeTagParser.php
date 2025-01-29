@@ -16,6 +16,7 @@ use MailMintPro\Mint\Internal\AbandonedCart\Helper\Common;
 use MailMintPro\Mint\Internal\AbandonedCart\Helper\Model;
 use Mint\Utilities\Arr;
 use MailMintPro\App\Internal\EmailCustomization\Parser\EddMergeTagParser;
+use MailMintPro\App\Internal\EmailCustomization\Parser\LearnDashTagParser;
 use MailMintPro\App\Internal\EmailCustomization\Parser\WCMergeTagParser;
 use MRM\Common\MrmCommon;
 
@@ -127,10 +128,6 @@ class MergeTagParser
 			$default_value = trim($value_keys[1]);
 		}
 
-		if (!$contact) {
-			return $default_value;
-		}
-
 		$value = '';
 		switch ($data_key) {
 			case 'contact':
@@ -196,9 +193,9 @@ class MergeTagParser
 				$wc_parser = new WCMergeTagParser(  $value_key, $default_value, $params );
 				$value     = $wc_parser->parse_wc_membership_merge_tag();
 				break;
-			case 'wc_wishlist':
-				$wc_parser = new WCMergeTagParser($value_key, $default_value, $params);
-				$value     = $wc_parser->parse_wc_wish_list_merge_tag();
+			case 'ld':
+				$wc_parser = new LearnDashTagParser( $value_key, $default_value, $params, $contact );
+				$value     = $wc_parser->parse_learn_dash_merge_tag();
 				break;
 			default:
 				$value = apply_filters('mint_merge_tag_group_callback_' . $data_key, $matches[0], $value_key, $default_value, $contact);

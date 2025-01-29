@@ -1763,46 +1763,6 @@ class HelperFunctions { //phpcs:ignore
 	}
 
 	/**
-	 * Get LearnDash quizzes as an array of options.
-	 *
-	 * Description: Retrieves LearnDash quizzes and formats them as an array of options.
-	 *
-	 * @access public
-	 * @return array|false Array of formatted quiz options or false if LearnDash is not active.
-	 * @since 1.8.0
-	 */
-	public static function get_learndash_quizzes() {
-		if ( self::is_learndash_lms_active() ) {
-			$posts = get_posts(
-				array(
-					'post_type'   => learndash_get_post_type_slug( 'quiz' ),
-					'numberposts' => -1,
-					'orderby'     => 'created_at',
-					'order'       => 'DESC',
-					'post_status' => 'publish',
-				)
-			);
-
-			if ( is_array( $posts ) ) {
-				// Use array_map function to format each form object as an array of options.
-				$formatted_quizzes[] = array(
-					'value' => 0,
-					'label' => __( 'Select', 'mrm' ),
-				);
-				foreach ( $posts as $post ) {
-					$formatted_quizzes[] = array(
-						'value' => $post->ID,
-						'label' => $post->post_title,
-					);
-				}
-			}
-
-			return $formatted_quizzes;
-		}
-		return false;
-	}
-
-	/**
 	 * Summary: Get WooCommerce coupons.
 	 *
 	 * Description: This static method retrieves WooCommerce coupons using the MintAutomaticCoupon class.

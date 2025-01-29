@@ -103,6 +103,7 @@ class Server {
 			'contact-import'  => 'ContactImportRoute',
 			'contact-profile' => 'ContactProfileRoute',
 			'email-template'  => 'TemplateRoute',
+			'connector' 	  => 'ConnectorRoute',
 		);
 		$frontend_routes = array(
 			'form'       => 'FormRoute',

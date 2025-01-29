@@ -85,8 +85,13 @@ class SendMail extends AbstractAutomationAction {
 			$product_id	  	 = isset( $data['data']['product_id'] ) ? $data['data']['product_id'] : '';
 			$user_membership_id = isset($data['data']['user_membership_id']) ? $data['data']['user_membership_id'] : '';
 			$wishlist_id 	 = isset($data['data']['wishlist_id']) ? $data['data']['wishlist_id'] : '';
+			$ld_course_id	 = isset( $data['data']['ld_course_id'] ) ? $data['data']['ld_course_id'] : '';
+			$ld_quiz_id		 = isset( $data['data']['ld_quiz_id'] ) ? $data['data']['ld_quiz_id'] : '';
+			$ld_lesson_id	 = isset( $data['data']['ld_lesson_id'] ) ? $data['data']['ld_lesson_id'] : '';
+			$ld_group_id	 = isset( $data['data']['ld_group_id'] ) ? $data['data']['ld_group_id'] : '';
+			$ld_topic_id	 = isset( $data['data']['ld_topic_id'] ) ? $data['data']['ld_topic_id'] : '';
 
-			$step_data   = HelperFunctions::get_step_data(  $data['automation_id'], $data['step_id'] );
+			$step_data = HelperFunctions::get_step_data(  $data['automation_id'], $data['step_id'] );
 
 			
 			$log_payload = array(
@@ -107,9 +112,6 @@ class SendMail extends AbstractAutomationAction {
 			 */
 			do_action( 'mailmint_before_automation_send_mail', $data['automation_id'], $data['data']['user_email'] );
 			do_action( 'mint_before_automation_send_mail', $data['automation_id'], $data['data'] );
-
-
-
 
 			$transactional_email = isset($step_data['settings']['message_data']['make_transactional']) ? $step_data['settings']['message_data']['make_transactional']: false;
 			if (!empty($step_data['settings']['message_data']) &&
@@ -138,7 +140,34 @@ class SendMail extends AbstractAutomationAction {
 					unset($contact['meta_fields']);
 				}
 
-				$preview   = Parser::parse( $preview, $contact, $post_id, $order_id, array( 'abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id, 'product_id' => $product_id, 'user_membership_id' => $user_membership_id, 'wishlist_id' => $wishlist_id ) );
+				if( empty( $contact ) && $transactional_email ) {
+					$contact = array(
+						'first_name' => isset( $data['data']['first_name'] ) ? $data['data']['first_name'] : '',
+						'last_name'  => isset( $data['data']['last_name'] ) ? $data['data']['last_name'] : '',
+						'email'      => $user_email,
+					);
+
+				}
+
+				$preview = Parser::parse( 
+					$preview, 
+					$contact, 
+					$post_id, 
+					$order_id, 
+					array( 
+						'abandoned_id'       => $abandoned_id, 
+						'edd_payment_id'     => $payment_id, 
+						'subscription_id'    => $subscription_id, 
+						'product_id'         => $product_id, 
+						'user_membership_id' => $user_membership_id, 
+						'wishlist_id'        => $wishlist_id, 
+						'ld_course_id'       => $ld_course_id,
+						'ld_quiz_id'         => $ld_quiz_id,
+						'ld_lesson_id'       => $ld_lesson_id,
+						'ld_group_id'        => $ld_group_id,
+						'ld_topic_id'        => $ld_topic_id
+					)
+				);
 				$preview   = Helper::replace_dynamic_coupon( $preview, $user_email );
 				$headers[] = 'X-PreHeader: ' . $preview;
 
@@ -158,10 +187,46 @@ class SendMail extends AbstractAutomationAction {
 					'editor_type'    => !empty( $step_data['settings']['message_data']['json_body']['editor'] ) ? $step_data['settings']['message_data']['json_body']['editor'] : 'advanced-builder',
 				);
 
-				$email_data['subject'] = Parser::parse( $email_data['subject'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id, 'product_id' => $product_id, 'user_membership_id' => $user_membership_id, 'wishlist_id' => $wishlist_id ) );
+				$email_data['subject'] = Parser::parse( 
+					$email_data['subject'], 
+					$contact, 
+					$post_id, 
+					$order_id, 
+					array(
+						'abandoned_id'       => $abandoned_id, 
+						'edd_payment_id'     => $payment_id, 
+						'subscription_id'    => $subscription_id, 
+						'product_id'         => $product_id, 
+						'user_membership_id' => $user_membership_id, 
+						'wishlist_id'        => $wishlist_id, 
+						'ld_course_id'       => $ld_course_id,
+						'ld_quiz_id'         => $ld_quiz_id,
+						'ld_lesson_id'       => $ld_lesson_id,
+						'ld_group_id'        => $ld_group_id,
+						'ld_topic_id'        => $ld_topic_id
+					) 
+				);
 				$email_data['subject'] = Helper::replace_dynamic_coupon( $email_data['subject'], $email_data['receiver_email'] );
 				$email_data['body']    = Helper::replace_url( $email_data['body'], $rand_hash );
-				$email_data['body']    = Parser::parse( $email_data['body'], $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'subscription_id' => $subscription_id, 'product_id' => $product_id, 'user_membership_id' => $user_membership_id, 'wishlist_id' => $wishlist_id ) );
+				$email_data['body']    = Parser::parse( 
+					$email_data['body'],
+					$contact,
+					$post_id,
+					$order_id,
+					array(
+						'abandoned_id'       => $abandoned_id, 
+						'edd_payment_id'     => $payment_id, 
+						'subscription_id'    => $subscription_id, 
+						'product_id'         => $product_id, 
+						'user_membership_id' => $user_membership_id, 
+						'wishlist_id'        => $wishlist_id, 
+						'ld_course_id'       => $ld_course_id,
+						'ld_quiz_id'         => $ld_quiz_id,
+						'ld_lesson_id'       => $ld_lesson_id,
+						'ld_group_id'        => $ld_group_id,
+						'ld_topic_id'        => $ld_topic_id
+					)
+				);
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );
 
 				/**
