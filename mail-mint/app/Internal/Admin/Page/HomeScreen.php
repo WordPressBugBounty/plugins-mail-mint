@@ -58,10 +58,23 @@ class HomeScreen {
 	 * @since 1.0.0
 	 */
 	public function register_page() {
+		$permissions = PermissionManager::current_user_permissions();
+
+		if (!$permissions) {
+			return;
+		}
+
+		$dashboard_permission = 'mint_view_dashboard';
+		$is_admin = false;
+		if (in_array('administrator', $permissions)) {
+			$dashboard_permission = 'manage_options';
+			$is_admin = true;
+		}
+
 		add_menu_page(
 			__( 'Mail Mint', 'mrm' ),
 			__( 'Mail Mint', 'mrm' ),
-			'mint_view_dashboard',
+			$dashboard_permission,
 			self::MENU_SLUG,
 			array( $this, 'load_wrapper' ),
 			$this->get_menu_icon(),
@@ -72,7 +85,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Dashboard', 'mrm' ),
 			__( 'Dashboard', 'mrm' ),
-			'mint_view_dashboard',
+			$dashboard_permission,
 			self::MENU_SLUG,
 			array( $this, 'load_wrapper' )
 		);
@@ -81,7 +94,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Contacts', 'mrm' ),
 			__( 'Contacts', 'mrm' ),
-			'mint_read_contacts',
+			($is_admin) ? $dashboard_permission : 'mint_read_contacts',
 			'mrm-admin#/contacts/',
 			array( $this, 'load_wrapper' )
 		);
@@ -89,7 +102,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Campaigns', 'mrm' ),
 			__( 'Campaigns', 'mrm' ),
-			'mint_read_campaigns',
+			($is_admin) ? $dashboard_permission : 'mint_read_campaigns',
 			'mrm-admin#/campaigns/',
 			array(
 				$this,
@@ -100,7 +113,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Automations', 'mrm' ),
 			__( 'Automations', 'mrm' ),
-			'mint_read_automations',
+			($is_admin) ? $dashboard_permission : 'mint_read_automations',
 			'mrm-admin#/automations/',
 			array($this, 'load_wrapper_automation_editor'),
 		);
@@ -108,7 +121,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Automation', 'mrm' ),
 			__( 'Automation', 'mrm' ),
-			'mint_read_automations',
+			($is_admin) ? $dashboard_permission : 'mint_read_automations',
 			'mint-mail-automation-editor',
 			array($this, 'load_wrapper_automation_editor'),
 		);
@@ -117,7 +130,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Forms', 'mrm' ),
 			__( 'Forms', 'mrm' ),
-			'mint_read_forms',
+			($is_admin) ? $dashboard_permission : 'mint_read_forms',
 			'mrm-admin#/forms/',
 			array(
 				$this,
@@ -129,7 +142,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Email Templates', 'mrm' ),
 			__( 'Email Templates', 'mrm' ),
-			'mint_manage_email_templates',
+			($is_admin) ? $dashboard_permission : 'mint_manage_email_templates',
 			'mrm-admin#/email-templates/',
 			array(
 				$this,
@@ -141,7 +154,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Tools', 'mrm' ),
 			__( 'Tools', 'mrm' ),
-			'mint_read_tools',
+			($is_admin) ? $dashboard_permission : 'mint_read_tools',
 			'mrm-admin#/tools/link-triggers/',
 			array(
 				$this,
@@ -154,7 +167,7 @@ class HomeScreen {
 				self::MENU_SLUG,
 				__( 'Abandoned Cart', 'mrm' ),
 				__( 'Abandoned Cart', 'mrm' ),
-				'mint_manage_settings',
+				($is_admin) ? $dashboard_permission : 'mint_manage_settings',
 				'mrm-admin#/abandoned-cart/',
 				array(
 					$this,
@@ -167,7 +180,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Integrations', 'mrm' ),
 			__( 'Integrations', 'mrm' ),
-			'mint_manage_integrations',
+			($is_admin) ? $dashboard_permission : 'mint_manage_integrations',
 			'mrm-admin#/integrations/',
 			array(
 				$this,
@@ -179,7 +192,7 @@ class HomeScreen {
 			self::MENU_SLUG,
 			__( 'Settings', 'mrm' ),
 			__( 'Settings', 'mrm' ),
-			'mint_manage_settings',
+			($is_admin) ? $dashboard_permission : 'mint_manage_settings',
 			'mrm-admin#/settings/business-info/',
 			array(
 				$this,

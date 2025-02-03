@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.1
 Requires PHP: 7.4
-Stable tag:  1.16.7
+Stable tag:  1.16.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -503,7 +503,12 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
-= 1.16.7 (2025-01-23) =
+= 1.16.8 (2025-02-03) =
+* Bugfix: Mail Mint Form Submission Automation does not Working
+* Bugfix: Capability Assignment Issue for Administrator Role in Role Management
+* Bugfix: Classic Editor Loading Issues on the Sequence Emails
+
+= 1.16.7 (2025-01-29) =
 * Improvement: API Performance Optimization for LearnDash and MemberPress Integrations
 * Bugfix: Email Builder Loading Issue After Deleting a Sequence Email
 

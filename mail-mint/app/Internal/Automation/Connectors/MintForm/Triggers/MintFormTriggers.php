@@ -144,10 +144,9 @@ class MintFormTriggers {
 		}
 
 		if ( 'mint_form_submission' === $trigger_name && !empty( $step_data['settings']['mailmint_form_settings']['form_id'] ) ) {
-			
 			$form_id          = $step_data['settings']['mailmint_form_settings']['form_id'];
-			$settings_form_id = is_array($form_id) && isset($form_id['value']) ? $form_id['value'] : $form_id;
-			return $data['data']['form_id'] === $settings_form_id; //phpcs:ignore
+			$settings_form_id = is_array($form_id) && isset($form_id['value']) ? (int)$form_id['value'] : (int)$form_id;
+			return $data['data']['form_id'] == $settings_form_id; //phpcs:ignore
 		}
 		
 

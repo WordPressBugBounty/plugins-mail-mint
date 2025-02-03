@@ -1,8 +1,37 @@
 <?php
 
+/**
+ * Mail Mint
+ *
+ * @author [WPFunnels Team]
+ * @email [support@getwpfunnels.com]
+ * @create date 2025-01-07 15:33:17
+ * @modify date 2025-01-07 15:33:17
+ * @package Mint\MRM\Utilities\Helper
+ */
+
 namespace Mint\MRM\Utilities\Helper;
 
+/**
+ * Permission Manager
+ *
+ * Summary: This class is responsible for handling permissions.
+ * Description: This class is responsible for handling permissions.
+ *
+ * @since 1.16.0
+ */
 class PermissionManager{
+
+    /**
+     * Retrieves the readable permissions for the plugin.
+     *
+     * This function fetches the readable permissions for the plugin. It retrieves the permissions
+     * from the database and returns them.
+     *
+     * @return array The readable permissions for the plugin.
+     * 
+     * @since 1.16.0
+     */
     public static function get_readable_permissions(){
         return apply_filters('mailmint_readable_permissions', array(
             [
@@ -231,6 +260,16 @@ class PermissionManager{
         ));
     }
 
+    /**
+     * Retrieves the permissions for the plugin.
+     *
+     * This function fetches the permissions for the plugin. It retrieves the permissions
+     * from the database and returns them.
+     *
+     * @return array The plugin's permissions.
+     * 
+     * @since 1.16.0
+     */
     public static function plugin_permissions(){
         return apply_filters('mailmint_plugin_permissions', [
             'mint_view_dashboard',
@@ -261,6 +300,17 @@ class PermissionManager{
         ]);
     }
 
+    /**
+     * Attaches permissions to an entity.
+     * 
+     * This function attaches permissions to an entity. It removes all the permissions
+     *
+     * @param object $entity The entity to attach the permissions to.
+     * @param array $permissions The permissions to attach.
+     * @return void
+     * 
+     * @since 1.16.0
+     */    
     public static function attach_permissions($entity, $permissions){
         $all_permissions = self::plugin_permissions();
 
@@ -275,6 +325,16 @@ class PermissionManager{
         }
     }
 
+    /**
+     * Assigns capabilities to the administrator.
+     *
+     * This function assigns capabilities to the administrator. It removes all the capabilities
+     * from the administrator role and then adds the custom capabilities.
+     *
+     * @return void
+     * 
+     * @since 1.16.0
+     */
     public static function assign_capabilities_to_admin() {
         // Get the administrator role
         $role = get_role('administrator');
@@ -298,6 +358,17 @@ class PermissionManager{
         }
     }
 
+    /**
+     * Retrieves the permissions for a given user.
+     *
+     * This function fetches the permissions for a specified user. If a user ID is provided,
+     * it retrieves the user object based on the ID.
+     *
+     * @param int|WP_User|false $user Optional. User ID or WP_User object. Default false.
+     * @return array The user's permissions.
+     * 
+     * @since 1.16.0
+     */
     public static function get_user_permissions($user = false){
         if (is_numeric($user)) {
             $user = get_user_by('ID', $user);
@@ -309,11 +380,28 @@ class PermissionManager{
 
         $plugin_permission = self::plugin_permissions();
 
-        $permissions = array_values(array_intersect(array_keys($user->allcaps), $plugin_permission));
+        if ($user->has_cap('manage_options')) {
+            $plugin_permission[] = 'administrator';
+            $permissions = $plugin_permission;
+        } else {
+            $permissions = array_values(array_intersect(array_keys($user->allcaps), $plugin_permission));
+        }
+
         $permissions = apply_filters('mailmint_user_permissions', $permissions, $user);
         return array_values($permissions);
     }
 
+    /**
+     * Retrieves the permissions for a given role.
+     *
+     * This function fetches the permissions for a specified role. If a role name is provided,
+     * it retrieves the role object based on the name.
+     *
+     * @param string $role The role name.
+     * @return array The role's permissions.
+     * 
+     * @since 1.16.0
+     */
     public static function get_role_permissions($role){
         $role = get_role($role);
         if (!$role) {
@@ -328,8 +416,19 @@ class PermissionManager{
         return $permissions;
     }
 
-    public static function current_user_permissions($cached = true)
-    {
+    /**
+     * Retrieves the current user's permissions.
+     *
+     * This function returns the permissions of the current user. If the permissions
+     * are already cached and the $cached parameter is true, it returns the cached
+     * permissions. Otherwise, it fetches the permissions from the database.
+     *
+     * @param bool $cached Optional. Whether to use cached permissions. Default true.
+     * @return array The current user's permissions.
+     * 
+     * @since 1.16.0
+     */
+    public static function current_user_permissions($cached = true){
         static $permissions;
 
         if ($permissions && $cached) {
@@ -341,9 +440,27 @@ class PermissionManager{
         return $permissions;
     }
 
-    public static function current_user_can($permission)
-    {
+    /**
+     * Checks if the current user has a permission.
+     *
+     * This function checks if the current user has a specified permission. If the current user
+     * is an administrator, it returns true. Otherwise, it checks if the user has the permission.
+     *
+     * @param string $permission The permission to check.
+     * @return bool Whether the current user has the permission.
+     * 
+     * @since 1.16.0
+     */
+    public static function current_user_can($permission){
         $capability = is_multisite() ? 'delete_sites' : $permission;
+
+        // If the user is an administrator, return true
+        if (current_user_can('manage_options')) {
+            return function () use ($capability) {
+                return apply_filters('mailmint_current_admin_can', true, $capability);
+            };
+        }
+
         return function () use ($capability) {
             if ( !current_user_can( $capability ) ) {
                 return new \WP_Error(rest_authorization_required_code(), __('Sorry, you are not authorized to perform this action.', 'mrm'), ['status' => 'mail_mint_access_denied']);
