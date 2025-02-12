@@ -308,7 +308,8 @@ class AdminAssets {
                     'is_wcm_active'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.0') ? Mint_Pro_Helper::is_woocommerce_membership_active() : false,
                     'permissions'                    => PermissionManager::get_readable_permissions(),
                     'is_wcw_active'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.15.0' ) ? Mint_Pro_Helper::is_woocommerce_wishlist_active() : false,
-
+                    'is_fluent_booking_active'       => HelperFunctions::is_fluent_booking_active(),
+                    'is_mailpoet_active'             => HelperFunctions::is_mailpoet_active(),
 		        )
 	        );
         }
@@ -396,6 +397,7 @@ class AdminAssets {
                     'condition_fields'               => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.16.1') ? Mint_Pro_Helper::get_automation_condition_fields() : false,
                     'is_wp_form_active'              => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.17.1') ? Mint_Pro_Helper::is_wp_form_active() : false,
                     'text_fields'                    => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.17.2') ? Mint_Pro_Helper::get_text_type_fields() : false,
+                    'is_fluent_booking_active'       => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.18.4') ? Mint_Pro_Helper::is_fluent_booking_active() : false,
 		        )
 	        );
         }

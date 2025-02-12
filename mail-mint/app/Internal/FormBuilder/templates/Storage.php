@@ -41,7 +41,7 @@ class Storage {
 				'content'         => '<!-- wp:columns {"verticalAlignment":"center","backgroundColor":"black"} -->
                 <div class="wp-block-columns are-vertically-aligned-center has-black-background-color has-background"><!-- wp:column {"verticalAlignment":"center"} -->
                 <div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"id":236,"sizeSlug":"full","linkDestination":"none"} -->
-                <figure class="wp-block-image size-full"><img src="' . $image_path . '/content_image/10-percent-off-on-burger.png" alt="" class="wp-image-236"/></figure>
+                <figure class="wp-block-image size-full"><img src="' . $image_path . '/content_image/10-percent-off-on-burger.png" alt="Coupon Discount" class="wp-image-236"/></figure>
                 <!-- /wp:image --></div>
                 <!-- /wp:column -->
 
@@ -77,7 +77,7 @@ class Storage {
 				'content'         => '<!-- wp:columns {"verticalAlignment":"center","style":{"border":{"radius":"16px"}},"backgroundColor":"white"} -->
                 <div class="wp-block-columns are-vertically-aligned-center has-white-background-color has-background" style="border-radius:16px"><!-- wp:column {"verticalAlignment":"center"} -->
                 <div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"id":254,"sizeSlug":"full","linkDestination":"none"} -->
-                <figure class="wp-block-image size-full"><img src="' . $image_path . '/content_image/sofa.png" alt="" class="wp-image-254"/></figure>
+                <figure class="wp-block-image size-full"><img src="' . $image_path . '/content_image/sofa.png" alt="First Order Discount" class="wp-image-254"/></figure>
                 <!-- /wp:image --></div>
                 <!-- /wp:column -->
 
@@ -153,7 +153,7 @@ class Storage {
                 <div class="wp-block-group"><!-- wp:columns {"backgroundColor":"white"} -->
                 <div class="wp-block-columns has-white-background-color has-background"><!-- wp:column {"verticalAlignment":"top"} -->
                 <div class="wp-block-column is-vertically-aligned-top"><!-- wp:image {"align":"center","id":256,"sizeSlug":"full","linkDestination":"none"} -->
-                <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/envelope.png" alt="" class="wp-image-256"/></figure>
+                <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/envelope.png" alt="Join The Deals List" class="wp-image-256"/></figure>
                 <!-- /wp:image -->
 
                 <!-- wp:heading {"textAlign":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|black"}}},"typography":{"fontSize":32,"fontWeight":800}},"textColor":"black"} -->
@@ -197,7 +197,7 @@ class Storage {
                 <div class="wp-block-group"><!-- wp:columns {"backgroundColor":"white"} -->
                 <div class="wp-block-columns has-white-background-color has-background"><!-- wp:column {"verticalAlignment":"top"} -->
                 <div class="wp-block-column is-vertically-aligned-top"><!-- wp:image {"align":"center","id":259,"sizeSlug":"full","linkDestination":"none"} -->
-                <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/envelope2.png" alt="" class="wp-image-259"/></figure>
+                <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/envelope2.png" alt="Newsletter Subscription" class="wp-image-259"/></figure>
                 <!-- /wp:image -->
 
                 <!-- wp:heading {"textAlign":"center","style":{"typography":{"fontStyle":"normal","fontWeight":"700","fontSize":"32px"},"color":{"text":"#2d3149"}}} -->
@@ -270,7 +270,7 @@ class Storage {
 				'content'         => ' <!-- wp:columns {"backgroundColor":"white"} -->
 				<div class="wp-block-columns has-white-background-color has-background"><!-- wp:column {"verticalAlignment":"top","width":""} -->
 				<div class="wp-block-column is-vertically-aligned-top"><!-- wp:cover {"url":"' . $image_path . '/content_image/Shipping-Fast.png","id":55,"dimRatio":0,"focalPoint":{"x":0.34,"y":0.43},"isDark":false,"style":{"color":{}}} -->
-				<div class="wp-block-cover is-light"><span aria-hidden="true" class="wp-block-cover__background has-background-dim-0 has-background-dim"></span><img class="wp-block-cover__image-background wp-image-55" alt="" src="' . $image_path . '/content_image/Shipping-Fast.png" style="object-position:34% 43%" data-object-fit="cover" data-object-position="34% 43%"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","fontSize":"large"} -->
+				<div class="wp-block-cover is-light"><span aria-hidden="true" class="wp-block-cover__background has-background-dim-0 has-background-dim"></span><img class="wp-block-cover__image-background wp-image-55" alt="Get Free Shipping Fast" src="' . $image_path . '/content_image/Shipping-Fast.png" style="object-position:34% 43%" data-object-fit="cover" data-object-position="34% 43%"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","fontSize":"large"} -->
 				<p class="has-text-align-center has-large-font-size"></p>
 				<!-- /wp:paragraph --></div></div>
 				<!-- /wp:cover -->
@@ -315,7 +315,7 @@ class Storage {
 				'content'         => '<!-- wp:columns {"backgroundColor":"white"} -->
 				<div class="wp-block-columns has-white-background-color has-background"><!-- wp:column {"verticalAlignment":"top"} -->
 				<div class="wp-block-column is-vertically-aligned-top"><!-- wp:cover {"url":"' . $image_path . '/content_image/Dont-Miss-Out-3.png","id":23,"dimRatio":0,"focalPoint":{"x":0.59,"y":0.52},"style":{"color":{}}} -->
-				<div class="wp-block-cover"><span aria-hidden="true" class="wp-block-cover__background has-background-dim-0 has-background-dim"></span><img class="wp-block-cover__image-background wp-image-23" alt="" src="' . $image_path . '/content_image/Dont-Miss-Out-3.png" style="object-position:59% 52%" data-object-fit="cover" data-object-position="59% 52%"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","fontSize":"large"} -->
+				<div class="wp-block-cover"><span aria-hidden="true" class="wp-block-cover__background has-background-dim-0 has-background-dim"></span><img class="wp-block-cover__image-background wp-image-23" alt="Dont miss out" src="' . $image_path . '/content_image/Dont-Miss-Out-3.png" style="object-position:59% 52%" data-object-fit="cover" data-object-position="59% 52%"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","fontSize":"large"} -->
 				<p class="has-text-align-center has-large-font-size"></p>
 				<!-- /wp:paragraph --></div></div>
 				<!-- /wp:cover -->
@@ -358,7 +358,7 @@ class Storage {
 				'content'         => '<!-- wp:columns {"verticalAlignment":"center","backgroundColor":"black","fontSize":"large"} -->
                 <div class="wp-block-columns are-vertically-aligned-center has-black-background-color has-background has-large-font-size"><!-- wp:column {"verticalAlignment":"center"} -->
                 <div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"id":187,"sizeSlug":"full","linkDestination":"none"} -->
-                <figure class="wp-block-image size-full"><img src="' . $image_path . '/content_image/first-order-image.png" alt="" class="wp-image-187"/></figure>
+                <figure class="wp-block-image size-full"><img src="' . $image_path . '/content_image/first-order-image.png" alt="Fashion Store Newsletter" class="wp-image-187"/></figure>
                 <!-- /wp:image --></div>
                 <!-- /wp:column -->
 
@@ -399,7 +399,7 @@ class Storage {
                 <div class="wp-block-column has-white-background-color has-background"><!-- wp:columns {"style":{"border":{"radius":"20px"},"spacing":{"margin":{"top":"100px","bottom":"100px"}}},"backgroundColor":"white"} -->
                 <div class="wp-block-columns has-white-background-color has-background" style="border-radius:20px;margin-top:100px;margin-bottom:100px"><!-- wp:column {"verticalAlignment":"center","width":"30%","backgroundColor":"white"} -->
                 <div class="wp-block-column is-vertically-aligned-center has-white-background-color has-background" style="flex-basis:30%"><!-- wp:image {"align":"center","id":186,"sizeSlug":"full","linkDestination":"none"} -->
-                <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/computer-image.png" alt="" class="wp-image-186"/></figure>
+                <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/computer-image.png" alt="Basic Newsletter" class="wp-image-186"/></figure>
                 <!-- /wp:image --></div>
                 <!-- /wp:column -->
 
@@ -464,7 +464,7 @@ class Storage {
 
                 <!-- wp:column {"verticalAlignment":"center"} -->
                 <div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"align":"center","id":183,"sizeSlug":"full","linkDestination":"none"} -->
-                <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/etq-image.png" alt="" class="wp-image-183"/></figure>
+                <figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/content_image/etq-image.png" alt="Free Shipping" class="wp-image-183"/></figure>
                 <!-- /wp:image --></div>
                 <!-- /wp:column --></div>
                 <!-- /wp:columns -->',
@@ -514,7 +514,7 @@ class Storage {
 				'content'         => '<!-- wp:columns {"verticalAlignment":"center","backgroundColor":"white"} -->
 									<div class="wp-block-columns are-vertically-aligned-center has-white-background-color has-background"><!-- wp:column {"verticalAlignment":"center"} -->
 									<div class="wp-block-column is-vertically-aligned-center"><!-- wp:image {"id":137,"scale":"cover","sizeSlug":"full","linkDestination":"none"} -->
-									<figure class="wp-block-image size-full"><img src="' . $image_path . '/updated-image.jpg" alt="" class="wp-image-137" style="object-fit:cover"/></figure>
+									<figure class="wp-block-image size-full"><img src="' . $image_path . '/updated-image.jpg" alt="Fashion Update Newsletter" class="wp-image-137" style="object-fit:cover"/></figure>
 									<!-- /wp:image --></div>
 									<!-- /wp:column -->
 
@@ -552,7 +552,7 @@ class Storage {
 				'content'         => '<!-- wp:columns {"style":{"color":{"background":"#4896fa"}}} -->
 										<div class="wp-block-columns has-background" style="background-color:#4896fa"><!-- wp:column -->
 										<div class="wp-block-column"><!-- wp:image {"align":"center","id":172,"sizeSlug":"full","linkDestination":"none"} -->
-										<figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/newsletter-image.png" alt="" class="wp-image-172"/></figure>
+										<figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/newsletter-image.png" alt="Tech Newsletter" class="wp-image-172"/></figure>
 										<!-- /wp:image -->
 
 										<!-- wp:heading {"textAlign":"center","style":{"elements":{"link":{"color":{"text":"var:preset|color|white"}}},"typography":{"fontSize":24}},"textColor":"white"} -->
@@ -607,7 +607,7 @@ class Storage {
 				'content'         => '<!-- wp:columns {"backgroundColor":"white"} -->
 									<div class="wp-block-columns has-white-background-color has-background"><!-- wp:column {"verticalAlignment":"top","width":""} -->
 									<div class="wp-block-column is-vertically-aligned-top"><!-- wp:image {"align":"center","id":153,"sizeSlug":"full","linkDestination":"none","style":{"color":{}}} -->
-									<figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/newsletter-3-image.jpg" alt="" class="wp-image-153"/></figure>
+									<figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/newsletter-3-image.jpg" alt="Newsletter Subscription" class="wp-image-153"/></figure>
 									<!-- /wp:image -->
 
 									<!-- wp:columns -->
@@ -647,7 +647,7 @@ class Storage {
 				'content'         => '<!-- wp:columns {"style":{"color":{"background":"#08151b"}}} -->
 									<div class="wp-block-columns has-background" style="background-color:#08151b"><!-- wp:column {"verticalAlignment":"top","width":""} -->
 									<div class="wp-block-column is-vertically-aligned-top"><!-- wp:image {"align":"center","id":135,"sizeSlug":"full","linkDestination":"none","style":{"color":{}}} -->
-									<figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/halloween-image.jpg" alt="" class="wp-image-135"/></figure>
+									<figure class="wp-block-image aligncenter size-full"><img src="' . $image_path . '/halloween-image.jpg" alt="Halloween Deal" class="wp-image-135"/></figure>
 									<!-- /wp:image -->
 
 									<!-- wp:columns -->
@@ -790,7 +790,7 @@ class Storage {
 				'content'		  => '<!-- wp:columns {"style":{"color":{"background":"#123238"}}} -->
 									<div class="wp-block-columns has-background" style="background-color:#123238"><!-- wp:column {"verticalAlignment":"top"} -->
 									<div class="wp-block-column is-vertically-aligned-top"><!-- wp:cover {"url":"'.$image_path . '/form-img-mm-2.png","id":1451,"dimRatio":0,"customOverlayColor":"#a4a39f","isUserOverlayColor":true,"isDark":false,"style":{"color":{}}} -->
-									<div class="wp-block-cover is-light"><span aria-hidden="true" class="wp-block-cover__background has-background-dim-0 has-background-dim" style="background-color:#a4a39f"></span><img class="wp-block-cover__image-background wp-image-1451" alt="" src="'.$image_path . '/form-img-mm-2.png" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","fontSize":"large"} -->
+									<div class="wp-block-cover is-light"><span aria-hidden="true" class="wp-block-cover__background has-background-dim-0 has-background-dim" style="background-color:#a4a39f"></span><img class="wp-block-cover__image-background wp-image-1451" alt="Newsletter Subscription" src="'.$image_path . '/form-img-mm-2.png" data-object-fit="cover"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","fontSize":"large"} -->
 									<p class="has-text-align-center has-large-font-size"></p>
 									<!-- /wp:paragraph --></div></div>
 									<!-- /wp:cover -->
@@ -836,7 +836,7 @@ class Storage {
 				'content'		  => '<!-- wp:columns {"verticalAlignment":"center","backgroundColor":"black"} -->
 									<div class="wp-block-columns are-vertically-aligned-center has-black-background-color has-background"><!-- wp:column {"verticalAlignment":"center","width":"15%"} -->
 									<div class="wp-block-column is-vertically-aligned-center" style="flex-basis:15%"><!-- wp:image {"id":1453,"width":"83px","height":"auto","sizeSlug":"full","linkDestination":"none","align":"center"} -->
-									<figure class="wp-block-image aligncenter size-full is-resized"><img src="'.$image_path . '/guitar_img.png" alt="" class="wp-image-1453" style="width:83px;height:auto"/></figure>
+									<figure class="wp-block-image aligncenter size-full is-resized"><img src="'.$image_path . '/guitar_img.png" alt="Early Bird Form" class="wp-image-1453" style="width:83px;height:auto"/></figure>
 									<!-- /wp:image --></div>
 									<!-- /wp:column -->
 

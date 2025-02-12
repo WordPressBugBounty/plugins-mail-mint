@@ -506,16 +506,94 @@ class ContactImportRoute extends AdminRoute {
 			array(
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
-					'callback'            => array( $this->controller, 'insert_lifterlms_contacts' ),
+					'callback'            => array($this->controller, 'insert_lifterlms_contacts'),
 					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 					'args'                => array(
 						'selectedCourses' => array(
-							'description' 		=> __( 'The selected courses from which to import contacts.', 'mrm' ),
+							'description' 		=> __('The selected courses from which to import contacts.', 'mrm'),
 							'required'    		=> true,
 							'type'              => 'array',
 							'sanitize_callback' => 'rest_sanitize_array',
 						)
 					),
+				),
+			)
+		);
+
+		/**
+		 * mail poet contact import
+		 *
+		 * @return void
+		 * @since 1.17.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/mailpoet',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array($this->controller,'get_mail_poet_contact_fields'),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Register a REST route for inserting MailPoet contacts.
+		 *
+		 * @access public
+		 * @since 1.17.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/mailpoet',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'insert_mail_poet_contacts' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Customers count endpoint for fluentbooking
+		 *
+		 * @return void
+		 * @since 1.16.6
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/fluentbooking',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'get_fluentbooking_customers',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import endpoint for EDD customers
+		 *
+		 * @return void
+		 * @since 1.16.6
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/native/fluentbooking',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array(
+						$this->controller,
+						'import_contacts_fluentbooking',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
 				),
 			)
 		);

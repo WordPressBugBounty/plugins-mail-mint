@@ -463,4 +463,125 @@ class ContactImportController extends AdminBaseController {
         $response = $this->action->perform_lifterlms_user_import( $params );
 		return new WP_REST_Response( $response );
     }
+
+    /**
+     * Retrieve MailPoet contact fields.
+     *
+     * This function retrieves the contact fields from the MailPoet subscribers table,
+     * including both required fields and custom fields.
+     *
+     * @return array Success response containing the total number of batches and the headers.
+     *
+     * @since 1.16.9
+     */
+    public function get_mail_poet_contact_fields(){
+        global $wpdb;
+
+        $subscribers_table   = $wpdb->prefix . 'mailpoet_subscribers';
+        $custom_fields_table = $wpdb->prefix . 'mailpoet_custom_fields';
+
+        $total_subscribers  = $wpdb->get_var("SELECT COUNT(*) FROM $subscribers_table");
+
+        $required_fields = array(
+            'wp_user_id' => 'WP User ID',
+            'first_name' => 'First Name',
+            'last_name'  => 'Last Name',
+            'email'      => 'Email',
+            'status'     => 'Status',
+        );
+
+        $custom_fields = $wpdb->get_results($wpdb->prepare("SELECT id, name FROM $custom_fields_table"), ARRAY_A);
+        foreach ($custom_fields as $custom_field) {
+            $required_fields['cf_' . $custom_field['id']] = $custom_field['name'];
+        }
+
+        /**
+         * Get the import batch limit per operation.
+         *
+         * @param int $per_batch The default import batch limit per operation.
+         * @return int The modified import batch limit per operation.
+         * 
+         * @since 1.4.9
+         */
+        $per_batch = apply_filters('mint_import_batch_limit', 200);
+        return $this->get_success_response(__('MailPoet Contacts has been retrieved successfully.', 'mrm'), 200, array(
+            'total_batch' => ceil($total_subscribers  / (int) $per_batch),
+            'headers'     => $required_fields,
+        ));
+    }
+
+    /**
+     * Inserts MailPoet contacts.
+     *
+     * This method handles the insertion of MailPoet contacts by preparing the request parameters
+     * and performing the MailPoet user import action.
+     *
+     * @param WP_REST_Request $request The request object containing the parameters for the import.
+     * @return WP_REST_Response The response object containing the result of the import action.
+        * @since 1.18.9
+     */
+    public function insert_mail_poet_contacts( WP_REST_Request $request ) {
+        $params   = MrmCommon::prepare_request_params( $request );
+        $response = $this->action->perform_mail_poet_user_import( $params );
+		return new WP_REST_Response( $response );
+    }
+
+    /**
+     * Retrieve FluentBooking customers.
+     *
+     * This function retrieves the total number of bookings and the unique meta keys from the booking meta table.
+     * It excludes certain fields from the result and returns the total number of batches required for import
+     * along with the headers of the booking table and meta keys.
+     *
+     * @global wpdb $wpdb WordPress database abstraction object.
+     *
+     * @return array The response containing the total number of batches and headers.
+     *
+     * @since 1.16.6
+     */
+    public function get_fluentbooking_customers(){
+        global $wpdb;
+
+        $booking_table   = $wpdb->prefix . 'fcal_bookings';
+        $total_bookings  = $wpdb->get_var("SELECT COUNT(*) FROM $booking_table");
+        $booking_columns = array(
+            'email',
+            'first_name',
+            'last_name',
+            'phone',
+            'country',
+        );
+
+        $booking_meta_table = $wpdb->prefix . 'fcal_booking_meta';
+        $meta_keys          = $wpdb->get_col("SELECT DISTINCT meta_key FROM $booking_meta_table ORDER BY meta_key ASC");
+        $all_fields         = array_merge($booking_columns, $meta_keys);
+
+        /**
+         * Get the import batch limit per operation.
+         *
+         * @param int $per_batch The default import batch limit per operation.
+         * @return int The modified import batch limit per operation.
+         * 
+         * @since 1.4.9
+         */
+        $per_batch = apply_filters('mint_import_batch_limit', 100);
+        return $this->get_success_response(__('Total guest has been retrieved successfully.', 'mrm'), 200, array(
+            'total_batch' => ceil($total_bookings  / (int) $per_batch),
+            'headers'     => array_values(array_unique($all_fields)),
+        ));
+    }
+
+    /**
+     * Import contacts from fluentBooking guests
+     *
+     * @param WP_REST_Request $request Request object used to generate the response.
+     *
+     * @return WP_REST_Response
+     * @since 1.16.6
+     */
+    public function import_contacts_fluentbooking(WP_REST_Request $request){
+        $params   = MrmCommon::prepare_request_params($request);
+        $response = $this->action->perform_fluent_booking_import($params);
+        return new WP_REST_Response($response);
+    }
 }

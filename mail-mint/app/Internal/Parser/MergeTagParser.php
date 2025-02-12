@@ -18,6 +18,7 @@ use Mint\Utilities\Arr;
 use MailMintPro\App\Internal\EmailCustomization\Parser\EddMergeTagParser;
 use MailMintPro\App\Internal\EmailCustomization\Parser\LearnDashTagParser;
 use MailMintPro\App\Internal\EmailCustomization\Parser\WCMergeTagParser;
+use MailMintPro\App\Internal\EmailCustomization\Parser\FBMergeTagParser;
 use MRM\Common\MrmCommon;
 
 /**
@@ -48,7 +49,6 @@ class MergeTagParser
 	{
 		$result    = array();
 		$is_single = false;
-
 		if (!is_array($template_string)) {
 			$is_single = true;
 		}
@@ -196,6 +196,22 @@ class MergeTagParser
 			case 'ld':
 				$wc_parser = new LearnDashTagParser( $value_key, $default_value, $params, $contact );
 				$value     = $wc_parser->parse_learn_dash_merge_tag();
+				break;
+			case 'fb_booking':
+				$fb_parser = new FBMergeTagParser($value_key, $default_value, $params);
+				$value     = $fb_parser->parse_fluent_booking_merge_tag();
+				break;
+			case 'fb_guest':
+				$guest_parser = new FBMergeTagParser($value_key, $default_value, $params);
+				$value        = $guest_parser->parse_fluent_booking_guest_merge_tag();
+				break;
+			case 'fb_event':
+				$event_parser = new FBMergeTagParser($value_key, $default_value, $params);
+				$value        = $event_parser->parse_fluent_booking_event_merge_tag();
+				break;
+			case 'fb_host':
+				$host_parser = new FBMergeTagParser($value_key, $default_value, $params);
+				$value       = $host_parser->parse_fluent_booking_host_merge_tag();
 				break;
 			default:
 				$value = apply_filters('mint_merge_tag_group_callback_' . $data_key, $matches[0], $value_key, $default_value, $contact);

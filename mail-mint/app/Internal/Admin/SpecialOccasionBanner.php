@@ -60,8 +60,9 @@ class SpecialOccasionBanner
      *
      * @return array Time remaining in days, hours, and minutes
      */
-    function mint_get_halloween_countdown() {
-        $halloween = strtotime('2024-01-05 23:59:59'); // Set this to the next Halloween
+    function mint_get_halloween_countdown()
+    {
+        $halloween = strtotime('2025-02-16 23:59:59'); // Set this to the next Halloween
         $now = current_time('timestamp');
         $diff = $halloween - $now;
 
@@ -86,18 +87,18 @@ class SpecialOccasionBanner
             return;
         }
 
-        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_mint_christmas_24') || MrmCommon::is_wpfnl_active() || 'no' === get_option('_is_wpfnl_christmas_24')) {
+        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_mint_valentine_25') || MrmCommon::is_wpfnl_active() || 'no' === get_option('_is_wpfnl_valentine_25')) {
             return;
         }
 
         // Calculate the time remaining in seconds
         $time_remaining = $this->end_date - $current_date_time;
 
-    ?>
+?>
 
-        <?php 
-            $dir_url = MRM_DIR_URL . 'admin/assets/';
-            $countdown = $this->mint_get_halloween_countdown();
+        <?php
+        $dir_url = MRM_DIR_URL . 'admin/assets/';
+        $countdown = $this->mint_get_halloween_countdown();
         ?>
 
         <!-- Name: WordPress Anniversary Notification Banner -->
@@ -127,7 +128,7 @@ class SpecialOccasionBanner
                                         <h3 class="screen-reader-text"><?php echo __('Offer Countdown', 'mrm'); ?></h3>
                                         <ul class="mint-notification-counter__list">
 
-                                             <?php foreach (['days', 'hours', 'mins'] as $unit): ?>
+                                            <?php foreach (['days', 'hours', 'mins'] as $unit): ?>
                                                 <li class="mint-notification-counter__item ">
                                                     <span id="mint-halloween-<?php echo esc_attr($unit); ?>" class="mint-notification-counter__time">
                                                         <?php echo esc_html($countdown[$unit]); ?>
@@ -141,13 +142,13 @@ class SpecialOccasionBanner
                                     </div>
 
                                     <div class="mint-notification-counter__btn-area">
-                                        <a href="<?php echo esc_url('https://getwpfunnels.com/pricing/?utm_source=plugin-mm&utm_medium=banner-cta&utm_campaign=wpfxmas24#mail-mint'); ?>" target="_blank" class="mint-notification-counter__btn" role="button">
+                                        <a href="<?php echo esc_url('https://getwpfunnels.com/pricing/?utm_source=plugin-mm&utm_medium=banner-cta&utm_campaign=valentine2025#mail-mint'); ?>" target="_blank" class="mint-notification-counter__btn" role="button">
 
-                                        <span class="mint-btn-inner">
-                                            <span class="screen-reader-text"><?php echo __('Click to view Halloween sale products', 'mrm'); ?></span>
-                                            <span aria-hidden="true" class="mint-notification-counter__mint-button"> <?php echo __('Get Discount Now', 'mrm'); ?></span>
-                                        </span>
-                                            
+                                            <span class="mint-btn-inner">
+                                                <span class="screen-reader-text"><?php echo __('Click to view Halloween sale products', 'mrm'); ?></span>
+                                                <span aria-hidden="true" class="mint-notification-counter__mint-button"> <?php echo __('Get Discount Now', 'mrm'); ?></span>
+                                            </span>
+
                                         </a>
                                     </div>
                                 </div>
@@ -171,7 +172,7 @@ class SpecialOccasionBanner
             var timeRemaining = <?php echo esc_js($time_remaining); ?>;
 
             function updateCountdown() {
-                var endDate = new Date("2025-01-05 23:59:59").getTime();
+                var endDate = new Date("2025-02-16 23:59:59").getTime();
                 var now = new Date().getTime();
                 var timeLeft = endDate - now;
 
@@ -893,7 +894,7 @@ class SpecialOccasionBanner
             .mint-notification-counter__container {
                 position: relative;
                 width: 100%;
-                max-width:1280px;
+                max-width: 1400px;
                 margin: 0 auto;
                 max-height: 100%;
                 overflow: hidden;
@@ -911,14 +912,15 @@ class SpecialOccasionBanner
                 margin: 8px 0px;
                 line-height: 0;
             }
+
             .mint-notification-counter__figure-occasion {
                 max-width: 130px;
-                margin:0;
+                margin: 0;
                 line-height: 0;
             }
 
             .mint-notification-counter__figure-percentage {
-                max-width: 200px;
+                max-width: 250px;
                 margin: 0;
                 line-height: 0;
             }
@@ -940,7 +942,7 @@ class SpecialOccasionBanner
             .mint-notification-counter__item {
                 display: flex;
                 flex-direction: column;
-                width: 56.14px;
+                width: 70px;
                 font-family: "Circular Std Book";
                 font-size: 15px;
                 font-style: normal;
@@ -964,7 +966,7 @@ class SpecialOccasionBanner
                 margin-bottom: 7px;
                 border-radius: 10px;
                 border: 1px solid #BF43C0;
-                background: linear-gradient(147.76deg, #6746D0 17.69%, #1D1438 80.41%); 
+                background: linear-gradient(147.76deg, #6746D0 17.69%, #1D1438 80.41%);
                 box-shadow: 0px 3px 0px #BF43C0;
             }
 
@@ -984,14 +986,14 @@ class SpecialOccasionBanner
                 line-height: normal;
                 color: #FFF;
                 text-align: center;
-                filter: drop-shadow(0px 30px 60px rgba(21, 19, 119, 0.2));
+                filter: none;
                 display: inline-block;
                 cursor: pointer;
                 text-transform: capitalize;
                 background: #573BFF;
                 text-decoration: none;
                 transition: all 0.3s ease;
-                box-shadow: 0px 30px 60px rgba(21, 19, 119, 0.2);
+                box-shadow: none;
             }
 
             .mint-notification-counter__btn:hover {
@@ -1008,22 +1010,27 @@ class SpecialOccasionBanner
             /* Media Queries */
             @media only screen and (max-width: 1710px) {
                 .mint-notification-counter__container {
-                    max-width: 1280px;
+                    max-width: 1400px;
                 }
             }
+
             @media only screen and (max-width: 1550px) {
                 .mint-notification-counter__container {
                     max-width: 1140px;
                 }
+
                 .mint-notification-counter__figure-logo {
                     max-width: 230px;
                 }
+
                 .mint-notification-counter__figure-occasion {
                     max-width: 110px;
                 }
+
                 .mint-notification-counter__figure-percentage {
-                    max-width: 200px;
+                    max-width: 250px;
                 }
+
                 .wpf-notification-counter__btn {
                     padding: 14px 22px;
                     font-size: 18px;
@@ -1033,53 +1040,70 @@ class SpecialOccasionBanner
 
             @media only screen and (max-width: 1440px) {
                 .mint-notification-counter__container {
-                    max-width: 1024px;
+                    max-width: 970px;
                 }
+
                 .mint-notification-counter__figure-logo {
                     max-width: 210px;
                 }
+
                 .mint-notification-counter__figure-occasion {
                     max-width: 100px;
                 }
+
                 .mint-notification-counter__figure-percentage {
-                    max-width: 180px;
+                    max-width: 210px;
                 }
+
                 .mint-notification-counter__btn {
-                    font-size: 18px;
-                    padding: 15px 24px;
+                    font-size: 16px;
+                    padding: 13px 22px;
                     border-radius: 12px;
                 }
+
                 .mint-notification-counter__time {
                     display: flex;
-                    width: 50px;
-                    height: 42px;
+                    width: 48px;
+                    height: 40px;
                     align-items: center;
                     justify-content: center;
                     margin: 0 auto 6px;
-                    font-size: 24px;
+                    font-size: 20px;
                 }
-                .mint-notification-counter__list{
+
+                .mint-notification-counter__list {
                     gap: 5px;
                 }
+
+                .mint-notification-counter__item{
+                    width: 52px;
+                    font-size: 13px;
+                }
             }
+
             @media only screen and (max-width: 1399px) {
                 .mint-notification-counter__container {
                     max-width: 940px;
                 }
+
                 .mint-notification-counter__figure-logo {
                     max-width: 180px;
                 }
+
                 .mint-notification-counter__figure-occasion {
                     max-width: 100px;
                 }
+
                 .mint-notification-counter__figure-percentage {
                     max-width: 160px;
                 }
+
                 .mint-notification-counter__btn {
                     font-size: 17px;
                     padding: 12px 20px;
                     border-radius: 10px;
                 }
+
                 .mint-notification-counter__time {
                     display: flex;
                     width: 40px;
@@ -1087,13 +1111,15 @@ class SpecialOccasionBanner
                     font-size: 20px;
                     border-radius: 8px;
                 }
-                .mint-notification-counter__list{
+
+                .mint-notification-counter__list {
                     gap: 5px;
                 }
+
                 .mint-notification-counter__item {
                     font-size: 14px;
                     align-items: center;
-                    width: 50px;
+                    width: 45px;
                 }
             }
 
@@ -1101,61 +1127,75 @@ class SpecialOccasionBanner
                 .mint-notification-counter__container {
                     max-width: 840px;
                 }
+
                 .mint-notification-counter__stroke-font {
                     font-size: 20px;
                 }
+
                 .mint-notification-counter__figure-logo {
                     max-width: 180px;
                 }
+
                 .mint-notification-counter__figure-occasion {
                     max-width: 90px;
                 }
+
                 .mint-notification-counter__figure-percentage {
                     max-width: 140px;
                 }
+
                 .mint-notification-counter__btn {
                     font-size: 16px;
                     padding: 12px 20px;
                 }
+
                 .mint-notification-counter__time {
-                    font-size: 18px;
+                    font-size: 15px;
                 }
+
                 .mint-notification-counter__list {
                     gap: 0;
                 }
+
                 .mint-notification-counter__time {
                     display: flex;
-                    width: 40px;
-                    height: 32px;
+                    width: 35px;
+                    height: 28px;
                     align-items: center;
                     justify-content: center;
                     margin: 0 auto 6px;
                 }
-                .mint-notification-counter__item{
+
+                .mint-notification-counter__item {
                     font-size: 14px;
                 }
             }
 
             @media only screen and (max-width: 1024px) {
                 .mint-notification-counter__container {
-                    max-width: 750px;
+                    max-width: 650px;
                 }
+
                 .mint-notification-counter__figure-logo {
                     max-width: 150px;
                     margin: 8px 0px;
                 }
+
                 .mint-notification-counter__figure-occasion {
-                    max-width: 90px;
+                    max-width: 70px;
                 }
+
                 .mint-notification-counter__figure-percentage {
                     max-width: 130px;
                 }
+
                 .mint-notification-counter__btn {
-                    font-size: 15px;
-                    padding: 10px 16px;
+                    font-size: 12px;
+                    padding: 9px 14px;
                 }
-                .mint-notification-counter__item{
-                    font-size: 13px;
+
+                .mint-notification-counter__item {
+                    font-size: 10px;
                 }
             }
 
@@ -1163,28 +1203,36 @@ class SpecialOccasionBanner
                 .mint-notification-counter__container {
                     max-width: 680px;
                 }
+
                 .mint-notification-counter__stroke-font {
                     font-size: 20px;
                 }
+
                 .mint-notification-counter__figure-logo {
                     max-width: 140px;
                 }
+
                 .mint-notification-counter__figure-occasion {
                     max-width: 80px;
                 }
+
                 .mint-notification-counter__figure-percentage {
                     max-width: 110px;
                 }
+
                 .mint-notification-counter__btn {
                     font-size: 14px;
                     padding: 10px 12px;
                 }
+
                 .mint-notification-counter__time {
                     font-size: 16px;
                 }
+
                 .mint-notification-counter__list {
                     gap: 0;
                 }
+
                 .mint-notification-counter__time {
                     display: flex;
                     width: 35px;
@@ -1193,7 +1241,8 @@ class SpecialOccasionBanner
                     justify-content: center;
                     margin: 0 auto 6px;
                 }
-                .mint-notification-counter__item{
+
+                .mint-notification-counter__item {
                     font-size: 12px;
                     width: 45px;
                 }

@@ -594,6 +594,23 @@ class HelperFunctions { //phpcs:ignore
 		return false;
 	}
 
+	/**
+	 * Check if mailpoet is installed
+	 *
+	 * @return bool
+	 * @since  1.18.9
+	 */
+	public static function is_mailpoet_active() {
+		static $is_active = null;
+		
+		if ($is_active === null) {
+			$is_active = defined('MAILPOET_VERSION');
+		}
+
+		return $is_active;
+	}
+
+
 
 	/**
 	 * Check if wpfunnels is installed
@@ -1609,8 +1626,6 @@ class HelperFunctions { //phpcs:ignore
 		return false;
 	}
 
-	
-
 	/**
 	 * Check if the Fluent Forms plugin is active on the WordPress site.
 	 *
@@ -1621,6 +1636,24 @@ class HelperFunctions { //phpcs:ignore
 		if ( defined( 'FLUENTFORM' ) ) {
 			return true;
 		}
+		return false;
+	}
+
+	/**
+	 * Checks if the Fluent Booking plugin is active.
+	 *
+	 * This function determines whether the Fluent Booking plugin is currently active
+	 * by checking if 'fluent-booking/fluent-booking.php' is listed among the active plugins.
+	 *
+	 * @return bool True if the Fluent Booking plugin is active, false otherwise.
+ 	 * @since  1.16.6
+	 */
+	public static function is_fluent_booking_active() {
+
+		if (in_array('fluent-booking/fluent-booking.php', apply_filters('active_plugins', get_option('active_plugins')))) {
+			return true;
+		}
+
 		return false;
 	}
 
