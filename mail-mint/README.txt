@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.2
 Requires PHP: 7.4
-Stable tag:  1.17.0
+Stable tag:  1.17.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -505,6 +505,15 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.17.1 (2025-02-20) =
+* Improvement: Performance Optimization for APIs in Post and Product Block
+* Improvement: Add Settings Button on the Abandoned Cart Listing Page
+* Bugfix: Abandoned Cart does not Work with WooCommerce Checkout Block
+* Bugfix: Abandoned Cart Recovery URL does not Work
+* Bugfix: Restore Customer Details on the Checkout Page
+* Bugfix: GDPR Consent Functionality for Abandoned Cart on WooCommerce Block
+* Bugfix: Fatal Error on New Account Creation Email in WooCommerce Email Customization
 
 = 1.17.0 (2025-02-12) =
 * New: Import Subscribers from the MailPoet

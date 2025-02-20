@@ -209,6 +209,11 @@ class EmailRender {
 	 * @since 1.14.0
 	 */
 	private function order_has_downloadable_products( $order ) {
+		// Check if the order object is valid.
+		if ( !$order ) {
+			return false;
+		}
+
 		// Get the items in the order.
 		$items = $order->get_items();
 
