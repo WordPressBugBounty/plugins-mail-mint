@@ -318,8 +318,8 @@ class AutomationManager {
 			);
 			$automation_log = HelperFunctions::get_automaiton_log_data_by_email( $contact_email, $status );
 			if ( is_array( $automation_log ) && !empty( $automation_log ) ) {
-				$delay_time = 0;
 				foreach ( $automation_log as $log ) {
+					$delay_time = 0;
 					if ( !empty( $log['automation_id'] ) && !empty( $log['step_id'] ) ) {
 						$step_id       = $log['step_id'];
 						$automation_id = $log['automation_id'];

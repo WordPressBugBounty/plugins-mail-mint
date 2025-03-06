@@ -286,6 +286,7 @@ class ContactModel {
 		$contact_group_pivot_table = $wpdb->prefix . ContactGroupPivotSchema::$table_name;
 
 		try {
+			do_action('mailmint_after_delete_contact', $id);
 			self::remove_form_entries_for_deleted_contact( $id );
 			$wpdb->delete( $contact_meta_table, array( 'contact_id' => $id ) ); // db call ok. ; no-cache ok.
 			$wpdb->delete( $contact_note_table, array( 'contact_id' => $id ) ); // db call ok. ; no-cache ok.
@@ -316,6 +317,7 @@ class ContactModel {
 		try {
 			if ( !empty( $contact_ids ) ) {
 				foreach ( $contact_ids as $id ) {
+					do_action('mailmint_after_delete_contact', $id);
 					self::remove_form_entries_for_deleted_contact( $id );
 				}
 			}

@@ -16,6 +16,7 @@ use Mint\MRM\DataBase\Models\EmailModel;
 use MailMint\App\Helper;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\Utilities\Helper\PermissionManager;
+use MintMail\App\Internal\Automation\AutomationLogModel;
 use MRM\Common\MrmCommon;
 
 /**
@@ -39,14 +40,15 @@ class Hooks {
 		add_filter( 'plugin_row_meta', array( $this, 'mailmint_plugin_row_meta' ), 10, 2 );
 		add_action( 'admin_footer', array( $this, 'remove_jetpack_note_from_mail_mint' ) );
 		add_action( 'init', array( $this, 'clear_litespeed_cache' ) );
-		add_action('action_scheduler_failed_action', array( $this, 'handle_failed_action' ), 10, 1);
-		add_action('action_scheduler_failed_execution', array( $this, 'handle_failed_action' ), 10, 2);
-		add_action('init', array($this, 'handle_email_open_tracking'));
+		add_action( 'action_scheduler_failed_action', array( $this, 'handle_failed_action' ), 10, 1);
+		add_action( 'action_scheduler_failed_execution', array( $this, 'handle_failed_action' ), 10, 2);
+		add_action( 'init', array($this, 'handle_email_open_tracking'));
 		add_filter( 'mint_merge_tag_fallback', array( $this, 'mint_merge_tag_fallback' ), 10, 2 );
-		add_action('woocommerce_order_status_changed', array($this, 'handle_payment_status_changed'), 100, 4);
-		add_action('woocommerce_refund_created', array($this, 'handle_partial_refund'), 10, 2);
+		add_action( 'woocommerce_order_status_changed', array($this, 'handle_payment_status_changed'), 100, 4);
+		add_action( 'woocommerce_refund_created', array($this, 'handle_partial_refund'), 10, 2);
 		add_action( 'init', array( $this, 'check_and_assign_capabilities_on_update' ) );
 		add_filter( 'mint_wordpress_user_import_headers', array( $this, 'merge_woocommerce_headers' ) );
+		add_action( 'mailmint_after_delete_contact', array( $this, 'delete_automation_logs' ), 10, 1 );
 	}
 
 	/**
@@ -1062,5 +1064,21 @@ class Hooks {
 
 		// Merge the two arrays and return.
 		return array_merge($headers, $additional_headers);
+	}
+
+	/**
+	 * Deletes automation logs for a given contact.
+	 *
+	 * This function retrieves the email address associated with the given contact ID
+	 * and deletes all automation logs associated with that email.
+	 *
+	 * @param int $contact_id The ID of the contact whose automation logs should be deleted.
+	 * @return void
+	 * 
+	 * @since 1.17.2
+	 */
+	public function delete_automation_logs( $contact_id ){
+		$email = ContactModel::get_contact_email_by_id( $contact_id );
+		AutomationLogModel::destroy_by_email( $email );
 	}
 }

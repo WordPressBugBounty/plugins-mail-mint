@@ -585,4 +585,23 @@ class AutomationLogModel {
 			'summery'    => $summery,
 		);
 	}
+
+	/**
+	 * Deletes automation logs for a given email address.
+	 *
+	 * This function deletes all automation logs associated with the provided email address
+	 * from the automation logs table.
+	 *
+	 * @param string $email The email address whose automation logs should be deleted.
+	 * @return int|false The number of rows affected, or false on error.
+	 * 
+	 * @since 1.17.2
+	 */
+	public static function destroy_by_email( $email ){
+		global $wpdb;
+		$automation_table = $wpdb->prefix . AutomationLogSchema::$table_name;
+
+		$result = $wpdb->query($wpdb->prepare('DELETE FROM %1s WHERE email = %s', $automation_table, $email)); //  phpcs:ignore.
+		return $result;
+	}
 }

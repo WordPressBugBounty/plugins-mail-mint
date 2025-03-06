@@ -102,9 +102,10 @@ class Delay extends AbstractAutomationAction {
 				}
 				$scheduler_data = array( $next_step );
 
-				if ( $this->action_scheduler->hasScheduledAction( MINT_PROCESS_AUTOMATION ) ) {
+				if ( $this->action_scheduler->hasScheduledAction( MINT_PROCESS_AUTOMATION, $scheduler_data ) ) {
 					return;
 				}
+
 				if ( $maybe_run ) {
 					$this->action_scheduler->schedule( time() + $time, MINT_PROCESS_AUTOMATION, $scheduler_data );
 				} else {
