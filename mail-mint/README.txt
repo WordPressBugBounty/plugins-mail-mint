@@ -5,7 +5,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.2
 Requires PHP: 7.4
-Stable tag:  1.17.2
+Stable tag:  1.17.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -502,6 +502,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.17.3 (2025-03-14) =
+* New: Introduce Plain Text Editor
+* New: Introduced Personalization for Shipment Tracking for WooCommerce
+* New: Introduced Personalization for Advanced Shipment Tracking for WooCommerce
+* Bugfix: Automation Condition does not Work for WooCommerce Current Order
+* Bugfix: Email Templates Always Export Visual Editor Template
 
 = 1.17.2 (2025-03-06) =
 * Bugfix: Delay Calculation and Log Cleanup Issues in Mail Mint Automation

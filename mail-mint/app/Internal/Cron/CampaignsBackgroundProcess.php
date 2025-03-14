@@ -193,12 +193,15 @@ class CampaignsBackgroundProcess {
 		$global_email_subject = ! empty( $email_attributes['email_subject'] ) ? $email_attributes['email_subject'] : '';
 		$global_preview_text  = ! empty( $email_attributes['email_preview_text'] ) ? $email_attributes['email_preview_text'] : '';
 		$global_email_body    = ! empty( $email_attributes[ 'email_body' ] ) ? $email_attributes[ 'email_body' ] : '';
+		$editor_type          = ! empty($email_attributes['editor_type']) ? $email_attributes['editor_type'] : 'advanced-builder';
 
 		if( MrmCommon::is_mailmint_pro_active() ){
 			$global_email_body = Mint_Pro_Helper::replace_automatic_latest_content( $global_email_body );
 		}
 
-		$editor_type = ! empty( $email_attributes[ 'editor_type' ] ) ? $email_attributes[ 'editor_type' ] : 'advanced-builder';
+		if( 'plain-text-editor' === $editor_type ){
+			$global_email_body = nl2br( html_entity_decode( $global_email_body ) );
+		}
 
 		if ( is_array( $recipient_emails ) && ! empty( $recipient_emails ) ) {
 			$sent_email_ids   = array();

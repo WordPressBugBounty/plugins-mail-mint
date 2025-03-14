@@ -189,6 +189,10 @@ class SendMail extends AbstractAutomationAction {
 					'editor_type'    => !empty( $step_data['settings']['message_data']['json_body']['editor'] ) ? $step_data['settings']['message_data']['json_body']['editor'] : 'advanced-builder',
 				);
 
+				if ('plain-text-editor' === $email_data['editor_type']) {
+					$email_data['body'] = nl2br(html_entity_decode($email_data['body']));
+				}
+
 				$email_data['subject'] = Parser::parse( 
 					$email_data['subject'], 
 					$contact, 

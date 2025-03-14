@@ -241,6 +241,9 @@ class MessageController extends AdminBaseController {
 
 			// Prepare email body.
 			$email_body = isset( $settings['email_body'] ) ? $settings['email_body'] : '';
+			if ('plain-text-editor' === $editor) {
+				$email_body = nl2br(html_entity_decode($email_body));
+			}
 			$email_body = str_replace( '{{subscribe_link}}', $subscribe_url, $email_body );
 			$email_body = str_replace( '{{link.subscribe}}', $subscribe_url, $email_body );
 

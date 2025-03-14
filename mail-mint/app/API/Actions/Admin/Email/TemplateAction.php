@@ -200,8 +200,8 @@ class TemplateAction implements Action {
         $title           = isset($params['title']) ? sanitize_text_field($params['title']) : '';
         $html_content    = isset($params['html']) ? $params['html'] : '';
         $json_content    = isset($params['json_content']) ? $params['json_content'] : '';
-        $editor_type     = isset($params['editor_type']) ? $params['editor_type'] : 'advanced-builder';
-        $thumbnail       = isset($params['thumbnail']) ? $this->upload_template_thumnail($params[ 'thumbnail' ]) : '';
+        $editor_type     = isset($params['editor']) ? $params['editor'] : 'advanced-builder';
+        $thumbnail       = isset($params['thumbnail']) ? $this->upload_template_thumnail('advanced-builder' === $editor_type ? $params['thumbnail'] : '') : '';
         $thumbnail_data  = isset($params['thumbnail']) ? $params['thumbnail'] : '';
         $email_type      = isset($params['wooCommerce_email_type']) ? $params['wooCommerce_email_type'] : 'default';
         $customizable    = isset($params['wooCommerce_email_enable']) ? (int) $params['wooCommerce_email_enable'] : 0;

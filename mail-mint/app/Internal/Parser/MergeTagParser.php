@@ -185,6 +185,16 @@ class MergeTagParser
 				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
 				$value     = $wc_parser->parse_wc_product_merge_tag();
 				break;
+			case 'wc_shipment_tracking':
+				$params['order_id'] = $order_id;
+				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
+				$value     = $wc_parser->parse_wc_shipment_tracking_merge_tag();
+				break;
+			case 'wc_adv_shipment':
+				$params['order_id'] = $order_id;
+				$wc_parser = new WCMergeTagParser($value_key, $default_value, $params);
+				$value     = $wc_parser->parse_wc_adv_shipment_tracking_merge_tag();
+				break;
 			case 'review':
 				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
 				$value     = $wc_parser->parse_wc_review_merge_tag();

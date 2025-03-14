@@ -290,14 +290,17 @@ class CampaignEmailController extends AdminBaseController {
 			'from_name'   => ! empty( $params[ 'json_data' ][ 'sender_name' ] ) ? $params[ 'json_data' ][ 'sender_name' ] : '',
 		);
 
-		$content    = ! empty( $params[ 'json_data' ][ 'content' ] ) ? html_entity_decode( $params[ 'json_data' ][ 'content' ] ) : '';
-		$headers    = Email::get_mail_header( $header_data, '' );
-		$preview    = ! empty( $params[ 'json_data' ][ 'email_preview_text' ] ) ? $params[ 'json_data' ][ 'email_preview_text' ] : '';
+		$editor_type = !empty($params['json_data']['editor_type']) ? $params['json_data']['editor_type'] : 'advanced-builder';
+		$content     = ! empty( $params[ 'json_data' ][ 'content' ] ) ? html_entity_decode( $params[ 'json_data' ][ 'content' ] ) : '';
+		$headers     = Email::get_mail_header( $header_data, '' );
+		$preview     = ! empty( $params[ 'json_data' ][ 'email_preview_text' ] ) ? $params[ 'json_data' ][ 'email_preview_text' ] : '';
 
-		$editor_type = !empty( $params[ 'json_data' ][ 'editor_type' ] ) ? $params[ 'json_data' ][ 'editor_type' ] : 'advanced-builder';
+		if ( 'plain-text-editor' === $editor_type ) {
+			$content = ! empty($params['json_data']['content']) ? nl2br(html_entity_decode($params['json_data']['content'])) : '';
+		}
 		
-		$post_id     = isset($params['data']['post_id']) ? $params['data']['post_id'] : '';
-		$order_id	 = isset($params['data']['order_id']) ? $params['data']['order_id'] : '';
+		$post_id      = isset($params['data']['post_id']) ? $params['data']['post_id'] : '';
+		$order_id	  = isset($params['data']['order_id']) ? $params['data']['order_id'] : '';
 		$abandoned_id = isset($params['data']['abandoned_id']) ? $params['data']['abandoned_id'] : '';
 		$payment_id   = isset($params['data']['payment_id']) ? $params['data']['payment_id'] : '';
 
@@ -344,7 +347,7 @@ class CampaignEmailController extends AdminBaseController {
 			$parsed_subject = Parser::parse($subject, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
 			$parsed_content = Parser::parse($content, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
 			$parsed_preview = Parser::parse($preview, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
-			$final_content = Email::inject_preview_text_on_email_body($parsed_preview, $parsed_content);
+			$final_content  = Email::inject_preview_text_on_email_body($parsed_preview, $parsed_content);
 
 			MM()->mailer->send($receiver, $parsed_subject, $final_content, $headers);
 		}
@@ -431,7 +434,7 @@ class CampaignEmailController extends AdminBaseController {
         $html_content    = isset($params['html']) ? $params['html'] : '';
         $json_content    = isset($params['json_content']) ? $params['json_content'] : '';
         $editor_type     = isset($params['editor']) ? $params['editor'] : 'advanced-builder';
-        $thumbnail       = isset($params['thumbnail']) ? $this->upload_template_thumnail($params[ 'thumbnail' ]) : '';
+        $thumbnail       = isset($params['thumbnail']) ? $this->upload_template_thumnail('advanced-builder' === $editor_type ? $params[ 'thumbnail' ] : '') : '';
         $thumbnail_data  = isset($params['thumbnail']) ? $params['thumbnail'] : '';
         $email_type      = isset($params['wooCommerce_email_type']) ? $params['wooCommerce_email_type'] : 'default';
         $customizable    = isset($params['wooCommerce_email_enable']) ? (int) $params['wooCommerce_email_enable'] : 0;
