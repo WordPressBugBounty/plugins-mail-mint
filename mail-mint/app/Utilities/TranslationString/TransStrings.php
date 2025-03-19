@@ -1472,6 +1472,7 @@ class TransStrings
 			// WooCommerce Subscriptions.
 			'SubscriptionCreated'                         => __( 'Subscription Created', 'mrm' ),
 			'SubscriptionCreatedDescription'              => __( 'This automation will trigger after a subscription is created, which happens before payment is confirmed.', 'mrm' ),
+			'SubscriptionPaymentFailedDescription'        => __( 'This automation will trigger when a payment fails for a subscription.', 'mrm'),
 			'SubscriptionContains'                        => __( 'Subscription Contains', 'mrm' ),
 			'AnyProduct'                                  => __( 'Any product', 'mrm' ),
 			'SpecificProducts'                            => __( 'Specific products', 'mrm'),
