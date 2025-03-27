@@ -640,27 +640,38 @@ class Helper {
 	 */
 	public static function modify_email_for_rtl( $email_body ) {
 		// Check if Mail Mint is configured for RTL mode.
-		if ( !MrmCommon::mail_mint_is_rtl() ) {
+		if (!MrmCommon::mail_mint_is_rtl()) {
 			return $email_body;
 		}
 
-		// Create a new DOMDocument.
+		// Ensure UTF-8 encoding
+		$email_body = mb_convert_encoding($email_body, 'HTML-ENTITIES', 'UTF-8');
+
+		// Create a new DOMDocument with UTF-8 support.
 		$dom = new DOMDocument();
 
-		// Load the HTML content.
-		@$dom->loadHTML( $email_body );
+		// Suppress warnings and load the HTML.
+		libxml_use_internal_errors(true);
+		$dom->loadHTML('<!DOCTYPE html><html><body>' . $email_body . '</body></html>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+		libxml_clear_errors();
 
 		// Get the <body> element.
-		$body = $dom->getElementsByTagName( 'body' )->item( 0 );
+		$body = $dom->getElementsByTagName('body')->item(0);
 
-		// Add the dir="rtl" attribute to the <body> tag.
-		$body->setAttribute( 'dir', 'rtl' );
+		if ($body) {
+			// Add the dir="rtl" attribute to the <body> tag.
+			$body->setAttribute('dir', 'rtl');
 
-		// Save the modified HTML.
-		$modified_html = $dom->saveHTML();
-		// Convert direction: ltr to direction: rtl.
-		$modified_html = preg_replace( '/direction:\s*ltr/i', 'direction: rtl', $modified_html );
-		return $modified_html;
+			// Get modified HTML.
+			$modified_html = $dom->saveHTML($body);
+
+			// Convert direction: ltr to direction: rtl.
+			$modified_html = preg_replace('/direction:\s*ltr/i', 'direction: rtl', $modified_html);
+
+			return $modified_html;
+		}
+
+		return $email_body; // Return original if body is not found.
 	}
 
 	/**
