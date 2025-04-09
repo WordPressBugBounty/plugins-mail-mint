@@ -7,7 +7,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.7.2
 Requires PHP: 7.4
-Stable tag:  1.17.5
+Stable tag:  1.17.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -531,6 +531,12 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.17.6 (2025-04-09) =
+* Improvement: Enable Translation Support for Custom Blocks in Visual Editor
+* Improvement: Add Contact UX on the Dashboard
+* Bugfix: Automation Steps Not Saving When Importing from Automation Recipe
+* Bugfix: Email Templates Always Export Visual Editor Template
 
 = 1.17.5 (2025-03-27) =
 * Bugfix: RTL Email Content Rendering Issue

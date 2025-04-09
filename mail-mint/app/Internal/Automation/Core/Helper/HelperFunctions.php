@@ -209,7 +209,6 @@ class HelperFunctions { //phpcs:ignore
 	 */
 	public static function get_all_step_by_automation_id( $automation_id = '' ) {
 		global $wpdb;
-		$automation_table           = $wpdb->prefix . AutomationSchema::$table_name;
 		$automation_step_table      = $wpdb->prefix . AutomationStepSchema::$table_name;
 		$automation_step_meta_table = $wpdb->prefix . AutomationStepMetaSchema::$table_name;
 		$results                    = $wpdb->get_results(
@@ -219,6 +218,13 @@ class HelperFunctions { //phpcs:ignore
 			),
 			ARRAY_A
 		);
+
+		$results = array_map(function ($item) {
+			if (isset($item['settings'])) {
+				$item['settings'] = maybe_unserialize($item['settings']);
+			}
+			return $item;
+		}, $results);
 
 		return $results;
 	}

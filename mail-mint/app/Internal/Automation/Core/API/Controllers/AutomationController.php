@@ -13,11 +13,9 @@
 namespace Mint\MRM\Admin\API\Controllers;
 
 use MintMail\App\Internal\Automation\AutomationModel;
-use Mint\Mrm\Internal\Traits\Singleton;
 use MintMail\App\Internal\Automation\AutomationStepModel;
 use MintMail\App\Internal\Automation\Recipe\AutomationRecipe;
 use WP_REST_Request;
-use Exception;
 use MintMail\App\Internal\Automation\HelperFunctions;
 use MRM\Common\MrmCommon;
 use WP_REST_Response;
@@ -394,6 +392,7 @@ class AutomationController extends AdminBaseController {
                     HelperFunctions::update_automation_meta( $automation_id, 'source', 'mint' );
                     $data = array(
                         'automation_id' => $automation_id,
+                        'steps'         => HelperFunctions::get_all_step_by_automation_id( $automation_id ),
                     );
                     return $this->get_success_response( __( 'Automation has been duplicate successfully', 'mrm' ), 200, $data );
                 }

@@ -35,7 +35,7 @@ class TransStrings
 			'Campaigns' => __('Campaigns', 'mrm'),
 			'Automations' => __('Automations', 'mrm'),
 			'Forms' => __('Forms', 'mrm'),
-			'AddContact' => __('Add contact', 'mrm'),
+			'AddContact' => __('Add contacts', 'mrm'),
 			'AddCampaign' => __('Add campaign', 'mrm'),
 			'AddForm' => __('Add form', 'mrm'),
 			'AddAutomation' => __('Add automation', 'mrm'),
@@ -1405,29 +1405,29 @@ class TransStrings
 			'welcomeButtonTextSkip' => __('Skip Setup Wizard', 'mrm'),
 
 			//Business Info - step two
-			'businessInfoStepText' => __('Business Info', 'mrm'),
+			'businessInfoStepText'      => __('Business Info', 'mrm'),
 			'businessInfoHeadingStrong' => __('Business ', 'mrm'),
-			'businessInfoHeading' => __('Info ', 'mrm'),
-			'businessInfoDescription' => __("These will be used as your company information in your email campaign (if needed).", 'mrm'),
-			'businessNameLabel' => __('Business Name', 'mrm'),
-			'businessAddressLabel' => __('Business Full Address', 'mrm'),
-			'businessInfoButtonText' => __("Continue", 'mrm'),
+			'businessInfoHeading'       => __('Info ', 'mrm'),
+			'businessInfoDescription'   => __("These will be used as your company information in your email campaign (if needed).", 'mrm'),
+			'businessNameLabel'         => __('Business Name', 'mrm'),
+			'businessAddressLabel'      => __('Business Full Address', 'mrm'),
+			'businessInfoButtonText'    => __("Continue", 'mrm'),
 
 			//Mail setup - step three
-			'emailSetupStepText' => __('Email Setup', 'mrm'),
-			'emailSetupHeadingStrong' => __('Email Setup ', 'mrm'),
-			'emailSetupHeading' => __('Frequency ', 'mrm'),
-			'emailSetupDescription' => __("Set up maximum number of emails to be sent within a specific time limit, usually set by your web host.", 'mrm'),
+			'emailSetupStepText'       => __('Email Setup', 'mrm'),
+			'emailSetupHeadingStrong'  => __('Email Setup ', 'mrm'),
+			'emailSetupHeading'        => __('Frequency ', 'mrm'),
+			'emailSetupDescription'    => __("Set up maximum number of emails to be sent within a specific time limit, usually set by your web host.", 'mrm'),
 			'emailSetupFrequencyLabel' => __('Frequency Method', 'mrm'),
 			'emailSetupFrequencyValue' =>[
                __('Recommended','mrm'),
 			   __('Manual','mrm'),
 			],
-			'emailSetupWebHostLabel' => __('Web Host', 'mrm'),
-			'emailSetupAmountLabel' => __('Email Amount', 'mrm'),
-			'emailSetupTimeLabel' => __('Time', 'mrm'), 
-			'emailSetupFormWarning' => __("You may break the terms of your web host or provider by sending more than the recommended emails per day. Contact your host if you want to send more.", "mrm"),
-			'emailSetupButtonText' => __("Continue", 'mrm'),
+			'emailSetupWebHostLabel'   => __('Web Host', 'mrm'),
+			'emailSetupAmountLabel'    => __('Email Amount', 'mrm'),
+			'emailSetupTimeLabel'      => __('Time', 'mrm'), 
+			'emailSetupFormWarning'    => __("You may break the terms of your web host or provider by sending more than the recommended emails per day. Contact your host if you want to send more.", "mrm"),
+			'emailSetupButtonText'     => __("Continue", 'mrm'),
 			'emailSetupButtonTextPrev' => __('Previous Step', 'mrm'),
 
 			// Subscribe - step five.
@@ -1509,7 +1509,20 @@ class TransStrings
 			'DeleteContacts'		   					  => __('Delete Contact', 'mrm'),
 			'SubscribeContacts'		   					  => __('Subscribe Contact', 'mrm'),
 			'UnSubscribeContacts'		   				  => __('Unsubscribe Contact', 'mrm'),
-			'CustomUserPassTooltip'		   							  => __('If you leave blank, an auto-generated password will be set.', 'mrm'),
+			'CustomUserPassTooltip'		   			      => __('If you leave blank, an auto-generated password will be set.', 'mrm'),
+
+			// Order Details Custom Block
+			'OrderDetails'   => __('Order Details', 'mrm'),
+			'Product'        => __('Product', 'mrm'),
+			'Price'          => __('Price', 'mrm'),
+			'Subtotal'       => __('Subtotal', 'mrm'),
+			'Shipping'       => __('Shipping', 'mrm'),
+			'Tax'            => __('Tax', 'mrm'),
+			'PaymentMethod' => __('Payment Method', 'mrm'),
+			'Total'          => __('Total', 'mrm'),
+			'Downloads'      => __('Downloads', 'mrm'),
+			'Expires'         => __('Expires', 'mrm'),
+			'Download' 	  => __('Download', 'mrm'),
 		);
 	}
 }
