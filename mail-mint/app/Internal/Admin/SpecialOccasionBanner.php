@@ -78,8 +78,8 @@ class SpecialOccasionBanner
     /**
      * Displays the special occasion banner if the current date and time are within the specified range.
      */
-    public function display_banner()
-    {
+    public function display_banner(){
+        return;
         $screen = get_current_screen();
         $promotional_notice_pages = ['dashboard', 'plugins', 'toplevel_page_mrm-admin'];
         $current_date_time = current_time('timestamp');
@@ -95,7 +95,7 @@ class SpecialOccasionBanner
         // Calculate the time remaining in seconds
         $time_remaining = $this->end_date - $current_date_time;
 
-?>
+        ?>
 
         <?php
         $dir_url = MRM_DIR_URL . 'admin/assets/';

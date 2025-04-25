@@ -47,7 +47,7 @@ class ConnectorMintForm extends Automation_Connector {
 	 * @since  1.0.0
 	 */
 	public function get_name() {
-		return __( 'MintForm', 'mrm' );
+		return 'MintForm';
 	}
 
 

@@ -66,8 +66,8 @@ class Connector {
 	 */
 	public function __construct() {
 		$connectors = $this->get_connectors();
-		foreach ( $connectors as $connector ) {
-			$connector_class = 'MintMail\\App\\Internal\\Automation\\Connector\\' . $connector['class_name'];
+		foreach ( $connectors as $key => $connector ) {
+			$connector_class = 'creatorlms' === $key ? $connector['class_name'] : 'MintMail\\App\\Internal\\Automation\\Connector\\' . $connector['class_name'];
 			if ( class_exists( $connector_class ) ) {
 				$connector_class::get_instance();
 				$connector_name                    = $connector_class::get_instance()->get_name();

@@ -154,7 +154,7 @@ class AutomationManager {
 						if ( is_array( $step_data ) ) {
 							if ( isset( $step_data['step_type'], $step_data['step_id'] ) && 'trigger' === $step_data['step_type'] ) {
 								$maybe_validate_trigger_settings = true;
-								$class_name                      = "MintMail\\App\\Internal\\Automation\\Connector\\trigger\\" . $data['connector_name'] . 'Triggers';
+								$class_name                      = 'CreatorLms' ===  $data['connector_name'] ? "CreatorLmsPro\\Automation\\Triggers\\" . $data['connector_name'] . 'Triggers' :  "MintMail\\App\\Internal\\Automation\\Connector\\trigger\\" . $data['connector_name'] . 'Triggers';
 
 								if ( class_exists( $class_name ) ) {
 									$maybe_validate_trigger_settings = $class_name::get_instance()->validate_settings( $step_data, $data );

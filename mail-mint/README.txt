@@ -5,9 +5,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: email marketing, email automation, newsletter, woocommerce emails, cart abandonment, lead form
 Requires at least: 5.8
-Tested up to: 6.7.2
+Tested up to: 6.8.0
 Requires PHP: 7.4
-Stable tag:  1.17.6
+Stable tag:  1.17.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -33,9 +33,6 @@ It is specially built for marketers and funnel creators like you.
 <em>Easily run email campaigns, automate follow-ups & weekly newsletters, and recover lost sales via cart abandonment.</em>
 
 Actively use email marketing automation without any hassle to increase your conversions.
-
-Eid Mubarak! Here's A Special Gift: 🎉
-<a href="https://getwpfunnels.com/pricing/?utm_source=plugin-mm&utm_medium=banner-cta&utm_campaign=eid25#mail-mint" target="_blank"> 👉 Enjoy 25% OFF on Mail Mint Pro!</a>
 
 👉<a href="https://getwpfunnels.com/docs/mail-mint/" target="_blank"> Documentation </a> | <a href="https://youtube.com/playlist?list=PLvw5RepmoKUuPyBUPYZRQtD10Hc6fI9g2&si=MehK9vvHcMHNj-cf" target="_blank"> Video Tutorials </a>
 👉 <a href="https://www.facebook.com/groups/wpfunnels/" target="_blank">Join our Facebook Community </a>
@@ -531,6 +528,12 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.17.7 (2025-04-25) =
+* Compatibility: Compatible with the Latest WordPress
+* Bugfix: Background Image Settings from Column Block in Visual Editor
+* Bugfix: UI Issues on the Automation Settings
+* Bugfix: Function _load_textdomain_just_in_time was called incorrectly
 
 = 1.17.6 (2025-04-09) =
 * Improvement: Enable Translation Support for Custom Blocks in Visual Editor
