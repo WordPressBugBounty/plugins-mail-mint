@@ -35,8 +35,13 @@ class DBUpgradeNotice {
 	 *
 	 * @since 1.6.0
 	 * @since 1.14.0 Added check for database update notice.
+	 * @since 1.17.8 Added version check to hide notice.
 	 */
 	public function database_update_notice() {
+		if (MRM_VERSION >= '1.17.7') {
+			return;
+		}
+
 		if ( !self::should_show_notice() ) {
 			return;
 		}

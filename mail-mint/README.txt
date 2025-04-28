@@ -7,7 +7,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.8.0
 Requires PHP: 7.4
-Stable tag:  1.17.7
+Stable tag:  1.17.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,6 +528,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.17.8 (2025-04-28) =
+* Improvement: Fixed Sensitive Data Exposure Security Vulnerability
+* Bugfix: Database Update Admin Notice Issue
 
 = 1.17.7 (2025-04-25) =
 * Compatibility: Compatible with the Latest WordPress

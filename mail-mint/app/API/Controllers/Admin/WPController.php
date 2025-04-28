@@ -216,9 +216,24 @@ class WPController {
         return rest_ensure_response( [ 'data' => $tags, 'status' => 200 ] );
     }
 
+    /**
+     * Retrieves admin users based on search term from the REST API.
+     *
+     * This function handles a REST API request to retrieve admin users. It accepts a search term
+     * as a parameter and searches for matching users based on the provided term.
+     *
+     * @param WP_REST_Request $request The REST API request object.
+     *
+     * @return WP_REST_Response The REST API response containing matching admin users.
+     * @since 1.17.1
+     */
     public function get_admins( WP_REST_Request $request ) {
         $params = MrmCommon::get_api_params_values( $request );
         $term   = isset( $params['term'] ) ? $params['term'] : '';
+        
+        if ( ! $term ) {
+            return rest_ensure_response( [ 'admins' => array(),'success' => false ] );
+        }
 
         $args = array(
             'search' => '*' . esc_attr($term) . '*',
