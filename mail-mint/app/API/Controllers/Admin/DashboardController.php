@@ -70,11 +70,12 @@ class DashboardController {
 		$response = [
 			'success' => true,
 			'data'    => [
-				'card_data'             => $card_data,
-				'campaign'              => $campaign,
-				'subscribers'           => $subscribers,
-				'revenue'               => $revenue,
-				'contact'               => $contact,
+				'card_data'      => $card_data,
+				'campaign'       => $campaign,
+				'subscribers'    => $subscribers,
+				'revenue'        => $revenue,
+				'contact'        => $contact,
+				'show_community' => $this->should_show_community_banner()
 			]
 		];
 
@@ -97,4 +98,65 @@ class DashboardController {
         ];
         return rest_ensure_response( $response );
     }
+
+	/**
+	 * Check if community banner should be shown.
+	 * 
+	 * Description:
+	 * - If the user has permanently hidden the banner, it will not be shown.
+	 * - If the banner is temporarily hidden, it will not be shown.
+	 * - If neither of the above conditions are met, the banner will be shown.
+	 *
+	 * @return bool
+	 * @since 1.17.9
+	 */
+	private function should_show_community_banner(){
+		// Check if user has permanently hidden the banner.
+		$permanently_hidden = get_transient('wpfnl_community_banner_permanently_hidden');
+		if ($permanently_hidden) {
+			return false;
+		}
+
+		// Check if banner is temporarily hidden.
+		$temporarily_hidden = get_transient('wpfnl_community_banner_temporarily_hidden');
+		if ($temporarily_hidden) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Hide community banner temporarily.
+	 * 
+	 * Description:
+	 * - Set a transient for 7 days to hide the banner.
+	 *
+	 * @return \WP_REST_Response
+	 * @since 1.17.9
+	 */
+	public function hide_community_banner_temporarily(){
+		// Set transient for 7 days.
+		set_transient('wpfnl_community_banner_temporarily_hidden', true, 7 * DAY_IN_SECONDS);
+		return rest_ensure_response([
+			'success' => true
+		]);
+	}
+
+	/**
+	 * Hide community banner permanently.
+	 *
+	 * Description:
+	 * - Set a permanent transient to hide the banner.
+	 *
+	 * @return \WP_REST_Response
+	 * @since 1.17.9
+	 */
+	public function hide_community_banner_permanently(){
+		// Set permanent transient (0 = no expiration).
+		set_transient('wpfnl_community_banner_permanently_hidden', true, 0);
+		return rest_ensure_response([
+			'success' => true
+		]);
+	}
 }

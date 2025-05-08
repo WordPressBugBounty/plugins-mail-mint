@@ -5,9 +5,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: email marketing, email automation, newsletter, woocommerce emails, cart abandonment, lead form
 Requires at least: 5.8
-Tested up to: 6.8.0
+Tested up to: 6.8.1
 Requires PHP: 7.4
-Stable tag:  1.17.8
+Stable tag:  1.17.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,6 +528,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.17.9 (2025-05-08) =
+* Improvement: Add Community Banner on the dashboard
+* Improvement: Performance & Security Vulnerability
 
 = 1.17.8 (2025-04-28) =
 * Improvement: Fixed Sensitive Data Exposure Security Vulnerability

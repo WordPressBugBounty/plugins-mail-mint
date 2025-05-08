@@ -95,5 +95,32 @@ class DashboardRoute {
                 ),
             )
         );
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/hide-banner-temporarily', 
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'hide_community_banner_temporarily' ),
+					'permission_callback' => function () {
+						return current_user_can('manage_options');
+					},
+				),
+		));
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/hide-banner-permanently',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array($this->controller, 'hide_community_banner_permanently'),
+					'permission_callback' => function () {
+						return current_user_can('manage_options');
+					},
+				),
+			)
+		);
 	}
 }
