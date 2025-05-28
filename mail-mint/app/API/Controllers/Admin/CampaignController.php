@@ -407,8 +407,7 @@ class CampaignController extends AdminBaseController {
 	public function get_all( WP_REST_Request $request ) {
 		global $wpdb;
 		// Get values from API.
-		$params = MrmCommon::get_api_params_values( $request );
-		
+		$params   = MrmCommon::get_api_params_values( $request );
 		$page     = isset( $params['page'] ) ? $params['page'] : 1;
 		$per_page = isset( $params['per-page'] ) ? $params['per-page'] : 10;
 		$offset   = ( $page - 1 ) * $per_page;
@@ -528,7 +527,7 @@ class CampaignController extends AdminBaseController {
 
 			$unsubscribed_rate = 0;
 			if ( !empty( $campaign['total_recipients'] ) && 0 !== (int) $campaign['total_recipients'] ){
-				$unsubscribed_rate = ( $campaign['total_unsubscribe'] / $campaign['total_recipients'] ) * 100;
+				$unsubscribed_rate = ( (int) $campaign['total_unsubscribe'] / (int) $campaign['total_recipients'] ) * 100;
 			}
 
 			$campaign['unsubscribed_rate'] = $unsubscribed_rate;

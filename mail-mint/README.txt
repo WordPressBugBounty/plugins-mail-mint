@@ -7,7 +7,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.8.1
 Requires PHP: 7.4
-Stable tag:  1.17.9
+Stable tag:  1.17.11
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,6 +528,14 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.17.11 (2025-05-28) =
+* Improvement: Performance Optimization for Campaigns Lists
+
+= 1.17.10 (2025-05-26) =
+* Improvement: Add Option to Set Expiry Duration in Days for 'Create Coupon' Action
+* Bugfix: UI Issues on the Campaign Analytics
+* Bugfix: UI Issues on the Automation
 
 = 1.17.9 (2025-05-08) =
 * Improvement: Add Community Banner on the dashboard

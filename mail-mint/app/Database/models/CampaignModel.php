@@ -412,11 +412,74 @@ class CampaignModel {
 
 		$count       = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) as total FROM $campaign_table $where" ) ); // db call ok. ; no-cache ok.
 		$total_pages = ceil( $count / $limit );
+
+		if( !MrmCommon::is_mailmint_pro_active() && 'regular' !== $filter ){
+			return array(
+				'campaigns' => array(
+					array(
+						'id' => 1,
+						'title' => 'Welcome New Subscribers',
+						'status' => 'active',
+						'type' => 'automation',
+						'scheduled_at' => '',
+						'created_by' => 1,
+						'created_at' => date('Y-m-d H:i:s'),
+						'updated_at' => date('Y-m-d H:i:s')
+					),
+					array(
+						'id' => 2,
+						'title' => 'Monthly Newsletter - June 2023',
+						'status' => 'scheduled',
+						'type' => 'regular',
+						'scheduled_at' => '2023-06-01 09:00:00',
+						'created_by' => 1,
+						'created_at' => date('Y-m-d H:i:s'),
+						'updated_at' => date('Y-m-d H:i:s')
+					),
+					array(
+						'id' => 3,
+						'title' => 'Customer Feedback Survey',
+						'status' => 'draft',
+						'type' => 'sequence',
+						'scheduled_at' => '',
+						'created_by' => 1,
+						'created_at' => date('Y-m-d H:i:s'),
+						'updated_at' => date('Y-m-d H:i:s')
+					)
+				),
+				'total_pages' => 1,
+				'count' => 3,
+				'groups' => self::get_campaign_groups()
+			);
+		}
+
 		return array(
 			'campaigns'   => $results,
 			'total_pages' => $total_pages,
 			'count'       => $count,
+			'groups'      => self::get_campaign_groups(),
 		);
+	}
+
+	/**
+	 * Get the count of campaigns grouped by their type.
+	 *
+	 * Retrieves the total number of campaigns for each campaign type from the database.
+	 * The function performs a SQL query to group and count campaigns by their type.
+	 *
+	 * @return array An associative array where the keys are campaign types and the values are their respective counts.
+	 * @since 1.17.10
+	 */
+	private static function get_campaign_groups() {
+		global $wpdb;
+		$table   = $wpdb->prefix. CampaignSchema::$campaign_table;
+		$query   = "SELECT `type`, COUNT(*) as count FROM {$table} GROUP BY `type`";
+		$results = $wpdb->get_results($query, ARRAY_A);
+		$groups  = array();
+		foreach ($results as $result) {
+			$groups[$result['type']] = (int) $result['count'];
+		}
+		return $groups;
 	}
 
 	/**

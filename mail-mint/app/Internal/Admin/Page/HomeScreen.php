@@ -103,11 +103,8 @@ class HomeScreen {
 			__( 'Campaigns', 'mrm' ),
 			__( 'Campaigns', 'mrm' ),
 			($is_admin) ? $dashboard_permission : 'mint_read_campaigns',
-			'mrm-admin#/campaigns/',
-			array(
-				$this,
-				'load_wrapper',
-			)
+			'mrm-admin#/campaigns/regular',
+			array($this, 'load_wrapper')
 		);
 		add_submenu_page(
 			self::MENU_SLUG,
@@ -203,7 +200,7 @@ class HomeScreen {
 
 	public function mint_delete_promotional_banner( $payload ){
 		check_ajax_referer( 'promotional_banner_nonce', 'nonce' );
-		update_option('_is_mint_eid_25', 'no' );
+		update_option('_is_mint_wp_anniversary_25', 'no' );
 		return [
             'success' => true,
         ];
@@ -341,13 +338,13 @@ class HomeScreen {
 		if ( current_user_can( 'manage_options' ) ) {
 			new DBUpgradeNotice();
 		}
-		new SpecialOccasionBanner('wp-anniversary', '2025-03-27 11:30:00', '2025-04-15 12:00:00');
+		new SpecialOccasionBanner('wp-anniversary', '2025-05-26 08:00:00', '2025-05-30 23:59:59');
         if( 'toplevel_page_mrm-admin' === $current_screen->base){
             remove_all_actions( 'admin_notices' );
 			if ( current_user_can( 'manage_options' ) ) {
 				new DBUpgradeNotice();
 			}
-			new SpecialOccasionBanner('wp-anniversary', '2025-03-27 11:30:00', '2025-04-15 12:00:00');
+			new SpecialOccasionBanner('wp-anniversary', '2025-05-26 08:00:00', '2025-05-30 23:59:59');
         }
         if( 'mail-mint_page_mint-mail-automation-editor' === $current_screen->base){
             remove_all_actions( 'admin_notices' );
