@@ -8,8 +8,6 @@
 namespace MintMail\App\Internal\Automation;
 
 use DateTime;
-use FluentForm\App\Helpers\Helper;
-use Jet_Form_Builder\Classes\Tools;
 use Mint\MRM\DataBase\Models\FormModel;
 use Mint\MRM\DataBase\Tables\AutomationSchema;
 use Mint\MRM\DataBase\Tables\AutomationStepMetaSchema;
@@ -19,7 +17,6 @@ use Mint\MRM\DataBase\Tables\AutomationLogSchema;
 use Mint\MRM\DataBase\Tables\AutomationMetaSchema;
 use Mint\MRM\DataBase\Tables\EmailMetaSchema;
 use Mint\MRM\DataBase\Tables\EmailSchema;
-use Mint\MRM\DataBase\Models\CampaignModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
 use Mint\MRM\DataBase\Tables\CampaignEmailBuilderSchema;
@@ -2527,6 +2524,31 @@ class HelperFunctions { //phpcs:ignore
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Check if a given email is already in the automation log.
+	 *
+	 * @param string $email         The email address to check.
+	 * @param int    $automation_id The ID of the automation.
+	 *
+	 * @return bool True if the email is already in the automation log, false otherwise.
+	 * @since 1.17.12
+	 */
+	public static function if_already_in_automation( $email, $automation_id ) {
+		global $wpdb;
+		$exists = $wpdb->get_var(
+			$wpdb->prepare(
+			"SELECT COUNT(*) 
+        	FROM {$wpdb->prefix}mint_automation_log
+        	WHERE email = %s 
+        	AND automation_id = %d 
+        	AND status IN ('hold', 'processing')",
+			$email,
+			$automation_id
+		));
+
+		return $exists > 0;
 	}
 }
 

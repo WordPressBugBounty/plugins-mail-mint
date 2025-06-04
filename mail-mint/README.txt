@@ -7,7 +7,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.8.1
 Requires PHP: 7.4
-Stable tag:  1.17.11
+Stable tag:  1.17.12
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,6 +528,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.17.12 (2025-06-04) =
+* Improvement: Support Custom Fields in "Update Contact Fields" Action
+* Improvement: Add “Contact Re-entry After Exit” Option on Form Submission Trigger
 
 = 1.17.11 (2025-05-28) =
 * Improvement: Performance Optimization for Campaigns Lists

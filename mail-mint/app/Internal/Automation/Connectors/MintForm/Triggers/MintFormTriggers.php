@@ -144,6 +144,15 @@ class MintFormTriggers {
 		}
 
 		if ( 'mint_form_submission' === $trigger_name && !empty( $step_data['settings']['mailmint_form_settings']['form_id'] ) ) {
+			$automation_id = isset( $step_data['automation_id'] )? $step_data['automation_id'] : '';
+			$user_email    = isset( $data['data']['user_email'] )? $data['data']['user_email'] : '';
+			if ( HelperFunctions::if_already_in_automation( $user_email, $automation_id ) ){
+				$allow_entry = isset( $step_data['settings']['mailmint_form_settings']['allow_entry'] )? $step_data['settings']['mailmint_form_settings']['allow_entry'] : false;
+				if ( ! $allow_entry ) {
+					return false;
+				}
+			}
+
 			$form_id          = $step_data['settings']['mailmint_form_settings']['form_id'];
 			$settings_form_id = is_array($form_id) && isset($form_id['value']) ? (int)$form_id['value'] : (int)$form_id;
 			return $data['data']['form_id'] == $settings_form_id; //phpcs:ignore
