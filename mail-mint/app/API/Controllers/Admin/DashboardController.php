@@ -44,38 +44,19 @@ class DashboardController {
 	 * @param WP_REST_Request $request Request object used to generate the response.
 	 *
 	 * @return \WP_Error|\WP_HTTP_Response|\WP_REST_Response
+	 * 
+	 *  @since 1.18.0
 	 */
-	public function get_reports( WP_REST_Request $request ) {
+	public function get_dashboard_stats( WP_REST_Request $request ) {
 		// Get query params from the API.
-		$params     = MrmCommon::get_api_params_values( $request );
-		$filter     = ! empty( $params[ 'filter' ] ) ? $params[ 'filter' ] : 'all';
-		$start_date = ! empty( $params[ 'start_date' ] ) ? $params[ 'start_date' ] : gmdate( 'Y-m-d' );
-		$end_date   = ! empty( $params[ 'end_date' ] ) ? $params[ 'end_date' ] : gmdate( 'Y-m-d' );
+		$params = MrmCommon::get_api_params_values( $request );
+		$filter = isset( $params[ 'filter' ] ) ? $params[ 'filter' ] : 'all';
 
-		$top_cards_data = DashboardModel::get_top_cards_data( $filter, $start_date, $end_date );
-		$campaign       = DashboardModel::get_email_campaign_data( $filter, $start_date, $end_date );
-		$subscribers    = DashboardModel::get_subscribers_report( $filter );
-		$revenue        = MrmCommon::is_wc_active() ? DashboardModel::get_revenue_reports( $filter ) : array();
-		$contact        = DashboardModel::get_contact_chart_data( $filter );
-
-		$contact[ 'success' ] = true;
-
-		$card_data = array(
-			'contact_data'    => !empty( $top_cards_data[ 'contact_data' ] ) ? $top_cards_data[ 'contact_data' ] : array(),
-			'campaign_data'   => !empty( $top_cards_data[ 'campaign_data' ] ) ? $top_cards_data[ 'campaign_data' ] : array(),
-			'form_data'       => !empty( $top_cards_data[ 'form_data' ] ) ? $top_cards_data[ 'form_data' ] : array(),
-			'automation_data' => !empty( $top_cards_data[ 'automation_data' ] ) ? $top_cards_data[ 'automation_data' ] : array(),
-		);
-
+		// Prepare the response data.
 		$response = [
 			'success' => true,
 			'data'    => [
-				'card_data'      => $card_data,
-				'campaign'       => $campaign,
-				'subscribers'    => $subscribers,
-				'revenue'        => $revenue,
-				'contact'        => $contact,
-				'show_community' => $this->should_show_community_banner()
+				'stats' => DashboardModel::get_top_cards_data($filter),
 			]
 		];
 
@@ -84,20 +65,67 @@ class DashboardController {
 
 
     /**
-     * Get campaign analytics data
+     * Get dashboard performance data.
+	 * 
+	 *  Description:
+     *  - This method retrieves the performance data for campaigns, automations, and onboarding.
+     *  - It checks if the community banner should be shown and if there is an active SMTP plugin.
+     *  - The response includes the performance data and the status of the community banner
+     *    and SMTP warning.
      *
      * @param WP_REST_Request $request
      * @return \WP_Error|\WP_REST_Response
-     * @since 1.0.0
+     * @since 1.18.0
      */
-	public function get_campaign_analytics_data( WP_REST_Request $request ) {
-	    $campaigns = DashboardModel::get_campaigns_short_analytics();
-        $response = [
-            'success'               => true,
-            'campaign_analytics'    => $campaigns
-        ];
-        return rest_ensure_response( $response );
+	public function get_dashboard_performance() {
+	    $campaigns   = DashboardModel::get_recent_campaign_performance();
+		$automations = DashboardModel::get_recent_automation_performance();
+		$onboarding  = DashboardModel::get_onboarding_stats();
+
+		$response = [
+			'success' => true,
+			'data'    => [
+				'campaigns'      => $campaigns,
+				'automations'    => $automations,
+				'onboarding'     => $onboarding,
+				'show_community' => $this->should_show_community_banner(),
+				'smtp_warning'   => MrmCommon::find_active_smtp_plugin(),
+			]
+		];
+
+		return rest_ensure_response($response);
     }
+
+	/**
+	 * Get dashboard metrics.
+	 *
+	 *  Description:
+	 *  - This method retrieves the metrics for the dashboard based on the provided parameters.
+	 *  - It allows filtering by metric type (e.g., emails, subscribers) and date range.
+	 *
+	 * @param WP_REST_Request $request The request object containing the parameters.
+	 * 
+	 * @return \WP_Error|\WP_REST_Response The response containing the metrics data.
+	 *
+	 * @since 1.18.0
+	*/
+	public function get_dashboard_metrics( WP_REST_Request $request ) {
+		// Get query params from the API.
+		$params     = MrmCommon::get_api_params_values( $request );
+		$metric     = isset( $params['metric'] ) ? $params['metric'] : 'emails';
+		$start_date = isset( $params['start_date'] ) ? $params['start_date'] : '';
+		$end_date   = isset( $params['end_date'] ) ? $params['end_date'] : '';
+
+		// Prepare the response data.
+		$response = [
+			'success' => true,
+			'data'    => [
+				$metric => DashboardModel::prepare_dashboard_metrics( $metric, $start_date, $end_date ),
+			]
+		];
+
+		return rest_ensure_response( $response );
+	}
 
 	/**
 	 * Check if community banner should be shown.
@@ -155,6 +183,14 @@ class DashboardController {
 	public function hide_community_banner_permanently(){
 		// Set permanent transient (0 = no expiration).
 		set_transient('wpfnl_community_banner_permanently_hidden', true, 0);
+		return rest_ensure_response([
+			'success' => true
+		]);
+	}
+
+	public function hide_checklist() {
+		// Set a transient to hide the checklist.
+		set_transient('mint_hide_checklist', true, 0);
 		return rest_ensure_response([
 			'success' => true
 		]);

@@ -1412,9 +1412,7 @@ class MrmCommon {
 		$plugins        = Constants::get_smtp_plugin_list();
 		$active_plugins = array();
 		if ( empty( $plugins ) || !is_array( $plugins ) ) {
-			return array(
-				'status' => 'failed',
-			);
+			return false;
 		}
 		foreach ( $plugins as $plugin ) {
 			if ( isset( $plugin['slug'] ) && is_plugin_active( $plugin['slug'] ) ) {
@@ -1427,14 +1425,9 @@ class MrmCommon {
 		}
 		$get_notice = get_option( 'mint_notice_update', false );
 		if ( empty( $active_plugins ) && !$get_notice ) {
-			return array(
-				'status'  => 'success',
-				'message' => __( 'You do not have any SMTP setup on your website.Please note that your website is using the default WP sending service, which is not recommended for sending promotional emails.', 'mrm' ),
-			);
+			return true;
 		}
-		return array(
-			'status' => 'failed',
-		);
+		return false;
 	}
 
 	/**

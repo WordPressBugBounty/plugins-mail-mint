@@ -122,7 +122,7 @@ class TransStrings
 			'Video' => __('Video', 'mrm'),
 			'Documentation' => __('Documentation', 'mrm'),
 			'SocialGroup' => __('Social Group', 'mrm'),
-			'YoutubeVideo' => __('Youtube video', 'mrm'),
+			'VideoTutorials' => __('Video Tutorials', 'mrm'),
 			'YouTubeVideoPlayer' => __('YouTube video player', 'mrm'),
 			'Yes' => __('Yes', 'mrm'),
 			'No' => __('No', 'mrm'),
@@ -1528,6 +1528,7 @@ class TransStrings
 			'Downloads'      => __('Downloads', 'mrm'),
 			'Expires'         => __('Expires', 'mrm'),
 			'Download' 	  => __('Download', 'mrm'),
+			'SMTPWarningMessage' => __('You do not have any SMTP setup on your website. Please note that your website is using the default WP sending service, which is not recommended for sending promotional emails.', 'mrm'),
 		);
 	}
 }

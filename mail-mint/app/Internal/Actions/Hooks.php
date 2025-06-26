@@ -40,8 +40,8 @@ class Hooks {
 		add_filter( 'plugin_row_meta', array( $this, 'mailmint_plugin_row_meta' ), 10, 2 );
 		add_action( 'admin_footer', array( $this, 'remove_jetpack_note_from_mail_mint' ) );
 		add_action( 'init', array( $this, 'clear_litespeed_cache' ) );
-		add_action( 'action_scheduler_failed_action', array( $this, 'handle_failed_action' ), 10, 1);
-		add_action( 'action_scheduler_failed_execution', array( $this, 'handle_failed_action' ), 10, 2);
+		// add_action( 'action_scheduler_failed_action', array( $this, 'handle_failed_action' ), 10, 1);
+		// add_action( 'action_scheduler_failed_execution', array( $this, 'handle_failed_action' ), 10, 2);
 		add_action( 'init', array($this, 'handle_email_open_tracking'));
 		add_filter( 'mint_merge_tag_fallback', array( $this, 'mint_merge_tag_fallback' ), 10, 2 );
 		add_action( 'woocommerce_order_status_changed', array($this, 'handle_payment_status_changed'), 100, 4);

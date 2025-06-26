@@ -7,7 +7,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.8.1
 Requires PHP: 7.4
-Stable tag:  1.17.12
+Stable tag:  1.18.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,6 +528,14 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.18.0 (2025-06-26) =
+* New: Onboarding Checklist on the Dashboard
+* Improvement: UX Improvement on the Dashboard
+* Improvement: Background Processing for the Campaigns
+* Bugfix: Existing Custom Fields Mapping Issues on the Form Builder
+* Bugfix: Custom Fields Issues on the Automation Logical Step
+* Bugfix : UX Issues on the Abandoned Cart Settings
 
 = 1.17.12 (2025-06-04) =
 * Improvement: Support Custom Fields in "Update Contact Fields" Action

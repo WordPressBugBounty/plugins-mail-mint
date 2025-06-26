@@ -2542,8 +2542,7 @@ class HelperFunctions { //phpcs:ignore
 			"SELECT COUNT(*) 
         	FROM {$wpdb->prefix}mint_automation_log
         	WHERE email = %s 
-        	AND automation_id = %d 
-        	AND status IN ('hold', 'processing')",
+        	AND automation_id = %d",
 			$email,
 			$automation_id
 		));

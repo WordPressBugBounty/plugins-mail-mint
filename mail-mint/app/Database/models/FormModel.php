@@ -654,4 +654,11 @@ class FormModel {
 		$form_query = $wpdb->prepare("SELECT `title` FROM $form_table WHERE id = %d", array($id));
 		return $wpdb->get_var($form_query);
 	}
+
+	public static function get_form_count(){
+		global $wpdb;
+		$table_name = $wpdb->prefix . FormSchema::$table_name;
+
+		return absint($wpdb->get_var($wpdb->prepare('SELECT COUNT(`id`) FROM %1s', $table_name))); //phpcs:ignore
+	}
 }

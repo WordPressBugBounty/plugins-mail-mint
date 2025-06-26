@@ -626,4 +626,10 @@ class AutomationModel {
 		// Execute the query and return the results
 		return $wpdb->get_results($query, ARRAY_A);
 	}
+
+	public static function get_automation_count(){
+		global $wpdb;
+		$table_name = $wpdb->prefix . AutomationSchema::$table_name;
+		return absint($wpdb->get_var($wpdb->prepare('SELECT COUNT(`id`) FROM %1s', $table_name))); //phpcs:ignore
+	}
 }

@@ -1509,4 +1509,11 @@ class CampaignModel {
 
 		return $url_pairs;
 	}
+
+	public static function get_campaign_count(){
+		global $wpdb;
+		$campaign_table = $wpdb->prefix . CampaignSchema::$campaign_table;
+
+		return absint($wpdb->get_var($wpdb->prepare('SELECT COUNT(`id`) FROM %1s', $campaign_table))); //phpcs:ignore
+	}
 }

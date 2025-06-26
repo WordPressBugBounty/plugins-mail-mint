@@ -12,17 +12,14 @@
 
 namespace Mint\MRM\DataBase\Models;
 
-use DateTime;
 use Mint\MRM\DataBase\Tables\AutomationMetaSchema;
-use Mint\MRM\DataBase\Tables\ContactMetaSchema;
 use Mint\MRM\DataBase\Tables\FormSchema;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
 use Mint\MRM\DataBase\Tables\ContactSchema;
-use Mint\Mrm\Internal\Traits\Singleton;
 use MRM\Common\MrmCommon;
 use Mint\MRM\DataBase\Models\CampaignModel as ModelsCampaign;
-
-
+use MintMail\App\Internal\Automation\AutomationModel;
+use MintMail\App\Internal\Automation\HelperFunctions;
 
 /**
  * DashboardModel class
@@ -36,35 +33,34 @@ use Mint\MRM\DataBase\Models\CampaignModel as ModelsCampaign;
  */
 class DashboardModel {
 
-	use Singleton;
-
 	/**
-	 * Get top card data
+	 * Get top card data for the dashboard based on a filter.
 	 *
-	 * @param string $filter Filter by all, monthly, weekly, yearly and custom range.
-	 * @param string $start_date Start date for custom range.
-	 * @param string $end_date End date for custom range.
+	 * Retrieves total counts or relevant metrics for contacts, campaigns, automations, and forms.
 	 *
-	 * @return array
-	 * @since 1.0.0
+	 * @param string $filter Optional. Filter to apply on the data (e.g., 'all', 'today', 'this_week', etc.). Default 'all'.
+	 *
+	 * @return array Associative array with keys: 'contacts', 'campaigns', 'automations', 'forms'.
+	 * 
+	 * @since 1.18.0
 	 */
-	public static function get_top_cards_data( $filter = 'all', $start_date = '', $end_date = '' ) {
+	public static function get_top_cards_data( $filter = 'all' ) {
 		global $wpdb;
 		$contact_table    = $wpdb->prefix . ContactSchema::$table_name;
 		$form_table       = $wpdb->prefix . FormSchema::$table_name;
 		$campaign_table   = $wpdb->prefix . CampaignSchema::$campaign_table;
 		$automation_table = $wpdb->prefix . AutomationMetaSchema::$table_name;
 
-		$contact_data    = self::fetch_data( $contact_table, $filter, $start_date, $end_date );
-		$campaign_data   = self::fetch_data( $campaign_table, $filter, $start_date, $end_date );
-		$form_data       = self::fetch_data( $form_table, $filter, $start_date, $end_date );
-		$automation_data = self::fetch_automation_data( $automation_table, $filter, $start_date, $end_date );
+		$contact_data    = self::fetch_data( $contact_table, $filter );
+		$campaign_data   = self::fetch_data( $campaign_table, $filter );
+		$form_data       = self::fetch_data( $form_table, $filter );
+		$automation_data = self::fetch_automation_data( $automation_table, $filter );
 
 		return array(
-			'contact_data'    => $contact_data,
-			'campaign_data'   => $campaign_data,
-			'form_data'       => $form_data,
-			'automation_data' => $automation_data,
+			'contacts'    => $contact_data,
+			'campaigns'   => $campaign_data,
+			'automations' => $automation_data,
+			'forms'       => $form_data,
 		);
 	}
 
@@ -77,26 +73,64 @@ class DashboardModel {
 	 * @param string $end_date End date.
 	 *
 	 * @return float[]
+	 *
+	 * @since 1.18.0
 	 */
-	private static function fetch_data( string $table_name, string $filter, string $start_date = '', string $end_date = '' ) {
+	private static function fetch_data( string $table_name, string $filter ) {
 		global $wpdb;
 
+		$table_name = esc_sql($table_name);
+
 		$callback_function = 'get_where_query_for_' . $filter;
-		$conditions        = self::$callback_function( $start_date, $end_date );
 
-		$conditions1 = ! empty( $conditions[ 'conditions_1' ] ) ? $conditions[ 'conditions_1' ] : '1<>1';
-		$conditions2 = ! empty( $conditions[ 'conditions_2' ] ) ? $conditions[ 'conditions_2' ] : '1<>1';
+		if (! method_exists(__CLASS__, $callback_function)) {
+			return array(
+				'current'  => 0,
+				'previous' => 0,
+				'change'   => 0.0,
+				'trend'    => 'equal',
+			);
+		}
 
-		$current_data  = (float) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(`id`) FROM %1s WHERE %1s", array( $table_name, $conditions1 ) ) ); //phpcs:ignore
-		$previous_data = (float) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(`id`) FROM %1s WHERE %1s", array( $table_name, $conditions2 ) ) ); //phpcs:ignore
+		$conditions = call_user_func(array(__CLASS__, $callback_function));
 
-		$diff_rate = ( $current_data - $previous_data ) * 100.00;
-		$diff_rate = $previous_data > 0 ? $diff_rate / $previous_data : $diff_rate;
+		$where_current  = isset($conditions['conditions_1']) ? $conditions['conditions_1'] : '';
+		$where_previous = isset($conditions['conditions_2']) ? $conditions['conditions_2'] : '';
+
+		if (empty($where_current) || empty($where_previous)) {
+			return array(
+				'current'  => 0,
+				'previous' => 0,
+				'change'   => 0.0,
+				'trend'    => 'equal',
+			);
+		}
+
+		$query_current  = "SELECT COUNT(`id`) FROM `{$table_name}` WHERE {$where_current}";
+		$query_previous = "SELECT COUNT(`id`) FROM `{$table_name}` WHERE {$where_previous}";
+
+		$current_data  = (float) $wpdb->get_var($query_current);
+		$previous_data = (float) $wpdb->get_var($query_previous);
+
+		$diff_rate = ($previous_data > 0)
+			? (($current_data - $previous_data) / $previous_data) * 100
+			: ($current_data > 0 ? 100.0 : 0.0);
+
+		$formatted_diff = number_format($diff_rate, 2) . '%';
+
+		// Calculate trend
+		$trend = 'equal';
+		if ($current_data > $previous_data) {
+			$trend = 'up';
+		} elseif ($current_data < $previous_data) {
+			$trend = 'down';
+		}
 
 		return array(
-			'current'  => $current_data,
-			'previous' => $previous_data,
-			'rate'     => $diff_rate - intval( $diff_rate ) != 0 ? number_format( $diff_rate, 2 ) : $diff_rate, //phpcs:ignore
+			'current'  => number_format($current_data),
+			'previous' => number_format($previous_data),
+			'change'   => $formatted_diff,
+			'trend'    => $trend,
 		);
 	}
 
@@ -105,33 +139,51 @@ class DashboardModel {
 	 *
 	 * @param string $table_name Database table name.
 	 * @param string $filter Filter name (MONTH, WEEK, YEAR).
-	 * @param string $start_date Start date.
-	 * @param string $end_date End date.
 	 *
 	 * @return float[]
 	 */
-	private static function fetch_automation_data( string $table_name, string $filter, string $start_date = '', string $end_date = '' ) {
+	private static function fetch_automation_data( string $table_name, string $filter ) {
 		global $wpdb;
 
+		// Sanitize table name (or use whitelist depending on your project)
+		$table_name = esc_sql($table_name);
+
+		// Prepare callback method for conditions
 		$callback_function = 'get_where_query_for_' . $filter;
-		$conditions        = self::$callback_function( $start_date, $end_date );
 
-		$conditions1 = ! empty( $conditions[ 'conditions_1' ] ) ? $conditions[ 'conditions_1' ] : '1<>1';
-		$conditions2 = ! empty( $conditions[ 'conditions_2' ] ) ? $conditions[ 'conditions_2' ] : '1<>1';
+		// Get query conditions using the callback function
+		$conditions = call_user_func(array(__CLASS__, $callback_function));
 
-		$query1 = $wpdb->prepare( "SELECT COUNT(`id`) FROM %1s WHERE %1s AND meta_key = %s AND meta_value = %s", array( $table_name, $conditions1, 'source', 'mint' ) ); //phpcs:ignore
-		$query2 = $wpdb->prepare( "SELECT COUNT(`id`) FROM %1s WHERE %1s AND meta_key = %s AND meta_value = %s", array( $table_name, $conditions2, 'source', 'mint' ) ); //phpcs:ignore
+		$where_current  = isset($conditions['conditions_1']) ? $conditions['conditions_1'] : '';
+		$where_previous = isset($conditions['conditions_2']) ? $conditions['conditions_2'] : '';
 
-		$current_data  = (float) $wpdb->get_var( $query1 ); //phpcs:ignore
-		$previous_data = (float) $wpdb->get_var( $query2 ); //phpcs:ignore
+		// Table names can't be parameterized in prepare(), so use esc_sql() and interpolate
+		$query_current  = "SELECT COUNT(`id`) FROM `{$table_name}` WHERE {$where_current} AND meta_key = %s AND meta_value = %s";
+		$query_previous = "SELECT COUNT(`id`) FROM `{$table_name}` WHERE {$where_previous} AND meta_key = %s AND meta_value = %s";
 
-		$diff_rate = ( $current_data - $previous_data ) * 100.00;
-		$diff_rate = $previous_data > 0 ? $diff_rate / $previous_data : $diff_rate;
+		$current_data  = (float) $wpdb->get_var($wpdb->prepare($query_current, 'source', 'mint'));
+		$previous_data = (float) $wpdb->get_var($wpdb->prepare($query_previous, 'source', 'mint'));
+
+		// Calculate percentage difference
+		$diff_rate = ($previous_data > 0)
+			? (($current_data - $previous_data) / $previous_data) * 100
+			: ($current_data > 0 ? 100.0 : 0.0);
+
+		$formatted_diff = number_format($diff_rate, 2) . '%';
+
+		// Determine trend: 'up', 'down', or 'equal'
+		$trend = 'equal';
+		if ($current_data > $previous_data) {
+			$trend = 'up';
+		} elseif ($current_data < $previous_data) {
+			$trend = 'down';
+		}
 
 		return array(
-			'current'  => $current_data,
-			'previous' => $previous_data,
-			'rate'     => $diff_rate - intval( $diff_rate ) != 0 ? number_format( $diff_rate, 2 ) : $diff_rate, //phpcs:ignore
+			'current'  => number_format($current_data), // Adds thousands separator (e.g., 19,747)
+			'previous' => number_format($previous_data),
+			'change'   => $formatted_diff,
+			'trend'    => $trend,
 		);
 	}
 
@@ -175,10 +227,13 @@ class DashboardModel {
 	 *
 	 * @since 1.0.0
 	 */
-	private static function get_where_query_for_weekly() {
+	private static function get_where_query_for_last_7_days() {
 		return array(
-			'conditions_1' => '(YEARWEEK(created_at)=YEARWEEK(NOW()) OR YEARWEEK(updated_at)=YEARWEEK(NOW()))',
-			'conditions_2' => '(YEARWEEK(created_at)=YEARWEEK(NOW())-1 OR YEARWEEK(updated_at)=YEARWEEK(NOW())-1)',
+			// Current 7 days (including today)
+			'conditions_1' => "created_at >= CURDATE() - INTERVAL 6 DAY",
+
+			// Previous 7 days
+			'conditions_2' => "created_at >= CURDATE() - INTERVAL 13 DAY AND created_at < CURDATE() - INTERVAL 6 DAY"
 		);
 	}
 
@@ -203,10 +258,13 @@ class DashboardModel {
 	 *
 	 * @since 1.0.0
 	 */
-	private static function get_where_query_for_monthly() {
+	private static function get_where_query_for_last_30_days() {
 		return array(
-			'conditions_1' => '(EXTRACT(YEAR_MONTH FROM created_at) = EXTRACT(YEAR_MONTH FROM now()))',
-			'conditions_2' => '(EXTRACT(YEAR_MONTH FROM created_at) = EXTRACT(YEAR_MONTH FROM now()) - 1)',
+			// Current 30 days (including today)
+			'conditions_1' => "created_at >= CURDATE() - INTERVAL 29 DAY",
+
+			// Previous 30 days
+			'conditions_2' => "created_at >= CURDATE() - INTERVAL 59 DAY AND created_at < CURDATE() - INTERVAL 29 DAY"
 		);
 	}
 
@@ -217,123 +275,15 @@ class DashboardModel {
 	 *
 	 * @since 1.0.0
 	 */
-	private static function get_where_query_for_yearly() {
+	private static function get_where_query_for_last_60_days() {
 		return array(
-			'conditions_1' => '(YEAR(created_at)=YEAR(NOW()) OR YEAR(updated_at)=YEAR(NOW()))',
-			'conditions_2' => '(YEAR(created_at)=YEAR(NOW())-1 OR YEAR(updated_at)=YEAR(NOW())-1)',
+			// Current 60 days (including today)
+			'conditions_1' => "created_at >= CURDATE() - INTERVAL 59 DAY",
+
+			// Previous 60 days
+			'conditions_2' => "created_at >= CURDATE() - INTERVAL 119 DAY AND created_at < CURDATE() - INTERVAL 59 DAY"
 		);
 	}
-
-	/**
-	 * Get top email campaign data
-	 *
-	 * @param string $filter Filter by monthly, weekly, yearly and custom range.
-	 *
-	 * @return array
-	 * @since 1.0.0
-	 */
-	public static function get_email_campaign_data( $filter ) {
-		global $wpdb;
-		$campaign_table = $wpdb->prefix . CampaignSchema::$campaign_table;
-
-		$date_field = 'updated_at';
-		switch ( $filter ) {
-			case 'monthly':
-				$date_condition = 'EXTRACT(YEAR_MONTH FROM ' . $date_field . ') = EXTRACT(YEAR_MONTH FROM now())';
-				break;
-			case 'weekly':
-				$date_condition = 'YEARWEEK(' . $date_field . ') = YEARWEEK(NOW())';
-				break;
-			case 'yearly':
-				$date_condition = 'YEAR(' . $date_field . ') = YEAR(NOW())';
-				break;
-			default:
-				$date_condition = '1=1';
-				break;
-		}
-
-		if ( ! empty( $date_condition ) ) {
-			$curr_draft_campaigns = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND %1s", array( $campaign_table, 'archived', $date_condition ) ) ); //phpcs:ignore
-			$curr_sent_campaigns  = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND %1s", array( $campaign_table, 'active', $date_condition ) ) ); //phpcs:ignore
-
-			return array(
-				'completed' => $curr_draft_campaigns,
-				'running'   => $curr_sent_campaigns,
-			);
-		}
-
-		return array();
-	}
-
-	/**
-	 * Get contact chart data
-	 *
-	 * @param string $filter Filter by monthly, weekly, yearly and custom range.
-	 * @param string $start_date Start date for custom range.
-	 * @param string $end_date End date for custom range.
-	 *
-	 * @return array|void
-	 * @since 1.0.0
-	 */
-	public static function get_contact_chart_data( $filter, $start_date = '', $end_date = '' ) {
-		global $wpdb;
-		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
-
-		if ( 'monthly' === $filter ) {
-			$curr_month_pending_contacts      = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND EXTRACT(YEAR_MONTH FROM created_at) = EXTRACT(YEAR_MONTH FROM now())", array( $contact_table, 'pending' ) ) ); //phpcs:ignore
-			$curr_month_subscribed_contacts   = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND EXTRACT(YEAR_MONTH FROM created_at) = EXTRACT(YEAR_MONTH FROM now())", array( $contact_table, 'subscribed' ) ) ); //phpcs:ignore
-			$curr_month_unsubscribed_contacts = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND EXTRACT(YEAR_MONTH FROM created_at) = EXTRACT(YEAR_MONTH FROM now())", array( $contact_table, 'unsubscribed' ) ) ); //phpcs:ignore
-
-			$contact_chart_data = array(
-				'total_subscriber'   => $curr_month_subscribed_contacts,
-				'total_unsubscriber' => $curr_month_unsubscribed_contacts,
-				'total_pending'      => $curr_month_pending_contacts,
-			);
-
-			$contact_chart_data['total_contacts'] = $curr_month_subscribed_contacts + $curr_month_unsubscribed_contacts + $curr_month_pending_contacts;
-			return $contact_chart_data;
-		} elseif ( 'all' === $filter ) {
-			$curr_month_pending_contacts      = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s", array( $contact_table, 'pending' ) ) ); //phpcs:ignore
-			$curr_month_subscribed_contacts   = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s", array( $contact_table, 'subscribed' ) ) ); //phpcs:ignore
-			$curr_month_unsubscribed_contacts = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s", array( $contact_table, 'unsubscribed' ) ) ); //phpcs:ignore
-
-			$contact_chart_data = array(
-				'total_subscriber'   => $curr_month_subscribed_contacts,
-				'total_unsubscriber' => $curr_month_unsubscribed_contacts,
-				'total_pending'      => $curr_month_pending_contacts,
-			);
-
-			$contact_chart_data['total_contacts'] = $curr_month_subscribed_contacts + $curr_month_unsubscribed_contacts + $curr_month_pending_contacts;
-			return $contact_chart_data;
-		} elseif ( 'weekly' === $filter ) {
-			$curr_week_pending_contacts      = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND YEARWEEK(created_at)=YEARWEEK(NOW())", array( $contact_table, 'pending' ) ) ); //phpcs:ignore
-			$curr_week_subscribed_contacts   = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND YEARWEEK(created_at)=YEARWEEK(NOW())", array( $contact_table, 'subscribed' ) ) ); //phpcs:ignore
-			$curr_week_unsubscribed_contacts = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND YEARWEEK(created_at)=YEARWEEK(NOW())", array( $contact_table, 'unsubscribed' ) ) ); //phpcs:ignore
-
-			$contact_chart_data = array(
-				'total_subscriber'   => $curr_week_subscribed_contacts,
-				'total_unsubscriber' => $curr_week_unsubscribed_contacts,
-				'total_pending'      => $curr_week_pending_contacts,
-			);
-
-			$contact_chart_data['total_contacts'] = $curr_week_subscribed_contacts + $curr_week_unsubscribed_contacts + $curr_week_pending_contacts;
-			return $contact_chart_data;
-		} elseif ( 'yearly' === $filter ) {
-			$curr_year_pending_contacts      = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND YEAR(created_at)=YEAR(NOW())", array( $contact_table, 'pending' ) ) ); //phpcs:ignore
-			$curr_year_subscribed_contacts   = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND YEAR(created_at)=YEAR(NOW())", array( $contact_table, 'subscribed' ) ) ); //phpcs:ignore
-			$curr_year_unsubscribed_contacts = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM %1s WHERE status=%s AND YEAR(created_at)=YEAR(NOW())", array( $contact_table, 'unsubscribed' ) ) ); //phpcs:ignore
-
-			$contact_chart_data = array(
-				'total_subscriber'   => $curr_year_subscribed_contacts,
-				'total_unsubscriber' => $curr_year_unsubscribed_contacts,
-				'total_pending'      => $curr_year_pending_contacts,
-			);
-
-			$contact_chart_data['total_contacts'] = $curr_year_subscribed_contacts + $curr_year_unsubscribed_contacts + $curr_year_pending_contacts;
-			return $contact_chart_data;
-		}
-	}
-
 
 	/**
 	 * Return campaign and automation based revenue reports
@@ -389,387 +339,507 @@ class DashboardModel {
 	}
 
 	/**
-	 * Get subscribers for current year (monthly)
-	 *
-	 * @return array|object|\stdClass[]|null
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_subscribers_for_yearly() {
-		global $wpdb;
-		$contact_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
-
-		$query  = "SELECT DATE_FORMAT(created_at, '%b') AS label";
-		$query .= ', COUNT(contact_id) as subscribers ';
-		$query .= 'FROM %1s ';
-		$query .= 'WHERE meta_key = %s ';
-		$query .= 'AND meta_value = %s ';
-		$query .= 'AND created_at BETWEEN DATE_SUB(NOW(), INTERVAL 1 YEAR) AND NOW() ';
-		$query .= "GROUP BY DATE_FORMAT(created_at, '%b') ";
-		$query .= "ORDER BY DATE_FORMAT(created_at, '%b') ASC";
-
-		$result = $wpdb->get_results( $wpdb->prepare( $query, array( $contact_meta_table, 'status_changed', 'subscribed' ) ), ARRAY_A ); //phpcs:ignore
-		$result = array_column( $result, 'subscribers', 'label' );
-
-		$months = array();
-		for ( $i = 0; $i < 12; $i++ ) {
-			$months[date('M', strtotime("-$i month"))] = 0;
-		}
-
-		$months = array_reverse( $months, true );
-
-		return array(
-			'new_subscribers'   => array_merge( $months, $result ),
-			'total_subscribers' => self::get_total_subscribers(),
-		);
-	}
-
-	/**
-	 * Get subscribers for current month (daily)
-	 *
-	 * @return array|\stdClass[]
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_subscribers_for_monthly() {
-		global $wpdb;
-		$contact_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
-
-		$query  = "SELECT DATE_FORMAT(created_at, '%b %e') AS label";
-		$query .= ', COUNT(contact_id) as subscribers ';
-		$query .= 'FROM %1s ';
-		$query .= 'WHERE meta_key = %s ';
-		$query .= 'AND meta_value = %s ';
-		$query .= 'AND created_at BETWEEN DATE_SUB(NOW(), INTERVAL 30 DAY) AND NOW() ';
-		$query .= "GROUP BY DATE_FORMAT(created_at, '%b %e') ";
-		$query .= "ORDER BY DATE_FORMAT(created_at, '%b %e') ASC";
-
-		$result = $wpdb->get_results( $wpdb->prepare( $query, array( $contact_meta_table, 'status_changed', 'subscribed' ) ), ARRAY_A ); //phpcs:ignore
-		$result = array_column( $result, 'subscribers', 'label' );
-
-		$monthly_days = array();
-
-		for ( $i = 0; $i < 30; $i++ ) {
-			$monthly_days[date('M j', strtotime("-$i day"))] = 0;
-		}
-		$monthly_days = array_reverse( $monthly_days, true );
-
-		return array(
-			'new_subscribers'   => array_merge( $monthly_days, $result ),
-			'total_subscribers' => self::get_total_subscribers(),
-		);
-	}
-
-	/**
-	 * Get subscribers for current week (daily)
-	 *
-	 * @return array|\stdClass[]
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_subscribers_for_weekly() {
-		global $wpdb;
-		$contact_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
-
-		$query  = "SELECT DATE_FORMAT(created_at, '%b %e') AS label";
-		$query .= ', COUNT(contact_id) as subscribers ';
-		$query .= $wpdb->prepare( "FROM %1s ", array( $contact_meta_table ) ); //phpcs:ignore
-		$query .= $wpdb->prepare( "WHERE meta_key = %s ", array( 'status_changed' ) ); //phpcs:ignore
-		$query .= $wpdb->prepare( "AND meta_value = %s ", array( 'subscribed' ) ); //phpcs:ignore
-		$query .= "AND created_at BETWEEN DATE_SUB(NOW(), INTERVAL 6 DAY) AND NOW() ";
-		$query .= "GROUP BY DATE_FORMAT(created_at, '%b %e') ";
-		$query .= "ORDER BY DATE_FORMAT(created_at, '%c %e') ASC";
-		$result = $wpdb->get_results( $query, ARRAY_A ); //phpcs:ignore
-
-		$result = array_column( $result, 'subscribers', 'label' );
-
-		$week_days = array();
-		$interval  = 0;
-		while ( $interval < 7 ) {
-			$label               = date( 'M j', strtotime( '-' . $interval . 'day' ) ); //phpcs:ignore
-			$week_days[ $label ] = 0;
-			$interval++;
-		}
-		$week_days = array_reverse( $week_days, true );
-
-		return array(
-			'new_subscribers'   => array_merge( $week_days, $result ),
-			'total_subscribers' => self::get_total_subscribers(),
-		);
-
-		return array(
-			'new_subscribers'   => array(),
-			'total_subscribers' => array(),
-		);
-	}
-
-	/**
-	 * Get subscribers for all filter tag
-	 *
-	 * @return array|\stdClass[]
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_subscribers_for_all() {
-		global $wpdb;
-		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
-
-		$first_date = $wpdb->get_row( $wpdb->prepare( 'SELECT created_at FROM %1s LIMIT 1', $contact_table ), ARRAY_A ); //phpcs:ignore
-		$first_date = isset( $first_date['created_at'] ) ? $first_date['created_at'] : '';
-		$prev_date  = new DateTime( $first_date );
-		$curt_date  = new DateTime();
-		$interval   = $prev_date->diff( $curt_date );
-		$days       = $interval->days;
-
-		if ( $days <= 7 ) {
-			return self::get_subscribers_for_weekly();
-		} elseif ( $days > 7 && $days <= 31 ) {
-			return self::get_subscribers_for_monthly();
-		} elseif ( $days > 31 && $days <= 365 ) {
-			return self::get_subscribers_for_yearly();
-		} elseif ( $days > 365 && $days <= 1460 ) {
-			return self::get_subscribers_for_quarterly( $first_date );
-		} else {
-			return self::get_subscribers_for_all_yearly( $first_date );
-		}
-	}
-
-	/**
-	 * Retrieves the subscriber growth rate for every quarter from the current year to the next four years.
-	 *
-	 * @param string $first_date First date while data inserted on contacts table.
-	 * @return array An array containing the yearly subscriber growth rate data.
-	 * @since 1.0.0
-	 */
-	public static function get_subscribers_for_quarterly( $first_date ) {
-		global $wpdb;
-		$contact_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
-
-		$query  = "SELECT CONCAT(YEAR(created_at), ' Q', QUARTER(created_at)) AS label";
-		$query .= ', COUNT(contact_id) as subscribers ';
-		$query .= 'FROM %1s ';
-		$query .= 'WHERE meta_key = %s ';
-		$query .= 'AND meta_value = %s ';
-		$query .= 'AND created_at >= DATE_SUB(NOW(), INTERVAL 5 YEAR)';
-		$query .= 'GROUP BY YEAR(created_at), QUARTER(created_at) ';
-		$query .= 'ORDER BY YEAR(created_at) ASC, QUARTER(created_at) ASC';
-		$result = $wpdb->get_results( $wpdb->prepare( $query, array( $contact_meta_table, 'status_changed', 'subscribed' ) ), ARRAY_A ); //phpcs:ignore
-		$result = array_column( $result, 'subscribers', 'label' );
-
-		$current_year = gmdate( 'Y', strtotime( $first_date ) );
-
-		$quarters = array();
-		$count    = 0;
-
-		for ( $year = $current_year; $year < $current_year + 4; $year++ ) {
-			for ( $quarter = 1; $quarter <= 4; $quarter++ ) {
-				$count++;
-				if ( $count > 20 ) {
-					break 2;
-				}
-
-				$label       = $year . ' Q' . $quarter;
-				$subscribers = isset( $result[ $label ] ) ? $result[ $label ] : 0;
-
-				$quarters[ $label ] = $subscribers;
-			}
-		}
-
-		return array(
-			'new_subscribers'   => $quarters,
-			'total_subscribers' => self::get_total_subscribers(),
-		);
-	}
-
-	/**
-	 * Retrieves the subscriber growth rate for every year from the current year to the next five years.
-	 *
-	 * @param string $first_date First date while data inserted on contacts table.
-	 * @return array An array containing the yearly subscriber growth rate data.
-	 * @since 1.0.0
-	 */
-	public static function get_subscribers_for_all_yearly( $first_date ) {
-		global $wpdb;
-		$contact_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
-
-		$query  = "SELECT DATE_FORMAT(created_at, '%Y') AS label";
-		$query .= ', COUNT(contact_id) as subscribers ';
-		$query .= 'FROM %1s ';
-		$query .= 'WHERE meta_key = %s ';
-		$query .= 'AND meta_value = %s ';
-		$query .= 'AND created_at BETWEEN DATE_SUB(NOW(), INTERVAL 5 YEAR) AND DATE_ADD(NOW(), INTERVAL 1 YEAR) ';
-		$query .= "GROUP BY DATE_FORMAT(created_at, '%Y') ";
-		$query .= "ORDER BY DATE_FORMAT(created_at, '%Y') ASC";
-
-		$result = $wpdb->get_results( $wpdb->prepare( $query, array( $contact_meta_table, 'status_changed', 'subscribed' ) ), ARRAY_A ); //phpcs:ignore
-		$result = array_column( $result, 'subscribers', 'label' );
-
-		$start_year = gmdate( 'Y', strtotime( $first_date ) );
-		$last_year  = $start_year + 5;
-
-		$yearly_data = array();
-		for ( $year = $start_year; $year <= $last_year; $year++ ) {
-			$yearly_data[ $year ] = isset( $result[ $year ] ) ? $result[ $year ] : 0;
-		}
-
-		return array(
-			'new_subscribers'   => $yearly_data,
-			'total_subscribers' => self::get_total_subscribers(),
-		);
-	}
-
-	/**
-	 * Get total subscribers till date
-	 *
-	 * @return string|null
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_total_subscribers() {
-		global $wpdb;
-		$contact_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
-
-		$query  = 'SELECT COUNT(contact_id) total_subscribers ';
-		$query .= 'FROM %1s ';
-		$query .= 'WHERE meta_key = %s ';
-		$query .= 'AND meta_value = %s';
-
-		return $wpdb->get_var( $wpdb->prepare( $query, array( $contact_meta_table, 'status_changed', 'subscribed' ) ) ); //phpcs:ignore
-	}
-
-	/**
-	 * Helper function to get subscriber growth
-	 *
-	 * @param string $filter Filter option.
-	 *
-	 * @return array
-	 *
-	 * @since 1.0.0
-	 */
-	public static function get_subscribers_report( string $filter ) {
-		$get_subscribers = 'get_subscribers_for_' . strtolower( $filter );
-		$subscribers     = self::$get_subscribers();
-
-		$total_subscribers = ! empty( $subscribers[ 'total_subscribers' ] ) ? $subscribers[ 'total_subscribers' ] : 0;
-		$labels            = array();
-		$values            = array();
-
-		if ( ! empty( $subscribers[ 'new_subscribers' ] ) ) {
-			$labels = array_keys( $subscribers[ 'new_subscribers' ] );
-			$values = array_values( $subscribers[ 'new_subscribers' ] );
-		}
-
-		$existing_subscribers = self::prepare_existing_subscribers( $total_subscribers, $labels, $values, $filter );
-
-		$existing_max = ! empty( $existing_subscribers[ 'values' ] ) ? max( $existing_subscribers[ 'values' ] ) : 0;
-		$new_max      = ! empty( $values ) ? max( $values ) : 0;
-
-		$max = max( array( $existing_max, $new_max ) );
-
-		return array(
-			'new_subscribers'      => array(
-				'labels' => $labels,
-				'values' => $values,
-			),
-			'existing_subscribers' => self::prepare_existing_subscribers( $total_subscribers, $labels, $values, $filter ),
-			'total_subscribers'    => $total_subscribers,
-			'max_today'            => $max,
-		);
-	}
-
-	/**
-	 * Prepare existing users
-	 *
-	 * @param int    $total_subscribers Total subscribers.
-	 * @param array  $labels Labels.
-	 * @param array  $new_values New subscribers count.
-	 * @param string $filter Filter.
-	 *
-	 * @return array|array[]
-	 *
-	 * @since 1.0.0
-	 */
-	public static function prepare_existing_subscribers( $total_subscribers, $labels, $new_values, $filter ) {
-		global $wpdb;
-		$contact_table        = $wpdb->prefix . ContactSchema::$table_name;
-		$existing_subscribers = array( 'values' => array() );
-		$label                = '';
-
-		$first_date = $wpdb->get_row( $wpdb->prepare( 'SELECT created_at FROM %1s LIMIT 1', $contact_table ), ARRAY_A ); //phpcs:ignore
-		$first_date = isset( $first_date['created_at'] ) ? $first_date['created_at'] : '';
-		$prev_date  = new DateTime( $first_date );
-		$curt_date  = new DateTime();
-		$interval   = $prev_date->diff( $curt_date );
-		$days       = $interval->days;
-
-		if ( 'yearly' === strtolower( $filter ) ) {
-			$label = date_format( current_datetime(), 'M' );
-		} elseif ( 'monthly' === strtolower( $filter ) || 'weekly' === strtolower( $filter ) ) {
-			$label = date_format( current_datetime(), 'M j' );
-		} else {
-			switch ( true ) {
-				case ( $days <= 7 ):
-					$label = date_format( current_datetime(), 'M j' );
-					break;
-				case ( $days <= 31 ):
-					$label = date_format( current_datetime(), 'M j' );
-					break;
-				case ( $days <= 365 ):
-					$label = date_format( current_datetime(), 'M' );
-					break;
-				default:
-					$label = date_format( current_datetime(), 'M' );
-					break;
-			}
-		}
-
-		$label_index = array_search( $label, $labels, true );
-
-		for ( $key = 0; $key <= $label_index; $key++ ) {
-			$total = 0;
-
-			for ( $index = $key; $index <= $label_index; $index ++ ) {
-				$total += isset( $new_values[ $index ] ) ? (int) $new_values[ $index ] : 0;
-			}
-			$existing_subscribers[ 'values' ][] = $total_subscribers - $total;
-		}
-
-		return $existing_subscribers;
-	}
-
-
-	/**
 	 * Get last five campaign analytics data (archived and running)
 	 *
 	 * @return array
 	 * @since 1.0.0
 	 */
-	public static function get_campaigns_short_analytics() {
+	public static function get_recent_campaign_performance() {
 		global $wpdb;
 		$campaigns_table = $wpdb->prefix . CampaignSchema::$campaign_table;
 
 		$sql = 'SELECT `id`, `title`, `updated_at`, `type` FROM %1s WHERE `status` IN (%s, %s) ORDER BY updated_at DESC LIMIT 0, 5';
 
-		$results = $wpdb->get_results( $wpdb->prepare( $sql, $campaigns_table, 'archived', 'active' ) ); //phpcs:ignore
+		$results = $wpdb->get_results( $wpdb->prepare( $sql, $campaigns_table, 'archived', 'active' ), ARRAY_A ); //phpcs:ignore
+		if ( empty( $results ) ) {
+			return array();
+		}
 
+		// Prepare campaigns data.
 		$campaigns = array();
 		foreach ( $results as $campaign ) {
-			$campaign_id      = $campaign->id;
-			$title            = $campaign->title;
+			$campaign_id      = isset( $campaign['id'] ) ? (int) $campaign['id'] : 0;
+			$title            = isset( $campaign['title'] ) ? $campaign['title'] : '';
 			$total_bounced    = EmailModel::count_delivered_status_on_campaign( $campaign_id, 'failed' );
 			$total_recipients = ModelsCampaign::get_campaign_meta_value( $campaign_id, 'total_recipients' );
 			$campaigns[]      = array(
 				'id'               => $campaign_id,
 				'title'            => $title,
-				'type'             => $campaign->type,
-				'updated_at'       => gmdate( get_option( 'date_format' ), strtotime( $campaign->updated_at ) ),
+				'type'             => isset( $campaign['type'] ) ? $campaign['type'] : '',
 				'total_recipients' => $total_recipients,
-				'open_rate'        => ModelsCampaign::prepare_campaign_open_rate( $campaign_id, $total_recipients, $total_bounced ),
-				'click_rate'       => ModelsCampaign::prepare_campaign_click_rate( $campaign_id, $total_recipients, $total_bounced ),
+				'open_rate'        => ModelsCampaign::prepare_campaign_open_rate( $campaign_id, $total_recipients, $total_bounced ) . '%',
+				'click_rate'       => ModelsCampaign::prepare_campaign_click_rate( $campaign_id, $total_recipients, $total_bounced ) . '%',
 				'unsubscribe'      => EmailModel::count_unsubscribe_on_campaign( $campaign_id ),
 			);
 		}
 		return $campaigns;
 	}
 
+	/**
+	 * Get performance data for the 5 most recent active automations.
+	 *
+	 * Retrieves basic metrics for each automation, including how long ago it was created,
+	 * how many contacts entered it, how many completed it, and how many are still processing.
+	 *
+	 * @return array List of recent automation data with performance metrics.
+	 * 
+	 * @since 1.18.0
+	 */
+	public static function get_recent_automation_performance() {
+		$results = AutomationModel::get_all('id', 'desc', 0, 5, '', 'active');
+		if ( ! isset( $results['data'] ) || empty( $results['data'] ) ) {
+			return array();
+		}
+		
+		$automations = array();
+
+		if ( isset($results['data'] ) ) {
+			$automations = array_map(
+				function( $automation ) {
+					if ( is_array( $automation ) && !empty( $automation ) ) {
+						$created_at    = isset( $automation['created_at'] ) ? $automation['created_at'] : '';
+						$automation_id = isset( $automation['id'] ) ? $automation['id'] : '';
+
+						$automation['created_ago'] = human_time_diff( strtotime( $created_at ), current_time( 'timestamp' ) );
+						$automation['entered']   = HelperFunctions::count_total_enterance( $automation_id );
+						$automation['completed']   = HelperFunctions::count_completed_automation($automation_id);
+						$automation['processing']  = $automation['entered'] - $automation['completed'];
+					}
+					return $automation;
+				},
+				$results['data']
+			);
+		}
+
+		return $automations;
+	}
+
+	/**
+	 * Get onboarding checklist stats for the dashboard.
+	 *
+	 * Calculates how many onboarding steps are completed and returns the full checklist with progress info.
+	 *
+	 * @return array Contains total steps, completed count, checklist steps, percentage, and show flag.
+	 * 
+	 * @since 1.18.0
+	 */
+	public static function get_onboarding_stats() {
+
+		$boarding_steps = [
+			[
+				'label'     => __('Create a List', 'mrm'),
+				'completed' => ContactGroupModel::get_groups_count('lists') > 0,
+				'link'      => 'lists',
+			],
+			[
+				'label'     => __('Create or Import Contacts', 'mrm'),
+				'completed' => ContactModel::get_contacts_count() > 0,
+				'link'      => 'contacts',
+			],
+			[
+				'label'     => __('Complete Email Settings', 'mrm'),
+				'completed' => get_option('_mrm_email_settings'),
+				'link'      => 'settings/email-settings',
+			],
+			[
+				'label'     => __('Create a Campaign', 'mrm'),
+				'completed' => CampaignModel::get_campaign_count() > 0,
+				'link'      => 'campaigns/regular',
+			],
+			[
+				'label'     => __('Create a Form', 'mrm'),
+				'completed' => FormModel::get_form_count() > 0,
+				'link'      => 'forms',
+			],
+			[
+				'label'     => __('Create a Automation', 'mrm'),
+				'completed' => AutomationModel::get_automation_count() > 0,
+				'link'      => 'automations',
+			],
+		];		
+
+		$completed = 0;
+		$total     = count($boarding_steps);
+
+		foreach ($boarding_steps as $step) {
+			if ($step['completed']) {
+				$completed++;
+			}
+		}
+
+		$percentage = $total > 0 ? round(($completed / $total) * 100) : 0;
+
+		return [
+			'total'      => $total,
+			'completed'  => $completed,
+			'steps'      => $boarding_steps,
+			'percentage' => $percentage,
+			'show'       => self::should_show_checklist(),      
+		];
+	}
+
+	/**
+	 * Prepare dashboard metrics based on the selected metric type.
+	 *
+	 * Returns email or revenue data for the given date range.
+	 *
+	 * @param string $metric     The type of metric to fetch ('emails' or 'revenue').
+	 * @param string $start_date Optional. Start date for the data range.
+	 * @param string $end_date   Optional. End date for the data range.
+	 *
+	 * @return array Requested metric data or an empty array if metric type is invalid.
+	 * 
+	 * @since 1.18.0
+	 */
+	public static function prepare_dashboard_metrics( $metric, $start_date = '', $end_date = '' ) {
+		if ( 'emails' === $metric ) {
+			return self::get_emails_data( $start_date, $end_date );
+		} elseif ( 'revenue' === $metric ) {
+			return self::get_revenue_data( $start_date, $end_date );
+		} else {
+			return [];
+		}
+	}
+
+	/**
+	 * Get email performance metrics within a date range or all-time.
+	 *
+	 * Returns counts for sent, opened, and unsubscribed emails along with trend info.
+	 * If no date range is given, it returns all-time totals without trends.
+	 *
+	 * @param string $start_date Optional. Start date for the report (Y-m-d).
+	 * @param string $end_date   Optional. End date for the report (Y-m-d).
+	 *
+	 * @return array Email stats including sent, open, and unsubscribe data.
+	 * 
+	 * @since 1.18.0
+	 */
+	private static function get_emails_data($start_date = '', $end_date = '')
+	{
+		global $wpdb;
+
+		$emails_table = $wpdb->prefix . 'mint_broadcast_emails';
+		$meta_table   = $wpdb->prefix . 'mint_broadcast_email_meta';
+
+		// If no dates → fetch all-time totals (no trend calculation)
+		if (empty($start_date) && empty($end_date)) {
+			// Total sent emails (all time)
+			$total_sent = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$emails_table} WHERE status = 'sent'");
+
+			// Total opened emails (all time)
+			$total_open = (int) $wpdb->get_var("
+				SELECT COUNT(DISTINCT bm.mint_email_id)
+				FROM {$meta_table} bm
+				INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+				WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1'
+			");
+
+			// Total unsubscribed emails (adjust if needed based on your data)
+			$total_unsub = (int) $wpdb->get_var("
+				SELECT COUNT(DISTINCT bm.mint_email_id)
+				FROM {$meta_table} bm
+				INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+				WHERE bm.meta_key = 'is_unsubscribe' AND bm.meta_value = '1'
+			");
+
+			return array(
+				'sent'        => array(
+					'current'  => number_format($total_sent),
+					'previous' => 0,
+					'change'   => 0.0,
+					'trend'    => 'equal',
+				),
+				'open'        => array(
+					'current'  => number_format($total_open),
+					'previous' => 0,
+					'change'   => 0.0,
+					'trend'    => 'equal',
+				),
+				'unsubscribe' => array(
+					'current'  => number_format($total_unsub),
+					'previous' => 0,
+					'change'   => 0.0,
+					'trend'    => 'equal',
+				),
+			);
+		}
+
+		// Date filter is provided → Calculate with trend and percentage
+		$start_date      = esc_sql($start_date);
+		$end_date        = esc_sql($end_date);
+		$interval_days   = (strtotime($end_date) - strtotime($start_date)) / (60 * 60 * 24);
+
+		$previous_start  = date('Y-m-d', strtotime($start_date . " -{$interval_days} days"));
+		$previous_end    = date('Y-m-d', strtotime($start_date . " -1 day"));
+
+		// Sent Emails Count
+		$current_sent  = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$emails_table} WHERE status = 'sent' AND created_at BETWEEN '{$start_date}' AND '{$end_date}'");
+		$previous_sent = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$emails_table} WHERE status = 'sent' AND created_at BETWEEN '{$previous_start}' AND '{$previous_end}'");
+
+		// Open Emails Count
+		$current_open  = (int) $wpdb->get_var("
+			SELECT COUNT(DISTINCT bm.mint_email_id)
+			FROM {$meta_table} bm
+			INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+			WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1'
+			AND be.created_at BETWEEN '{$start_date}' AND '{$end_date}'
+		");
+
+		$previous_open = (int) $wpdb->get_var("
+			SELECT COUNT(DISTINCT bm.mint_email_id)
+			FROM {$meta_table} bm
+			INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+			WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1'
+			AND be.created_at BETWEEN '{$previous_start}' AND '{$previous_end}'
+		");
+
+		// Unsubscribe Count → If you have this meta key, otherwise skip/remove this
+		$current_unsub  = (int) $wpdb->get_var("
+			SELECT COUNT(DISTINCT bm.mint_email_id)
+			FROM {$meta_table} bm
+			INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+			WHERE bm.meta_key = 'is_unsubscribe' AND bm.meta_value = '1'
+			AND be.created_at BETWEEN '{$start_date}' AND '{$end_date}'
+		");
+
+		$previous_unsub = (int) $wpdb->get_var("
+			SELECT COUNT(DISTINCT bm.mint_email_id)
+			FROM {$meta_table} bm
+			INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+			WHERE bm.meta_key = 'is_unsubscribe' AND bm.meta_value = '1'
+			AND be.created_at BETWEEN '{$previous_start}' AND '{$previous_end}'
+		");
+
+		return array(
+			'sent'        => self::format_email_metric($current_sent, $previous_sent),
+			'open'        => self::format_email_metric($current_open, $previous_open),
+			'unsubscribe' => self::format_email_metric($current_unsub, $previous_unsub),
+		);
+	}
+
+	/**
+	 * Format email metric data with change percentage and trend.
+	 *
+	 * Calculates the percentage change and trend (up, down, or equal) between current and previous values.
+	 *
+	 * @param float|int $current  Current period value.
+	 * @param float|int $previous Previous period value.
+	 *
+	 * @return array Formatted metric with current, previous, change percentage, and trend direction.
+	 * 
+	 *  @since 1.18.0
+	 */
+	private static function format_email_metric($current, $previous)
+	{
+		$current = (float) $current;
+		$previous = (float) $previous;
+
+		if ($previous == 0) {
+			$change = $current > 0 ? 100.0 : 0.0;
+		} else {
+			$change = (($current - $previous) / $previous) * 100;
+		}
+
+		$trend = 'equal';
+		if ($current > $previous) {
+			$trend = 'up';
+		} elseif ($current < $previous) {
+			$trend = 'down';
+		}
+
+		return array(
+			'current'  => number_format($current),
+			'previous' => number_format($previous),
+			'change'   => number_format($change, 2) . '%',
+			'trend'    => $trend,
+		);
+	}
+
+	/**
+	 * Get revenue metrics within a date range or all-time.
+	 *
+	 * Returns total orders, revenue, and average order value (AOV), with trend and percentage change.
+	 * Automatically adjusts query based on HPOS or legacy WooCommerce storage.
+	 *
+	 * @param string $start_date Optional. Start date for the report (Y-m-d).
+	 * @param string $end_date   Optional. End date for the report (Y-m-d).
+	 *
+	 * @return array Revenue metrics including orders, revenue, and AOV.
+	 * 
+	 * @since 1.18.0
+	 */
+	private static function get_revenue_data($start_date = '', $end_date = ''){
+		global $wpdb;
+
+		$is_hpos = MrmCommon::is_hpos_enable();
+
+		$emails_meta_table   = $wpdb->prefix . 'mint_broadcast_email_meta';
+		$orders_table        = $is_hpos ? $wpdb->prefix . 'wc_orders' : $wpdb->prefix . 'posts';
+		$order_id_column     = $is_hpos ? 'id' : 'ID';
+		$order_type_column   = $is_hpos ? 'type' : 'post_type';
+		$order_status_column = $is_hpos ? 'status' : 'post_status';
+		$meta_table          = $is_hpos ? '' : $wpdb->prefix . 'postmeta';
+		$meta_key_clause     = $is_hpos ? '' : "AND pm.meta_key = '_order_total'";
+
+		// All time data if no dates provided
+		if (empty($start_date) && empty($end_date)) {
+			$order_ids = $wpdb->get_col("
+			SELECT DISTINCT bm.meta_value
+			FROM {$emails_meta_table} bm
+			INNER JOIN {$orders_table} o ON o.{$order_id_column} = bm.meta_value
+			WHERE bm.meta_key = 'order_id'
+			AND o.{$order_type_column} = 'shop_order'
+			AND o.{$order_status_column} IN ('wc-completed', 'wc-processing', 'wc-wpfnl-main-order')");
+
+			if (empty($order_ids)) {
+				return self::empty_orders_response();
+			}
+
+			$order_ids_in = implode(',', array_map('intval', $order_ids));
+
+			$total_orders = count($order_ids);
+
+			if ($is_hpos) {
+				$total_revenue = (float) $wpdb->get_var("
+				SELECT SUM(total_amount)
+				FROM {$orders_table}
+				WHERE {$order_id_column} IN ({$order_ids_in})");
+			} else {
+				$total_revenue = (float) $wpdb->get_var("
+				SELECT SUM(CAST(pm.meta_value AS DECIMAL(10,2)))
+				FROM {$meta_table} pm
+				WHERE pm.post_id IN ({$order_ids_in})
+				{$meta_key_clause}");
+			}
+
+			$aov = $total_orders > 0 ? $total_revenue / $total_orders : 0;
+
+			return array(
+				'orders'  => self::format_email_metric($total_orders, 0),
+				'revenue' => self::format_email_metric($total_revenue, 0),
+				'aov'     => self::format_email_metric($aov, 0),
+			);
+		}
+
+		// Dates provided → calculate current and previous
+		$start_date      = esc_sql($start_date);
+		$end_date        = esc_sql($end_date);
+		$interval_days   = (strtotime($end_date) - strtotime($start_date)) / (60 * 60 * 24);
+		$previous_start  = date('Y-m-d', strtotime($start_date . " -{$interval_days} days"));
+		$previous_end    = date('Y-m-d', strtotime($start_date . " -1 day"));
+
+		$current_data  = self::fetch_orders_metric($start_date, $end_date, $is_hpos);
+		$previous_data = self::fetch_orders_metric($previous_start, $previous_end, $is_hpos);
+
+		return array(
+			'orders'  => self::format_email_metric($current_data['count'], $previous_data['count']),
+			'revenue' => self::format_email_metric($current_data['revenue'], $previous_data['revenue']),
+			'aov'     => self::format_email_metric($current_data['aov'], $previous_data['aov']),
+		);
+	}
+
+	/**
+	 * Fetch order metrics for a date range.
+	 *
+	 * @param string $start  Start date (Y-m-d).
+	 * @param string $end    End date (Y-m-d).
+	 * @param bool   $is_hpos Whether WooCommerce HPOS is enabled.
+	 *
+	 * @return array Returns order count, total revenue, and average order value.
+	 * 
+	 * @since 1.18.0
+	 */
+	private static function fetch_orders_metric($start, $end, $is_hpos)
+	{
+		global $wpdb;
+
+		$emails_meta_table   = $wpdb->prefix . 'mint_broadcast_email_meta';
+		$orders_table        = $is_hpos ? $wpdb->prefix . 'wc_orders' : $wpdb->prefix . 'posts';
+		$order_id_column     = $is_hpos ? 'id' : 'ID';
+		$order_type_column   = $is_hpos ? 'type' : 'post_type';
+		$order_date_column   = $is_hpos ? 'date_created_gmt' : 'post_date';
+		$order_status_column = $is_hpos ? 'status' : 'post_status';
+		$meta_table          = $is_hpos ? '' : $wpdb->prefix . 'postmeta';
+		$meta_key_clause     = $is_hpos ? '' : "AND pm.meta_key = '_order_total'";
+		$start_datetime      = $start . ' 00:00:00';
+		$end_datetime        = $end . ' 23:59:59';
+
+		$order_ids = $wpdb->get_col($wpdb->prepare("
+			SELECT DISTINCT bm.meta_value
+			FROM {$emails_meta_table} bm
+			INNER JOIN {$orders_table} o ON o.{$order_id_column} = bm.meta_value
+			WHERE bm.meta_key = 'order_id'
+			AND o.{$order_type_column} = 'shop_order'
+			AND o.{$order_status_column} IN ('wc-completed', 'wc-processing', 'wc-wpfnl-main-order')
+			AND o.{$order_date_column} BETWEEN %s AND %s
+		", $start_datetime, $end_datetime));
+
+
+		if (empty($order_ids)) {
+			return array('count' => 0, 'revenue' => 0.0, 'aov' => 0.0);
+		}
+
+		$order_ids_in = implode(',', array_map('intval', $order_ids));
+
+		$total_orders = count($order_ids);
+
+		if ($is_hpos) {
+			$total_revenue = (float) $wpdb->get_var("
+			SELECT SUM(total_amount)
+			FROM {$orders_table}
+			WHERE {$order_id_column} IN ({$order_ids_in})
+		");
+		} else {
+			$total_revenue = (float) $wpdb->get_var("
+			SELECT SUM(CAST(pm.meta_value AS DECIMAL(10,2)))
+			FROM {$meta_table} pm
+			WHERE pm.post_id IN ({$order_ids_in})
+			  {$meta_key_clause}
+		");
+		}
+
+		$aov = $total_orders > 0 ? $total_revenue / $total_orders : 0;
+
+		return array(
+			'count'   => $total_orders,
+			'revenue' => $total_revenue,
+			'aov'     => $aov,
+		);
+	}
+
+	/**
+	 * Return a default empty response for order metrics.
+	 *
+	 * @return array Metrics for orders, revenue, and AOV all set to zero.
+	 * 
+	 * @since 1.18.0
+	 */
+	private static function empty_orders_response()
+	{
+		return array(
+			'orders'  => self::format_email_metric(0, 0),
+			'revenue' => self::format_email_metric(0, 0),
+			'aov'     => self::format_email_metric(0, 0),
+		);
+	}
+
+	/**
+	 * Determine whether to show the onboarding checklist.
+	 *
+	 * Checks if the onboarding checklist is permanently hidden via a transient.
+	 *
+	 * @return bool True if the checklist should be shown, false otherwise.
+	 * 
+	 * @since 1.18.0
+	 */
+	private static function should_show_checklist()
+	{
+		// Check if the user has completed the onboarding checklist.
+		$permanently_hidden = get_transient('mint_hide_checklist');
+		if ($permanently_hidden) {
+			return false;
+		}
+
+		return true;
+	}
 }
