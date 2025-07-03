@@ -5,7 +5,7 @@
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '4b17fcf030cdb54444328f164fc7eadacc3ecc99',
+        'reference' => '6995953a71fd5fac2b77d083f435401aa870d828',
         'name' => 'coderex/code-rex-crm',
         'dev' => false,
     ),
@@ -25,7 +25,7 @@
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '4b17fcf030cdb54444328f164fc7eadacc3ecc99',
+            'reference' => '6995953a71fd5fac2b77d083f435401aa870d828',
             'dev_requirement' => false,
         ),
         'woocommerce/action-scheduler' => array(

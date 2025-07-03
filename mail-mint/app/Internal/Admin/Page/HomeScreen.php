@@ -196,11 +196,23 @@ class HomeScreen {
 				'load_wrapper',
 			)
 		);
+
+		// add_submenu_page(
+		// 	self::MENU_SLUG,
+		// 	__( 'Free vs Pro', 'mrm' ),
+		// 	__( 'Free vs Pro', 'mrm' ),
+		// 	($is_admin) ? $dashboard_permission : 'mint_manage_settings',
+		// 	'mrm-admin#/free-vs-pro/',
+		// 	array(
+		// 		$this,
+		// 		'load_wrapper',
+		// 	)
+		// );
 	}
 
 	public function mint_delete_promotional_banner( $payload ){
 		check_ajax_referer( 'promotional_banner_nonce', 'nonce' );
-		update_option('_is_mint_adha_25', 'no' );
+		update_option('_is_mint_4thofjuly_25', 'no' );
 		return [
             'success' => true,
         ];
@@ -338,13 +350,13 @@ class HomeScreen {
 		if ( current_user_can( 'manage_options' ) ) {
 			new DBUpgradeNotice();
 		}
-		new SpecialOccasionBanner('wp-anniversary', '2025-06-04 20:00:00', '2025-06-15 23:59:59');
+		new SpecialOccasionBanner('wp-anniversary', '2025-07-04 12:00:01', '2025-07-14 12:00:01');
         if( 'toplevel_page_mrm-admin' === $current_screen->base){
             remove_all_actions( 'admin_notices' );
 			if ( current_user_can( 'manage_options' ) ) {
 				new DBUpgradeNotice();
 			}
-			new SpecialOccasionBanner('wp-anniversary', '2025-06-04 20:00:00', '2025-06-15 23:59:59');
+			new SpecialOccasionBanner('wp-anniversary', '2025-07-04 12:00:01', '2025-07-14 12:00:01');
         }
         if( 'mail-mint_page_mint-mail-automation-editor' === $current_screen->base){
             remove_all_actions( 'admin_notices' );

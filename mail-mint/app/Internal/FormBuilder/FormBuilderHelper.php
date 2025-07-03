@@ -75,13 +75,13 @@ class FormBuilderHelper {
 				}
 
 				if ( is_category() || is_tax( 'product_cat' ) ) {
-					if ( $this->should_display_form_on_category_archive( $form_placement, $post->ID ) ) {
+					if ( $post && $this->should_display_form_on_category_archive( $form_placement, $post->ID ) ) {
 						$form_display .= $contact_form->render_content( $data['id'] );
 					}
 				}
 
 				if ( is_tag() || is_tax( 'product_cat' ) ) {
-					if ( $this->should_display_form_on_tag_archive( $form_placement, $post->ID ) ) {
+					if ( $post && $this->should_display_form_on_tag_archive( $form_placement, $post->ID ) ) {
 						$form_display .= $contact_form->render_content( $data['id'] );
 					}
 				}
