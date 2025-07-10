@@ -18,6 +18,7 @@ use Mint\App\Classes\WPRemoteRequestHandler;
 use Mint\App\Internal\Actions\Handlers\RedirectionHandler;
 use Mint\MRM\App;
 use Mint\MRM\Internal\Constants;
+use Mint\MRM\Internal\Tracking\EventTracker;
 use MRM\Common\MrmCommon;
 
 /**
@@ -113,6 +114,14 @@ class MailMint {
 	public $link_trigger_handler;
 
 	/**
+	 * EventTracker object
+	 * 
+	 * @var object|EventTracker
+	 * @since 1.17.10
+	 */
+	public $event_tracker;
+
+	/**
 	 * Main MRM Instance.
 	 *
 	 * Ensures only one instance of MRM is loaded or can be loaded.
@@ -128,6 +137,7 @@ class MailMint {
 		self::$instance->mailer                    = new Mailer();
 		self::$instance->wp_remote_request_handler = new WPRemoteRequestHandler();
 		self::$instance->redirection_handler       = new RedirectionHandler();
+		self::$instance->event_tracker             = EventTracker::init();
 		if( MrmCommon::is_mailmint_pro_active() && class_exists('MailMintPro\Mint\Internal\LinkTrigger\LinkTriggerHandler' ) ) {
 			self::$instance->link_trigger_handler = new LinkTriggerHandler();
 		}

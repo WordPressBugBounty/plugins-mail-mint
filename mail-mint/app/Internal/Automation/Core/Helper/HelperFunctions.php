@@ -2527,6 +2527,52 @@ class HelperFunctions { //phpcs:ignore
 	}
 
 	/**
+	 * Get automation trigger name by automation ID.
+	 *
+	 * @param int $automation_id The ID of the automation.
+	 * @return string|null The trigger name if found, or null if not found.
+	 */
+	public static function get_automation_trigger_name($automation_id){
+		global $wpdb;
+		$automation_table = $wpdb->prefix . AutomationSchema::$table_name;
+
+		$result = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT trigger_name FROM $automation_table WHERE id = %d",
+				$automation_id
+			)
+		);
+
+		return $result ? $result : null;
+	}
+
+	/**
+	 * Get automation steps by automation ID.
+	 *
+	 * @param int $automation_id The ID of the automation.
+	 * @return array An array of automation steps or an empty array if no steps are found.
+	 */
+	public static function get_automation_steps_by_id($automation_id)
+	{
+		if (empty($automation_id)) {
+			return array();
+		}
+
+		global $wpdb;
+		$automation_step_table = $wpdb->prefix . AutomationStepSchema::$table_name;
+
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT * FROM $automation_step_table WHERE automation_id = %d",
+				$automation_id
+			),
+			ARRAY_A
+		);
+
+		return $results ? $results : array();
+	}
+
+	/**
 	 * Check if a given email is already in the automation log.
 	 *
 	 * @param string $email         The email address to check.
@@ -2535,17 +2581,18 @@ class HelperFunctions { //phpcs:ignore
 	 * @return bool True if the email is already in the automation log, false otherwise.
 	 * @since 1.17.12
 	 */
-	public static function if_already_in_automation( $email, $automation_id ) {
+	public static function if_already_in_automation($email, $automation_id){
 		global $wpdb;
 		$exists = $wpdb->get_var(
 			$wpdb->prepare(
-			"SELECT COUNT(*) 
+				"SELECT COUNT(*) 
         	FROM {$wpdb->prefix}mint_automation_log
         	WHERE email = %s 
         	AND automation_id = %d",
-			$email,
-			$automation_id
-		));
+				$email,
+				$automation_id
+			)
+		);
 
 		return $exists > 0;
 	}

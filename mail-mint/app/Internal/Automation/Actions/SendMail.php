@@ -77,6 +77,7 @@ class SendMail extends AbstractAutomationAction {
 			$reply_email     = isset( $global_email_settings['reply_email'] ) ? $global_email_settings['reply_email'] : '';
 			$user_email      = !empty( $data['data']['user_email'] ) ? $data['data']['user_email'] : '';
 			$contact_id      = HelperFunctions::get_contact_id_by_broadcast_table( $user_email );
+			$wp_user_id      = isset( $data['data']['user_id'] ) ? $data['data']['user_id'] : '';
 			$post_id         = isset( $data['data']['post_id'] ) ? $data['data']['post_id'] : '';
 			$order_id	     = isset( $data['data']['order_id'] ) ? $data['data']['order_id'] : '';
 			$abandoned_id    = isset( $data['data']['abandoned_id'] ) ? $data['data']['abandoned_id'] : '';
@@ -94,7 +95,6 @@ class SendMail extends AbstractAutomationAction {
 
 			$step_data = HelperFunctions::get_step_data(  $data['automation_id'], $data['step_id'] );
 
-			
 			$log_payload = array(
 				'automation_id' => $data['automation_id'],
 				'step_id'       => $data['step_id'],
@@ -117,6 +117,13 @@ class SendMail extends AbstractAutomationAction {
 			$transactional_email = isset($step_data['settings']['message_data']['make_transactional']) ? $step_data['settings']['message_data']['make_transactional']: false;
 			if (!empty($step_data['settings']['message_data']) &&
 				( $transactional_email || HelperFunctions::maybe_user($data['data']['user_email']))) {
+	
+				// Check if the email body contains the product block.
+				$serialized_body = maybe_serialize($step_data['settings']['message_data']['json_body']);
+				if (strpos($serialized_body, 'product_block') !== false) {
+					do_action('mailmint_product_block_automation_email');
+				}
+
 				$headers = array(
 					'MIME-Version: 1.0',
 					'Content-type: text/html;charset=UTF-8',
@@ -167,7 +174,8 @@ class SendMail extends AbstractAutomationAction {
 						'ld_lesson_id'       => $ld_lesson_id,
 						'ld_group_id'        => $ld_group_id,
 						'ld_topic_id'        => $ld_topic_id,
-						'booking_id' 		 => $booking_id
+						'booking_id' 		 => $booking_id,
+						'wp_user_id'         => $wp_user_id,
 					)
 				);
 				$preview   = Helper::replace_dynamic_coupon( $preview, $user_email );
@@ -210,7 +218,8 @@ class SendMail extends AbstractAutomationAction {
 						'ld_lesson_id'       => $ld_lesson_id,
 						'ld_group_id'        => $ld_group_id,
 						'ld_topic_id'        => $ld_topic_id,
-						'booking_id'         => $booking_id
+						'booking_id'         => $booking_id,
+						'wp_user_id'         => $wp_user_id,
 					) 
 				);
 				$email_data['subject'] = Helper::replace_dynamic_coupon( $email_data['subject'], $email_data['receiver_email'] );
@@ -232,7 +241,8 @@ class SendMail extends AbstractAutomationAction {
 						'ld_lesson_id'       => $ld_lesson_id,
 						'ld_group_id'        => $ld_group_id,
 						'ld_topic_id'        => $ld_topic_id,
-						'booking_id'         => $booking_id
+						'booking_id'         => $booking_id,
+						'wp_user_id'         => $wp_user_id,
 					)
 				);
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );
@@ -276,6 +286,7 @@ class SendMail extends AbstractAutomationAction {
 				}
 
 				$is_sent = $this->send_message( $email_data, $rand_hash );
+				do_action('mailmint_after_automation_send_mail', $data['automation_id'], $data['data']['user_email'], $is_sent);
 				$payload = array(
 					'automation_id' => $data['automation_id'],
 					'step_id'       => $data['step_id'],

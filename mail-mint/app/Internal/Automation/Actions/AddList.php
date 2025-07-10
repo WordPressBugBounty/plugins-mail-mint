@@ -138,6 +138,7 @@ class AddList extends AbstractAutomationAction {
 						HelperFunctions::update_log( $payload );
 					}
 				}
+				do_action('mailmint_automation_after_added_to_list', $data['automation_id'], $data['step_id'], $contact_id);
 			}
 			$next_step = HelperFunctions::get_next_step( $data['automation_id'], $data['step_id'] );
 			HelperFunctions::update_job( $data['automation_id'], isset( $next_step['step_id'] ) ? $next_step['step_id'] : null, isset( $next_step['step_id'] ) ? 'processing' : 'completed' );

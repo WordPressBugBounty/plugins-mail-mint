@@ -151,10 +151,26 @@ class CreateContact {
      * @since 1.13.0
      */
     public function send_contact_to_appsero(){
-        $client = new \Appsero\Client( $this->appsero_api_key, $this->plugin_name, $this->plugin_file );
-        $client->insights()->send_tracking_data( true );
-        update_option( $this->plugin_slug.'_allow_tracking', 'yes');
-        update_option( $this->plugin_slug.'_tracking_notice', ' hide');
+        // Enable tracking FIRST
+        update_option($this->plugin_slug . '_allow_tracking', 'yes');
+        update_option($this->plugin_slug . '_tracking_notice', ' hide');
+
+        // Force EventTracker to reinitialize with new tracking settings
+        if (class_exists('\Mint\MRM\Internal\Tracking\EventTracker')) {
+            // Reset the singleton instance so it reinitializes with new settings
+            $reflection = new \ReflectionClass('\Mint\MRM\Internal\Tracking\EventTracker');
+            $instance = $reflection->getProperty('instance');
+            $instance->setAccessible(true);
+            $instance->setValue(null, null);
+
+            // Now initialize with the new tracking enabled setting
+            \Mint\MRM\Internal\Tracking\EventTracker::init();
+        }
+
+        $client = new \Appsero\Client($this->appsero_api_key, $this->plugin_name, $this->plugin_file);
+        $client->insights()->send_tracking_data(true);
+
+        do_action('mailmint_after_accept_consent');
     }
 
     /**

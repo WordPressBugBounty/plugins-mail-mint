@@ -106,6 +106,8 @@ class CampaignModel {
 			$args
 		); // db call ok. ; no-cache ok.
 
+		do_action( 'mailmint_campaign_created', $wpdb->insert_id, $args );
+
 		return $result ? self::get( $wpdb->insert_id ) : false;
 	}
 

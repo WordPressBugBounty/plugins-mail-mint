@@ -7,6 +7,10 @@ namespace Composer\Autoload;
 class ComposerStaticInit9eadcc890872387e1fda64c70c31afc4
 {
     public static $prefixLengthsPsr4 = array (
+        'P' => 
+        array (
+            'PostHog\\' => 8,
+        ),
         'M' => 
         array (
             'Mint\\MRM\\' => 9,
@@ -18,6 +22,10 @@ class ComposerStaticInit9eadcc890872387e1fda64c70c31afc4
     );
 
     public static $prefixDirsPsr4 = array (
+        'PostHog\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/posthog/posthog-php/lib',
+        ),
         'Mint\\MRM\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
@@ -250,6 +258,7 @@ class ComposerStaticInit9eadcc890872387e1fda64c70c31afc4
         'Mint\\MRM\\Internal\\ShortCode\\ShortCode' => __DIR__ . '/../..' . '/app/Internal/Shortcodes/Shortcode.php',
         'Mint\\MRM\\Internal\\ShortCode\\UnsubscribeConfirmation' => __DIR__ . '/../..' . '/app/Internal/Shortcodes/UnsubscribeConfirmation.php',
         'Mint\\MRM\\Internal\\Templates\\TemplateHandler' => __DIR__ . '/../..' . '/app/Internal/Templates/TemplateHandler.php',
+        'Mint\\MRM\\Internal\\Tracking\\EventTracker' => __DIR__ . '/../..' . '/app/Internal/Tracking/EventTracker.php',
         'Mint\\MRM\\Scheduler\\AbstractActionScheduler' => __DIR__ . '/../..' . '/app/Scheduler/AbstractActionScheduler.php',
         'Mint\\MRM\\Utilites\\Helper\\AnimatedGif' => __DIR__ . '/../..' . '/app/Utilities/Helper/GIFEncoder.php',
         'Mint\\MRM\\Utilites\\Helper\\Campaign' => __DIR__ . '/../..' . '/app/Utilities/Helper/Campaign.php',
@@ -266,6 +275,16 @@ class ComposerStaticInit9eadcc890872387e1fda64c70c31afc4
         'MrmActivator' => __DIR__ . '/../..' . '/includes/MrmActivator.php',
         'MrmDeactivator' => __DIR__ . '/../..' . '/includes/MrmDeactivator.php',
         'Mrmi18n' => __DIR__ . '/../..' . '/includes/Mrmi18n.php',
+        'PostHog\\Client' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Client.php',
+        'PostHog\\Consumer' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer.php',
+        'PostHog\\Consumer\\File' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer/File.php',
+        'PostHog\\Consumer\\ForkCurl' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer/ForkCurl.php',
+        'PostHog\\Consumer\\LibCurl' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer/LibCurl.php',
+        'PostHog\\Consumer\\Socket' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer/Socket.php',
+        'PostHog\\HttpClient' => __DIR__ . '/..' . '/posthog/posthog-php/lib/HttpClient.php',
+        'PostHog\\HttpResponse' => __DIR__ . '/..' . '/posthog/posthog-php/lib/HttpResponse.php',
+        'PostHog\\PostHog' => __DIR__ . '/..' . '/posthog/posthog-php/lib/PostHog.php',
+        'PostHog\\QueueConsumer' => __DIR__ . '/..' . '/posthog/posthog-php/lib/QueueConsumer.php',
         'TemplateAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Email/TemplateAction.php',
     );
 

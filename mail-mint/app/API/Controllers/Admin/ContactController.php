@@ -226,9 +226,13 @@ class ContactController extends AdminBaseController {
 		$offset   = ( $page - 1 ) * $per_page;
 
 		// Contact Search keyword.
-		$search = isset( $params['search'] ) ? $params['search'] : '';
-
+		$search   = isset( $params['search'] ) ? $params['search'] : '';
 		$contacts = ContactModel::get_all( $offset, $per_page, $search );
+
+        // Track contact list view only on first page load (to avoid multiple events).
+        if ((int)$page === 1 && empty($search)) {
+            do_action('mailmint_contact_list_viewed', $contacts['total_count']);
+        }
 
 		// Merge tags and lists to contacts.
 		$contacts['data'] = array_map(

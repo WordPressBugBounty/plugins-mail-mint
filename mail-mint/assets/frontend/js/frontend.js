@@ -60,6 +60,36 @@ jQuery(document).ready(function ($) {
                             }, 1000);
                         }
                     }
+                    if (response.confirmation_type === "download") {
+                        fetch(response.file_url)
+                            .then(response => response.blob())
+                            .then(blob => {
+                                const url = window.URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = response.file_name || 'download';
+                                link.style.display = 'none';
+                                
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                
+                                // Clean up the object URL
+                                window.URL.revokeObjectURL(url);
+                            })
+                            .catch(error => {
+                                console.error('Download failed:', error);
+                                // Fallback to direct link
+                                window.open(response.file_url, '_blank');
+                            });
+                            
+                        if (response.after_form_submission === "hide_form") {
+                            $(".mrm-form-wrapper form").hide();
+                            $(".mrm-form-wrapper").hide();
+                        } else if (response.after_form_submission === "reset_form") {
+                            $("#mrm-form")[0].reset();
+                        }
+                    }
                     $(that).parent().find(".response").html(response.message);
                     $(that).find(".response").html(response.message);
                 } else if (response.status == "failed") {

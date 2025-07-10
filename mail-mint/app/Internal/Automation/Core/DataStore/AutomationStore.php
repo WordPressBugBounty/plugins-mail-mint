@@ -337,7 +337,8 @@ class AutomationModel {
 					'updated_at'   => current_time( 'mysql' ),
 				)
 			); // db call ok.
-
+			error_log(print_r('mailmint_' . $payload['trigger_name'] . '_automation_created', true));
+			do_action( 'mailmint_'.$payload['trigger_name'].'_automation_created' );
 			return $wpdb->insert_id;
 		} catch ( \Exception $e ) {
 			return false;
@@ -378,7 +379,8 @@ class AutomationModel {
 				$payload,
 				array( 'ID' => $payload['id'] )
 			); // db call ok. ; no-cache ok.
-
+			error_log(print_r('mailmint_' . $payload['trigger_name'] . '_automation_updated', true));
+			do_action('mailmint_' . $payload['trigger_name'] . '_automation_updated', $payload['id']);
 			if ( $updated ) {
 				return true;
 			} else {

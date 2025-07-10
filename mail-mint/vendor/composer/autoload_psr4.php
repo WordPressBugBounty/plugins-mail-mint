@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'PostHog\\' => array($vendorDir . '/posthog/posthog-php/lib'),
     'Mint\\MRM\\' => array($baseDir . '/app', $baseDir . '/includes'),
     'Appsero\\' => array($vendorDir . '/appsero/client/src'),
 );

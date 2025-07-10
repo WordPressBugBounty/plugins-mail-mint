@@ -140,6 +140,20 @@ class MergeTagParser
 			case 'post':
 				$value = $this->get_post_value($value_key, $default_value, $post_id);
 				break;
+			case 'user':
+				$wp_user_id = isset($params['wp_user_id']) ? $params['wp_user_id'] : 0;
+				if (!$wp_user_id) {
+					$email   = isset($contact['email']) ? $contact['email'] : '';
+					$wp_user = get_user_by('email', $email);
+					if ($wp_user) {
+						$wp_user_id = $wp_user->ID;
+					} else {
+						$wp_user_id = 0;
+					}
+				}
+
+				$value = $this->get_wp_user_value($value_key, $default_value, $wp_user_id);
+				break;
 			case 'site':
 				$value = $this->get_site_value($value_key, $default_value);
 				break;
@@ -1005,6 +1019,35 @@ class MergeTagParser
 				);
 
 				return '<a class="mint-pref-url" href="' . $url . '">' . $default_value . '</a>';
+			default:
+				return $default_value;
+		}
+	}
+
+	/**
+	 * Get the value from the WP user data.
+	 *
+	 * @param string $value_key  The key to get the value.
+	 * @param string $default_value The default value to return if the key is not found.
+	 * @param int    $wp_user_id  The WP user ID to use for parsing.
+	 *
+	 * @return string The value.
+	 *
+	 * @since 1.18.2
+	 */
+	private function get_wp_user_value( $value_key, $default_value, $wp_user_id ) {
+		$wp_user = get_user_by( 'id', $wp_user_id );
+		if ( ! $wp_user ) {
+			return $default_value;
+		}
+
+		switch ( $value_key ) {
+			case 'email':
+				return ! empty( $wp_user->user_email ) ? $wp_user->user_email : $default_value;
+			case 'id':
+				return ! empty( $wp_user->ID ) ? $wp_user->ID : $default_value;
+			case 'username':
+				return ! empty( $wp_user->user_login ) ? $wp_user->user_login : $default_value;
 			default:
 				return $default_value;
 		}

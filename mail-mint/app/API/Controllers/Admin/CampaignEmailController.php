@@ -343,10 +343,13 @@ class CampaignEmailController extends AdminBaseController {
 				unset($contact['meta_fields']);
 			}
 
+			$wp_user    = get_user_by( 'email', $receiver );
+			$wp_user_id = isset($wp_user->ID) ? $wp_user->ID : 0;
+
 			// Reset subject, content, and preview for each receiver
-			$parsed_subject = Parser::parse($subject, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
-			$parsed_content = Parser::parse($content, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
-			$parsed_preview = Parser::parse($preview, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id));
+			$parsed_subject = Parser::parse($subject, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
+			$parsed_content = Parser::parse($content, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
+			$parsed_preview = Parser::parse($preview, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
 			$final_content  = Email::inject_preview_text_on_email_body($parsed_preview, $parsed_content);
 
 			MM()->mailer->send($receiver, $parsed_subject, $final_content, $headers);

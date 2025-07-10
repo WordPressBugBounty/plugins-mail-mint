@@ -192,6 +192,17 @@ class FormAction implements Action {
 			$response['custom_url']        = $to_a_custom_url->custom_url;
 			$response['message']           = $to_a_custom_url->custom_redirection_message;
 		}
+		if ( ! empty( $confirmation_type->download ) ) {
+			$download = $confirmation_type->download;
+
+			$file_url = wp_get_attachment_url($download->attachment_id);
+
+			$response['confirmation_type']     = 'download';
+			$response['file_url']              = $file_url;
+			$response['file_name']             = $download->attachment_name;
+			$response['message']               = $download->success_message;
+			$response['after_form_submission'] = $download->after_form_submission;
+		}
 		$contact     = new ContactData( $form_email, $parms );
 		$exist_email = ContactModel::is_contact_exist( $form_email );
 		if ( $exist_email ) {
@@ -260,7 +271,6 @@ class FormAction implements Action {
 			 * @since 1.5.0
 			 */
 			do_action( 'mailmint_after_form_submit', $form_id, $contact_id, $contact );
-
 			/**
 			 * This filter was documented in the upper section where it was first initialized
 			 */

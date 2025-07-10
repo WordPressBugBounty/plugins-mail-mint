@@ -103,6 +103,7 @@ class AutomationLogController extends AdminBaseController {
 		if ( !empty( $params['id'] ) ) {
 			$filter     = isset( $params['filter'] ) ? $params['filter'] : 'weekly';
 			$log_report = AutomationLogModel::get_automation_overall_analytics( $params['id'], $filter );
+			do_action( 'mailmint_automation_log_overall_analytics', $params );
 			if ( isset( $log_report['data'] ) ) {
 				return $this->get_success_response( __( 'Query Successfulls', 'mrm' ), 200, $log_report['data'] );
 			}
