@@ -1509,7 +1509,7 @@ class TransStrings
 			'BounceTracking'						      => __('Bounce Tracking', 'mrm'),
 			'BounceTrackingEnableTooltip'				  => __('Enable to capture bounced emails from the email service and mark Contact as Bounced.', 'mrm'),
 			'MarkThisEmailAsTransactional'			      => __('Mark this email as Transactional', 'mrm'),
-			'MarkThisEmailAsTransactionalTooltip'		  => __('Contacts with status Unsubscribed will get the transactional email. Emails such as Order Summary, Renewal Reminders, and Admin notifications are transactional emails.', 'mrm'),
+			'MarkThisEmailAsTransactionalTooltip'		  => __('Unsubscribed contacts will still receive transactional emails like Order Summaries, Renewal Reminders, and Admin notifications.', 'mrm'),
 			'DeleteContacts'		   					  => __('Delete Contact', 'mrm'),
 			'SubscribeContacts'		   					  => __('Subscribe Contact', 'mrm'),
 			'UnSubscribeContacts'		   				  => __('Unsubscribe Contact', 'mrm'),

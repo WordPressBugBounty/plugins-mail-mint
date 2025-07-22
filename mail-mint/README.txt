@@ -5,9 +5,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: email marketing, email automation, newsletter, woocommerce emails, cart abandonment, lead form
 Requires at least: 5.8
-Tested up to: 6.8.1
+Tested up to: 6.8.2
 Requires PHP: 7.4
-Stable tag:  1.18.2
+Stable tag:  1.18.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,6 +528,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.18.3 (2025-07-21) =
+* Improvement: Added Gravatar & Fallback Compliance for Contact Avatar
+* Improvement: Smoother One-click Unsubscribe
+* Bugfix: PHP Deprecation Warnings
+* Bugfix: Multi-line Text Custom Field Issue
+* Bugfix: Tooltip and Header UI Issues on the Automation Settings
 
 = 1.18.2 (2025-07-10) =
 * New: Attach Files on the Form Settings

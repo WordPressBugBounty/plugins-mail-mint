@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.18.2
+ * Version:           1.18.3
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -34,13 +34,14 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.18.2' );
+define( 'MRM_VERSION', '1.18.3' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.15.3' );
 define( 'MINT_DEV_MODE', false );
 define( 'MRM_PLUGIN_NAME', 'mrm' );
 define( 'MRM_FILE', __FILE__ );
 define( 'MRM_FILE_DIR', __DIR__ );
+define( 'MRM_PLUGIN_URL', plugin_dir_url(__FILE__) );
 define( 'MRM_DIR_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MAILMINT_BASE_NAME', plugin_basename( MRM_FILE ) );
 define( 'MRM_UPLOAD_DIR', WP_CONTENT_DIR . '/uploads/mailmint/' );

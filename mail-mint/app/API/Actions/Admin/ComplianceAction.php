@@ -29,6 +29,8 @@ class ComplianceAction {
 			'anonymize_ip'          => 'no',
 			'user_id_delete'        => 'no',
 			'one_click_unsubscribe' => 'no',
+			'enable_gravatar'       => 'no',
+			'gravatar_fallback'     => 'no',
 		);
 		$settings = get_option( '_mint_compliance', $default );
 		return $settings;

@@ -79,22 +79,33 @@ class Contact {
 	 * @return string The URL of the contact's avatar.
 	 *
 	 * @since 1.5.18
+	 * @since 1.18.3 Add Gravatar compliance settings to create avatar URL.
 	 */
 	public static function get_avatar_url( $contact ) {
-		if ( isset( $contact['meta_fields']['avatar_url'] ) && $contact['meta_fields']['avatar_url'] ) {
+		// Check if the contact array is valid and contains the necessary keys.
+		if (isset($contact['meta_fields']['avatar_url']) && $contact['meta_fields']['avatar_url']) {
 			$upload_dir = wp_upload_dir();
-			$url        = $upload_dir[ 'baseurl' ];
-			if ( false !== strpos( $contact['meta_fields']['avatar_url'], $url ) ) {
+			$url        = $upload_dir['baseurl'];
+			if (false !== strpos($contact['meta_fields']['avatar_url'], $url)) {
 				return $contact['meta_fields']['avatar_url'];
 			}
 		}
 
-		$email = isset( $contact['email'] ) ? $contact['email'] : '';
-		$hash  = md5( strtolower( trim( $email ) ) );
+		// If the avatar URL is not set or invalid, proceed to generate the Gravatar URL.
+		$compliance        = get_option('_mint_compliance');
+		$enable_gravatar   = isset( $compliance['enable_gravatar'] ) && $compliance['enable_gravatar'] == 'yes' ? true : false;
+		$gravatar_fallback = isset( $compliance['gravatar_fallback'] ) && $compliance['gravatar_fallback'] == 'yes' ? true : false;
+		$email             = isset($contact['email']) ? $contact['email'] : '';
 
+		// If Gravatar is not enabled, return the default avatar URL.
+		if ( !$enable_gravatar ) {
+			return apply_filters('mail_mint_default_avatar', MRM_PLUGIN_URL . 'admin/assets/images/avatar.png', $email);
+		}
+
+		$hash       = md5( strtolower( trim( $email ) ) );
 		$first_name = isset( $contact['first_name'] ) ? $contact['first_name'] : '';
 		$last_name  = isset( $contact['last_name'] ) ? $contact['last_name'] : '';
-		$full_name  = $first_name . ' ' . $last_name;
+		$full_name  = trim( $first_name . ' ' . $last_name );
 		/**
 		 * Gravatar URL by Email.
 		 *
@@ -102,8 +113,8 @@ class Contact {
 		 */
 
 		$fall_back = '';
-		if ( $full_name ) {
-			$fall_back = '&d=https%3A%2F%2Fui-avatars.com%2Fapi%2F' . rawurlencode( $full_name ) . '/128';
+		if ( $gravatar_fallback && !empty( $full_name ) ) {
+			$fall_back = '&d=https%3A%2F%2Fui-avatars.com%2Fapi%2F' . urlencode( $full_name ) . '/128';
 		}
 
 		/**
