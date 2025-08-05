@@ -7,7 +7,7 @@ Tags: email marketing, email automation, newsletter, woocommerce emails, cart ab
 Requires at least: 5.8
 Tested up to: 6.8.2
 Requires PHP: 7.4
-Stable tag:  1.18.3
+Stable tag:  1.18.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,6 +528,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.18.4 (2025-08-05) =
+* Bugfix: Abandoned Cart Email Template Import Issue
+* Bugfix: Contact Status Update Issue
 
 = 1.18.3 (2025-07-21) =
 * Improvement: Added Gravatar & Fallback Compliance for Contact Avatar

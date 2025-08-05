@@ -5,7 +5,7 @@
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '7dbef542d7e1c6708ae3fa48ae071a8d2299a287',
+        'reference' => '805d81ac53cfe7b9a5ff787784ff294d65588970',
         'name' => 'coderex/code-rex-crm',
         'dev' => false,
     ),
@@ -25,7 +25,7 @@
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '7dbef542d7e1c6708ae3fa48ae071a8d2299a287',
+            'reference' => '805d81ac53cfe7b9a5ff787784ff294d65588970',
             'dev_requirement' => false,
         ),
         'posthog/posthog-php' => array(

@@ -1334,4 +1334,65 @@ class ContactController extends AdminBaseController {
         ContactModel::update_meta_fields( $contact_id, $args );
         return $this->get_success_response( __( 'Contact avatar has been uploaded successfully.', 'mrm' ), 200 );
     }
+
+    /**
+     * Update the status of a contact.
+     *
+     * This function updates the status of a specific contact based on the provided contact ID and status.
+     * @access public
+     *
+     * @param WP_REST_Request $request The REST request object.
+     *
+     * @return WP_REST_Response A REST API response indicating the success or failure of the status update.
+     *
+     * @since 1.18.4
+     */
+    public function update_status( WP_REST_Request $request ){
+        // Get values from API.
+        $params = MrmCommon::get_api_params_values( $request );
+
+        $contact_id = isset($params['contact_id']) ? absint($params['contact_id']) : 0;
+        $status     = isset($params['status']) ? sanitize_text_field($params['status']) : '';
+
+        // Validate contact ID
+        if (empty($contact_id)) {
+            return $this->get_error_response(__('Contact ID is required.', 'mrm'), 400);
+        }
+
+        // Validate status
+        $allowed_statuses = array('pending', 'subscribed', 'unsubscribed', 'complained', 'bounced');
+        if (! in_array($status, $allowed_statuses, true)) {
+            return $this->get_error_response(__('Invalid status provided.', 'mrm'), 400);
+        }
+
+        // Check if contact exists
+        $contact = ContactModel::get($contact_id);
+        if (! $contact) {
+            return $this->get_error_response(__('Contact not found.', 'mrm'), 404);
+        }
+
+        // Update the contact status
+        $update_data = array(
+            'status' => $status
+        );
+
+        try {
+            $updated = ContactModel::update($update_data, $contact_id);
+
+            if ($updated) {
+                return $this->get_success_response(
+                    __('Contact status updated successfully.', 'mrm'),
+                    201,
+                    array(
+                        'contact_id' => $contact_id,
+                        'status'     => $status
+                    )
+                );
+            } else {
+                return $this->get_error_response(__('Failed to update contact status.', 'mrm'), 500);
+            }
+        } catch (Exception $e) {
+            return $this->get_error_response(__('An error occurred while updating contact status.', 'mrm'), 500);
+        }
+    }
 }

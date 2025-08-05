@@ -140,6 +140,34 @@ class ContactRoute {
 		);
 
 		/**
+		 * Register the REST API route to update a single contact's status.
+		 *
+		 * @since 1.18.4
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<contact_id>[\d]+)/status',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'callback'            => array(
+						$this->controller,
+						'update_status',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+					'args'                => array(
+						'status' => array(
+							'type'        => 'string',
+							'required'    => true,
+							'enum'        => array('pending', 'subscribed', 'unsubscribed', 'complained', 'bounced'),
+							'description' => 'The new status for the contact',
+						),
+					),
+				),
+			)
+		);
+
+		/**
 		 * Register the REST API route to delete a single contact.
 		 *
 		 * @since 1.8.2
