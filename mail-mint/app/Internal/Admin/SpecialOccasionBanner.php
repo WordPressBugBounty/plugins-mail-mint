@@ -62,7 +62,7 @@ class SpecialOccasionBanner
      */
     function mint_get_halloween_countdown()
     {
-        $end_date  = strtotime('2025-07-14 12:00:01');
+        $end_date  = strtotime('2025-08-25 23:59:59');
         $now       = current_time('timestamp');
         $diff      = $end_date - $now;
 
@@ -83,12 +83,19 @@ class SpecialOccasionBanner
         $screen = get_current_screen();
         $promotional_notice_pages = ['dashboard', 'plugins', 'toplevel_page_mrm-admin'];
         $current_date_time = current_time('timestamp');
-
         if (!in_array($screen->id, $promotional_notice_pages)) {
             return;
         }
 
-        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_mint_4thofjuly_25') || MrmCommon::is_wpfnl_active() || 'no' === get_option('_is_wpfnl_4thofjuly_25')) {
+        // if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_mint_4thofjuly_25') || MrmCommon::is_wpfnl_active() || 'no' === get_option('_is_wpfnl_4thofjuly_25')) {
+        //     return;
+        // }
+
+        if (($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_hide_clms_early_access')) {
+            return;
+        }
+
+        if (($screen->id === 'dashboard' || $screen->id === 'plugins') &&  MrmCommon::is_wpfnl_active()) {
             return;
         }
 
@@ -105,54 +112,98 @@ class SpecialOccasionBanner
                 <div class="mailmint-tb__notification">
 
                     <div class="banner-overflow">
-
-                        <section class="mint-notification-counter default-notification" aria-labelledby="mint-halloween-offer-title">
+                        <!-- <section class="mint-notification-counter default-notification" aria-labelledby="mint-halloween-offer-title">
                             <div class="mint-notification-counter__container">
                                 <div class="mint-notification-counter__content">
 
                                     <figure class="mint-notification-counter__figure-logo">
-                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/independence-day/occation.webp'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
+                                        <img src="<//?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/independence-day/occation.webp'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
                                     </figure>
 
                                     <figure class="mint-notification-counter__figure-occasion">
-                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/independence-day/parcentage.webp'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
+                                        <img src="<//?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/independence-day/parcentage.webp'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
                                     </figure>
 
                                     <figure class="mint-notification-counter__figure-percentage">
-                                        <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/independence-day/logo.webp'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
+                                        <img src="<//?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/independence-day/logo.webp'); ?>" alt="wpfunnel anniversary offer banner" class="mint-notification-counter__img">
                                     </figure>
 
                                     <div id="mint-halloween-countdown" class="mint-notification-counter__countdown" aria-live="polite">
-                                        <h3 class="screen-reader-text"><?php echo __('Offer Countdown', 'mrm'); ?></h3>
+                                        <h3 class="screen-reader-text"><//?php echo __('Offer Countdown', 'mrm'); ?></h3>
                                         <ul class="mint-notification-counter__list">
 
-                                            <?php foreach (['days', 'hours', 'mins', 'secs'] as $unit): ?>
+                                            <//?php foreach (['days', 'hours', 'mins', 'secs'] as $unit): ?>
                                                 <li class="mint-notification-counter__item ">
-                                                    <span id="mint-halloween-<?php echo esc_attr($unit); ?>" class="mint-notification-counter__time">
-                                                        <?php echo esc_html($countdown[$unit]); ?>
+                                                    <span id="mint-halloween-<//?php echo esc_attr($unit); ?>" class="mint-notification-counter__time">
+                                                        <//?php echo esc_html($countdown[$unit]); ?>
                                                     </span>
                                                     <span class="mint-notification-counter__label">
-                                                        <?php echo esc_html($unit); ?>
+                                                        <//?php echo esc_html($unit); ?>
                                                     </span>
                                                 </li>
-                                            <?php endforeach; ?>
+                                            <//?php endforeach; ?>
                                         </ul>
                                     </div>
 
                                     <div class="mint-notification-counter__btn-area">
-                                        <a href="<?php echo esc_url('https://getwpfunnels.com/pricing/?utm_source=website&utm_medium=plugin-ban-mm&utm_campaign=4thofjuly#mail-mint'); ?>" target="_blank" class="mint-notification-counter__btn" role="button">
+                                        <a href="<//?php echo esc_url('https://getwpfunnels.com/pricing/?utm_source=website&utm_medium=plugin-ban-mm&utm_campaign=4thofjuly#mail-mint'); ?>" target="_blank" class="mint-notification-counter__btn" role="button">
 
                                             <span class="mint-btn-inner">
-                                                <span class="screen-reader-text"><?php echo __('Click to view Halloween sale products', 'mrm'); ?></span>
-                                                <span aria-hidden="true" class="mint-notification-counter__mint-button"> <?php echo __('Get The Deal Now', 'mrm'); ?></span>
+                                                <span class="screen-reader-text"><//?php echo __('Click to view Halloween sale products', 'mrm'); ?></span>
+                                                <span aria-hidden="true" class="mint-notification-counter__mint-button"> <//?php echo __('Get The Deal Now', 'mrm'); ?></span>
                                             </span>
 
                                         </a>
                                     </div>
                                 </div>
                             </div>
+                            <div class="mint-earlybird-notification__container">
+                            </div>
+                        </section> -->
+
+                        <!-- Creator lms early bird banner starts -->
+                        <section class="mint-lms-earlybird-banner">
+                            <div class="mint-lms-earlybird-banner-container">
+                                <div class="mailmint-banner__icon">
+                                    <img src="<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/creator-lms-logo.webp'); ?>" alt="creator lms logo" class="">
+                                </div>
+
+                                <div class="mailmint-banner__content">
+                                <p>📢 Introducing <strong>Creator LMS Pro</strong> — a powerful upgrade to Creator LMS with a sleek new UI, Cohorts, Communities, built-in checkout, gamification, AI Assistant, advanced analytics, and more! 🚀 <strong>Get a special discount</strong> as an Early Adopter — available for a limited time only!</p>
+
+                                <div class="mailmint-banner__actions">
+                                    <div class="mint-notification-counter__btn-area">
+                                    <a href="https://getwpfunnels.com/creatorlms-early-access/?utm_source=plugin-CTA&utm_medium=mm-plugin&utm_campaign=clms-early-bird"
+                                        target="_blank"
+                                        class="mint-notification-counter__btn btn btn-primary"
+                                        role="button">
+                                        <span class="mint-btn-inner">
+                                        <span class="screen-reader-text">Click to upgrade to Mail Mint Pro</span>
+                                        <span aria-hidden="true" class="mint-notification-counter__mint-button">
+                                            Sign Up
+                                        </span>
+                                        </span>
+                                    </a>
+                                    </div>
+
+                                    <div class="mint-notification-counter__btn-area close-no-thanks">
+                                        <a href="#"
+                                            class="mint-notification-counter__btn btn btn-secondary"
+                                            role="button">
+                                            <span class="mint-btn-inner">
+                                            <span class="screen-reader-text">Dismiss this offer</span>
+                                            <span aria-hidden="true" class="mint-notification-counter__mint-button">
+                                                No, Thanks
+                                            </span>
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                                </div>
+                            </div>
                         </section>
 
+                        <!-- Creator lms early bird banner ends -->
                     </div>
 
                     <button class="close-promotional-banner" type="button" aria-label="close banner">
@@ -170,7 +221,7 @@ class SpecialOccasionBanner
             var timeRemaining = <?php echo esc_js($time_remaining); ?>;
 
             function updateCountdown() {
-                var endDate = new Date("2025-07-14 12:00:01").getTime();
+                var endDate = new Date("2025-08-25 23:59:59").getTime();
                 var now = new Date().getTime();
                 var timeLeft = endDate - now;
 
@@ -275,10 +326,10 @@ class SpecialOccasionBanner
                 box-sizing: border-box;
             }
 
-            .mailmint-tb__notification {
+            /* .mailmint-tb__notification {
                 width: calc(100% - 20px);
                 margin: 20px 0 20px;
-                background-image: url(<?php echo MRM_DIR_URL . 'admin/assets/images/independence-day/bg.webp'; ?>);
+                background-image: url(<//?php echo MRM_DIR_URL . 'admin/assets/images/independence-day/bg.webp'; ?>);
                 background-repeat: no-repeat;
                 background-size: cover;
                 position: relative;
@@ -286,6 +337,18 @@ class SpecialOccasionBanner
                 box-shadow: none;
                 display: block;
                 max-height: 110px;
+            } */
+
+            /* For Creator LMS early bird banner */
+            .mailmint-tb__notification {
+                width: calc(100% - 20px);
+                margin: 20px 0 20px;
+                position: relative;
+                border: none;
+                box-shadow: none;
+                display: block;
+                max-height: 110px;
+                border-radius: 6px;
             }
 
             .mailmint-tb__notification .banner-overflow {
@@ -301,6 +364,7 @@ class SpecialOccasionBanner
                 display: block !important;
                 background: transparent;
                 margin: 0;
+                box-shadow: none !important;
             }
 
             .mailmint-tb__notification .close-promotional-banner {
@@ -539,10 +603,6 @@ class SpecialOccasionBanner
 
             @media only screen and (max-width: 1440px) {
 
-                .mailmint-tb__notification {
-                    max-height: 99px;
-                }
-
                 .mailmint-anniv__image--left {
                     left: 40px;
                 }
@@ -598,10 +658,6 @@ class SpecialOccasionBanner
 
 
             @media only screen and (max-width: 1399px) {
-
-                .mailmint-tb__notification {
-                    max-height: 79px;
-                }
 
                 .mailmint-anniv__image--left {
                     left: 20px;
@@ -661,9 +717,6 @@ class SpecialOccasionBanner
             }
 
             @media only screen and (max-width: 1024px) {
-                .mailmint-tb__notification {
-                    max-height: 75px;
-                }
 
                 .mailmint-anniv__image--left img {
                     max-width: 76.39px;
@@ -728,7 +781,7 @@ class SpecialOccasionBanner
 
             }
 
-            @media only screen and (max-width: 768px) {
+            @media only screen and (max-width: 991px) {
 
                 .mailmint-anniv__container-area {
                     padding: 0 15px;
@@ -740,7 +793,7 @@ class SpecialOccasionBanner
                 }
 
                 .mailmint-tb__notification {
-                    max-height: 64px;
+                    max-height: 190px;
                 }
 
                 .mailmint-anniv__image--left img {
@@ -1104,11 +1157,11 @@ class SpecialOccasionBanner
                     width: 45px;
                 }
 
-                .mint-notification-counter__btn {
+                /* .mint-notification-counter__btn {
                     font-size: 16px !important;
                     padding: 12px 18px !important;
                     border-radius: 10px !important;
-                }
+                } */
             }
 
             @media only screen and (max-width: 1199px) {
@@ -1173,11 +1226,11 @@ class SpecialOccasionBanner
                     max-width: 70px;
                 }
 
-                .mint-notification-counter__btn {
+                /* .mint-notification-counter__btn {
                     font-size: 16px !important;
                     padding: 10px 14px !important;
                     border-radius: 10px !important;
-                }
+                } */
 
                 .mint-notification-counter__time {
                     width: 38px;
@@ -1210,10 +1263,10 @@ class SpecialOccasionBanner
                     max-width: 60px;
                 }
 
-                .mint-notification-counter__btn {
+                /* .mint-notification-counter__btn {
                     font-size: 14px !important;
                     padding: 10px 12px !important;
-                }
+                } */
 
                 .mint-notification-counter__time {
                     font-size: 16px;
@@ -1237,6 +1290,200 @@ class SpecialOccasionBanner
                     width: 45px;
                 }
             }
+
+            /* Creator LMS early bird banner design */
+            .mint-lms-earlybird-banner {
+                .mint-lms-earlybird-banner-container {
+                    display: flex;
+                    align-items: center;
+                    background: #F7F7FF;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 6px;
+                    padding: 14px 18px;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+                    position: relative;
+                    font-family: 'Inter', sans-serif;
+                    position: relative;
+
+                    &::before {
+                        content: "";
+                        position: absolute;
+                        left: 0px;
+                        top: 0;
+                        height: 100%;
+                        width: 6px;
+                        background: #6E42D3;
+                        border-radius: 30px;
+                    }
+
+                    .mailmint-banner__icon {
+                        flex-shrink: 0;
+                        margin-right: 20px;
+
+                        img {
+                            max-width: 85px;
+                            width: 100%;
+                        }
+                    }
+
+                    .mailmint-banner__content {
+                        flex: 1;
+
+                        p {
+                            margin: 0;
+                            font-size: 14px;
+                            color: #374151;
+                            font-weight: 500;
+
+                            strong {
+                                color: #6E42D3;
+                            }
+                        }
+
+                        .mailmint-banner__actions {
+                            margin-top: 8px;
+                            display: flex;
+                            flex-wrap: wrap;
+
+                            .mint-notification-counter__btn-area {
+                                margin-right: 8px;
+                                margin-bottom: 6px;
+                            }
+
+                            .btn {
+                                font-size: 13px;
+                                font-weight: 500;
+                                padding: 6px 14px;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                border: none;
+                                text-decoration: none;
+                                display: inline-block;
+                                transition: all 0.2s ease;
+
+                                &:focus {
+                                    box-shadow: none;
+                                    outline: none;
+                                }
+
+                                &.btn-primary {
+                                    background: #6E42D3;
+                                    color: #fff;
+
+                                    &:hover {
+                                        background: darken(#ef4444, 8%);
+                                    }
+                                }
+
+                                &.btn-secondary {
+                                    background: #f0f1f3ff;
+                                    color: #374151;
+
+                                    &:hover {
+                                        background: darken(#f3f4f6, 5%);
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    .mailmint-banner__close {
+                        position: absolute;
+                        top: 8px;
+                        right: 10px;
+                        border: none;
+                        background: transparent;
+                        font-size: 18px;
+                        color: #9ca3af;
+                        cursor: pointer;
+
+                        &:hover {
+                            color: #4b5563;
+                        }
+                    }
+                }
+
+                /* ================== RESPONSIVENESS ================== */
+                @media (max-width: 1550px) {
+                    .mint-lms-earlybird-banner-container {
+                        padding: 12px 16px;
+
+                        .mailmint-banner__content p {
+                            font-size: 13.5px;
+                        }
+                    }
+                }
+
+                @media (max-width: 1399px) {
+                    .mint-lms-earlybird-banner-container {
+                        .mailmint-banner__content p {
+                            font-size: 13px;
+                        }
+
+                        .mailmint-banner__actions .btn {
+                            font-size: 12.5px;
+                            padding: 6px 12px;
+                        }
+                    }
+                }
+
+                @media (max-width: 1199px) {
+                    .mint-lms-earlybird-banner-container {
+                        .mailmint-banner__content p {
+                            font-size: 12px;
+                        }
+
+                        .mailmint-banner__icon {
+                            margin-right: 15px;
+                            margin-bottom: 0;
+                        }
+
+                        .mailmint-banner__actions {
+                            margin-top: 6px !important;
+
+                            .btn {
+                                margin-right: 6px;
+                                margin-bottom: 6px;
+                                font-size: 12px !important;
+                                padding: 5px 14px !important;
+                            }
+                        }
+                    }
+                }
+
+                @media (max-width: 991px) {
+                    .mint-lms-earlybird-banner-container {
+                        padding: 12px 30px;
+                        flex-direction: column;
+                        text-align: center;
+
+                        .mailmint-banner__content p {
+                            font-size: 12px;
+                            line-height: 1.4;
+                        }
+
+                        .mailmint-banner__icon {
+                            img {
+                                max-width: 65px;
+                                width: 100%;
+                            }
+                        }
+
+                        .mailmint-banner__actions {
+                            margin-top: 10px !important;
+                            align-items: center;
+                            justify-content: center;
+
+                            .btn {
+                                width: 100%;
+                                margin-right: 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+
         </style>
 
 <?php

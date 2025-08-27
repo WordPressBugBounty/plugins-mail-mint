@@ -153,11 +153,11 @@ class EventTracker{
     {
         // Hook name => [PostHog event name, callback method]
         $events = [
-            'mailmint_after_accept_consent' => ['plugin_activated', 'on_plugin_activated'],
-            'mailmint_contact_list_viewed'  => ['contact_list_viewed', 'on_contact_list_viewed'],
-            'mailmint_campaign_created'     => ['campaign_created', 'on_campaign_created'],
-            'mailmint_campaign_email_sent'  => ['campaign_email_sent', 'on_campaign_email_sending_completed'],
-            'mailmint_campaign_analytics'   => ['campaign_analytics', 'on_campaign_analytics_viewed'],
+            // 'mailmint_after_accept_consent' => ['plugin_activated', 'on_plugin_activated'],
+            // 'mailmint_contact_list_viewed'  => ['contact_list_viewed', 'on_contact_list_viewed'],
+            // 'mailmint_campaign_created'     => ['campaign_created', 'on_campaign_created'],
+            // 'mailmint_campaign_email_sent'  => ['campaign_email_sent', 'on_campaign_email_sending_completed'],
+            // 'mailmint_campaign_analytics'   => ['campaign_analytics', 'on_campaign_analytics_viewed'],
             // 'mailmint_wc_abandoned_cart_automation_created' => ['abandoned_cart_automation_created', 'on_abandoned_cart_automation_created'],
             // 'mailmint_wc_abandoned_cart_lost_automation_created' => ['abandoned_cart_automation_created', 'on_abandoned_cart_automation_created'],
             // 'mailmint_wc_abandoned_cart_recovered_automation_created' => ['abandoned_cart_automation_created', 'on_abandoned_cart_automation_created'],

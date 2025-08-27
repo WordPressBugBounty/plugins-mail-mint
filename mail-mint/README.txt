@@ -3,20 +3,17 @@
 
 Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
-Tags: email marketing, email automation, newsletter, woocommerce emails, cart abandonment, lead form
+Tags: email marketing, email automation, newsletter, woocommerce emails, cart abandonment, lead form, marketing, email, send email
 Requires at least: 5.8
 Tested up to: 6.8.2
 Requires PHP: 7.4
-Stable tag:  1.18.4
+Stable tag:  1.18.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 Use Mail Mint, the easiest email marketing automation plugin in WordPress to generate leads, send email campaigns, and run email automation workflows.
 
 == Description ==
-
-👥 Generate Leads 👤 Lead Segmentation 📧 Email Campaigns ⚙️ Email Automation Workflows
-🛒 Recover Abandoned Carts 🗞️ Weekly Newsletters 🎨 Customize WooCommerce Emails
 
 Power up your marketing funnels on WordPress with email marketing automation to drive more leads and boost sales effortlessly.
 
@@ -38,7 +35,11 @@ Actively use email marketing automation without any hassle to increase your conv
 👉 <a href="https://www.facebook.com/groups/wpfunnels/" target="_blank">Join our Facebook Community </a>
 👉 <a href="https://getwpfunnels.com/mail-mint-public-roadmap/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=wp-repo-mm-public-roadmap" target="_blank">Check Out Our Public Roadmap</a>
 
-[youtube https://youtu.be/Tja09ULY19g]
+[youtube https://youtu.be/2JadM_v5Dz0?si=qQh6LMYA6pTxZW5b]
+
+
+👥 Generate Leads 👤 Segment leads 📧 Send Email Campaigns ⚙️ Email Automation Workflows
+🛒 Recover Abandoned Carts 🗞️ Weekly Newsletters 🎨 Customize WooCommerce Emails
 
 == Why Use Mail Mint? ==
 
@@ -87,11 +88,12 @@ With Mail Mint, you will get a super clean UI to manage your leads for effective
 ✅ Import WooCommerce customers
 ✅ Import Easy Digital Downloads customers
 ✅ Import Existing Mailchimp Contacts
-✅ Create tags, lists
+✅ Create tags, lists.
 
 You may also <a href="https://getwpfunnels.com/docs/mail-mint-contacts/create-segments/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-lead-segment" target="_blank">segment your leads</a> (Pro) for targeted email marketing based on their attributes or data such as gender, location, etc.
 
-Additionally, you will get a full 360 contact profile to manage contact details and view user interaction history (Pro)!
+Additionally, you will get a full **<a href="https://youtu.be/8xhrIX1TX2s?si=q5XxjLdVW2Lesbj6?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-lead-segment" target="_blank">360 contact views</a>** to manage contact details and view user interaction history (Pro)!
+
 
 > Learn More about <a href="https://getwpfunnels.com/manage-leads-and-contacts-360/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-contact-managemenet" target="_blank">Mail Mint's Contact Management</a>
 
@@ -115,7 +117,7 @@ Once you have leads, you can craft effective email marketing campaigns to intera
 
 Whether you are a digital creator, blogger, funnel builder, or WooCommerce store owner, Mail Mint will help you run effective email marketing campaigns for lead nurturing or promotional offers.
 
-<em>You will also get tons of niche-specific email templates to easily create email campaigns, newsletters, email automation workflows, abandoned cart recovery campaigns, etc., in just a few minutes.</em>
+<em>You will also get tons of niche-specific **email templates** to easily create email campaigns, newsletters, email automation workflows, abandoned cart recovery campaigns, etc., in just a few minutes.</em>
 
 > Learn More about <a href="https://getwpfunnels.com/email-marketing-campaigns/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-email-campaigns" target="_blank">Mail Mint's Email Campaigns</a>
 
@@ -528,6 +530,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.18.5 (2025-08-27) =
+* Improvement: Background Processing for the Campaigns
+* Bugfix: Visual Editor not Opening on the Safari Browser
 
 = 1.18.4 (2025-08-05) =
 * Bugfix: Abandoned Cart Email Template Import Issue

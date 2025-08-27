@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit9eadcc890872387e1fda64c70c31afc4
+class ComposerStaticInit7639cd5abf56da39357bab1eef1ff9ed
 {
     public static $prefixLengthsPsr4 = array (
         'P' => 
@@ -44,8 +44,8 @@ class ComposerStaticInit9eadcc890872387e1fda64c70c31afc4
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'ContactImportAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Contact/ContactImportAction.php',
         'ContactProfileAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Contact/ContactProfileAction.php',
-        'Flatted' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/FormBlock/node_modules/flatted/php/flatted.php',
-        'FlattedString' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/FormBlock/node_modules/flatted/php/flatted.php',
+        'Flatted' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/flatted/php/flatted.php',
+        'FlattedString' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/flatted/php/flatted.php',
         'GeneralFieldActions' => __DIR__ . '/../..' . '/app/API/Actions/Admin/GeneralFieldActions.php',
         'MRM\\Common\\MrmCommon' => __DIR__ . '/../..' . '/app/MrmCommon.php',
         'MailMint' => __DIR__ . '/../..' . '/includes/MailMint.php',
@@ -286,14 +286,23 @@ class ComposerStaticInit9eadcc890872387e1fda64c70c31afc4
         'PostHog\\PostHog' => __DIR__ . '/..' . '/posthog/posthog-php/lib/PostHog.php',
         'PostHog\\QueueConsumer' => __DIR__ . '/..' . '/posthog/posthog-php/lib/QueueConsumer.php',
         'TemplateAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Email/TemplateAction.php',
+        'WP_Block_Parser' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser.php',
+        'WP_Block_Parser_Block' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-block.php',
+        'WP_Block_Parser_Frame' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-frame.php',
+        'WP_Navigation_Block_Renderer' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-library/src/navigation/index.php',
+        'WP_Style_Engine' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine.php',
+        'WP_Style_Engine_CSS_Declarations' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-declarations.php',
+        'WP_Style_Engine_CSS_Rule' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-rule.php',
+        'WP_Style_Engine_CSS_Rules_Store' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-rules-store.php',
+        'WP_Style_Engine_Processor' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-processor.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit9eadcc890872387e1fda64c70c31afc4::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit9eadcc890872387e1fda64c70c31afc4::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit9eadcc890872387e1fda64c70c31afc4::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit7639cd5abf56da39357bab1eef1ff9ed::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit7639cd5abf56da39357bab1eef1ff9ed::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit7639cd5abf56da39357bab1eef1ff9ed::$classMap;
 
         }, null, ClassLoader::class);
     }
