@@ -772,18 +772,28 @@ class Import
 
 		// Query to get the total number of distinct user IDs.
 		global $wpdb;
-		$total_query = "SELECT COUNT(DISTINCT user_id) as total
-						FROM {$wpdb->prefix}usermeta
-						WHERE meta_key IN ('" . implode("', '", $keys) . "')";
+		// Create placeholders for IN clause
+		$placeholders = implode(', ', array_fill(0, count($keys), '%s'));
+
+		// Total query (safe with prepare)
+		$total_query = $wpdb->prepare(
+			"SELECT COUNT(DISTINCT user_id) as total
+			FROM {$wpdb->usermeta}
+			WHERE meta_key IN ($placeholders)",
+			$keys
+		);
 
 		$total = $wpdb->get_var($total_query); //phpcs:ignore
 
-		// Final query to retrieve user IDs with limit and offset.
-		$final_query = "SELECT user_id
-						FROM {$wpdb->prefix}usermeta
-						WHERE meta_key IN ('" . implode("', '", $keys) . "')
-						GROUP BY user_id
-						LIMIT $number OFFSET $offset";
+		// Final query with LIMIT & OFFSET (safe with prepare)
+		$final_query = $wpdb->prepare(
+			"SELECT user_id
+			FROM {$wpdb->usermeta}
+			WHERE meta_key IN ($placeholders)
+			GROUP BY user_id
+			LIMIT %d OFFSET %d",
+			array_merge($keys, array($number, $offset))
+		);
 
 		$users = $wpdb->get_results($final_query, ARRAY_A); //phpcs:ignore
 
