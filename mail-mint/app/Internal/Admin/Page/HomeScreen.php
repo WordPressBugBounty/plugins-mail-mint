@@ -212,7 +212,7 @@ class HomeScreen {
 
 	public function mint_delete_promotional_banner( $payload ){
 		check_ajax_referer( 'promotional_banner_nonce', 'nonce' );
-		update_option('_hide_clms_early_access', 'no' );
+		update_option('_is_show_lms_banner', 'no' );
 		return [
             'success' => true,
         ];

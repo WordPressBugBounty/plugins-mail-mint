@@ -586,7 +586,7 @@ class ContactModel {
 				if (isset($query_result['source']) && preg_match('/Form-(\d+)/', $query_result['source'], $matches)) {
 					$form_id = $matches[1];
 					// Assuming you have a method to get the form title by ID
-					$form_title = FormModel::get_form_title($form_id);
+					$form_title = FormModel::get_form_title( $form_id );
 					$query_result['source'] =  'Mail Mint Form - ' . $form_title;
 				}
 
@@ -1171,5 +1171,45 @@ class ContactModel {
 		return $wpdb->get_var(
 			$wpdb->prepare("SELECT meta.meta_value FROM {$main_table} AS t1 INNER JOIN {$meta_table} AS meta ON t1.id = meta.contact_id WHERE t1.email = %s AND meta.meta_key = %s", $email, $meta_key)
 		);
+	}
+
+	/**
+	 * Get contacts by list ID with pagination
+	 *
+	 * @param int $item_id Group ID.
+	 * @param int $offset Offset for pagination.
+	 * @param int $batch_size Number of contacts to return.
+	 * @return array Contacts associated with the group.
+	 */
+	public static function get_contacts_by_group( $item_id, $offset = 0, $batch_size = 100 ) {
+		global $wpdb;
+		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
+		$pivot_table = $wpdb->prefix . ContactGroupPivotSchema::$table_name;
+
+		$contact_ids = $wpdb->get_col( $wpdb->prepare( "SELECT contact_id FROM $pivot_table WHERE group_id = %d LIMIT %d OFFSET %d", $item_id, $batch_size, $offset ) );
+
+		if ( empty( $contact_ids ) ) {
+			return array();
+		}
+		$placeholders = implode( ',', array_fill( 0, count( $contact_ids ), '%d' ) );
+		$query = $wpdb->prepare( "SELECT id, email FROM $contact_table WHERE id IN ($placeholders)", $contact_ids );
+		$results = $wpdb->get_results( $query, ARRAY_A );
+		return $results;
+	}
+
+	/**
+	 * Get contacts to verify with pagination
+	 *
+	 * @param int $offset Offset for pagination.
+	 * @param int $batch_size Number of contacts to return.
+	 * @return array Contacts to verify.
+	 */
+	public static function get_contacts_to_verify( $offset = 0, $batch_size = 100 ) {
+		global $wpdb;
+		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
+		
+		// Prepare sql results for list view.
+		$query_results = $wpdb->get_results( $wpdb->prepare( "SELECT id, email FROM $contact_table LIMIT %d, %d", array( $offset, $batch_size ) ), ARRAY_A ); // db call ok. ; no-cache ok.
+		return $query_results;
 	}
 }

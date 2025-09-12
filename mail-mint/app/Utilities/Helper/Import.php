@@ -1030,26 +1030,45 @@ class Import
 			$course_ids  = array_column($all_courses, 'value');
 		}
 
-		$course_ids = implode(', ', $course_ids);
+		// Sanitize course IDs to ensure they are integers
+		$course_ids = array_map('intval', $course_ids);
+		
+		if (empty($course_ids)) {
+			return array(
+				'formatted_users' => array(),
+				'total_users'     => 0,
+			);
+		}
 
 		global $wpdb;
 
 		$table_name  = $wpdb->prefix . 'lifterlms_user_postmeta';
 		$users_table = $wpdb->prefix . 'users';
-
-		$users = $wpdb->get_results("SELECT u.ID as id, (
+		
+		// Create placeholders for the IN clause
+		$placeholders = implode(', ', array_fill(0, count($course_ids), '%d'));
+		
+		// Prepare the query with placeholders
+		$query = $wpdb->prepare(
+			"SELECT u.ID as id, (
 			SELECT meta_value
 			FROM {$table_name}
 			WHERE meta_key = '_status'
 			AND user_id = id
-			AND post_id IN ($course_ids)
+			AND post_id IN ($placeholders)
 			ORDER BY updated_date DESC
-			LIMIT $number OFFSET $offset ) AS status
+			LIMIT %d OFFSET %d ) AS status
 			FROM $users_table as u
 			HAVING status IS NOT NULL
-			AND status = 'enrolled'", ARRAY_A);
-
-		$total = $wpdb->get_var("SELECT COUNT(*) AS enrolled_count
+			AND status = 'enrolled'",
+			array_merge($course_ids, array($number, $offset))
+		);
+		
+		$users = $wpdb->get_results($query, ARRAY_A);
+		
+		// Prepare the count query with placeholders
+		$total_query = $wpdb->prepare(
+			"SELECT COUNT(*) AS enrolled_count
 			FROM (
 				SELECT u.ID as id
 				FROM $users_table as u
@@ -1058,11 +1077,15 @@ class Import
 					FROM $table_name
 					WHERE meta_key = '_status'
 					AND user_id = u.ID
-					AND post_id IN ($course_ids)
+					AND post_id IN ($placeholders)
 					AND meta_value = 'enrolled'
 					ORDER BY updated_date DESC
 				)
-			) AS enrolled_users");
+			) AS enrolled_users",
+			$course_ids
+		);
+		
+		$total = $wpdb->get_var($total_query);
 
 		if (empty($users)) {
 			return array(

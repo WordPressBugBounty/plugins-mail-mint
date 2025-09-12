@@ -2,7 +2,7 @@
 /**
  * Subscribe Page
  *
- * This template can be overridden by copying it to yourtheme/mrm/page-templates/template-subscribe-page.php.
+ * This template can be overridden by copying it to yourtheme/mrm/page-templates/template-subscribe-content.php.
  *
  * HOWEVER, on occasion WooCommerce will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
@@ -15,7 +15,10 @@
  * @since 1.0.0
  */
 
-get_header();
+// Load header only if theme supports it (classic theme).
+if ( locate_template( 'header.php' ) ) {
+    get_header();
+}
 ?>
 
 <main class="mintmrm-main mintmrm-page-template-main">
@@ -26,5 +29,8 @@ get_header();
 
 
 <?php
-get_footer();
+// Load footer only if theme supports it (classic theme).
+if ( locate_template( 'footer.php' ) ) {
+    get_footer();
+}
 ?>

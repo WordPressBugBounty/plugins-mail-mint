@@ -851,4 +851,29 @@ class Helper {
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}wc_customer_lookup WHERE customer_id = %d", $customerId)
 		);
     }
+
+	/**
+	 * Get template file from theme or plugin directory.
+	 *
+	 * @param string $template_name The name of the template file.
+	 * @param array  $args          Optional arguments to pass to the template.
+	 * 
+	 * @since 1.18.7
+	 * @access public
+	 * @return void
+	 */
+	public static function get_template( $template_name, $args = array() ) {
+        $theme_file = locate_template( 'mrm/page-templates/' . $template_name );
+
+        if ( $theme_file ) {
+            $template_path = $theme_file;
+        } else {
+            $template_path = plugin_dir_path( __DIR__ ) . 'mrm-templates/' . $template_name;
+        }
+
+        if ( ! empty( $args ) && is_array( $args ) ) {
+            extract( $args );
+        }
+        include $template_path;
+    }
 }
