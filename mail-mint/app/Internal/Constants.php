@@ -97,8 +97,13 @@ class Constants {
 
 		$timezone_offsets = array();
 		foreach ( $timezones as $timezone ) {
-			$tz                            = new DateTimeZone( $timezone );
-			$timezone_offsets[ $timezone ] = $tz->getOffset( new DateTime() );
+			try {
+				$tz                            = new DateTimeZone( $timezone );
+				$timezone_offsets[ $timezone ] = $tz->getOffset( new DateTime() );
+			} catch ( \Exception $e ) {
+				// Skip invalid timezone identifiers
+				continue;
+			}
 		}
 
 		asort( $timezone_offsets );
