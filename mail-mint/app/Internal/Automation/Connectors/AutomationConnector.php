@@ -92,6 +92,9 @@ class Connector {
 			'mintform'  => array(
 				'class_name' => 'ConnectorMintForm',
 			),
+			'wpfunnels' => array(
+				'class_name' => 'ConnectorWPFunnels',
+			),
 		);
 		return apply_filters( 'mrm_automation_connectors', $default_connectors );
 	}

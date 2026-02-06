@@ -185,18 +185,50 @@ class RedirectionHandler {
      * @since 1.2.7
      */
     public function get_target_url( $query_string ){
-        $params = $this->filter_params_by_hash( $query_string );
-        $url    = '';
-        $count  = count($params);
-        if (strpos($query_string, 'target=') !== false) {
-            for ($i = 1; $i < $count; $i++) {
-                if ($i > 1) {
-                    $url .= '&';
-                }
-                $url .= $params[$i];
+        if ( empty( $query_string ) ) {
+            return '';
+        }
+
+        $query_string = str_replace( '&amp;', '&', $query_string );
+        $params       = explode( '&', $query_string );
+        $target_index = null;
+
+        foreach ( $params as $index => $param ) {
+            if ( strpos( $param, 'target=' ) === 0 ) {
+                $target_index = $index;
+                break;
             }
         }
-        return substr($url, 7);
+
+        if ( null === $target_index ) {
+            return '';
+        }
+
+        $target = substr( $params[ $target_index ], 7 );
+        $target = rawurldecode( $target );
+
+        $extra_params = array();
+        $count        = count( $params );
+        for ( $i = $target_index + 1; $i < $count; $i++ ) {
+            if ( empty( $params[ $i ] ) ) {
+                continue;
+            }
+            if ( strpos( $params[ $i ], 'hash=' ) === 0 ) {
+                continue;
+            }
+            $extra_params[] = $params[ $i ];
+        }
+
+        if ( ! empty( $extra_params ) ) {
+            $glue      = ( false === strpos( $target, '?' ) ) ? '?' : '&';
+            $last_char = substr( $target, -1 );
+            if ( '?' === $last_char || '&' === $last_char ) {
+                $glue = '';
+            }
+            $target .= $glue . implode( '&', $extra_params );
+        }
+
+        return $target;
     }
 
     /**
@@ -211,7 +243,8 @@ class RedirectionHandler {
         if (!$query_string) {
             return array();
         }
-        $params = explode('&amp;', $query_string);
+        $query_string = str_replace( '&amp;', '&', $query_string );
+        $params = explode('&', $query_string);
         $params = array_filter(
             $params,
             function ($param) {

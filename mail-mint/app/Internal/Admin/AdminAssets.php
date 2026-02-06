@@ -312,6 +312,7 @@ class AdminAssets {
                     'is_wc_st_active'                => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.18.6') ? Mint_Pro_Helper::is_wc_shipment_tracking_active() : false,
                     'is_wc_ads_active'               => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.18.6') ? Mint_Pro_Helper::is_wc_advanced_shipment_tracking_active() : false,
                     'is_zerobounce_connected'        => MrmCommon::is_mailmint_pro_active() && method_exists('MailMintPro\App\Utilities\Helper\Integration', 'is_zero_bounce_connected') ? Integration::is_zero_bounce_connected() : false,
+                    'is_wpf_active'                  => MrmCommon::is_wpfnl_active(),
 		        )
 	        );
         }
@@ -401,6 +402,7 @@ class AdminAssets {
                     'is_fluent_booking_active'       => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.18.4') ? Mint_Pro_Helper::is_fluent_booking_active() : false,
                     'is_wc_st_active'                => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.18.6') ? Mint_Pro_Helper::is_wc_shipment_tracking_active() : false,
                     'is_wc_ads_active'               => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.18.6') ? Mint_Pro_Helper::is_wc_advanced_shipment_tracking_active() : false,
+                    'is_wpf_active'                  => MrmCommon::is_wpfnl_active(),
 		        )
 	        );
         }

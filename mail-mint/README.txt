@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, post notification, woocomme
 Requires at least: 5.8
 Tested up to: 6.9.0
 Requires PHP: 7.4
-Stable tag:  1.19.3
+Stable tag:  1.19.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -526,6 +526,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.19.4 (2026-02-06) =
+* New: Contact Created Trigger on the Automation
+* New: Funnel Created Trigger on the Automation
+* Bugfix: UTM Parameters Break After Mail Mint Click-Tracking Redirect
 
 = 1.19.3 (2026-01-29) =
 * Bugfix: Cross-Site Request Forgery to Stored Cross-Site Scripting

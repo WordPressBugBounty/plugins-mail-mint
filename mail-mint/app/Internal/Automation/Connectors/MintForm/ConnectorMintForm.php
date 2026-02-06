@@ -84,6 +84,10 @@ class ConnectorMintForm extends Automation_Connector {
 				'key'   => 'mint_list_applied',
 				'label' => 'List applied',
 			),
+			array(
+				'key'   => 'mint_create_contact',
+				'label' => 'Create Contact',
+			),
 		);
 		return $mm_triggers;
 	}

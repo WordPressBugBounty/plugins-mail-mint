@@ -92,6 +92,7 @@ class SendMail extends AbstractAutomationAction {
 			$ld_group_id	 = isset( $data['data']['ld_group_id'] ) ? $data['data']['ld_group_id'] : '';
 			$ld_topic_id	 = isset( $data['data']['ld_topic_id'] ) ? $data['data']['ld_topic_id'] : '';
 			$booking_id 	 = isset($data['data']['booking_id']) ? $data['data']['booking_id'] : '';
+			$funnel_id       = ContactModel::get_contact_meta_value_by_key( $user_email, 'wpfunnel_id' );
 
 			$step_data = HelperFunctions::get_step_data(  $data['automation_id'], $data['step_id'] );
 
@@ -176,6 +177,7 @@ class SendMail extends AbstractAutomationAction {
 						'ld_topic_id'        => $ld_topic_id,
 						'booking_id' 		 => $booking_id,
 						'wp_user_id'         => $wp_user_id,
+						'funnel_id'          => $funnel_id,
 					)
 				);
 				$preview   = Helper::replace_dynamic_coupon( $preview, $user_email );
@@ -220,6 +222,7 @@ class SendMail extends AbstractAutomationAction {
 						'ld_topic_id'        => $ld_topic_id,
 						'booking_id'         => $booking_id,
 						'wp_user_id'         => $wp_user_id,
+						'funnel_id'          => $funnel_id,
 					) 
 				);
 				$email_data['subject'] = Helper::replace_dynamic_coupon( $email_data['subject'], $email_data['receiver_email'] );
@@ -243,6 +246,7 @@ class SendMail extends AbstractAutomationAction {
 						'ld_topic_id'        => $ld_topic_id,
 						'booking_id'         => $booking_id,
 						'wp_user_id'         => $wp_user_id,
+						'funnel_id'          => $funnel_id,
 					)
 				);
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );

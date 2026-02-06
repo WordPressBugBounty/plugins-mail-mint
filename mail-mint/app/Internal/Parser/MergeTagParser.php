@@ -19,6 +19,7 @@ use MailMintPro\App\Internal\EmailCustomization\Parser\EddMergeTagParser;
 use MailMintPro\App\Internal\EmailCustomization\Parser\LearnDashTagParser;
 use MailMintPro\App\Internal\EmailCustomization\Parser\WCMergeTagParser;
 use MailMintPro\App\Internal\EmailCustomization\Parser\FBMergeTagParser;
+use MailMintPro\App\Internal\EmailCustomization\Parser\WPFMergeTagParser;
 use MRM\Common\MrmCommon;
 
 /**
@@ -236,6 +237,10 @@ class MergeTagParser
 			case 'fb_host':
 				$host_parser = new FBMergeTagParser($value_key, $default_value, $params);
 				$value       = $host_parser->parse_fluent_booking_host_merge_tag();
+				break;
+			case 'wpfunnels':
+				$host_parser = new WPFMergeTagParser($value_key, $default_value, $params);
+				$value       = $host_parser->parse_wpf_merge_tag();
 				break;
 			default:
 				$value = apply_filters('mint_merge_tag_group_callback_' . $data_key, $matches[0], $value_key, $default_value, $contact);
