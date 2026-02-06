@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.18.8
+ * Version:           1.19.3
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -23,6 +23,8 @@
  * Text Domain:       mrm
  * Domain Path:       /languages
  */
+
+use CodeRex\Telemetry\Client;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -34,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.18.8' );
+define( 'MRM_VERSION', '1.19.3' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.15.3' );
 define( 'MINT_DEV_MODE', false );
@@ -151,6 +153,19 @@ if ( ! function_exists( 'appsero_init_tracker_mail_mint' ) ) {
 	}
 }
 appsero_init_tracker_mail_mint();
+
+
+function init_mail_mint_telemetry() {
+    $api_key = '5882108b-4887-4d39-8569-9f19283f14bd';
+    $api_secret = 'sec_4f9a839c83b4041423bd';
+    $telemetry = new Client(
+            $api_key,
+            $api_secret,
+            'Mail Mint',
+            __FILE__
+    );
+}
+init_mail_mint_telemetry();
 
 
 if ( ! function_exists( 'mmempty' ) ) {

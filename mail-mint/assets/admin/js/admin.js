@@ -1,8 +1,9 @@
 jQuery(document).ready(function ($) {
     
-    $(document).on("click", ".mailmint-promotional-banner .close-promotional-banner", function(event) {
+    $(document).on("click", ".gwpf-promotional-notice .close-promotional-banner", function(event) {
 		event.preventDefault();
-        $('.mailmint-promotional-banner').css('display','none');
+        $('.gwpf-promotional-notice').css('display','none');
+        
         jQuery.ajax({
             type : "post",
             dataType : "json",
@@ -13,7 +14,7 @@ jQuery(document).ready(function ($) {
 
     $(document).on("click", ".mint-notification-counter__btn-area.close-no-thanks", function(event) {
 		event.preventDefault();
-        $('.mailmint-promotional-banner').css('display','none');
+        $('.gwpf-promotional-notice').css('display','none');
         jQuery.ajax({
             type : "post",
             dataType : "json",
@@ -24,7 +25,7 @@ jQuery(document).ready(function ($) {
 
     $(document).on("click", ".mailmint-database-update-notice", function(event) {
 		event.preventDefault();
-        $('.mailmint-promotional-banner').css('display','none');
+        $('.gwpf-promotional-notice').css('display','none');
         jQuery.ajax({
             type : "post",
             dataType : "json",

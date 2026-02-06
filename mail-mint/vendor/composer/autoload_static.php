@@ -6,14 +6,18 @@ namespace Composer\Autoload;
 
 class ComposerStaticInit7639cd5abf56da39357bab1eef1ff9ed
 {
+    public static $files = array (
+        'ff3063ba1525be89739a1851bfba6fcb' => __DIR__ . '/..' . '/coderexltd/telemetry/src/helpers.php',
+    );
+
     public static $prefixLengthsPsr4 = array (
-        'P' => 
-        array (
-            'PostHog\\' => 8,
-        ),
         'M' => 
         array (
             'Mint\\MRM\\' => 9,
+        ),
+        'C' => 
+        array (
+            'CodeRex\\Telemetry\\' => 18,
         ),
         'A' => 
         array (
@@ -22,14 +26,14 @@ class ComposerStaticInit7639cd5abf56da39357bab1eef1ff9ed
     );
 
     public static $prefixDirsPsr4 = array (
-        'PostHog\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/posthog/posthog-php/lib',
-        ),
         'Mint\\MRM\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
             1 => __DIR__ . '/../..' . '/includes',
+        ),
+        'CodeRex\\Telemetry\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/coderexltd/telemetry/src',
         ),
         'Appsero\\' => 
         array (
@@ -41,6 +45,11 @@ class ComposerStaticInit7639cd5abf56da39357bab1eef1ff9ed
         'Appsero\\Client' => __DIR__ . '/..' . '/appsero/client/src/Client.php',
         'Appsero\\Insights' => __DIR__ . '/..' . '/appsero/client/src/Insights.php',
         'Appsero\\License' => __DIR__ . '/..' . '/appsero/client/src/License.php',
+        'CodeRex\\Telemetry\\Client' => __DIR__ . '/..' . '/coderexltd/telemetry/src/Client.php',
+        'CodeRex\\Telemetry\\Drivers\\DriverInterface' => __DIR__ . '/..' . '/coderexltd/telemetry/src/Drivers/DriverInterface.php',
+        'CodeRex\\Telemetry\\Drivers\\OpenPanelDriver' => __DIR__ . '/..' . '/coderexltd/telemetry/src/Drivers/OpenPanelDriver.php',
+        'CodeRex\\Telemetry\\EventDispatcher' => __DIR__ . '/..' . '/coderexltd/telemetry/src/EventDispatcher.php',
+        'CodeRex\\Telemetry\\Helpers\\Utils' => __DIR__ . '/..' . '/coderexltd/telemetry/src/Helpers/Utils.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'ContactImportAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Contact/ContactImportAction.php',
         'ContactProfileAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Contact/ContactProfileAction.php',
@@ -275,16 +284,6 @@ class ComposerStaticInit7639cd5abf56da39357bab1eef1ff9ed
         'MrmActivator' => __DIR__ . '/../..' . '/includes/MrmActivator.php',
         'MrmDeactivator' => __DIR__ . '/../..' . '/includes/MrmDeactivator.php',
         'Mrmi18n' => __DIR__ . '/../..' . '/includes/Mrmi18n.php',
-        'PostHog\\Client' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Client.php',
-        'PostHog\\Consumer' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer.php',
-        'PostHog\\Consumer\\File' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer/File.php',
-        'PostHog\\Consumer\\ForkCurl' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer/ForkCurl.php',
-        'PostHog\\Consumer\\LibCurl' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer/LibCurl.php',
-        'PostHog\\Consumer\\Socket' => __DIR__ . '/..' . '/posthog/posthog-php/lib/Consumer/Socket.php',
-        'PostHog\\HttpClient' => __DIR__ . '/..' . '/posthog/posthog-php/lib/HttpClient.php',
-        'PostHog\\HttpResponse' => __DIR__ . '/..' . '/posthog/posthog-php/lib/HttpResponse.php',
-        'PostHog\\PostHog' => __DIR__ . '/..' . '/posthog/posthog-php/lib/PostHog.php',
-        'PostHog\\QueueConsumer' => __DIR__ . '/..' . '/posthog/posthog-php/lib/QueueConsumer.php',
         'TemplateAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Email/TemplateAction.php',
         'WP_Block_Parser' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser.php',
         'WP_Block_Parser_Block' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-block.php',

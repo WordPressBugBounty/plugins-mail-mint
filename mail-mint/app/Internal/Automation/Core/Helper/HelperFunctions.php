@@ -18,6 +18,7 @@ use Mint\MRM\DataBase\Tables\AutomationMetaSchema;
 use Mint\MRM\DataBase\Tables\EmailMetaSchema;
 use Mint\MRM\DataBase\Tables\EmailSchema;
 use Mint\MRM\DataBase\Models\ContactModel;
+use MintMail\App\Internal\Automation\AutomationLogModel;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
 use Mint\MRM\DataBase\Tables\CampaignEmailBuilderSchema;
 use MRM\Common\MrmCommon;
@@ -178,6 +179,9 @@ class HelperFunctions { //phpcs:ignore
 				$condition_node_no[ $step_key ]['enterance'] = $step_enterance;
 				$condition_node_no[ $step_key ]['completed'] = $step_completed;
 				$condition_node_no[ $step_key ]['exited']    = $step_exited;
+				
+				// Generate metrics for this step
+				$condition_node_no[ $step_key ]['metrics'] = AutomationLogModel::generate_step_metrics_public( $step, $step_enterance, $step_completed, $step_exited );
 			}
 		}
 		if ( !empty( $condition_node_yes ) ) {
@@ -188,6 +192,9 @@ class HelperFunctions { //phpcs:ignore
 				$condition_node_yes[ $step_key ]['enterance'] = $step_enterance;
 				$condition_node_yes[ $step_key ]['completed'] = $step_completed;
 				$condition_node_yes[ $step_key ]['exited']    = $step_exited;
+				
+				// Generate metrics for this step
+				$condition_node_yes[ $step_key ]['metrics'] = AutomationLogModel::generate_step_metrics_public( $step, $step_enterance, $step_completed, $step_exited );
 			}
 		}
 
@@ -684,105 +691,305 @@ class HelperFunctions { //phpcs:ignore
 		global $wpdb;
 		$automation_log_table = $wpdb->prefix . AutomationLogSchema::$table_name;
 
-		$select_query = $wpdb->get_results(
+		// A contact is considered "completed" when they have NO steps with status 'processing' or 'pending'
+		// and they have at least one step with status 'completed'
+		$completed = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT log.email, log.identifier
-				FROM $automation_log_table AS log
-				WHERE log.automation_id = %s
-				GROUP BY log.identifier",
-				$id
-			),
-			ARRAY_A
-		);
-
-		$completed = 0;
-
-		if ( is_array( $select_query ) ) {
-			$identifier_list = array_column( $select_query, 'identifier' );
-
-			$steps     = self::get_automations_steps_to_index( $id );
-			$steps_yes = 0;
-			$steps_no  = 0;
-			foreach ( $steps as $step ) {
-				if ( 'logical' === $step['type'] && 'condition' === $step['key'] && isset( $step['next_step_id'] ) ) {
-					$condition_node = maybe_unserialize( $step['meta_value'] );
-					$steps_yes      = count( $condition_node['yes'] );
-					$steps_no       = count( $condition_node['no'] );
-				}
-			}
-
-			if ( !empty( $identifier_list ) ) {
-				$count_query = $wpdb->get_results(
-					$wpdb->prepare(
-						"SELECT log.identifier, COUNT(log.id) as count
-						FROM $automation_log_table AS log
-						WHERE log.automation_id = %s
-						AND log.identifier IN (" . implode( ',', array_fill( 0, count( $identifier_list ), '%s' ) ) . ')
-						AND log.status = %s
-						GROUP BY log.identifier',
-						array_merge( array( $id ), $identifier_list, array( 'completed' ) )
-					),
-					ARRAY_A
-				);
-
-				if ( is_array( $count_query ) ) {
-					foreach ( $count_query as $data ) {
-						if ( isset( $data['identifier'] ) ) {
-							$total_steps_yes = count( $steps ) + $steps_yes;
-							$total_steps_no  = count( $steps ) + $steps_no;
-							if ( $data['count'] == $total_steps_yes || $data['count'] == $total_steps_no ) { //  phpcs:ignore
-								$completed++;
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return $completed;
-	}
-
-
-	/**
-	 * Count the total number of unique entrances for a specific automation.
-	 *
-	 * @param int $id The ID of the automation.
-	 *
-	 * @return int The total number of unique entrances.
-	 * @since 1.3.1
-	 */
-	public static function count_total_enterance( $id ) {
-		global $wpdb;
-		$automation_log_table = $wpdb->prefix . AutomationLogSchema::$table_name;
-
-		$result = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT SUM(sub.count) AS total_count
-				FROM (
-					SELECT COUNT(DISTINCT log.identifier) AS count
-					FROM $automation_log_table AS log
-					WHERE log.automation_id = %s
-					GROUP BY log.email
-				) AS sub",
+				"SELECT COUNT(DISTINCT identifier)
+				FROM $automation_log_table
+				WHERE automation_id = %d
+				AND identifier NOT IN (
+					SELECT DISTINCT identifier
+					FROM $automation_log_table
+					WHERE automation_id = %d
+					AND status IN ('processing', 'pending')
+				)
+				AND identifier IN (
+					SELECT DISTINCT identifier
+					FROM $automation_log_table
+					WHERE automation_id = %d
+					AND status = 'completed'
+				)",
+				$id,
+				$id,
 				$id
 			)
 		);
 
-		$enterance = $result ? intval( $result ) : 0;
-		return $enterance;
+		return $completed ? intval( $completed ) : 0;
 	}
 
 
+    /**
+     * Count the total number of unique entrances for a specific automation.
+     *
+     * @param int $id The ID of the automation.
+     *
+     * @return int The total number of unique entrances.
+     * @since 1.3.1
+     */
+    public static function count_total_enterance( $id ) {
+        global $wpdb;
+        $automation_log_table = $wpdb->prefix . AutomationLogSchema::$table_name;
+
+        // Optimized: Direct COUNT DISTINCT on the composite key (email, identifier)
+        // This eliminates the nested subquery and is much faster
+        $result = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT COUNT(DISTINCT CONCAT(COALESCE(email, ''), '|', COALESCE(identifier, ''))) 
+                FROM $automation_log_table 
+                WHERE automation_id = %d",
+                $id
+            )
+        );
+
+        return $result ? intval( $result ) : 0;
+    }
+
 	/**
-	 * Count exited autoamtion
+	 * Count processing automation
 	 *
-	 * @param string $id Automation ID.
+	 * This function calculates the number of automation runs that are currently in progress
+	 * by subtracting completed runs from total entries.
+	 *
+	 * @param int $id Automation ID.
+	 * @return int The count of automation runs currently processing.
+	 * @since 1.0.0
 	 */
-	public static function count_exited_automation( $id ) {
+	public static function count_processing_automation( $id ) {
 		$total_enter     = self::count_total_enterance( $id );
 		$total_completed = self::count_completed_automation( $id );
-		$exited          = $total_enter - $total_completed;
-		return $exited;
+		$processing      = $total_enter - $total_completed;
+		return max( 0, $processing ); // Ensure non-negative value
+	}
+
+	/**
+	 * Calculate total orders and revenue for an automation
+	 *
+	 * This function queries the broadcast emails associated with an automation
+	 * and calculates the total number of orders and total revenue from the email meta data.
+	 *
+	 * @param int $automation_id The ID of the automation.
+	 * @return array {
+	 *     @type int    $total_orders  Total number of orders.
+	 *     @type string $total_revenue WooCommerce formatted revenue HTML.
+	 * }
+	 * @since 1.0.0
+	 */
+	public static function get_automation_orders_and_revenue( $automation_id ) {
+		global $wpdb;
+		$broadcast_table      = $wpdb->prefix . 'mint_broadcast_emails';
+		$broadcast_meta_table = $wpdb->prefix . 'mint_broadcast_email_meta';
+
+		// Query to get total orders and revenue for the automation
+		$query = $wpdb->prepare(
+			"SELECT 
+				COUNT(DISTINCT CASE WHEN bem.meta_key = 'order_id' THEN bem.meta_value END) as total_orders,
+				COALESCE(SUM(CASE WHEN bem.meta_key = 'order_total' THEN CAST(bem.meta_value AS DECIMAL(10,2)) END), 0) as total_revenue
+			FROM {$broadcast_table} AS be
+			INNER JOIN {$broadcast_meta_table} AS bem ON be.id = bem.mint_email_id
+			WHERE be.automation_id = %d
+			AND be.email_type = 'automation'
+			AND bem.meta_key IN ('order_id', 'order_total')",
+			$automation_id
+		);
+
+		$result        = $wpdb->get_row( $query, ARRAY_A );
+		$total_revenue = $result ? floatval( $result['total_revenue'] ) : 0.0;
+
+		return array(
+			'total_orders'  => $result ? intval( $result['total_orders'] ) : 0,
+			'total_revenue' => MrmCommon::price_format_with_wc_currency( $total_revenue ),
+		);
+	}
+
+	/**
+	 * Get total email statistics for an automation
+	 *
+	 * This function queries the email table and email meta table to get
+	 * total sent, opened, and clicked emails for a specific automation.
+	 *
+	 * @param int $automation_id The ID of the automation.
+	 * @return array {
+	 *     @type int   $total_sent    Total number of emails sent.
+	 *     @type int   $total_opened  Total number of emails opened.
+	 *     @type int   $total_clicked Total number of emails clicked.
+	 *     @type float $open_rate     Open rate percentage.
+	 *     @type float $click_rate    Click rate percentage.
+	 * }
+	 * @since 1.0.0
+	 */
+	public static function get_automation_email_stats( $automation_id ) {
+		global $wpdb;
+		$email_table      = $wpdb->prefix . EmailSchema::$table_name;
+		$email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+
+		// Get total sent emails - using automation_id directly
+		$total_sent = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(id) as total_sent 
+				FROM {$email_table} 
+				WHERE automation_id = %d
+				AND email_type = 'automation'",
+				$automation_id
+			)
+		);
+
+		// Get total opened emails
+		$total_opened = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT em.mint_email_id) as total_opened
+				FROM {$email_meta_table} AS em
+				INNER JOIN {$email_table} AS e ON em.mint_email_id = e.id
+				WHERE e.automation_id = %d
+				AND e.email_type = 'automation'
+				AND em.meta_key = 'is_open'
+				AND em.meta_value = '1'",
+				$automation_id
+			)
+		);
+
+		// Get total clicked emails
+		$total_clicked = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT em.mint_email_id) as total_clicked
+				FROM {$email_meta_table} AS em
+				INNER JOIN {$email_table} AS e ON em.mint_email_id = e.id
+				WHERE e.automation_id = %d
+				AND e.email_type = 'automation'
+				AND em.meta_key = 'is_click'
+				AND em.meta_value = '1'",
+				$automation_id
+			)
+		);
+
+		// Get total unsubscribed emails
+		$total_unsubscribed = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(DISTINCT em.mint_email_id) as total_unsubscribed
+				FROM {$email_meta_table} AS em
+				INNER JOIN {$email_table} AS e ON em.mint_email_id = e.id
+				WHERE e.automation_id = %d
+				AND e.email_type = 'automation'
+				AND em.meta_key = 'is_unsubscribe'
+				AND em.meta_value = '1'",
+				$automation_id
+			)
+		);
+
+		$total_sent         = $total_sent ? intval( $total_sent ) : 0;
+		$total_opened       = $total_opened ? intval( $total_opened ) : 0;
+		$total_clicked      = $total_clicked ? intval( $total_clicked ) : 0;
+		$total_unsubscribed = $total_unsubscribed ? intval( $total_unsubscribed ) : 0;
+
+		// Calculate rates
+		$open_rate  = $total_sent > 0 ? ( $total_opened / $total_sent ) * 100 : 0.0;
+		$click_rate = $total_sent > 0 ? ( $total_clicked / $total_sent ) * 100 : 0.0;
+
+		return array(
+			'total_sent'         => $total_sent,
+			'total_opened'       => $total_opened,
+			'total_clicked'      => $total_clicked,
+			'total_unsubscribed' => $total_unsubscribed,
+			'open_rate'          => round( $open_rate, 2 ),
+			'click_rate'         => round( $click_rate, 2 ),
+		);
+	}
+
+	/**
+	 * Get orders and revenue for a specific step (email)
+	 *
+	 * @param int $step_id The step ID.
+	 * @return array Array with total_orders and total_revenue (formatted HTML)
+	 * @since 1.0.0
+	 */
+	public static function get_step_orders_and_revenue( $step_id ) {
+		global $wpdb;
+		$broadcast_table      = $wpdb->prefix . 'mint_broadcast_emails';
+		$broadcast_meta_table = $wpdb->prefix . 'mint_broadcast_email_meta';
+
+		// Get orders and revenue from broadcast_emails linked to this step
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT bm.meta_value as order_id
+				FROM {$broadcast_table} AS b
+				INNER JOIN {$broadcast_meta_table} AS bm ON b.id = bm.mint_email_id
+				WHERE b.step_id = %s
+				AND bm.meta_key = 'order_id'",
+				$step_id
+			)
+		);
+
+		$total_orders  = 0;
+		$total_revenue = 0;
+
+		if ( ! empty( $results ) ) {
+			$total_orders = count( $results );
+			
+			foreach ( $results as $result ) {
+				$order = wc_get_order( $result->order_id );
+				if ( $order ) {
+					$total_revenue += $order->get_total();
+				}
+			}
+		}
+
+		return array(
+			'total_orders'  => $total_orders,
+			'total_revenue' => MrmCommon::price_format_with_wc_currency( $total_revenue ),
+		);
+	}
+
+	/**
+	 * Count contacts that took the yes path in a condition step
+	 *
+	 * This counts contacts that entered the first step of the yes branch
+	 *
+	 * @param int   $step_id The condition step ID.
+	 * @param array $yes_steps Array of step IDs in the yes branch.
+	 * @return int Number of contacts that took yes path
+	 * @since 1.0.0
+	 */
+	public static function count_condition_yes_path( $step_id, $yes_steps = array() ) {
+		if ( empty( $yes_steps ) || ! is_array( $yes_steps ) ) {
+			return 0;
+		}
+
+		// Get the first step in the yes branch
+		$first_yes_step_id = isset( $yes_steps[0]['step_id'] ) ? $yes_steps[0]['step_id'] : null;
+		
+		if ( ! $first_yes_step_id ) {
+			return 0;
+		}
+
+		// Count how many contacts entered the first step of yes branch
+		return self::count_total_enterance_in_step( $first_yes_step_id );
+	}
+
+	/**
+	 * Count contacts that took the no path in a condition step
+	 *
+	 * This counts contacts that entered the first step of the no branch
+	 *
+	 * @param int   $step_id The condition step ID.
+	 * @param array $no_steps Array of step IDs in the no branch.
+	 * @return int Number of contacts that took no path
+	 * @since 1.0.0
+	 */
+	public static function count_condition_no_path( $step_id, $no_steps = array() ) {
+		if ( empty( $no_steps ) || ! is_array( $no_steps ) ) {
+			return 0;
+		}
+
+		// Get the first step in the no branch
+		$first_no_step_id = isset( $no_steps[0]['step_id'] ) ? $no_steps[0]['step_id'] : null;
+		
+		if ( ! $first_no_step_id ) {
+			return 0;
+		}
+
+		// Count how many contacts entered the first step of no branch
+		return self::count_total_enterance_in_step( $first_no_step_id );
 	}
 
 
@@ -2593,8 +2800,33 @@ class HelperFunctions { //phpcs:ignore
 				$automation_id
 			)
 		);
-
 		return $exists > 0;
+	}
+
+	/**
+	 * Check if a contact has exited an automation
+	 *
+	 * @param string $email         The email address to check.
+	 * @param int    $automation_id The ID of the automation.
+	 *
+	 * @return bool True if the contact has exited the automation (not in processing/pending), false otherwise.
+	 * @since 1.17.13
+	 */
+	public static function if_contact_has_exited_automation($email, $automation_id){
+		global $wpdb;
+		$is_active = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) 
+        	FROM {$wpdb->prefix}mint_automation_log
+        	WHERE email = %s 
+        	AND automation_id = %d
+        	AND status IN ('processing', 'pending')",
+				$email,
+				$automation_id
+			)
+		);
+
+		return $is_active == 0;
 	}
 }
 

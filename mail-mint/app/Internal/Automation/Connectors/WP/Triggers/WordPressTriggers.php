@@ -8,6 +8,7 @@
 namespace MintMail\App\Internal\Automation\Connector\trigger;
 
 use Mint\Mrm\Internal\Traits\Singleton;
+use MintMail\App\Internal\Automation\HelperFunctions;
 /**
  * WordPress triggers
  *
@@ -42,6 +43,39 @@ class WordpressTriggers {
 	 * @return bool
 	 */
 	public function validate_settings( $step_data, $data ) {
+		if (!isset($step_data['automation_id'], $step_data['step_id'])) {
+			return false;
+		}
+
+		$automation_data = HelperFunctions::get_step_data( $step_data['automation_id'], $step_data['step_id'] );
+		if (empty($automation_data)) {
+			return false;
+		}
+
+		$trigger_name = isset($data['trigger_name']) ? $data['trigger_name'] : '';
+		$email        = isset($data['data']['user_email']) ? $data['data']['user_email'] : '';
+		
+		// Determine the settings path based on trigger type
+		if ('wp_user_registration' === $trigger_name) {
+			$entry_rule = isset($automation_data['settings']['wp_user_registration_settings']['entry']) ? $automation_data['settings']['wp_user_registration_settings']['entry'] : 'only_once';
+		} elseif ('wp_user_login' === $trigger_name) {
+			$entry_rule = isset($automation_data['settings']['wp_user_login_settings']['entry']) ? $automation_data['settings']['wp_user_login_settings']['entry'] : 'only_once';
+		} else {
+			return true;
+		}
+		
+		if ('only_once' === $entry_rule) {
+			if (HelperFunctions::if_already_in_automation( $email, $step_data['automation_id'] )) {
+				return false;
+			}
+		} elseif ('only_after_exit' === $entry_rule) {
+			if (HelperFunctions::if_already_in_automation($email, $step_data['automation_id'])) {
+				if (!HelperFunctions::if_contact_has_exited_automation($email, $step_data['automation_id'])) {
+					return false;
+				}
+			}
+		}
+
 		return true;
 	}
 

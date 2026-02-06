@@ -447,5 +447,17 @@ class SettingRoute {
 				),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'coupons/delete',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array($this->advanced_settings_controller, 'delete_coupons'),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
+				),
+			)
+		);
 	}
 }

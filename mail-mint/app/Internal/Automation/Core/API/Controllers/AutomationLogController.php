@@ -60,6 +60,7 @@ class AutomationLogController extends AdminBaseController {
 		$params = MrmCommon::get_api_params_values( $request );
 		if ( !empty( $params['id'] ) ) {
 			$log = AutomationLogModel::get_single( $params['id'] );
+			do_action( 'mailmint_automation_log_overall_analytics', $params );
 			if ( isset( $log['data'] ) ) {
 				return $this->get_success_response( __( 'Query Successfulls', 'mrm' ), 200, $log['data'] );
 			}
@@ -67,51 +68,6 @@ class AutomationLogController extends AdminBaseController {
 		}
 		return $this->get_error_response( 'Failed to Get Data', 400 );
 	}
-
-
-	/**
-	 * Function use to get single automation
-	 *
-	 * @param WP_REST_Request $request Request object used to generate the response.
-	 * @return WP_REST_Response
-	 * @since 1.0.0
-	 */
-	public function get_automation_performance_analytics( WP_REST_Request $request ) {
-		$params = MrmCommon::get_api_params_values( $request );
-
-		if ( !empty( $params['id'] ) ) {
-			$filter     = isset( $params['filter'] ) ? $params['filter'] : 'weekly';
-			$log_report = AutomationLogModel::get_automation_performance_analytics( $params['id'], $filter );
-			if ( isset( $log_report['data'] ) ) {
-				return $this->get_success_response( __( 'Query Successfulls', 'mrm' ), 200, $log_report['data'] );
-			}
-			return $this->get_error_response( 'Failed to Get Data', 400 );
-		}
-		return $this->get_error_response( 'Failed to Get Data', 400 );
-	}
-
-	/**
-	 * Function use to get single automation
-	 *
-	 * @param WP_REST_Request $request Request object used to generate the response.
-	 * @return WP_REST_Response
-	 * @since 1.0.0
-	 */
-	public function get_automation_overall_analytics( WP_REST_Request $request ) {
-		$params = MrmCommon::get_api_params_values( $request );
-
-		if ( !empty( $params['id'] ) ) {
-			$filter     = isset( $params['filter'] ) ? $params['filter'] : 'weekly';
-			$log_report = AutomationLogModel::get_automation_overall_analytics( $params['id'], $filter );
-			do_action( 'mailmint_automation_log_overall_analytics', $params );
-			if ( isset( $log_report['data'] ) ) {
-				return $this->get_success_response( __( 'Query Successfulls', 'mrm' ), 200, $log_report['data'] );
-			}
-			return $this->get_error_response( 'Failed to Get Data', 400 );
-		}
-		return $this->get_error_response( 'Failed to Get Data', 400 );
-	}
-
 
 	/**
 	 * Delete a single object

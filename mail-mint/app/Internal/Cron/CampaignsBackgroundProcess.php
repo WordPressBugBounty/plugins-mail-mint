@@ -85,6 +85,7 @@ class CampaignsBackgroundProcess {
 		$recipients_emails     = CampaignModel::get_campaign_recipients_email( $campaign_id, $offset, $per_batch );
 
 		$start_time = time();
+		$processed_count = 0;
 
 		if ( is_array( $recipients_emails ) && ! empty( $recipients_emails ) ) {
 			$sender_name   = ! empty( $campaign_email[ 'sender_name' ] ) ? $campaign_email[ 'sender_name' ] : $sender_name;
@@ -94,44 +95,49 @@ class CampaignsBackgroundProcess {
 			$headers       = $this->prepare_email_headers( $sender_name, $sender_email, $reply_name, $reply_email );
 
 			foreach ( $recipients_emails as $email ) {
-				if ( BackgroundProcessHelper::memory_exceeded() || BackgroundProcessHelper::time_exceeded( $start_time, 0.6 ) ) {
+				if ( BackgroundProcessHelper::memory_exceeded() || BackgroundProcessHelper::time_exceeded( $start_time, 0.5 ) ) {
 					// Reschedule the task if memory or time limit is exceeded.
+					// Update offset to continue from where we left off.
+					$new_offset = $offset + $processed_count;
 					$args = array(
 						array(
 							'campaign_id'     => $campaign_id,
 							'campaign_status' => 'active',
 							'email'           => $campaign_email,
-							'offset'          => $offset,
+							'offset'          => $new_offset,
 							'per_batch'       => $per_batch,
 						),
 					);
 					$group = 'mailmint-campaign-schedule-' . $campaign_id;
-					as_schedule_single_action( time() + 120, MAILMINT_SCHEDULE_EMAILS, $args, $group );
-					return false;
+					as_schedule_single_action( time() + 60, MAILMINT_SCHEDULE_EMAILS, $args, $group );
+					return;
 				}
-
 				// Check if email id and email address is set.
 				if ( isset( $email[ 'id' ], $email[ 'email' ] ) && $email[ 'id' ] && $email[ 'email' ] ) {
 					$email_hash = MrmCommon::get_rand_email_hash( $email[ 'email' ], $campaign_id );
+					$is_exist   = CampaignModel::is_exist_schedule_email( $campaign_id, $campaign_email_id, $email[ 'email' ] );
 
-					$wpdb->insert( //phpcs:ignore
-						$email_broadcast_table,
-						array(
-							'campaign_id'   => $campaign_id,
-							'email_id'      => $campaign_email_id,
-							'contact_id'    => $email['id'],
-							'email_address' => $email['email'],
-							'email_headers' => wp_json_encode($headers),
-							'status'        => 'scheduled',
-							'email_type'    => 'campaign',
-							'email_hash'    => $email_hash,
-							'scheduled_at'  => current_time('mysql'),
-							'created_at'    => current_time('mysql'),
-						)
-					);
+					if ( ! $is_exist ) {
+						$wpdb->insert( //phpcs:ignore
+							$email_broadcast_table,
+								array(
+								'campaign_id'   => $campaign_id,
+								'email_id'      => $campaign_email_id,
+								'contact_id'    => $email['id'],
+								'email_address' => $email['email'],
+								'email_headers' => wp_json_encode($headers),
+								'status'        => 'scheduled',
+								'email_type'    => 'campaign',
+								'email_hash'    => $email_hash,
+								'scheduled_at'  => current_time('mysql'),
+								'created_at'    => current_time('mysql'),
+							)
+						);
 
-					usleep(5000); // 5 milliseconds sleep
+						usleep( 5000 ); // 5 milliseconds sleep
+					}
 				}
+				$processed_count++;
 			}
 
 			$campaign_email[ 'delay_value' ] = '';
@@ -250,9 +256,9 @@ class CampaignsBackgroundProcess {
 
 				if ( MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.1') ) {
 					$email_body_html = Mint_Pro_Helper::process_lead_magnet_tracking( $email_body_html, $recipient_email );
-				}	
+				}
 
-				if ( BackgroundProcessHelper::memory_exceeded() || BackgroundProcessHelper::time_exceeded($start_time, 0.6) ) {
+				if ( BackgroundProcessHelper::memory_exceeded() || BackgroundProcessHelper::time_exceeded($start_time, 0.5) ) {
 					break;
 				}
 
@@ -265,9 +271,11 @@ class CampaignsBackgroundProcess {
 				}
 			}
 
+			// Update status of processed emails (both sent and failed)
 			self::update_scheduled_emails_status( $sent_email_ids, 'sent' );
 			self::update_scheduled_emails_status( $failed_email_ids, 'failed' );
 
+			// Schedule next batch
 			CampaignModel::schedule_single_send_email_action_delay( (int) $campaign_id, $email_id, (int) $batch + 1, $frequency_time );
 			do_action( 'mailmint_batch_email_sent', 'mailmint-campaign-email-sending-' . $campaign_id );
 		} else {

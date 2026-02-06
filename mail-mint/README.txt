@@ -1,13 +1,11 @@
-=== Email Marketing, Email Automation, Newsletter & Cart Abandonment for WordPress and WooCommerce – Mail Mint ===
-
-
+=== Mail Mint - Newsletters, Email Marketing, Automation, WooCommerce Emails, Post Notification, and more ===
 Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
-Tags: email marketing, email automation, newsletter, woocommerce emails, cart abandonment, lead form, marketing, email, send email
+Tags: email automation, email marketing, newsletter, post notification, woocommerce emails
 Requires at least: 5.8
-Tested up to: 6.8.2
+Tested up to: 6.9.0
 Requires PHP: 7.4
-Stable tag:  1.18.8
+Stable tag:  1.19.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -391,13 +389,11 @@ Make them more engaging and brand-optimized, all from within Mail Mint!
 [JOIN OUR FACEBOOK USERS COMMUNITY](https://www.facebook.com/groups/wpfunnels/): Discuss and learn how others are using WPFunnels and Mail Mint. Find out how and how you can effectively create complete funnel journeys for your WordPress or WooCommerce shop. Plus, stay up-to-date with our exciting upcoming features.
 
 ## Privacy Policy
-Mail Mint uses [Appsero](https://appsero.com) SDK to collect some telemetry data upon user's confirmation. This helps us to troubleshoot problems faster & make product improvements.
+Mail Mint uses [Appsero](https://appsero.com/privacy-policy/) and [OpenPanel](https://openpanel.dev/privacy) to collect limited telemetry data after user consent. This helps us troubleshoot issues and improve the product.
 
-Appsero SDK **does not gather any data by default.** The SDK only starts gathering basic telemetry data **when a user allows it via the admin notice**. We collect the data to ensure a great user experience for all our users.
+No data is collected by default. Data collection starts only after a user allows it via the admin notice.
 
-Integrating Appsero SDK **DOES NOT IMMEDIATELY** start gathering data, **without confirmation from users in any case.**
-
-Learn more about how [Appsero collects and uses this data](https://appsero.com/privacy-policy/).
+We do not collect or store any personal or sensitive information, and collected data is not shared with third parties.
 
 
 == Installation ==
@@ -530,6 +526,53 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.19.3 (2026-01-29) =
+* Bugfix: Cross-Site Request Forgery to Stored Cross-Site Scripting
+* Bugfix: SQL Injection via Multiple API Endpoints
+
+= 1.19.2 (2026-01-15) =
+* New: Enable Single & Multiple Entry Points in Automation
+* Bugfix: Multiple Emails Send from Automation
+
+= 1.19.1 (2025-12-19) =
+* New: Option to Delete Expired Coupons
+* Bugfix: TypeError in ProductBlock Component when Slicing non-array Products
+* Bugfix: Automated Coupon Code doesn't Generate Expiry Date for Fixed Date Option
+* Bugfix: Sort By Filter doesn’t Working on the Contacts Module
+* Bugfix: Proper Initialization of State Variables from LocalStorage and API responses
+
+= 1.19.0 (2025-12-11) =
+* New: Introduce Analytics on the Automation
+* Compatibility: Compatible with the Latest WordPress
+* Improvement: The Memory and Time Limit Check on the Background Process
+* Bugfix: Post Title Issue from the Post Block
+* Bugfix: Sequence Campaign Page Loading Issue
+* Bugfix: Redirection doesn’t Work on Form Submission
+
+= 1.18.13 (2025-11-26) =
+* Compatibility: Compatible with WP Rocket on Background Process
+* Bugfix: Campaign Analytics – Activity Tab Shows Empty Screen
+* Bugfix: Text Block Delete Issue on the Visual Builder
+
+= 1.18.12 (2025-11-20) =
+* Bugfix: Infinite Loop Triggered by Memory Exceeded on Campaign Scheduling
+* Bugfix: Reduce Payload Size for Automation Create/Update API to Prevent 403 Errors
+* Bugfix: Start from Scratch Issue on the Campaign and Automation
+* Bugfix: Contact Import Field Mapping UX Issue
+* Bugfix: Campaign Duplication Issue on the Free Version
+
+= 1.18.11 (2025-11-04) =
+* Bugfix: Arbitrary File Upload Vulnerability
+
+= 1.18.10 (2025-10-17) =
+* New: Campaign Progress Track on Campaign Details
+* Bugfix: Campaign Analytics Issues
+* Bugfix: Country Search Issue on Business Settings
+* Bugfix: List or Tag Assigning Issues
+
+= 1.18.9 (2025-10-10) =
+* Bugfix: Duplicate Emails Issue on the Campaign Scheduling
 
 = 1.18.8 (2025-09-19) =
 * Bugfix: Compatibility Issue with WPFunnels

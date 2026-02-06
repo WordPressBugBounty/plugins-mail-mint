@@ -129,14 +129,23 @@ class ContactImportAction implements Action {
     public function process_contact_attribute_import( $params ) {
         // Check if the CSV file is provided in the parameters.
         $file = isset( $params['csv'] ) ? $params['csv'] : '';
-		
-        // Validate the uploaded CSV file.
-        $response = Import::csv_file_upload_validation( $file );
 
-        if( !$response ){
+        // Validate the uploaded CSV file.
+        if ( empty( $file['name'] ) || empty( $file['tmp_name'] ) ) {
             return array(
                 'status'  => 'failed',
-                'message' => __('Please upload a valid CSV first.', 'mrm')
+                'message' => __('Please upload a file first.', 'mrm')
+            );
+        }
+
+        // Secure file validation
+        $filetype = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'] );
+        $allowed_exts = array( 'csv' );
+
+        if ( empty( $filetype['ext'] ) || ! in_array( $filetype['ext'], $allowed_exts, true ) ) {
+            return array(
+                'status'  => 'failed',
+                'message' => __('Invalid file type. Only CSV files are allowed.', 'mrm')
             );
         }
 

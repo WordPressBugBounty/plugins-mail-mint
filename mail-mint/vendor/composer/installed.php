@@ -3,7 +3,7 @@
         'name' => 'coderex/code-rex-crm',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'fff4f694b87aaaaa5ced1f631e3a65daff310012',
+        'reference' => '491a28de842a88ab08d8c876ec36dadedf6dd660',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,10 +22,21 @@
         'coderex/code-rex-crm' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'fff4f694b87aaaaa5ced1f631e3a65daff310012',
+            'reference' => '491a28de842a88ab08d8c876ec36dadedf6dd660',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'coderexltd/telemetry' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '4831df7a5dcb18e92fac5415ae7443b4ad746aaa',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../coderexltd/telemetry',
+            'aliases' => array(
+                0 => '9999999-dev',
+            ),
             'dev_requirement' => false,
         ),
         'posthog/posthog-php' => array(

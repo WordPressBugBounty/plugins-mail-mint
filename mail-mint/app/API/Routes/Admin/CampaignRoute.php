@@ -251,6 +251,26 @@ class CampaignRoute {
 			)
 		);
 
+		/**
+		 * Campaign progress endpoint
+		 *
+		 * @since 1.18.10
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<campaign_id>[\d]+)/progress',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'get_progress',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
+				),
+			)
+		);
+
 		register_rest_route(
 			$this->namespace,
 			$this->rest_base . '/search',

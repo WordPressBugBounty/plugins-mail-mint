@@ -21,6 +21,7 @@ use WP_REST_Request;
 use Exception;
 use MRM\Common\MrmCommon;
 use Mint\MRM\DataBase\Models\CampaignModel as ModelsCampaign;
+use Mint\MRM\DataBase\Tables\EmailSchema;
 use MintMail\App\Internal\Automation\AutomationLogModel;
 use WP_REST_Response;
 use Mint\MRM\Utilites\Helper\Campaign;
@@ -448,10 +449,18 @@ class CampaignController extends AdminBaseController {
 							if( 'recurring' === $campaign_type ) {
 								$campaign['total_recipients'] = EmailModel::recurring_campaign_total_recipients( $campaign['id'] );
 							}
-							$total_bounced                = EmailModel::count_delivered_status_on_campaign( $campaign['id'], 'failed' );
-							$campaign['open_rate']        = ModelsCampaign::prepare_campaign_open_rate( $campaign['id'], $campaign['total_recipients'], $total_bounced );
-							$campaign['click_rate']       = ModelsCampaign::prepare_campaign_click_rate( $campaign['id'], $campaign['total_recipients'], $total_bounced );
-							$campaign['unsubscribe']      = EmailModel::count_unsubscribe_on_campaign( $campaign['id'] );
+							$total_delivered = EmailModel::count_delivered_status_on_campaign( $campaign['id'], 'sent' );
+							$total_bounced   = EmailModel::count_delivered_status_on_campaign( $campaign['id'], 'failed' );
+							// If no emails delivered, set stats to 0
+							if ( 0 === (int) $total_delivered ) {
+								$campaign['open_rate']   = 0.00;
+								$campaign['click_rate']  = 0.00;
+								$campaign['unsubscribe'] = 0;
+							} else {
+								$campaign['open_rate']   = ModelsCampaign::prepare_campaign_open_rate( $campaign['id'], $campaign['total_recipients'], $total_bounced );
+								$campaign['click_rate']  = ModelsCampaign::prepare_campaign_click_rate( $campaign['id'], $campaign['total_recipients'], $total_bounced );
+								$campaign['unsubscribe'] = EmailModel::count_unsubscribe_on_campaign( $campaign['id'] );
+							}
 						} elseif( 'draft' !== $campaign_status && 'automation' === $campaign_type ){
 							$campaign['automation_stats'] = AutomationLogModel::prepare_automation_statistics_for_campaign( $campaign['id'] );
 						} else {
@@ -519,11 +528,21 @@ class CampaignController extends AdminBaseController {
 		$campaign    = ModelsCampaign::get( $campaign_id );
 
 		if ( !empty( $campaign[ 'status' ] ) && 'draft' !== $campaign[ 'status' ] ) {
-			$campaign[ 'total_open' ]        = EmailModel::calculate_open_rate_on_campaign( $campaign_id );
-			$campaign[ 'total_click' ]       = EmailModel::calculate_click_rate_on_campaign( $campaign_id );
-			$campaign[ 'total_bounced' ]     = EmailModel::calculate_bounched_on_campaign( $campaign_id );
-			$campaign[ 'total_unsubscribe' ] = EmailModel::count_unsubscribe_on_campaign( $campaign_id );
-			$campaign['total_recipients']    = ModelsCampaign::get_campaign_meta_value( $campaign_id, 'total_recipients' );
+			$total_delivered = EmailModel::count_delivered_status_on_campaign( $campaign_id, 'sent' );
+
+			// If no emails delivered, set stats to 0
+			if ( 0 === (int) $total_delivered ) {
+				$campaign[ 'total_open' ]        = 0;
+				$campaign[ 'total_click' ]       = 0;
+				$campaign[ 'total_unsubscribe' ] = 0;
+			} else {
+				$campaign[ 'total_open' ]        = EmailModel::calculate_open_rate_on_campaign( $campaign_id );
+				$campaign[ 'total_click' ]       = EmailModel::calculate_click_rate_on_campaign( $campaign_id );
+				$campaign[ 'total_unsubscribe' ] = EmailModel::count_unsubscribe_on_campaign( $campaign_id );
+			}
+    
+			$campaign[ 'total_bounced' ]  = EmailModel::calculate_bounched_on_campaign( $campaign_id );
+			$campaign['total_recipients'] = ModelsCampaign::get_campaign_meta_value( $campaign_id, 'total_recipients' );
 
 			$unsubscribed_rate = 0;
 			if ( !empty( $campaign['total_recipients'] ) && 0 !== (int) $campaign['total_recipients'] ){
@@ -693,5 +712,99 @@ class CampaignController extends AdminBaseController {
 		$response['success'] = true;
 		$response['urls']    = $urls;
 		return rest_ensure_response($response);
+	}
+
+	/**
+	 * Get progress data for a campaign.
+	 *
+	 * This function retrieves the progress of a campaign, including total recipients, sent count, failed count,
+	 * scheduled count, and calculates the current phase and percentage of completion.
+	 *
+	 * @param WP_REST_Request $request Request object used to generate the response.
+	 * @return WP_REST_Response
+	 * @since 1.18.10
+	 */
+	public function get_progress( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$campaign_id = isset( $params['campaign_id'] ) ? intval( $params['campaign_id'] ) : 0;
+
+		if ( empty( $campaign_id ) ) {
+			return rest_ensure_response([
+				'success' => false,
+				'message' => __( 'Campaign ID is required.', 'mrm' ),
+				'data'    => [],
+			]);
+		}
+
+		global $wpdb;
+		$broadcast_table = $wpdb->prefix . EmailSchema::$table_name;
+
+		// Cache total recipients (doesn’t change per poll).
+		$cache_key = "mm_campaign_total_recipients_{$campaign_id}";
+		$total_recipients = get_transient($cache_key);
+		if ($total_recipients === false) {
+			$total_recipients = (int) ModelsCampaign::get_campaign_meta_value( $campaign_id, 'total_recipients' );
+			set_transient($cache_key, $total_recipients, HOUR_IN_SECONDS);
+		}
+
+		// Dynamic counts.
+		$scheduled_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(id) FROM $broadcast_table WHERE campaign_id = %d AND status = 'scheduled'",
+				$campaign_id
+			)
+		);
+
+		$sent_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(id) FROM $broadcast_table WHERE campaign_id = %d AND status = 'sent'",
+				$campaign_id
+			)
+		);
+
+		$failed_count = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(id) FROM $broadcast_table WHERE campaign_id = %d AND status = 'failed'",
+				$campaign_id
+			)
+		);
+
+		// Logic for phase detection.
+		$phase_label    = '';
+		$complete_count = 0;
+		$percentage     = 0;
+
+		if ( ( $sent_count + $failed_count >= $total_recipients ) || ( 'archived' == ModelsCampaign::get_campaign_status( $campaign_id ) ) ) {
+			// Phase 3 — Completed
+			$phase_label     = __( 'Emails sent successfully', 'mrm' );
+			$complete_count  = $total_recipients;
+			$percentage      = 100;
+
+		}  elseif ( $scheduled_count <= $total_recipients && ($sent_count + $failed_count) == 0 ) {
+			// Phase 1 — Preparing (Scheduling)
+			$phase_label     = __( 'Processing emails for sending', 'mrm' );
+			$complete_count  = $scheduled_count;
+			$percentage      = $total_recipients > 0 ? round( ( $scheduled_count / $total_recipients ) * 100 ) : 0;
+		} elseif ( $scheduled_count <= $total_recipients && ($sent_count + $failed_count) < $total_recipients ) {
+			// Phase 2 — Sending
+			$phase_label     = __( 'Emails are being sent', 'mrm' );
+			$complete_count  = $sent_count + $failed_count;
+			$percentage      = $total_recipients > 0 ? round( ( $complete_count / $total_recipients ) * 100 ) : 0;
+
+		}
+
+		$progressData = [
+			'label'         => $phase_label,
+			'totalCount'    => $total_recipients,
+			'completeCount' => $complete_count,
+			'percentage'    => $percentage,
+			'diff'          => 12,
+		];
+
+		return rest_ensure_response([
+			'success' => true,
+			'message' => __( 'Campaign progress fetched successfully.', 'mrm' ),
+			'data'    => $progressData,
+		]);
 	}
 }

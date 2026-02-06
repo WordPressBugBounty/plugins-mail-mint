@@ -87,4 +87,28 @@ class AdvancedSettingController extends SettingBaseController {
 		do_action('mailmint_after_clear_transient');
 		return $this->get_success_response( __( 'Transients have been successfully cleared.', 'mrm' ) );
 	}
+
+	/**
+	 * Schedule deletion of dynamically generated coupons.
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return \WP_REST_Response The response object indicating success or error.
+	 * 
+	 * @since 1.19.1
+	 */
+	public function delete_coupons( WP_REST_Request $request ) {
+		// Check if the action is already scheduled
+		if ( ! empty( MrmCommon::mailmint_as_has_scheduled_action( 'mailmint_delete_expired_coupons' ) ) ) {
+			return $this->get_error_response( __( 'A process is already scheduled for deleting expired Mail Mint generated coupons.', 'mrm' ) );
+		}
+
+		// Schedule the recurring action to delete expired coupons
+		if ( function_exists( 'as_schedule_recurring_action' ) ) {
+			// Process every 60 seconds (1 minute) - deletes 20 coupons per batch
+			as_schedule_recurring_action( time(), 60, 'mailmint_delete_expired_coupons', array() );
+			return $this->get_success_response( __( 'Process scheduled for deleting expired Mail Mint generated coupons.', 'mrm' ) );
+		}
+
+		return $this->get_error_response( __( 'Unable to schedule the deletion process. Action Scheduler is not available.', 'mrm' ) );
+	}
 }

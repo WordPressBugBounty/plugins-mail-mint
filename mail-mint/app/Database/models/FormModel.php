@@ -207,6 +207,14 @@ class FormModel {
 		$form_table = $wpdb->prefix . FormSchema::$table_name;
 		$meta_table = $wpdb->prefix . FormMetaSchema::$table_name;
 
+		// Validate order_by against whitelist
+		$allowed_order_by = array( 'id', 'title', 'created_at', 'status' );
+		$order_by         = in_array( $order_by, $allowed_order_by, true ) ? $order_by : 'id';
+
+		// Validate order_type against whitelist (ASC or DESC only)
+		$allowed_order_types = array( 'asc', 'desc', 'ASC', 'DESC' );
+		$order_type          = in_array( $order_type, $allowed_order_types, true ) ? strtoupper( $order_type ) : 'DESC';
+
 		// Prepare search terms for query.
 		$search_terms = array();
 		if ( ! empty( $search ) ) {
@@ -224,9 +232,9 @@ class FormModel {
 			$where = 'WHERE ' . implode( ' AND ', array_merge( $search_terms, $status_terms ) );
 		}
 
-		// Prepare sql results for list view.
+		// Prepare sql results for list view with validated ORDER BY clause.
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$results     = $wpdb->get_results( $wpdb->prepare( "SELECT f.id, f.title, f.group_ids, f.status, f.created_at, IFNULL(m.meta_value, 0) AS entries FROM $form_table AS f LEFT JOIN $meta_table AS m ON f.id = m.form_id AND m.meta_key = 'entries' {$where} ORDER BY $order_by $order_type LIMIT %d, %d", array( $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
+		$results     = $wpdb->get_results( $wpdb->prepare( "SELECT f.id, f.title, f.group_ids, f.status, f.created_at, IFNULL(m.meta_value, 0) AS entries FROM $form_table AS f LEFT JOIN $meta_table AS m ON f.id = m.form_id AND m.meta_key = 'entries' {$where} ORDER BY {$order_by} {$order_type} LIMIT %d, %d", array( $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
 		$count_query = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) as total FROM $form_table $where" ) ); // db call ok. ; no-cache ok.
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$count       = (int) $count_query;

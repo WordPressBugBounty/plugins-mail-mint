@@ -48,20 +48,24 @@ class TemplateAction implements Action {
             'title'      => 'title',
         );
 
-        // Get 'order-by' and 'order-type' parameters or use default values.
+        // Validate 'order-by' parameter against whitelist.
         $order_by   = isset( $params['order-by'] ) && isset( $order_by_map[ $params['order-by'] ] ) ? $order_by_map[ $params['order-by'] ] : 'ID';
-        $order_type = isset( $params['order-type'] ) ? strtoupper( $params['order-type'] ) : 'DESC';
+
+        // Validate 'order-type' parameter against whitelist (ASC or DESC only).
+        $allowed_order_types = array( 'ASC', 'DESC' );
+        $order_type_param    = isset( $params['order-type'] ) ? strtoupper( sanitize_text_field( $params['order-type'] ) ) : 'DESC';
+        $order_type          = in_array( $order_type_param, $allowed_order_types, true ) ? $order_type_param : 'DESC';
 
         // Get 'search' parameter or use default value.
         $search = isset( $params['search'] ) ? $params['search'] : '';
 
-        // Define the query.
+        // Define the query with proper ORDER BY clause construction.
         $query = "
             SELECT id, title, thumbnail, thumbnail_data, json_content, editor_type, email_type, customizable, author_id, status, newsletter_type, newsletter_id, created_at, updated_at
             FROM $table_name
             WHERE (email_type = %s OR email_type IS NULL OR email_type = '')
             AND title LIKE %s
-            ORDER BY $order_by $order_type
+            ORDER BY {$order_by} {$order_type}
             LIMIT %d OFFSET %d
         ";
 

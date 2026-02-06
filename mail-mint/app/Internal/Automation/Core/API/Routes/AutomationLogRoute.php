@@ -85,46 +85,6 @@ class AutomationLogRoute {
 				),
 			)
 		);
-
-		/**
-		 * Automation single interaction report endpoints
-		 *
-		 * @since 1.0.0
-		*/
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/performance/(?P<id>[\d]+)',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array(
-						$this->controller,
-						'get_automation_performance_analytics',
-					),
-					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
-				),
-			)
-		);
-
-		/**
-		 * Automation single interaction report endpoints
-		 *
-		 * @since 1.0.0
-		*/
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/overall/(?P<id>[\d]+)',
-			array(
-				array(
-					'methods'             => WP_REST_Server::READABLE,
-					'callback'            => array(
-						$this->controller,
-						'get_automation_overall_analytics',
-					),
-					'permission_callback' => PermissionManager::current_user_can('mint_read_automations'),
-				),
-			)
-		);
 	}
 
 }

@@ -104,14 +104,23 @@ class CustomFieldModel {
 		global $wpdb;
 		$fields_table = $wpdb->prefix . CustomFieldSchema::$table_name;
 
+		// Validate order_by against whitelist
+		$allowed_order_by = array( 'id', 'title', 'slug', 'type' );
+		$order_by         = in_array( $order_by, $allowed_order_by, true ) ? $order_by : 'id';
+
+		// Validate order_type against whitelist (ASC or DESC only)
+		$allowed_order_types = array( 'asc', 'desc', 'ASC', 'DESC' );
+		$order_type_param    = strtoupper( $order_type );
+		$order_type          = in_array( $order_type_param, $allowed_order_types, true ) ? $order_type_param : 'DESC';
+
 		$search_terms = null;
 		if ( ! empty( $search ) ) {
 			$search       = $wpdb->esc_like( $search );
 			$search_terms = "WHERE `title` LIKE '%%$search%%'";
 		}
-		// Return field froups for list view.
+		// Return field froups for list view with validated ORDER BY clause.
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$select_query = $wpdb->prepare( "SELECT * FROM $fields_table {$search_terms} ORDER BY %s %s  LIMIT %d, %d", $order_by, $order_type, $offset, $limit );
+		$select_query = $wpdb->prepare( "SELECT * FROM $fields_table {$search_terms} ORDER BY {$order_by} {$order_type}  LIMIT %d, %d", $offset, $limit );
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
 		$results = $wpdb->get_results( $select_query, ARRAY_A ); // db call ok. ; no-cache ok.

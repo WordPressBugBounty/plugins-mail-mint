@@ -83,24 +83,50 @@ class ContactProfileAction implements Action {
      * @since 1.7.0
      */
     public function create_or_update_note( $params) {
-        $contact_id = isset( $params['contact_id'] ) ? $params['contact_id'] : '';
-		$note_id    = isset( $params['note_id'] ) ? $params['note_id'] : '';
+        // Verify nonce for CSRF protection
+        $nonce = isset( $_SERVER['HTTP_X_WP_NONCE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_WP_NONCE'] ) ) : '';
+        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return array(
+                'status'  => 'failed',
+                'message' => __( 'Invalid security token.', 'mrm' ),
+            );
+        }
+
+        $contact_id = isset( $params['contact_id'] ) ? absint( $params['contact_id'] ) : 0;
+		$note_id    = isset( $params['note_id'] ) ? absint( $params['note_id'] ) : 0;
         $note       = isset( $params['note'] ) ? $params['note'] : array();
 
-		// Note description validation.
-		$description = isset( $note['description'] ) ? sanitize_text_field( $note['description'] ) : '';
-		if ( empty( $description ) ) {
+		// Sanitize all note fields to prevent XSS and injection attacks
+		$sanitized_note = array(
+			'description' => isset( $note['description'] ) ? sanitize_textarea_field( $note['description'] ) : '',
+			'title'       => isset( $note['title'] ) ? sanitize_text_field( $note['title'] ) : '',
+			'type'        => isset( $note['type'] ) ? sanitize_text_field( $note['type'] ) : '',
+			'created_by'  => isset( $note['created_by'] ) ? absint( $note['created_by'] ) : get_current_user_id(),
+			'status'      => isset( $note['status'] ) ? absint( $note['status'] ) : 1,
+			'is_public'   => isset( $note['is_public'] ) ? absint( $note['is_public'] ) : 1,
+		);
+
+		// Validate contact ID
+		if ( empty( $contact_id ) ) {
+			return array(
+                'status'  => 'failed',
+                'message' => __( 'Invalid contact ID.', 'mrm' ),
+            );
+		}
+
+		// Note description validation
+		if ( empty( $sanitized_note['description'] ) ) {
 			return array(
                 'status'  => 'failed',
                 'message' => __( 'Note description is required.', 'mrm' ),
             );
 		}
 
-        // Note object create and insert or update to database.
+        // Note object create and insert or update to database with sanitized data
         if ( $note_id ) {
-            $success = NoteModel::update( $note, $contact_id, $note_id );
+            $success = NoteModel::update( $sanitized_note, $contact_id, $note_id );
         } else {
-            $success = NoteModel::insert( $note, $contact_id );
+            $success = NoteModel::insert( $sanitized_note, $contact_id );
         }
 
 		if ( $success ) {
@@ -159,6 +185,16 @@ class ContactProfileAction implements Action {
      * @since 1.7.0
      */
     public function delete_contact_profile_note( $params ) {
+        // Verify nonce for CSRF protection
+        $nonce = isset( $_SERVER['HTTP_X_WP_NONCE'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_WP_NONCE'] ) ) : '';
+        if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+            return array(
+                'status'  => 'failed',
+                'message' => __( 'Invalid security token.', 'mrm' ),
+                'code'    => 'rest_forbidden'
+            );
+        }
+
         $note_id = isset( $params['note_id'] ) ? $params['note_id'] : '';
         $success = NoteModel::destroy( $params['note_id'] );
 

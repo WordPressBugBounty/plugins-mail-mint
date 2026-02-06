@@ -386,6 +386,15 @@ class CampaignModel {
 	public static function get_all( $wpdb, $offset = 0, $limit = 10, $search = '', $order_by = 'id', $order_type = 'desc', $filter = '', $filter_type = '', $status = '' ) {
 		$campaign_table = $wpdb->prefix . CampaignSchema::$campaign_table;
 
+		// Validate order_by against whitelist
+		$allowed_order_by = array( 'id', 'title', 'created_at', 'status', 'type' );
+		$order_by         = in_array( $order_by, $allowed_order_by, true ) ? $order_by : 'id';
+
+		// Validate order_type against whitelist (ASC or DESC only)
+		$allowed_order_types = array( 'asc', 'desc', 'ASC', 'DESC' );
+		$order_type_param    = strtolower( $order_type );
+		$order_type          = in_array( $order_type_param, array( 'asc', 'desc' ), true ) ? strtoupper( $order_type_param ) : 'DESC';
+
 		// Prepare search terms for query.
 		$search_terms = array();
 		if ( ! empty( $search ) ) {
@@ -409,8 +418,8 @@ class CampaignModel {
 			$where = 'WHERE ' . implode( ' AND ', array_merge( $search_terms, $filter_terms, $status_terms ) );
 		}
 
-		// Prepare sql results for list view.
-		$results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $campaign_table $where ORDER BY $order_by $order_type  LIMIT %d, %d", $offset, $limit ), ARRAY_A ); // db call ok. ; no-cache ok.
+		// Prepare sql results for list view with validated ORDER BY clause.
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $campaign_table $where ORDER BY {$order_by} {$order_type} LIMIT %d, %d", $offset, $limit ), ARRAY_A ); // db call ok. ; no-cache ok.
 
 		$count       = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) as total FROM $campaign_table $where" ) ); // db call ok. ; no-cache ok.
 		$total_pages = ceil( $count / $limit );
@@ -1517,5 +1526,38 @@ class CampaignModel {
 		$campaign_table = $wpdb->prefix . CampaignSchema::$campaign_table;
 
 		return absint($wpdb->get_var($wpdb->prepare('SELECT COUNT(`id`) FROM %1s', $campaign_table))); //phpcs:ignore
+	}
+
+	/**
+	 * Check duplicate email address on campaign schedule emails
+	 *
+	 * @param int    $campaign_id Campaign ID.
+	 * @param int    $email_id Campaign email ID.
+	 * @param string $email_address Contact email address.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	public static function is_exist_schedule_email( $campaign_id, $email_id, $email_address ) {
+		global $wpdb;
+		$scheduled_emails_table = $wpdb->prefix . EmailSchema::$table_name;
+
+		$result = $wpdb->get_row( $wpdb->prepare( "SELECT `id` FROM {$scheduled_emails_table}  WHERE `campaign_id` = %d AND `email_id` = %d AND `email_address` = %s", array( $campaign_id, $email_id, $email_address ) ) ); // db call ok. ; no-cache ok.
+
+		return !empty( $result );
+	}
+
+	/**
+	 * Returns specific campaign status
+	 *
+	 * @param int $campaign_id Campaign ID.
+	 * @return string|false
+	 * @since 1.18.10
+	 */
+	public static function get_campaign_status( $campaign_id ) {
+		global $wpdb;
+		$campaign_table = $wpdb->prefix . CampaignSchema::$campaign_table;
+
+		return $wpdb->get_var( $wpdb->prepare( "SELECT `status` FROM {$campaign_table}  WHERE `id` = %d", array( $campaign_id ) ) ); // db call ok. ; no-cache ok.
 	}
 }

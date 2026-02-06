@@ -858,23 +858,42 @@ class Import
 		// Extract course IDs from the provided courses.
 		$course_ids = array_column($courses, 'value');
 
-		// If no course IDs are provided, get all LearnDash courses.
+		// If no course IDs are provided, get all Tutor LMS courses.
 		if (!$course_ids) {
 			$all_courses = HelperFunctions::get_tutor_lms_courses();
 			$course_ids  = array_column($all_courses, 'value');
+		}
+
+		// Sanitize course IDs to ensure they are integers
+		$course_ids = array_map('intval', $course_ids);
+
+		if (empty($course_ids)) {
+			return array(
+				'formatted_users' => array(),
+				'total_users'     => 0,
+			);
 		}
 
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'posts';
 
-		$enrollments_query = $wpdb->prepare("SELECT post_author FROM $table_name WHERE post_type = 'tutor_enrolled' AND post_parent IN ('" . implode("', '", $course_ids) . "')"); //phpcs:ignore
+		// Create placeholders for IN clause
+		$placeholders = implode(', ', array_fill(0, count($course_ids), '%d'));
 
-		$total_query = $wpdb->prepare("SELECT COUNT( DISTINCT post_author) FROM $table_name WHERE post_type = 'tutor_enrolled' AND post_parent IN ('" . implode("', '", $course_ids) . "')"); //phpcs:ignore
+		// Prepare safe query with placeholders
+		$enrollments_query = $wpdb->prepare(
+			"SELECT DISTINCT post_author FROM $table_name WHERE post_type = 'tutor_enrolled' AND post_parent IN ($placeholders) LIMIT %d OFFSET %d",
+			array_merge($course_ids, array($number, $offset))
+		);
+
+		// Prepare safe total query with placeholders
+		$total_query = $wpdb->prepare(
+			"SELECT COUNT(DISTINCT post_author) FROM $table_name WHERE post_type = 'tutor_enrolled' AND post_parent IN ($placeholders)",
+			$course_ids
+		);
 
 		$total = $wpdb->get_var($total_query); //phpcs:ignore
-
-		$enrollments_query .= $wpdb->prepare(' LIMIT %d OFFSET %d', $number, $offset);
 
 		$enrollments = $wpdb->get_results($enrollments_query); //phpcs:ignore
 

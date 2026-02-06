@@ -31,7 +31,7 @@ class MrmDeactivator {
 	 * @since    1.0.0
 	 */
 	public static function deactivate() {
-
+		do_action( 'mailmint_plugin_deactivated' );
 	}
 
 }

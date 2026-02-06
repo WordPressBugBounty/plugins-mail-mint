@@ -108,37 +108,47 @@ class ContactGroupModel {
 		global $wpdb;
 		$group_table  = $wpdb->prefix . ContactGroupSchema::$table_name;
 		$pivot_table  = $wpdb->prefix . ContactGroupPivotSchema::$table_name;
-		$search_terms = null;
-		// Search groups by title.
+
+		// Validate order_by to prevent SQL injection.
+		$allowed_order_by = array( 'id', 'title', 'created_at', 'total_contacts' );
+		if ( ! in_array( $order_by, $allowed_order_by, true ) ) {
+			$order_by = 'title';
+		}
+
+		// Validate order_type to prevent SQL injection.
+		$order_type = strtoupper( $order_type );
+		if ( ! in_array( $order_type, array( 'ASC', 'DESC' ), true ) ) {
+			$order_type = 'ASC';
+		}
+
+		// Build WHERE clause for search.
+		$where_clause = $wpdb->prepare( 'WHERE g.type = %s', $type );
 		if ( ! empty( $search ) ) {
-			$search       = $wpdb->esc_like( $search );
-			$search_terms = "AND title LIKE '%%$search%%'";
+			$search_like   = '%' . $wpdb->esc_like( $search ) . '%';
+			$where_clause .= $wpdb->prepare( ' AND g.title LIKE %s', $search_like );
 		}
 
 		// Return groups for list view.
 		try {
-			$query  = 'SELECT COUNT( DISTINCT contact_id,group_id) as total_contacts, g.id, g.title, g.data, g.created_at ';
-			$query .= $wpdb->prepare( 'from %1s as p right join %1s as g ', $pivot_table, $group_table ); //phpcs:ignore
-			$query .= 'on p.group_id = g.id ';
-			$query .= $wpdb->prepare( 'where type = %s ', $type );
-			$query .= "{$search_terms} ";
-			$query .= 'group by g.id, g.title, g.data, g.created_at ';
-			$query .= $wpdb->prepare( 'order by %s %s ', $order_by, $order_type ); //phpcs:ignore
+			// Main query with optimized LEFT JOIN and COALESCE for contact count.
+			$query  = 'SELECT ';
+			$query .= 'g.id, g.title, g.data, g.created_at, ';
+			$query .= 'COALESCE(COUNT(DISTINCT p.contact_id), 0) as total_contacts ';
+			$query .= $wpdb->prepare( 'FROM %1s as g ', $group_table ); //phpcs:ignore
+			$query .= $wpdb->prepare( 'LEFT JOIN %1s as p ON p.group_id = g.id ', $pivot_table ); //phpcs:ignore
+			$query .= "{$where_clause} ";
+			$query .= 'GROUP BY g.id, g.title, g.data, g.created_at ';
+			$query .= "ORDER BY {$order_by} {$order_type} ";
 			if ( 0 !== $limit ) {
-				$query .= $wpdb->prepare( 'limit %d, %d', $offset, $limit );
+				$query .= $wpdb->prepare( 'LIMIT %d, %d', $offset, $limit );
 			}
 			$query_results = $wpdb->get_results( $query, ARRAY_A ); //phpcs:ignore
 
-			$query  = 'SELECT COUNT(*) as total FROM ( ';
-			$query .= 'SELECT count(group_id) as total_contacts, g.id, g.title, g.data, g.created_at ';
-			$query .= $wpdb->prepare( 'from %1s as p right join %1s as g ', $pivot_table, $group_table ); //phpcs:ignore
-			$query .= 'on p.group_id = g.id ';
-			$query .= $wpdb->prepare( 'where type = %s ', $type );
-			$query .= "{$search_terms} ";
-			$query .= 'group by g.id, g.title, g.data, g.created_at ';
-			$query .= ') as table1 ';
+			// Optimized count query - only count groups, not recalculate everything.
+			$count_query = $wpdb->prepare( 'SELECT COUNT(*) FROM %1s as g ', $group_table ); //phpcs:ignore
+			$count_query .= "{$where_clause}";
 
-			$count_result = $wpdb->get_var( $query ); //phpcs:ignore
+			$count_result = $wpdb->get_var( $count_query ); //phpcs:ignore
 			$count        = (int) $count_result;
 			$total_pages  = 0;
 			if ( 0 !== $limit ) {

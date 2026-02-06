@@ -85,6 +85,23 @@ class PostPublishedTriggers {
 		if ( 'wp_post_publish' === $trigger_name && $step_data['automation_id'] === $this->automation_id ) {
 			$settings = isset( $step_data['settings']['post_settings'] ) ? $step_data['settings']['post_settings'] : array();
             $post_id  = isset( $data['data']['post_id'] ) ? $data['data']['post_id'] : array();
+            $email    = isset( $data['data']['user_email'] ) ? $data['data']['user_email'] : '';
+
+			// Check entry rule validation
+			$entry_rule = isset($settings['entry']) ? $settings['entry'] : 'only_once';
+			
+			if ('only_once' === $entry_rule) {
+				if (HelperFunctions::if_already_in_automation( $email, $step_data['automation_id'] )) {
+					return false;
+				}
+			} elseif ('only_after_exit' === $entry_rule) {
+				if (HelperFunctions::if_already_in_automation( $email, $step_data['automation_id'] )) {
+					if (!HelperFunctions::if_contact_has_exited_automation($email, $step_data['automation_id'])) {
+						return false;
+					}
+				}
+			}
+
 			return $this->validate_published_criteria( $settings, $post_id );
 		}
 	}

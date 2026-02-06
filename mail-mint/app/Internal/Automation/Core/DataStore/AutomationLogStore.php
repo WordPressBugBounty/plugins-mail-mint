@@ -281,6 +281,205 @@ class AutomationLogModel {
 
 
 	/**
+	 * Generate metrics array for a step based on its type/key
+	 *
+	 * @param array $step The step data with key, type, and meta_value
+	 * @param int   $enterance Number of contacts entered
+	 * @param int   $completed Number of contacts completed
+	 * @param int   $exited Number of contacts exited
+	 * @return array Array of metrics with label, value, and count
+	 * @since 1.0.0
+	 */
+	private static function generate_step_metrics( $step, $enterance, $completed, $exited ) {
+		$metrics = array();
+		$key     = isset( $step['key'] ) ? $step['key'] : '';
+		$type    = isset( $step['type'] ) ? $step['type'] : '';
+		
+		// Calculate percentages
+		$progressed_percent = $enterance > 0 ? round( ( $completed / $enterance ) * 100, 2 ) : 0;
+		$dropoff_percent    = $enterance > 0 ? round( ( $exited / $enterance ) * 100, 2 ) : 0;
+		
+		// Metrics for trigger steps
+		if ( 'trigger' === $type ) {
+			$metrics[] = array(
+				'label' => __( 'Contacts entered', 'mrm' ),
+				'value' => $enterance,
+				'count' => $enterance,
+			);
+			$metrics[] = array(
+				'label' => __( 'Progressed', 'mrm' ),
+				'value' => $progressed_percent . '%',
+				'count' => $completed,
+			);
+		}
+		
+		// Metrics for delay steps
+		// elseif ( 'delay' === $key ) {
+		// 	$currently_waiting = $enterance - $completed - $exited;
+		// 	$waiting_percent   = $enterance > 0 ? round( ( $currently_waiting / $enterance ) * 100, 2 ) : 0;
+			
+		// 	$metrics[] = array(
+		// 		'label' => __( 'Currently Waiting', 'mrm' ),
+		// 		'value' => $waiting_percent . '%',
+		// 		'count' => max( 0, $currently_waiting ),
+		// 	);
+		// 	$metrics[] = array(
+		// 		'label' => __( 'Drop-off', 'mrm' ),
+		// 		'value' => $dropoff_percent . '%',
+		// 		'count' => $exited,
+		// 	);
+		// }
+		
+		// Metrics for sendMail steps
+		elseif ( 'sendMail' === $key ) {
+			$step_id = isset( $step['step_id'] ) ? $step['step_id'] : 0;
+			$sent    = HelperFunctions::count_sent_mail( $step_id );
+			$opened  = HelperFunctions::count_opend_mail( $step_id );
+			$clicked = HelperFunctions::count_clicked_mail( $step_id );
+			
+			$opened_percent  = $sent > 0 ? round( ( $opened / $sent ) * 100, 2 ) : 0;
+			$clicked_percent = $sent > 0 ? round( ( $clicked / $sent ) * 100, 2 ) : 0;
+			
+			$metrics[] = array(
+				'label' => __( 'Email Sent', 'mrm' ),
+				'value' => $sent,
+				'count' => $sent,
+			);
+			$metrics[] = array(
+				'label' => __( 'Opened', 'mrm' ),
+				'value' => $opened_percent . '%',
+				'count' => $opened,
+			);
+			$metrics[] = array(
+				'label' => __( 'Clicked', 'mrm' ),
+				'value' => $clicked_percent . '%',
+				'count' => $clicked,
+			);
+			
+			// Only add revenue metric if WooCommerce is active
+			if ( MrmCommon::is_wc_active() ) {
+				$orders = HelperFunctions::get_step_orders_and_revenue( $step_id );
+				$metrics[] = array(
+					'label' => __( 'Revenue', 'mrm' ),
+					'value' => isset( $orders['total_revenue'] ) ? $orders['total_revenue'] : '$0.00',
+					'count' => isset( $orders['total_orders'] ) ? $orders['total_orders'] : 0,
+				);
+			}
+		}
+		
+		// Metrics for condition steps
+		elseif ( 'condition' === $key ) {
+			$yes_count     = 0;
+			$no_count      = 0;
+			$yes_node_data = array();
+			$no_node_data  = array();
+			$yes_steps     = array();
+			$no_steps      = array();
+			
+			// Parse meta_value to get yes/no branch data
+			if ( isset( $step['meta_value'] ) ) {
+				$meta = maybe_unserialize( $step['meta_value'] );
+				
+				// Get yes/no steps
+				$yes_steps = isset( $meta['yes'] ) && is_array( $meta['yes'] ) ? $meta['yes'] : array();
+				$no_steps  = isset( $meta['no'] ) && is_array( $meta['no'] ) ? $meta['no'] : array();
+				
+				// Count yes/no paths based on child step entrances
+				if ( isset( $step['step_id'] ) ) {
+					$yes_count = HelperFunctions::count_condition_yes_path( $step['step_id'], $yes_steps );
+					$no_count  = HelperFunctions::count_condition_no_path( $step['step_id'], $no_steps );
+				}
+				
+				// Get child steps data for yes/no paths
+				if ( ! empty( $yes_steps ) ) {
+					foreach ( $yes_steps as $yes_step ) {
+						if ( isset( $yes_step['step_id'] ) ) {
+							$yes_node_data[] = self::get_child_step_data( $yes_step );
+						}
+					}
+				}
+				
+				if ( ! empty( $no_steps ) ) {
+					foreach ( $no_steps as $no_step ) {
+						if ( isset( $no_step['step_id'] ) ) {
+							$no_node_data[] = self::get_child_step_data( $no_step );
+						}
+					}
+				}
+			}
+			
+			$yes_percent = $completed > 0 ? round( ( $yes_count / $completed ) * 100, 2 ) : 0;
+			$no_percent  = $completed > 0 ? round( ( $no_count / $completed ) * 100, 2 ) : 0;
+			
+			$metrics[] = array(
+				'label'     => __( 'Yes Path', 'mrm' ),
+				'value'     => $yes_percent . '%',
+				'count'     => $yes_count,
+				'node_data' => $yes_node_data,
+			);
+			$metrics[] = array(
+				'label'     => __( 'No Path', 'mrm' ),
+				'value'     => $no_percent . '%',
+				'count'     => $no_count,
+				'node_data' => $no_node_data,
+			);
+		}
+		
+		// Default metrics for other action steps
+		else {
+			$metrics[] = array(
+				'label' => __( 'Entered', 'mrm' ),
+				'value' => $enterance,
+				'count' => $enterance,
+			);
+			$metrics[] = array(
+				'label' => __( 'Progressed', 'mrm' ),
+				'value' => $progressed_percent . '%',
+				'count' => $completed,
+			);
+		}
+		return $metrics;
+	}
+
+	/**
+	 * Public wrapper for generate_step_metrics
+	 *
+	 * @param array $step The step data
+	 * @param int $enterance Number of contacts entered
+	 * @param int $completed Number of contacts completed
+	 * @param int $exited Number of contacts exited
+	 * @return array Array of metrics with label, value, and count
+	 * @since 1.0.0
+	 */
+	public static function generate_step_metrics_public( $step, $enterance, $completed, $exited ) {
+		return self::generate_step_metrics( $step, $enterance, $completed, $exited );
+	}
+	
+	/**
+	 * Get child step data for condition branches
+	 *
+	 * @param array $step The step data
+	 * @return array Formatted step data with metrics
+	 * @since 1.0.0
+	 */
+	private static function get_child_step_data( $step ) {
+		$step_id        = isset( $step['step_id'] ) ? $step['step_id'] : 0;
+		$step_enterance = HelperFunctions::count_total_enterance_in_step( $step_id );
+		$step_completed = HelperFunctions::count_completed_step( $step_id );
+		$step_exited    = HelperFunctions::count_exited_step( $step_id );
+		
+		$data = array_merge( $step, array(
+			'enterance' => $step_enterance,
+			'completed' => $step_completed,
+			'exited'    => $step_exited,
+		) );
+		
+		// Generate metrics recursively
+		$data['metrics'] = self::generate_step_metrics( $step, $step_enterance, $step_completed, $step_exited );
+		return $data;
+	}
+
+	/**
 	 * Run SQL query to get a automation from automation database
 	 *
 	 * @param int $id automation id.
@@ -289,108 +488,62 @@ class AutomationLogModel {
 	 */
 	public static function get_single( $id ) {
 		try {
-			$enterance        = HelperFunctions::count_total_enterance( $id );
-			$completed        = HelperFunctions::count_completed_automation( $id );
-			$exited           = HelperFunctions::count_exited_automation( $id );
+			$enterance  = HelperFunctions::count_total_enterance( $id );
+			$completed  = HelperFunctions::count_completed_automation( $id );
+			$processing = HelperFunctions::count_processing_automation( $id );
+			
+			// Get orders and revenue only if WooCommerce is active
+			$orders = array(
+				'total_orders'  => 0,
+				'total_revenue' => 0,
+			);
+			if ( MrmCommon::is_wc_active() ) {
+				$orders = HelperFunctions::get_automation_orders_and_revenue( $id );
+			}
+
+			$emails = HelperFunctions::get_automation_email_stats( $id );
+			
 			$steps            = HelperFunctions::get_all_automation_step_by_id( $id );
 			$total_email_send = 0;
 			$step_data        = array();
+			
 			if ( is_array( $steps ) ) {
 				foreach ( $steps as $step ) {
 					if ( isset( $step['step_id'] ) ) {
 						$step_enterance = HelperFunctions::count_total_enterance_in_step( $step['step_id'] );
 						$step_completed = HelperFunctions::count_completed_step( $step['step_id'] );
 						$step_exited    = HelperFunctions::count_exited_step( $step['step_id'] );
-						$data           = array(
-							'step_id'   => $step['step_id'],
-							'key'       => $step['key'],
-							'type'      => $step['type'],
+						
+						// Merge step data with existing fields
+						$data = array_merge( $step, array(
 							'enterance' => $step_enterance,
 							'completed' => $step_completed,
 							'exited'    => $step_exited,
-						);
+						) );
 
+						// Generate metrics based on step type
+						$data['metrics'] = self::generate_step_metrics( $step, $step_enterance, $step_completed, $step_exited );
+						
+						// Add email-specific data
 						if ( 'sendMail' === $step['key'] ) {
-							$data['send']     = HelperFunctions::count_sent_mail( $step['step_id'] );
+							$data['send']    = HelperFunctions::count_sent_mail( $step['step_id'] );
+							$data['opend']   = HelperFunctions::count_opend_mail( $step['step_id'] );
+							$data['clicked'] = HelperFunctions::count_clicked_mail( $step['step_id'] );
 							$total_email_send = $total_email_send + $data['send'];
-							$data['opend']    = HelperFunctions::count_opend_mail( $step['step_id'] );
-							$data['clicked']  = HelperFunctions::count_clicked_mail( $step['step_id'] );
 						}
 
-						$step_data[ $step['step_id'] ] = $data;
+						$step_data[] = $data;
 					}
 				}
 			}
-
 			$response = array(
-				'enterance' => $enterance,
-				'completed' => $completed,
-				'exited'    => $exited,
-				'step_data' => $step_data,
-			);
-
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			return array(
-				'data' => $response,
-			);
-		} catch ( \Exception $e ) {
-			return null;
-		}
-	}
-
-
-	/**
-	 * Run SQL query to get a automation from automation database
-	 *
-	 * @param int    $id automation id.
-	 * @param string $filter Filter by Week/Month/Year.
-	 * @return array
-	 * @since 1.0.0
-	 */
-	public static function get_automation_performance_analytics( $id, $filter ) {
-		try {
-			$performance_data  = HelperFunctions::count_performance_data( $id, $filter );
-			$performance_array = array();
-
-			if ( 'weekly' === $filter ) {
-				$week_start_end = get_weekstartend( current_time( 'mysql' ) );
-				$start_of_week  = date_i18n( 'Y-m-d', $week_start_end['start'] );
-
-				$week_days = array();
-				$interval  = 0;
-				while ( $interval < 7 ) {
-					$label               = gmdate( 'M d', strtotime( $start_of_week . '+' . $interval . 'day' ) );
-					$week_days[ $label ] = 0;
-					$interval++;
-				}
-
-				$performance_array = self::process_date_based_array( $id, $filter, $week_days, $performance_data );
-			} else {
-				$current_datetime    = current_datetime();
-				$current_month       = date_format( $current_datetime, 'n' );
-				$current_month_label = date_format( $current_datetime, 'M' );
-
-				if ( 2 === (int) $current_month ) {
-					$days = 28;
-				} elseif ( 8 === (int) $current_month || ( 0 !== (int) $current_month % 2 && 9 > (int) $current_month ) || ( 0 === (int) $current_month % 2 && 9 < (int) $current_month ) ) {
-					$days = 31;
-				} else {
-					$days = 30;
-				}
-
-				$monthly_days = array();
-
-				for ( $day = 1; $day <= $days; $day++ ) {
-					// Use sprintf to pad with 0 if needed.
-					$day_label = $current_month_label . ' ' . sprintf( '%02d', $day );
-
-					$monthly_days[ $day_label ] = 0;
-				}
-
-				$performance_array = self::process_date_based_array( $id, $filter, $monthly_days, $performance_data );
-			}
-			$response = array(
-				'performance' => $performance_array,
+				'enterance'  => $enterance,
+				'completed'  => $completed,
+				'processing' => $processing,
+				'orders'     => $orders['total_orders'],
+				'revenue'    => $orders['total_revenue'],
+				'emails'     => $emails,
+				'step_data'  => $step_data,
 			);
 
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -457,34 +610,6 @@ class AutomationLogModel {
 		}
 
 		return $performance_array;
-	}
-
-	/**
-	 * Run SQL query to get a automation from automation database
-	 *
-	 * @param int    $id automation id.
-	 * @param string $filter Filter by Week/Month/Year.
-	 * @return array
-	 * @since 1.0.0
-	 */
-	public static function get_automation_overall_analytics( $id, $filter ) {
-		try {
-			$total_email_send     = HelperFunctions::count_total_email_sent( $id, $filter );
-			$subscriber_completed = HelperFunctions::count_completed_subscribers( $id, $filter );
-			$entrance             = HelperFunctions::count_total_entrance_with_filter( $id, $filter );
-
-			$overall_data = array(
-				'subscriber_completed' => $subscriber_completed,
-				'email_sent'           => $total_email_send['total_sent'],
-				'entrance'             => $entrance,
-			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			return array(
-				'data' => $overall_data,
-			);
-		} catch ( \Exception $e ) {
-			return null;
-		}
 	}
 
 	/**

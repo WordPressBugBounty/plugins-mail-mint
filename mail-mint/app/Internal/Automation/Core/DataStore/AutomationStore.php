@@ -64,9 +64,22 @@ class AutomationModel {
 					if ( !empty( $payload['steps'] ) && is_array( $payload['steps'] ) ) {
 						$steps            = $payload['steps'];
 						$updated_step_ids = array();
-
-						foreach ( $steps as $key =>$step ) {
+						foreach ( $steps as $key => $step ) {
 							if ( isset( $step['step_id'] ) ) {
+
+								// Decode base64 encoded email body if present
+								if ( isset( $step['settings']['message_data']['body'] ) ) {
+									$body = $step['settings']['message_data']['body'];
+									
+									// Try to decode - if it's base64, it will decode, otherwise it stays as is
+									$decoded = base64_decode( $body, true );
+									
+									// Check if it was valid base64 and the decoded content looks like HTML/text
+									if ( $decoded !== false && base64_encode( $decoded ) === $body ) {
+										$step['settings']['message_data']['body'] = $decoded;
+									}
+								}
+								
 								$step_data = array(
 									'id'            => isset( $step['id'] ) ? $step['id'] : '',
 									'automation_id' => $automation_id,
@@ -84,6 +97,15 @@ class AutomationModel {
 										'next_step_id' => isset( $step['next_step_id'] ) ? $step['next_step_id'] : '',
 									);
 									foreach ( $yes_steps as $value => $logical_step ) {
+										// Decode base64 encoded email body for logical steps (yes branch)
+										if ( isset( $logical_step['settings']['message_data']['body'] ) ) {
+											$body = $logical_step['settings']['message_data']['body'];
+											$decoded = base64_decode( $body, true );
+											
+											if ( $decoded !== false && base64_encode( $decoded ) === $body ) {
+												$logical_step['settings']['message_data']['body'] = $decoded;
+											}
+										}
 										$logical_step_data = array(
 											'id'           => isset( $logical_step['id'] ) ? $logical_step['id'] : '',
 											'automation_id' => $automation_id,
@@ -106,6 +128,15 @@ class AutomationModel {
 										HelperFunctions::update_automation_step_meta( $logical_step_id, 'conditional_data', maybe_serialize( $step_meta_value ) );
 									}
 									foreach ( $no_steps as $no_value => $logical_step ) {
+										// Decode base64 encoded email body for logical steps (no branch)
+										if ( isset( $logical_step['settings']['message_data']['body'] ) ) {
+											$body = $logical_step['settings']['message_data']['body'];
+											$decoded = base64_decode( $body, true );
+											
+											if ( $decoded !== false && base64_encode( $decoded ) === $body ) {
+												$logical_step['settings']['message_data']['body'] = $decoded;
+											}
+										}
 										$logical_step_data = array(
 											'id'           => isset( $logical_step['id'] ) ? $logical_step['id'] : '',
 											'automation_id' => $automation_id,
@@ -131,6 +162,7 @@ class AutomationModel {
 								if ( !empty( $step['id'] ) ) {
 									array_push( $updated_step_ids, $step['id'] );
 								}
+
 								$step_id = AutomationStepModel::get_instance()->create_or_update( $step_data );
 								if ( 'logical' === $step['type'] ) {
 									HelperFunctions::update_automation_step_meta( $step_id, 'conditional_node_step', maybe_serialize( $step['node_data'] ) );
@@ -409,6 +441,15 @@ class AutomationModel {
 		$search_terms          = null;
 		$condition             = 'WHERE';
 
+		// Validate order_by against whitelist
+		$allowed_order_by = array( 'id', 'name', 'created_at', 'status' );
+		$order_by         = in_array( $order_by, $allowed_order_by, true ) ? $order_by : 'created_at';
+
+		// Validate order_type against whitelist (ASC or DESC only)
+		$allowed_order_types = array( 'asc', 'desc', 'ASC', 'DESC' );
+		$order_type_param    = strtolower( $order_type );
+		$order_type          = in_array( $order_type_param, array( 'asc', 'desc' ), true ) ? strtoupper( $order_type_param ) : 'DESC';
+
 		// Search automation by name.
 		if ( ! empty( $search ) ) {
 			$search       = $wpdb->esc_like( $search );
@@ -421,10 +462,10 @@ class AutomationModel {
 			// Return automations in list view.
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			if ( 'all' === $status ) {
-				$select_query = $wpdb->get_results( $wpdb->prepare( "SELECT automation.id,automation.name,automation.status,automation.created_at FROM $automation_table as automation LEFT JOIN $automation_meta_table AS meta ON automation.id = meta.automation_id {$search_terms} {$condition} meta.meta_key = %s AND meta.meta_value = %s ORDER BY automation.$order_by $order_type LIMIT %d, %d", array( 'source', 'mint', $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
+				$select_query = $wpdb->get_results( $wpdb->prepare( "SELECT automation.id,automation.name,automation.status,automation.created_at FROM $automation_table as automation LEFT JOIN $automation_meta_table AS meta ON automation.id = meta.automation_id {$search_terms} {$condition} meta.meta_key = %s AND meta.meta_value = %s ORDER BY automation.{$order_by} {$order_type} LIMIT %d, %d", array( 'source', 'mint', $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
 				$count_query  = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $automation_table as automation LEFT JOIN $automation_meta_table AS meta ON automation.id = meta.automation_id {$search_terms} {$condition} meta.meta_key  = %s AND  meta.meta_value  = %s", array( 'source', 'mint' ) ) ); // db call ok. ; no-cache ok.
 			} else {
-				$select_query = $wpdb->get_results( $wpdb->prepare( "SELECT automation.id,automation.name,automation.status,automation.created_at FROM $automation_table as automation LEFT JOIN $automation_meta_table AS meta ON automation.id = meta.automation_id {$search_terms} {$condition} meta.meta_key = %s AND meta.meta_value = %s AND automation.status = %s ORDER BY automation.$order_by $order_type LIMIT %d, %d", array( 'source', 'mint', $status, $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
+				$select_query = $wpdb->get_results( $wpdb->prepare( "SELECT automation.id,automation.name,automation.status,automation.created_at FROM $automation_table as automation LEFT JOIN $automation_meta_table AS meta ON automation.id = meta.automation_id {$search_terms} {$condition} meta.meta_key = %s AND meta.meta_value = %s AND automation.status = %s ORDER BY automation.{$order_by} {$order_type} LIMIT %d, %d", array( 'source', 'mint', $status, $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
 				$count_query  = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $automation_table as automation LEFT JOIN $automation_meta_table AS meta ON automation.id = meta.automation_id {$search_terms} {$condition} meta.meta_key  = %s AND  meta.meta_value  = %s AND automation.status = %s", array( 'source', 'mint', $status ) ) ); // db call ok. ; no-cache ok.
 			}
 

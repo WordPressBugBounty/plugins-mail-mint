@@ -334,21 +334,41 @@ class MessageController extends AdminBaseController {
 	 * 
 	 * @param mixed $email_id Email ID
 	 * @param mixed $total_bounced Total number of bounced emails
-	 * @param mixed $total_recipients Total number of recipients emails
+	 * @param mixed $total_delivered Total number of delivered emails
 	 * 
 	 * @return array
 	 * @since 1.0.0
 	 */
-	public static function prepare_open_rate_reports( $email_id, $total_bounced, $total_recipients ) {
+	public static function prepare_open_rate_reports( $email_id, $total_bounced, $total_delivered ) {
+		// If no emails have been delivered yet, skip calculation entirely.
+		if ( (int) $total_delivered === 0 ) {
+			return array(
+				'total_opened'    => 0,
+				'open_percentage' => number_format( 0, 2, '.', '' ),
+			);
+		}
 		$total_opened = EmailModel::count_email_open( $email_id );
 
-		$divide_by       = $total_recipients - $total_bounced;
-		$divide_by       = 0 === (int) $divide_by ? 1 : $divide_by;
-		$open_percentage = number_format( (float)( $total_opened / $divide_by ) * 100, 2, '.', '' );
+		// Prefer delivered count; fallback to recipients if not yet updated
+		$divide_by = (int) $total_delivered;
+
+		// Prevent division by zero
+		if ( $divide_by <= 0 ) {
+			$divide_by = 1;
+		}
+
+		// Calculate percentage
+		$open_percentage = ( $total_opened / $divide_by ) * 100;
+
+		// Cap at 100% to avoid over-reporting
+        $open_percentage = min( $open_percentage, 100.00 );
+
+		// Always format to two decimal places
+		$open_percentage = number_format( $open_percentage, 2, '.', '' );
 
 		return array(
-			'total_opened'    => $total_opened,
-			'open_percentage' => $open_percentage
+			'total_opened'    => (int) $total_opened,
+			'open_percentage' => $open_percentage,
 		);
 	}
 
@@ -358,21 +378,37 @@ class MessageController extends AdminBaseController {
 	 * 
 	 * @param mixed $email_id Email ID
 	 * @param mixed $total_bounced Total number of bounced emails
-	 * @param mixed $total_recipients Total number of recipients emails
+	 * @param mixed $total_delivered Total number of delivered emails
 	 * 
 	 * @return array
 	 * @since 1.0.0
 	 */
-	public static function prepare_unsubscribe_reports( $email_id, $total_bounced, $total_recipients ) {
-		$total_unsubscribe = EmailModel::count_unsubscribe( $email_id );
+	public static function prepare_unsubscribe_reports( $email_id, $total_bounced, $total_delivered ) {
+		// If no emails have been delivered yet, skip calculation entirely.
+		if ( (int) $total_delivered === 0 ) {
+			return array(
+				'total_unsubscribe'      => 0,
+				'unsubscribe_percentage' => number_format( 0, 2, '.', '' ),
+			);
+		}
 
-		$divide_by              = $total_recipients - $total_bounced;
-		$divide_by              = 0 === (int) $divide_by ? 1 : $divide_by;
-		$unsubscribe_percentage = number_format( (float)( $total_unsubscribe / $divide_by ) * 100, 2, '.', '' );
+		$total_unsubscribe = EmailModel::count_unsubscribe( $email_id );
+		$divide_by         = (int) $total_delivered;
+
+		// Prevent division by zero
+		if ( $divide_by <= 0 ) {
+			$divide_by = 1;
+		}
+		
+		// Calculate percentage
+		$unsubscribe_percentage = ( $total_unsubscribe / $divide_by ) * 100;
+
+		// Cap percentage to 100% max to handle edge cases
+		$unsubscribe_percentage = min( $unsubscribe_percentage, 100.00 );
 
 		return array(
 			'total_unsubscribe'      => $total_unsubscribe,
-			'unsubscribe_percentage' => $unsubscribe_percentage
+			'unsubscribe_percentage' => number_format( $unsubscribe_percentage, 2, '.', '' ),
 		);
 	}
 
@@ -385,12 +421,32 @@ class MessageController extends AdminBaseController {
 	 * for chart visualization.
 	 *
 	 * @param int $email_id The ID of the email for which to retrieve last day reports.
+	 * @param int $total_delivered The total number of delivered emails for the specified email.
 	 * @return array An associative array containing data for last day reports:
 	 * 
 	 * @since 1.0.0
 	 * @since 1.9.0 Prepare unsubscribe data for the last 24 hours.
 	 */
-	public static function prepare_last_day_reports( $email_id ) {
+	public static function prepare_last_day_reports( $email_id, $total_delivered ) {
+		// If no emails have been delivered, return zero data to avoid confusion.
+		if ( (int) $total_delivered === 0 ) {
+			return array(
+				'open' 	=> array(
+					'labels' => array( '12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM' ),
+					'values' => array_fill( 0, 24, 0 ),
+				),
+				'click'	=> array(
+					'labels' => array( '12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM' ),
+					'values' => array_fill( 0, 24, 0 ),
+				),
+				'unsubscribe' => array(
+					'labels' => array( '12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM', '6 AM', '7 AM', '8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM', '8 PM', '9 PM', '10 PM', '11 PM' ),
+					'values' => array_fill( 0, 24, 0 ),
+				),
+				'max'       => 0,
+				'step_size' => 0,
+			);
+		}
 		$open_labels        = array();
 		$open_values        = array();
 		$click_labels       = array();
@@ -523,15 +579,29 @@ class MessageController extends AdminBaseController {
 	 * @since 1.0.0
 	 */
 	public static function prepare_click_rate_reports( $email_id, $total_bounced, $total_delivered ) {
+		// If no emails have been delivered yet, skip calculation entirely.
+		if ( (int) $total_delivered === 0 ) {
+			return array(
+				'total_click'      => 0,
+				'click_percentage' => number_format( 0, 2, '.', '' ),
+			);
+		}
 		$total_click = EmailModel::count_email_click( $email_id );
 
-		$divide_by        = $total_delivered - $total_bounced;
-		$divide_by        = 0 === (int) $divide_by ? 1 : $divide_by;
-		$click_percentage = number_format( (float)( $total_click / $divide_by ) * 100, 2, '.', '' );
+		// Divide by total delivered (not minus bounced)
+		$divide_by = (int) $total_delivered;
+		if ( $divide_by <= 0 ) {
+			$divide_by = 1;
+		}
+		
+		$click_percentage = ( $total_click / $divide_by ) * 100;
+
+		// Clamp value between 0 and 100, and format
+		$click_percentage = min( max( $click_percentage, 0 ), 100.00 );
 
 		return array(
-			'total_click'      => $total_click,
-			'click_percentage' => $click_percentage
+			'total_click'      => (int) $total_click,
+			'click_percentage' => number_format( $click_percentage, 2, '.', '' ),
 		);
 	}
 

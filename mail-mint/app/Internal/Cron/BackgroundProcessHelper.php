@@ -116,6 +116,13 @@ class BackgroundProcessHelper {
 		}
 
 		$time_limit = (int) $time_limit;
+
+		// If time limit is 0 (unlimited) or very high, cap it to prevent ActionScheduler timeout.
+		// ActionScheduler has a 300-second timeout, so we need to stay well under that.
+		if ( 0 === $time_limit || $time_limit > 240 ) {
+			$time_limit = 240; // Cap at 4 minutes to stay under ActionScheduler's 5-minute timeout.
+		}
+
 		return $time_limit;
 	}
 
@@ -162,7 +169,8 @@ class BackgroundProcessHelper {
 	 * @since 1.9.5
 	 */
 	public static function run_action_scheduler_task() {
-		$action_id = mint_get_request_data( 'action_id' );
+		$sanitized_data = filter_input( INPUT_GET, 'action_id', FILTER_SANITIZE_NUMBER_INT );
+		$action_id      = ! empty( $sanitized_data ) ? absint( $sanitized_data ) : 0;
 
 		if ( ! empty( $action_id ) ) {
 			if ( class_exists( 'ActionScheduler_QueueRunner' ) ) {
