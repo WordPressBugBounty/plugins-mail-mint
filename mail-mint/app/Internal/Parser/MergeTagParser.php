@@ -181,66 +181,96 @@ class MergeTagParser
 				$value = $this->get_cart_abandonment_value($value_key, $default_value, $abandoned_id);
 				break;
 			case 'edd':
-				$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
-				$value      = $edd_parser->parse_edd_merge_tag();
+				if ( class_exists( EddMergeTagParser::class ) ) {
+					$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
+					$value      = $edd_parser->parse_edd_merge_tag();
+				}
 				break;
 			case 'edd_customer':
-				$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
-				$value      = $edd_parser->parse_edd_customer_merge_tag();
+				if ( class_exists( EddMergeTagParser::class ) ) {
+					$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
+					$value      = $edd_parser->parse_edd_customer_merge_tag();
+				}
 				break;
 			case 'edd_billing':
-				$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
-				$value      = $edd_parser->parse_edd_billing_merge_tag();
+				if ( class_exists( EddMergeTagParser::class ) ) {
+					$edd_parser = new EddMergeTagParser( $value_key, $default_value, $params );
+					$value      = $edd_parser->parse_edd_billing_merge_tag();
+				}
 				break;
 			case 'wc_subscription':
-				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
-				$value     = $wc_parser->parse_wc_subscription_merge_tag();
+				if ( class_exists( WCMergeTagParser::class ) ) {
+					$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
+					$value     = $wc_parser->parse_wc_subscription_merge_tag();
+				}
 				break;
 			case 'product':
-				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
-				$value     = $wc_parser->parse_wc_product_merge_tag();
+				if ( class_exists( WCMergeTagParser::class ) ) {
+					$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
+					$value     = $wc_parser->parse_wc_product_merge_tag();
+				}
 				break;
 			case 'wc_shipment_tracking':
-				$params['order_id'] = $order_id;
-				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
-				$value     = $wc_parser->parse_wc_shipment_tracking_merge_tag();
+				if ( class_exists( WCMergeTagParser::class ) ) {
+					$params['order_id'] = $order_id;
+					$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
+					$value     = $wc_parser->parse_wc_shipment_tracking_merge_tag();
+				}
 				break;
 			case 'wc_adv_shipment':
-				$params['order_id'] = $order_id;
-				$wc_parser = new WCMergeTagParser($value_key, $default_value, $params);
-				$value     = $wc_parser->parse_wc_adv_shipment_tracking_merge_tag();
+				if ( class_exists( WCMergeTagParser::class ) ) {
+					$params['order_id'] = $order_id;
+					$wc_parser = new WCMergeTagParser($value_key, $default_value, $params);
+					$value     = $wc_parser->parse_wc_adv_shipment_tracking_merge_tag();
+				}
 				break;
 			case 'review':
-				$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
-				$value     = $wc_parser->parse_wc_review_merge_tag();
+				if ( class_exists( WCMergeTagParser::class ) ) {
+					$wc_parser = new WCMergeTagParser( $value_key, $default_value, $params );
+					$value     = $wc_parser->parse_wc_review_merge_tag();
+				}
 				break;
 			case 'wc_membership':
-				$wc_parser = new WCMergeTagParser(  $value_key, $default_value, $params );
-				$value     = $wc_parser->parse_wc_membership_merge_tag();
+				if ( class_exists( WCMergeTagParser::class ) ) {
+					$wc_parser = new WCMergeTagParser(  $value_key, $default_value, $params );
+					$value     = $wc_parser->parse_wc_membership_merge_tag();
+				}
 				break;
 			case 'ld':
-				$wc_parser = new LearnDashTagParser( $value_key, $default_value, $params, $contact );
-				$value     = $wc_parser->parse_learn_dash_merge_tag();
+				if ( class_exists( LearnDashTagParser::class ) ) {
+					$wc_parser = new LearnDashTagParser( $value_key, $default_value, $params, $contact );
+					$value     = $wc_parser->parse_learn_dash_merge_tag();
+				}
 				break;
 			case 'fb_booking':
-				$fb_parser = new FBMergeTagParser($value_key, $default_value, $params);
-				$value     = $fb_parser->parse_fluent_booking_merge_tag();
+				if ( class_exists( FBMergeTagParser::class ) ) {
+					$fb_parser = new FBMergeTagParser($value_key, $default_value, $params);
+					$value     = $fb_parser->parse_fluent_booking_merge_tag();
+				}
 				break;
 			case 'fb_guest':
-				$guest_parser = new FBMergeTagParser($value_key, $default_value, $params);
-				$value        = $guest_parser->parse_fluent_booking_guest_merge_tag();
+				if ( class_exists( FBMergeTagParser::class ) ) {
+					$guest_parser = new FBMergeTagParser($value_key, $default_value, $params);
+					$value        = $guest_parser->parse_fluent_booking_guest_merge_tag();
+				}
 				break;
 			case 'fb_event':
-				$event_parser = new FBMergeTagParser($value_key, $default_value, $params);
-				$value        = $event_parser->parse_fluent_booking_event_merge_tag();
+				if ( class_exists( FBMergeTagParser::class ) ) {
+					$event_parser = new FBMergeTagParser($value_key, $default_value, $params);
+					$value        = $event_parser->parse_fluent_booking_event_merge_tag();
+				}
 				break;
 			case 'fb_host':
-				$host_parser = new FBMergeTagParser($value_key, $default_value, $params);
-				$value       = $host_parser->parse_fluent_booking_host_merge_tag();
+				if ( class_exists( FBMergeTagParser::class ) ) {
+					$host_parser = new FBMergeTagParser($value_key, $default_value, $params);
+					$value       = $host_parser->parse_fluent_booking_host_merge_tag();
+				}
 				break;
 			case 'wpfunnels':
-				$host_parser = new WPFMergeTagParser($value_key, $default_value, $params);
-				$value       = $host_parser->parse_wpf_merge_tag();
+				if ( class_exists( WPFMergeTagParser::class ) ) {
+					$host_parser = new WPFMergeTagParser($value_key, $default_value, $params);
+					$value       = $host_parser->parse_wpf_merge_tag();
+				}
 				break;
 			default:
 				$value = apply_filters('mint_merge_tag_group_callback_' . $data_key, $matches[0], $value_key, $default_value, $contact);

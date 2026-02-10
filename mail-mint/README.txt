@@ -3,9 +3,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: email automation, email marketing, newsletter, post notification, woocommerce emails
 Requires at least: 5.8
-Tested up to: 6.9.0
+Tested up to: 6.9.1
 Requires PHP: 7.4
-Stable tag:  1.19.4
+Stable tag:  1.19.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -526,6 +526,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.19.5 (2026-02-10) =
+* Compatibility: Compatible with the Latest WordPress
+* Bugfix: REST API Vulnerability Issue
 
 = 1.19.4 (2026-02-06) =
 * New: Contact Created Trigger on the Automation

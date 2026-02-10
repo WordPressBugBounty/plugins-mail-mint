@@ -146,7 +146,7 @@ class WPRoute {
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_admins' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => PermissionManager::current_user_can( 'manage_options' ),
 				),
 			)
 		);
