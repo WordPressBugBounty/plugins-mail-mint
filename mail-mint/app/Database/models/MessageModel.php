@@ -101,68 +101,6 @@ class EmailModel {
 		return true;
 	}
 
-
-	/**
-	 * SQL query to get all emails relate to a contact or all users
-	 *
-	 * @param mixed $offset offset.
-	 * @param mixed $limit limit.
-	 * @param mixed $search search.
-	 * @param mixed $contact_id contact id.
-	 * @return bool\array
-	 * @since 1.0.0
-	 */
-	public static function get_emails_to_contact( $offset = 0, $limit = 10, $search = '', $contact_id = null ) {
-		global $wpdb;
-		$table_name   = $wpdb->prefix . EmailSchema::$table_name;
-		$search_terms = null;
-
-		// Search email by address, or subject.
-		if ( ! empty( $search ) ) {
-			$search       = $wpdb->esc_like( $search );
-			$search_terms = "WHERE email_address LIKE '%" . $search . "%' OR email_subject LIKE '%" . $search . "%'";
-		}
-
-		if ( ! empty( $contact_id ) ) {
-			$search_terms = "WHERE contact_id = {$contact_id}";
-		}
-
-		if ( ! empty( $search ) && ! empty( $contact_id ) ) {
-			$search_terms = "WHERE email_address LIKE '%" . $search . "%' OR email_subject LIKE '%" . $search . "%' AND contact_id = '%" . $contact_id . "%'";
-		}
-
-		// Prepare sql results for list view.
-		try {
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared 
-			$select_query = $wpdb->prepare( "SELECT * FROM {$table_name} %s ORDER BY id DESC LIMIT %d, %d", array( $search_terms, $offset, $limit ) );
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared 
-			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared 
-			$query_results = $wpdb->get_results( $select_query ); // db call ok. no-cache ok.
-			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared 
-			$results = json_decode( wp_json_encode( $query_results ), true );
-
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared 
-			$count_query = $wpdb->prepare( "SELECT COUNT(*) as total FROM {$table_name} %s", $search_terms );
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared 
-			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared 
-			$count_data = $wpdb->get_results( $count_query ); // db call ok. no-cache ok.
-			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared 
-			$count_array = json_decode( wp_json_encode( $count_data ), true );
-
-			$count       = (int) $count_array['0']['total'];
-			$total_pages = ceil( $count / $limit );
-
-			return array(
-				'data'        => $results,
-				'total_pages' => $total_pages,
-			);
-		} catch ( \Exception $e ) {
-			return null;
-		}
-	}
-
-
-
 	/**
 	 * SQL query to get all emails relate to a contact
 	 *

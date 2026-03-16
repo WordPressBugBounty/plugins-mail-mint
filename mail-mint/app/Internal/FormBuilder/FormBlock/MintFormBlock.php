@@ -111,6 +111,13 @@ class MintFormBlock {
 	 * @since 1.0.0
 	 */
 	public function show_form_markup() {
+		// Verify nonce and capability to prevent unauthorized access.
+		check_ajax_referer( 'wp_rest', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( __( 'You do not have permission to access this resource.', 'mrm' ), 403 );
+		}
+
 		$param = MrmCommon::get_sanitized_get_post();
 		$post  = isset( $param['post'] ) ? $param['post'] : array();
 		if ( isset( $post['post_id'] ) && !empty( $post['post_id'] ) ) {
@@ -162,6 +169,8 @@ class MintFormBlock {
 
 		$is_time_delay = ! empty( $form_setting->settings->time_delay->enable ) ? $form_setting->settings->time_delay->enable : false;
 		$time_delay    = ! empty( $form_setting->settings->time_delay->time ) ? $form_setting->settings->time_delay->time : 0;
+
+		$exit_intent_enabled = ! empty( $form_setting->settings->exit_intent->enable ) ? $form_setting->settings->exit_intent->enable : false;
 
 		$form_data   = FormModel::get( $form_id );
 		$form_status = isset( $form_data['status'] ) ? $form_data['status'] : 0;
@@ -250,7 +259,8 @@ class MintFormBlock {
 				if ( ( 'popup' === $form_placement || 'flyins' === $form_placement ) && $is_time_delay && $time_delay ) {
 					$mrm_form_disable = 'mrm-form-disable';
 				}
-				$html .= '<div id="mrm-' . $form_placement . '" class="mrm-form-wrapper mrm-' . $form_animation . ' mrm-' . $form_placement . ' ' . $mrm_form_disable . '">';
+				$exit_intent_attr = ( 'popup' === $form_placement && $exit_intent_enabled ) ? ' data-exit-intent="true" data-form-id="' . $form_id . '"' : '';
+				$html .= '<div id="mrm-' . $form_placement . '" class="mrm-form-wrapper mrm-' . $form_animation . ' mrm-' . $form_placement . ' ' . $mrm_form_disable . '"' . $exit_intent_attr . '>';
 				$html .= '<div class="mrm-form-wrapper-inner ' . $class . '">';
 				if ( 'default' !== $form_placement ) {
 					$html .= '<span style="background:' . $form_close_background_color . '" class="mrm-form-close" form-id=' . $form_id . ' >

@@ -54,6 +54,17 @@ class CampaignsBackgroundProcess {
 		add_action( 'mailmint_batch_email_sent', array( $this, 'delete_actions' ) );
 		add_action( 'mailmint_campaign_email_sent', array( $this, 'update_campaign_status' ), 10, 2 );
 		add_action( 'mailmint_after_campaign_start', array( $this, 'activate_scheduled_campaign' ), 10, 2 );
+
+		// Recovery: Periodically check for and recover emails stuck in 'sending' status
+		// (e.g. after a 300s Action Scheduler timeout).
+		add_action( 'mailmint_recover_stuck_emails', array( $this, 'recover_stuck_sending_emails' ) );
+		if (
+			function_exists( 'as_has_scheduled_action' )
+			&& function_exists( 'as_schedule_recurring_action' )
+			&& ! as_has_scheduled_action( 'mailmint_recover_stuck_emails', array(), 'mailmint-recovery' )
+		) {
+			as_schedule_recurring_action( time() + 300, 600, 'mailmint_recover_stuck_emails', array(), 'mailmint-recovery' );
+		}
 	}
 
 	/**
@@ -93,11 +104,33 @@ class CampaignsBackgroundProcess {
 			$reply_name    = ! empty( $campaign_email[ 'reply_name' ] ) ? $campaign_email[ 'reply_name' ] : $reply_name;
 			$reply_email   = ! empty( $campaign_email[ 'reply_email' ] ) ? $campaign_email[ 'reply_email' ] : $reply_email;
 			$headers       = $this->prepare_email_headers( $sender_name, $sender_email, $reply_name, $reply_email );
+			$headers_json  = wp_json_encode( $headers );
+			$now           = current_time( 'mysql' );
+
+
+
+			// ── PR-6 FIX: Batch duplicate check — 1 query instead of N ──
+			$existing_emails = $wpdb->get_col( $wpdb->prepare(
+				"SELECT email_address FROM {$email_broadcast_table} WHERE campaign_id = %d AND email_id = %d",
+				$campaign_id,
+				$campaign_email_id
+			) );
+			$existing_set = array_flip( $existing_emails );
+
+			// ── PR-5 FIX: Collect rows for batch INSERT ──
+			$rows_to_insert = array();
 
 			foreach ( $recipients_emails as $email ) {
 				if ( BackgroundProcessHelper::memory_exceeded() || BackgroundProcessHelper::time_exceeded( $start_time, 0.5 ) ) {
-					// Reschedule the task if memory or time limit is exceeded.
-					// Update offset to continue from where we left off.
+
+
+					// Flush any pending rows before rescheduling.
+					if ( ! empty( $rows_to_insert ) ) {
+						$this->batch_insert_broadcast_rows( $wpdb, $email_broadcast_table, $rows_to_insert );
+						$rows_to_insert = array();
+					}
+
+					// Reschedule the task.
 					$new_offset = $offset + $processed_count;
 					$args = array(
 						array(
@@ -112,33 +145,36 @@ class CampaignsBackgroundProcess {
 					as_schedule_single_action( time() + 60, MAILMINT_SCHEDULE_EMAILS, $args, $group );
 					return;
 				}
-				// Check if email id and email address is set.
-				if ( isset( $email[ 'id' ], $email[ 'email' ] ) && $email[ 'id' ] && $email[ 'email' ] ) {
-					$email_hash = MrmCommon::get_rand_email_hash( $email[ 'email' ], $campaign_id );
-					$is_exist   = CampaignModel::is_exist_schedule_email( $campaign_id, $campaign_email_id, $email[ 'email' ] );
 
-					if ( ! $is_exist ) {
-						$wpdb->insert( //phpcs:ignore
-							$email_broadcast_table,
-								array(
-								'campaign_id'   => $campaign_id,
-								'email_id'      => $campaign_email_id,
-								'contact_id'    => $email['id'],
-								'email_address' => $email['email'],
-								'email_headers' => wp_json_encode($headers),
-								'status'        => 'scheduled',
-								'email_type'    => 'campaign',
-								'email_hash'    => $email_hash,
-								'scheduled_at'  => current_time('mysql'),
-								'created_at'    => current_time('mysql'),
-							)
+				if ( isset( $email['id'], $email['email'] ) && $email['id'] && $email['email'] ) {
+					// In-memory dedup — O(1) instead of 1 DB query per recipient.
+					if ( ! isset( $existing_set[ $email['email'] ] ) ) {
+						$rows_to_insert[] = $wpdb->prepare(
+							'(%d, %d, %d, %s, %s, %s, %s, %s, %s, %s)',
+							$campaign_id,
+							$campaign_email_id,
+							$email['id'],
+							$email['email'],
+							$headers_json,
+							'scheduled',
+							'campaign',
+							MrmCommon::get_rand_email_hash( $email['email'], $campaign_id ),
+							$now,
+							$now
 						);
-
-						usleep( 5000 ); // 5 milliseconds sleep
+						// Mark as existing to prevent duplicates within the same batch.
+						$existing_set[ $email['email'] ] = true;
 					}
 				}
 				$processed_count++;
 			}
+
+			// Flush remaining rows.
+			if ( ! empty( $rows_to_insert ) ) {
+				$this->batch_insert_broadcast_rows( $wpdb, $email_broadcast_table, $rows_to_insert );
+			}
+
+
 
 			$campaign_email[ 'delay_value' ] = '';
 			CampaignModel::schedule_campaign_action( $campaign_id, $campaign_email, 'active', '', ( $offset + $per_batch ) );
@@ -148,12 +184,9 @@ class CampaignsBackgroundProcess {
 			CampaignModel::update_campaign_email_status( $campaign_id, $campaign_email_id, 'scheduled' );
 			$email = CampaignModel::get_first_campaign_email( $campaign_id );
 
-			$custom_date   = CampaignModel::get_campaign_email_meta( $email['id'], 'schedule_date' );
-			$schedule_date = '';
-			if( $custom_date ){
-				$schedule_date = $custom_date;
-			}
 			if ( is_array( $email ) ) {
+				$custom_date   = CampaignModel::get_campaign_email_meta( $email['id'], 'schedule_date' );
+				$schedule_date = $custom_date ?: '';
 				CampaignModel::schedule_campaign_action( $campaign_id, $email, 'active', $schedule_date );
 			} else {
 				do_action( 'mailmint_campaign_emails_scheduling_completed', 'mailmint-campaign-schedule-' . $campaign_id );
@@ -163,6 +196,26 @@ class CampaignsBackgroundProcess {
 		do_action( 'mailmint_email_batch_scheduling_processed', (int) $campaign_id, (int) $campaign_email_id );
 	}
 
+	/**
+	 * Insert broadcast email rows in chunks using multi-row INSERT.
+	 *
+	 * Replaces per-recipient $wpdb->insert() with chunked bulk INSERT
+	 * for significantly fewer queries (e.g., 200 rows = 4 queries instead of 200).
+	 *
+	 * @param \wpdb  $wpdb                 WordPress database instance.
+	 * @param string $table                The broadcast emails table name.
+	 * @param array  $prepared_row_values  Array of $wpdb->prepare()'d value strings.
+	 *
+	 * @since 1.15.0
+	 */
+	private function batch_insert_broadcast_rows( $wpdb, $table, $prepared_row_values ) {
+		$columns = 'campaign_id, email_id, contact_id, email_address, email_headers, status, email_type, email_hash, scheduled_at, created_at';
+
+		foreach ( array_chunk( $prepared_row_values, 50 ) as $chunk ) {
+			$values_sql = implode( ', ', $chunk );
+			$wpdb->query( "INSERT INTO {$table} ({$columns}) VALUES {$values_sql}" ); //phpcs:ignore
+		}
+	}
 	/**
 	 * Send emails and handle time/memory limits
 	 *
@@ -195,6 +248,36 @@ class CampaignsBackgroundProcess {
 			$per_batch = $frequency_limit;
 		}
 		$recipient_emails     = $campaign_id ? $this->get_recipient_emails( $campaign_id, $email_id, $per_batch ) : array();
+
+		// Fix: claim these emails in an atomic, status-aware way to avoid race conditions.
+		if ( is_array( $recipient_emails ) && ! empty( $recipient_emails ) ) {
+			global $wpdb;
+
+			$claimed_ids = array_column( $recipient_emails, 'id' );
+			$claimed_ids = array_filter( array_map( 'intval', $claimed_ids ) );
+
+			if ( ! empty( $claimed_ids ) ) {
+				$table_name   = $wpdb->prefix . EmailSchema::$table_name;
+				$placeholders = implode( ',', array_fill( 0, count( $claimed_ids ), '%d' ) );
+
+				// Only claim rows that are still in 'scheduled' status to avoid duplicates.
+				$params = array_merge(
+					array( 'sending', 'scheduled' ),
+					$claimed_ids
+				);
+
+				$sql = "UPDATE {$table_name} SET status = %s WHERE status = %s AND id IN ({$placeholders})";
+
+				$wpdb->query( $wpdb->prepare( $sql, $params ) );
+
+				// If we could not claim all rows we selected, another worker may have claimed some.
+				// In that case, do not send any from this batch to prevent duplicates.
+				if ( (int) $wpdb->rows_affected !== count( $claimed_ids ) ) {
+					$recipient_emails = array();
+				}
+			}
+		}
+
 		$email_attributes     = CampaignModel::get_campaign_email_attributes_to_sent( $campaign_id, $email_id );
 		$global_email_subject = ! empty( $email_attributes['email_subject'] ) ? $email_attributes['email_subject'] : '';
 		$global_preview_text  = ! empty( $email_attributes['email_preview_text'] ) ? $email_attributes['email_preview_text'] : '';
@@ -271,9 +354,17 @@ class CampaignsBackgroundProcess {
 				}
 			}
 
-			// Update status of processed emails (both sent and failed)
+			// Batch update statuses for processed emails.
 			self::update_scheduled_emails_status( $sent_email_ids, 'sent' );
 			self::update_scheduled_emails_status( $failed_email_ids, 'failed' );
+
+			// Reset any claimed-but-unprocessed emails back to 'scheduled'.
+			// This handles the case where the loop broke early due to memory/time limits.
+			$processed_ids   = array_merge( $sent_email_ids, $failed_email_ids );
+			$unprocessed_ids = array_diff( $claimed_ids, $processed_ids );
+			if ( ! empty( $unprocessed_ids ) ) {
+				self::update_scheduled_emails_status( array_values( $unprocessed_ids ), 'scheduled' );
+			}
 
 			// Schedule next batch
 			CampaignModel::schedule_single_send_email_action_delay( (int) $campaign_id, $email_id, (int) $batch + 1, $frequency_time );
@@ -385,7 +476,10 @@ class CampaignsBackgroundProcess {
 	 * @since 1.0.0
 	 */
 	public function schedule_async_send_email_action( $campaign_id, $campaign_email_id ) {
-		if ( defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) && !MrmCommon::mailmint_as_has_scheduled_action( MAILMINT_SEND_SCHEDULED_EMAILS ) ) {
+		// Rely on CampaignModel::schedule_async_send_email_action() to handle
+		// de-duplication using hook + args + group, instead of performing a
+		// coarse global pre-check by hook only.
+		if ( defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) ) {
 			CampaignModel::schedule_async_send_email_action( $campaign_id, $campaign_email_id );
 		}
 	}
@@ -421,6 +515,62 @@ class CampaignsBackgroundProcess {
 	public function activate_scheduled_campaign( $args ) {
 		if ( !empty( $args[ 'campaign_id' ] ) && !empty( $args[ 'campaign_status' ] ) && 'schedule' === $args[ 'campaign_status' ] ) {
 			CampaignModel::update_campaign_status( $args[ 'campaign_id' ], 'active' );
+		}
+	}
+
+	/**
+	 * Recover emails stuck in 'sending' status.
+	 *
+	 * When an Action Scheduler action times out (e.g., after 300 seconds),
+	 * emails that were claimed as 'sending' never get updated to 'sent' or 'failed'.
+	 * This method resets any 'sending' emails older than 10 minutes back to 'scheduled'
+	 * and reschedules the send action so the campaign continues.
+	 *
+	 * @return void
+	 *
+	 * @since 1.x.x
+	 */
+	public function recover_stuck_sending_emails() {
+		global $wpdb;
+		$broadcast_email_table = $wpdb->prefix . EmailSchema::$table_name;
+
+		// Find distinct campaign/email combos with emails stuck in 'sending' for over 10 minutes.
+		$stuck_timeout = gmdate( 'Y-m-d H:i:s', time() - 600 ); // 10 minutes ago.
+
+		$stuck_campaigns = $wpdb->get_results( $wpdb->prepare(
+			"SELECT DISTINCT `campaign_id`, `email_id` FROM {$broadcast_email_table} WHERE `status` = %s AND `email_type` = %s AND `updated_at` < %s",
+			'sending',
+			'campaign',
+			$stuck_timeout
+		), ARRAY_A ); //phpcs:ignore
+
+		if ( empty( $stuck_campaigns ) ) {
+			return;
+		}
+
+		// Reset all stuck 'sending' emails back to 'scheduled'.
+		$wpdb->query( $wpdb->prepare(
+			"UPDATE {$broadcast_email_table} SET `status` = 'scheduled', `updated_at` = %s WHERE `status` = %s AND `email_type` = %s AND `updated_at` < %s",
+			current_time( 'mysql', true ),
+			'sending',
+			'campaign',
+			$stuck_timeout
+		) ); //phpcs:ignore
+
+		// Reschedule send actions for affected campaigns (if not already scheduled).
+		foreach ( $stuck_campaigns as $stuck ) {
+			$campaign_id = (int) $stuck['campaign_id'];
+			$email_id    = (int) $stuck['email_id'];
+
+			// Only skip scheduling if this specific campaign/email already has a pending/in-progress action.
+			$action_args = array(
+				'campaign_id' => $campaign_id,
+				'email_id'    => $email_id,
+			);
+
+			if ( defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) && ! MrmCommon::mailmint_as_has_scheduled_action( MAILMINT_SEND_SCHEDULED_EMAILS, $action_args, array( 'pending', 'in-progress' ) ) ) {
+				CampaignModel::schedule_async_send_email_action( $campaign_id, $email_id );
+			}
 		}
 	}
 }

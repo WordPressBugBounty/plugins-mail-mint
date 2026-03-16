@@ -38,6 +38,28 @@
             display: block;
         }
 
+        .mrm-validation-error {
+            color: #dd1212;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+        }
+
+        &.has-error {
+            .mrm-validation-error {
+                display: block;
+            }
+
+            input[type=date],
+            input[type=email],
+            input[type=text],
+            input[type=number],
+            textarea,
+            select {
+                border-color: #dd1212 !important;
+            }
+        }
+
         input[type=date],
         input[type=email],
         input[type=text],

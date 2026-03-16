@@ -402,9 +402,10 @@ class CampaignModel {
 		}
 
 		// Prepare filter terms for query.
-		$filter_terms = array();
-		if ( ! empty( $filter ) && 'all' !== $filter ) {
-			$filter_terms[] = $wpdb->prepare( "{$filter_type} = %s", $filter );
+		$filter_terms      = array();
+		$allowed_filter_by = array( 'type', 'status' );
+		if ( ! empty( $filter ) && 'all' !== $filter && in_array( $filter_type, $allowed_filter_by, true ) ) {
+			$filter_terms[] = $wpdb->prepare( "`{$filter_type}` = %s", $filter );
 		}
 
 		// Prepare status filter terms for query.
@@ -1056,7 +1057,7 @@ class CampaignModel {
 	 * Returns campaign meta value
 	 *
 	 * @param int $campaign_id Campaign ID.
-	 * @param int $key Campaign meta key.
+	 * @param int|string $key Campaign meta key.
 	 * @return array
 	 * @since 1.0.0
 	 */

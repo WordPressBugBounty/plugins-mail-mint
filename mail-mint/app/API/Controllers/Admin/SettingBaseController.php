@@ -97,7 +97,14 @@ abstract class SettingBaseController extends \WP_REST_Controller {
 	 * @since 1.0.0
 	 */
 	public function rest_permissions_check() {
-        return true;
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return new \WP_Error(
+				'rest_forbidden',
+				__( 'Sorry, you are not authorized to perform this action.', 'mrm' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+		return true;
 	}
 
 }

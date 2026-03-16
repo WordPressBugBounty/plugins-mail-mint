@@ -1,10 +1,103 @@
 jQuery(document).ready(function ($) {
     /**
+     * Inline Validation System
+     */
+    function initInlineValidation() {
+        // Add validation error container after each required field
+        $('.mrm-form-wrapper-inner form').each(function() {
+            $(this).find('[required]').each(function() {
+                var $field = $(this);
+                var $formGroup = $field.closest('.mrm-form-group, .mrm-input-group');
+                
+                // Add error message container if not exists
+                if ($formGroup.length && !$formGroup.find('.mrm-validation-error').length) {
+                    $formGroup.append('<span class="mrm-validation-error">This field is required</span>');
+                }
+                
+                // Override browser default validation tooltip
+                $field.on('invalid', function(e) {
+                    e.preventDefault();
+                    showFieldError($field);
+                });
+                
+                // Clear error on input
+                $field.on('input change', function() {
+                    clearFieldError($field);
+                });
+            });
+        });
+    }
+
+    function showFieldError($field) {
+        var $formGroup = $field.closest('.mrm-form-group, .mrm-input-group');
+        var errorMessage = getValidationMessage($field);
+        
+        $formGroup.addClass('has-error');
+        $formGroup.find('.mrm-validation-error').text(errorMessage);
+    }
+
+    function clearFieldError($field) {
+        var $formGroup = $field.closest('.mrm-form-group, .mrm-input-group');
+        $formGroup.removeClass('has-error');
+    }
+
+    function getValidationMessage($field) {
+        var field = $field[0];
+        
+        if (field.validity.valueMissing) {
+            return 'This field is required';
+        }
+        if (field.validity.typeMismatch) {
+            if (field.type === 'email') {
+                return 'Please enter a valid email address';
+            }
+            return 'Please enter a valid value';
+        }
+        if (field.validity.patternMismatch) {
+            return 'Please match the requested format';
+        }
+        
+        return 'Please fill out this field correctly';
+    }
+
+    function validateForm($form) {
+        var isValid = true;
+        
+        $form.find('[required]').each(function() {
+            var $field = $(this);
+            var field = $field[0];
+            
+            if (!field.checkValidity()) {
+                showFieldError($field);
+                isValid = false;
+            } else {
+                clearFieldError($field);
+            }
+        });
+        
+        // Focus first invalid field
+        if (!isValid) {
+            $form.find('.has-error').first().find('input, select, textarea').focus();
+        }
+        
+        return isValid;
+    }
+
+    // Initialize inline validation
+    initInlineValidation();
+
+    /**
      * Shortcode form submission ajax
      */
 
     $(".mrm-form-wrapper-inner form").on("submit",function (e){
         e.preventDefault();
+        
+        // Run inline validation first
+        if (!validateForm($(this))) {
+            return false;
+        }
+        
         $(this).find(".response").html("");
         $(this).find(".mrm-submit-button").addClass("show-loader");
         $(this).find(".mrm-submit-button").attr('disabled','disabled');
@@ -16,10 +109,6 @@ jQuery(document).ready(function ($) {
         fetch(window.MRM_Frontend_Vars.rest_api_url+"mint-mail/v1/mint-form-submit",
             {
                 method: "POST",
-                headers : {
-                    'Access-Control-Allow-Origin' : '*',
-                    'X-WP-Nonce' : window.MRM_Frontend_Vars.nonce // This nonce is created in the following file: /app/Internal/Frontend/FrontendAssets.php
-                },
                 body: data
             })
             .then(function(res){ return res.json(); })
@@ -143,10 +232,6 @@ jQuery(document).ready(function ($) {
         fetch(window.MRM_Frontend_Vars.rest_api_url+"mint-mail/v1/mint-preference-submit",
             {
                 method: "POST",
-                headers : {
-                    'Access-Control-Allow-Origin' : '*',
-                    'X-WP-Nonce' : window.MRM_Frontend_Vars.nonce // This nonce is created in the following file: /app/Internal/Frontend/FrontendAssets.php
-                },
                 body: data
             })
             .then(function(res){ return res.json(); })
@@ -199,10 +284,6 @@ jQuery(document).ready(function ($) {
         fetch(window.MRM_Frontend_Vars.rest_api_url+"mint-mail/v1/mint-form-cookie-submit",
             {
                 method: "POST",
-                headers : {
-                    'Access-Control-Allow-Origin' : '*',
-                    'X-WP-Nonce' : window.MRM_Frontend_Vars.nonce // This nonce is created in the following file: /app/Internal/Frontend/FrontendAssets.php
-                },
                 body: data
             })
             .then(function(res){ return res.json(); })
@@ -237,6 +318,108 @@ jQuery(document).ready(function ($) {
     $(".mint-form-button").on('click',function (){
          $(this).parent().parent().find('#mrm-popup').css("display","flex");
     })
+
+    /**
+     * Exit Intent Detection
+     * Triggers popup when user moves mouse towards the top of the page (exit intent)
+     */
+    function initExitIntentDetection() {
+        const sessionKey = 'exitIntentShownForms';
+
+        // Initialize sessionStorage
+        if (!sessionStorage.getItem(sessionKey)) {
+            sessionStorage.setItem(sessionKey, JSON.stringify({}));
+        }
+
+        function hasShownInSession(formId) {
+            const shownForms = JSON.parse(sessionStorage.getItem(sessionKey) || '{}');
+            return shownForms[formId] === true;
+        }
+
+        function markAsShownInSession(formId) {
+            const shownForms = JSON.parse(sessionStorage.getItem(sessionKey) || '{}');
+            shownForms[formId] = true;
+            sessionStorage.setItem(sessionKey, JSON.stringify(shownForms));
+        }
+
+        // Detect when mouse leaves the window from the top (exit intent)
+        document.addEventListener('mouseleave', function(e) {
+            // Only trigger on exit from top
+            if (e.clientY > 0) return;
+
+            const exitIntentForms = document.querySelectorAll('[data-exit-intent="true"]');
+            
+            exitIntentForms.forEach(formWrapper => {
+                const formId = formWrapper.getAttribute('data-form-id');
+                
+                if (!formId) return;
+
+                // Check if already shown in this session
+                if (hasShownInSession(formId)) return;
+
+                // Check for cookie
+                const cookieExists = document.cookie.split('; ').some(row => 
+                    row.startsWith(`mrm_form_cookie_${formId}=`)
+                );
+
+                if (!cookieExists) {
+                    // Remove the hide class to show the form
+                    formWrapper.classList.remove('mrm-form-disable');
+                    formWrapper.style.display = 'flex';
+                    markAsShownInSession(formId);
+                }
+            });
+        });
+
+        // Alternative: Detect cursor position very close to top
+        let lastClientY = null;
+        const exitThreshold = 0; // pixels from top (near browser bookmarks)
+        
+        document.addEventListener('mousemove', function(e) {
+            const currentY = e.clientY;
+            
+            // Only check if mouse is near the top
+            if (currentY > exitThreshold) {
+                lastClientY = currentY;
+                return;
+            }
+
+            // Check if moving upward toward exit
+            if (lastClientY !== null && currentY < lastClientY) {
+                const exitIntentForms = document.querySelectorAll('[data-exit-intent="true"]');
+                
+                exitIntentForms.forEach(formWrapper => {
+                    const formId = formWrapper.getAttribute('data-form-id');
+                    
+                    if (!formId) return;
+
+                    // Check if already shown in this session
+                    if (hasShownInSession(formId)) return;
+
+                    // Check for cookie
+                    const cookieExists = document.cookie.split('; ').some(row => 
+                        row.startsWith(`mrm_form_cookie_${formId}=`)
+                    );
+
+                    if (!cookieExists) {
+                        // Remove the hide class to show the form
+                        formWrapper.classList.remove('mrm-form-disable');
+                        formWrapper.style.display = 'flex';
+                        markAsShownInSession(formId);
+                    }
+                });
+            }
+
+            lastClientY = currentY;
+        });
+    }
+
+    // Initialize exit-intent detection when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initExitIntentDetection);
+    } else {
+        initExitIntentDetection();
+    }
 
     
     $('#mrm-unsubscribe-cancel').on('click', function(e) {

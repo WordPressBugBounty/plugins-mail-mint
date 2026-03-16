@@ -164,7 +164,13 @@ class EmailBounce{
         }
 
         if ('SubscriptionConfirmation' === $notification_type ) {
-            wp_remote_get( $post_data['SubscribeURL'] );
+            $subscribe_url = isset( $post_data['SubscribeURL'] ) ? esc_url_raw( $post_data['SubscribeURL'] ) : '';
+
+            // Only allow legitimate Amazon SNS confirmation URLs to prevent SSRF.
+            if ( ! empty( $subscribe_url ) && preg_match( '#^https://sns\.[a-z0-9-]+\.amazonaws\.com/#i', $subscribe_url ) ) {
+                wp_remote_get( $subscribe_url );
+            }
+
             wp_send_json([
                 'status'  => 200,
                 'message' => __('success', 'mrm')

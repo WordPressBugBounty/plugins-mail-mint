@@ -883,6 +883,7 @@ class ContactImportAction implements Action {
         $imported = 0;
 
         $contact_args = array(
+            'wp_user_id'  => isset($wp_user['ID']) ? $wp_user['ID'] : null,
             'status'      => isset($params['status']) ? $params['status'] : 'pending',
             'source'      => $source,
             'meta_fields' => array(),

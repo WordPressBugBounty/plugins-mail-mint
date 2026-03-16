@@ -726,6 +726,12 @@ class TransStrings
 			'EnableOneClickUnsubscribe' => __('Enable one-click unsubscribe', 'mrm'),
 			'EnableOneClickUnsubscribeToolTip' => __("Enabling this option means that whenever a contact clicks the 'Unsubscribe' link, the contact will be immediately unsubscribed.", 'mrm'),
 
+			// Campaign Pause/Resume
+			'ResumeCampaign' => __('Resume Campaign', 'mrm'),
+			'PauseCampaign' => __('Pause Campaign', 'mrm'),
+			'ResumeCampaignMsg' => __('Are you sure you want to resume sending emails for this campaign?', 'mrm'),
+			'PauseCampaignMsg' => __('Are you sure you want to pause sending emails for this campaign?', 'mrm'),
+
 			// Webhook Settings
 			'DeleteWebhook' => __('Delete Webhook?', 'mrm'),
 			'AreYouSureDeleteWebhook' => __('Are you sure you want to delete the webhook', 'mrm'),
@@ -968,6 +974,34 @@ class TransStrings
 			'Generating' => __('Generating...', 'mrm'),
 			'GenerateMore' => __('Generate More', 'mrm'),
 			'ClearPromptTooltip' => __('Clear all results and write the instructions again', 'mrm'),
+
+			// WPFunnels triggers and actions
+			'CTATriggered' => __('CTA Triggered', 'mrm'),
+			'CTATriggeredDescription' => __('This automation will trigger when someone clicks on CTA Button in WPFunnels Landing Page', 'mrm'),
+			'SelectYourFunnel' => __('Select Funnel to trigger automation', 'mrm'),
+			'SelectYourFunnelStep' => __('Select Funnel Step to trigger automation', 'mrm'),
+			'OptinSubmitted' => __('Optin Submitted', 'mrm'),
+			'OptinSubmittedDescription' => __('This automation will trigger when someone submit Optin Form', 'mrm'),
+			'CheckoutOrderAccepted' => __('Checkout Order Accepted', 'mrm'),
+			'CheckoutOrderAcceptedDescription' => __('This automation will trigger when checkout order will be accepted', 'mrm'),
+			'OrderBumpAction' => __('Order Bump Action', 'mrm'),
+			'OrderBumpActionDescription' => __('This automation will trigger at order bump action', 'mrm'),
+			'OrderBumpAccepted' => __('Order Bump Accepted', 'mrm'),
+			'OrderBumpAcceptedDescription' => __('This automation will be triggered when an order bump is accepted.', 'mrm'),
+			'OrderBumpRejected' => __('Order Bump Rejected', 'mrm'),
+			'OrderBumpRejectedDescription' => __('This automation will be triggered when an order bump is rejected.', 'mrm'),
+			'DownsellTrigger' => __('Downsell Trigger', 'mrm'),
+			'DownsellTriggerDescription' => __('This automation will be triggered when a downsell offer is presented.', 'mrm'),
+			'DownsellAccepted' => __('Downsell Accepted', 'mrm'),
+			'DownsellAcceptedDescription' => __('This automation will be triggered when an downsell is accepted.', 'mrm'),
+			'DownsellRejected' => __('Downsell Rejected', 'mrm'),
+			'DownsellRejectedDescription' => __('This automation will be triggered when an downsell is rejected.', 'mrm'),
+			'UpsellTrigger' => __('Upsell Trigger', 'mrm'),
+			'UpsellTriggerDescription' => __('This automation will be triggered when a upsell offer is presented.', 'mrm'),
+			'UpsellAccepted' => __('Upsell Accepted', 'mrm'),
+			'UpsellAcceptedDescription' => __('This automation will be triggered when an upsell is accepted.', 'mrm'),
+			'UpsellRejected' => __('Upsell Rejected', 'mrm'),
+			'UpsellRejectedDescription' => __('This automation will be triggered when an upsell is rejected.', 'mrm'),
 
 			// Contact Forms - After Submit Trigger for Automation
 			'FormSubmitted' => __('Form Submitted', 'mrm'),

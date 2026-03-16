@@ -138,6 +138,8 @@ class ContactForm {
 		$is_time_delay = ! empty( $form_setting->settings->time_delay->enable ) ? $form_setting->settings->time_delay->enable : false;
 		$time_delay    = ! empty( $form_setting->settings->time_delay->time ) ? $form_setting->settings->time_delay->time : 0;
 
+		$exit_intent_enabled = ! empty( $form_setting->settings->exit_intent->enable ) ? $form_setting->settings->exit_intent->enable : false;
+
 		$blocks = parse_blocks( $form_data[ 'form_body' ] );
 		$output = '';
 		$show   = true;
@@ -212,7 +214,7 @@ class ContactForm {
 			<div class="mintmrm" id="mintmrm-<?php echo $form_id; //phpcs:ignore ?>">
 				<?php
 				if ( 'popup' === $form_placement && $is_form_open_button && $form_button_text ) {
-					$mrm_form_disable = 'mrm-form-disable'
+					$mrm_form_disable = 'mrm-form-disable';
 					?>
 					<div>
 						<button class="mint-form-button <?php echo isset( $this->attributes[ 'button_class' ] ) ? esc_attr( $this->attributes[ 'button_class' ] ) : ''; ?>" type="submit"><?php echo esc_html( $form_button_text ); ?></button>
@@ -222,8 +224,12 @@ class ContactForm {
 				if ( ('popup' === $form_placement || 'flyins' === $form_placement) && $is_time_delay && $time_delay ) {//phpcs:ignore
 					$mrm_form_disable = 'mrm-form-disable';
 				}
+				// Hide form by default if exit-intent is enabled and no button/time-delay is set
+				if ( 'popup' === $form_placement && $exit_intent_enabled && !$is_form_open_button && !$is_time_delay ) {
+					$mrm_form_disable = 'mrm-form-disable';
+				}
 				?>
-                <div id="mrm-<?php echo esc_attr( $form_placement ); ?>" class="mrm-form-wrapper mrm-<?php echo esc_attr( $form_animation ); echo isset( $this->attributes[ 'class' ] ) ? esc_attr( $this->attributes[ 'class' ] ) : ''; echo ' mrm-' . esc_attr( $form_placement ); // phpcs:ignore. ?> <?php echo $mrm_form_disable  ?>">
+                <div id="mrm-<?php echo esc_attr( $form_placement ); ?>" class="mrm-form-wrapper mrm-<?php echo esc_attr( $form_animation ); echo isset( $this->attributes[ 'class' ] ) ? esc_attr( $this->attributes[ 'class' ] ) : ''; echo ' mrm-' . esc_attr( $form_placement ); // phpcs:ignore. ?> <?php echo $mrm_form_disable  ?>" data-exit-intent="<?php echo ( 'popup' === $form_placement && $exit_intent_enabled ) ? esc_attr( 'true' ) : esc_attr( 'false' ); ?>" data-form-id="<?php echo esc_attr( $form_id ); ?>">
 					<div class="mrm-form-wrapper-inner <?php echo esc_attr( $class ); ?> ">
 
 						<?php

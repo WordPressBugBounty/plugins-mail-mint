@@ -3,9 +3,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: email automation, email marketing, newsletter, post notification, woocommerce emails
 Requires at least: 5.8
-Tested up to: 6.9.1
+Tested up to: 6.9.4
 Requires PHP: 7.4
-Stable tag:  1.19.5
+Stable tag:  1.20.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -526,6 +526,15 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.20.0 (2026-03-16) =
+* New: Introduce Campaign Pause and Resume Feature
+* New: Add Exit Intent Form Type
+* Improvement: Campaign Performance on Email Scheduling and Sending
+* Improvement: Add Customizable Title Display Options to Post Block
+* Compatibility: Compatible with the Latest WordPress
+* Bugfix: Contact Delete Issue on WP User Removal
+* Bugfix: Several Vulnerability Issues
 
 = 1.19.5 (2026-02-10) =
 * Compatibility: Compatible with the Latest WordPress

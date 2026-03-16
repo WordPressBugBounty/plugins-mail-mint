@@ -22,6 +22,7 @@ use Exception;
 use MRM\Common\MrmCommon;
 use Mint\MRM\DataBase\Models\CampaignModel as ModelsCampaign;
 use Mint\MRM\DataBase\Tables\EmailSchema;
+use Mint\MRM\DataBase\Tables\EmailMetaSchema;
 use MintMail\App\Internal\Automation\AutomationLogModel;
 use WP_REST_Response;
 use Mint\MRM\Utilites\Helper\Campaign;
@@ -407,6 +408,8 @@ class CampaignController extends AdminBaseController {
 	 */
 	public function get_all( WP_REST_Request $request ) {
 		global $wpdb;
+
+
 		// Get values from API.
 		$params   = MrmCommon::get_api_params_values( $request );
 		$page     = isset( $params['page'] ) ? $params['page'] : 1;
@@ -435,45 +438,19 @@ class CampaignController extends AdminBaseController {
 		$campaigns = ModelsCampaign::get_all( $wpdb, $offset, $per_page, $search, $order_by, $order_type, $filter, $filterType, $status );
 		$campaigns['current_page'] = (int) $page;
 
-		// Prepare human_time_diff for every campaign.
-		if ( isset( $campaigns['campaigns'] ) ) {
-			$campaigns['campaigns'] = array_map(
-				function( $campaign ) {
-					if ( isset( $campaign['id'] ) ) {
-						$campaign_status = isset( $campaign['status'] ) ? $campaign['status'] : 'draft';
-						$campaign_type   = isset( $campaign['type'] ) ? $campaign['type'] : 'regular';
-						if( 'draft' !== $campaign_status && ( 'regular' === $campaign_type ||  'sequence' === $campaign_type || 'recurring' === $campaign_type ) ){
+		if ( isset( $campaigns['campaigns'] ) && ! empty( $campaigns['campaigns'] ) ) {
+			$id_groups = $this->categorize_campaign_ids( $campaigns['campaigns'] );
+			$stats     = $this->batch_load_campaign_stats( $wpdb, $id_groups );
 
-							$campaign['total_recipients'] = ModelsCampaign::get_campaign_meta_value( $campaign['id'], 'total_recipients' );
-		
-							if( 'recurring' === $campaign_type ) {
-								$campaign['total_recipients'] = EmailModel::recurring_campaign_total_recipients( $campaign['id'] );
-							}
-							$total_delivered = EmailModel::count_delivered_status_on_campaign( $campaign['id'], 'sent' );
-							$total_bounced   = EmailModel::count_delivered_status_on_campaign( $campaign['id'], 'failed' );
-							// If no emails delivered, set stats to 0
-							if ( 0 === (int) $total_delivered ) {
-								$campaign['open_rate']   = 0.00;
-								$campaign['click_rate']  = 0.00;
-								$campaign['unsubscribe'] = 0;
-							} else {
-								$campaign['open_rate']   = ModelsCampaign::prepare_campaign_open_rate( $campaign['id'], $campaign['total_recipients'], $total_bounced );
-								$campaign['click_rate']  = ModelsCampaign::prepare_campaign_click_rate( $campaign['id'], $campaign['total_recipients'], $total_bounced );
-								$campaign['unsubscribe'] = EmailModel::count_unsubscribe_on_campaign( $campaign['id'] );
-							}
-						} elseif( 'draft' !== $campaign_status && 'automation' === $campaign_type ){
-							$campaign['automation_stats'] = AutomationLogModel::prepare_automation_statistics_for_campaign( $campaign['id'] );
-						} else {
-                        	$campaign['total_recipients'] = ModelsCampaign::get_campaign_meta_value( $campaign['id'], 'total_recipients' );
-						}
-						$campaign['scheduled_at']     = MrmCommon::format_campaign_date_time( 'scheduled_at', $campaign );
-						$campaign['updated_at']       = MrmCommon::format_campaign_date_time( 'updated_at', $campaign );
-					}
-					return $campaign;
+			$campaigns['campaigns'] = array_map(
+				function( $campaign ) use ( $stats ) {
+					return $this->enrich_campaign_with_stats( $campaign, $stats );
 				},
 				$campaigns['campaigns']
 			);
 		}
+
+
 		if ( isset( $campaigns ) ) {
 			return $this->get_success_response_data( $campaigns );
 		}
@@ -806,5 +783,242 @@ class CampaignController extends AdminBaseController {
 			'message' => __( 'Campaign progress fetched successfully.', 'mrm' ),
 			'data'    => $progressData,
 		]);
+	}
+
+	/**
+	 * Categorize campaign IDs by type and status for batch loading.
+	 *
+	 * @param array $campaigns Array of campaign data arrays.
+	 *
+	 * @return array {
+	 *     @type int[] $all       All campaign IDs.
+	 *     @type int[] $broadcast Non-draft regular/sequence/recurring campaign IDs.
+	 *     @type int[] $recurring Recurring-only campaign IDs (subset of broadcast).
+	 * }
+	 *
+	 * @since 1.15.0
+	 */
+	private function categorize_campaign_ids( array $campaigns ) {
+		$groups = array(
+			'all'       => array(),
+			'broadcast' => array(),
+			'recurring' => array(),
+		);
+
+		foreach ( $campaigns as $campaign ) {
+			if ( ! isset( $campaign['id'] ) ) {
+				continue;
+			}
+			$cid     = (int) $campaign['id'];
+			$ctype   = isset( $campaign['type'] ) ? $campaign['type'] : 'regular';
+			$cstatus = isset( $campaign['status'] ) ? $campaign['status'] : 'draft';
+
+			$groups['all'][] = $cid;
+
+			if ( 'draft' !== $cstatus && 'automation' !== $ctype ) {
+				$groups['broadcast'][] = $cid;
+				if ( 'recurring' === $ctype ) {
+					$groups['recurring'][] = $cid;
+				}
+			}
+		}
+
+		return $groups;
+	}
+
+	/**
+	 * Batch-load campaign statistics for all campaign IDs in a single pass.
+	 *
+	 * Replaces per-campaign N+1 queries with grouped batch queries.
+	 * Returns lookup maps keyed by campaign_id.
+	 *
+	 * @param \wpdb $wpdb      WordPress database instance.
+	 * @param array $id_groups Output from categorize_campaign_ids().
+	 *
+	 * @return array {
+	 *     @type array $meta        campaign_id => total_recipients (from meta).
+	 *     @type array $status      campaign_id => [ 'sent' => N, 'failed' => N ].
+	 *     @type array $email_count campaign_id => number of email steps.
+	 *     @type array $open        campaign_id => total opens.
+	 *     @type array $click       campaign_id => total clicks.
+	 *     @type array $unsub       campaign_id => total unsubscribes.
+	 *     @type array $recurring   campaign_id => broadcast-based total recipients.
+	 * }
+	 *
+	 * @since 1.15.0
+	 */
+	private function batch_load_campaign_stats( $wpdb, array $id_groups ) {
+		$stats = array(
+			'meta'        => array(),
+			'status'      => array(),
+			'email_count' => array(),
+			'open'        => array(),
+			'click'       => array(),
+			'unsub'       => array(),
+			'recurring'   => array(),
+		);
+
+		// Batch meta — total_recipients for all campaigns.
+		if ( ! empty( $id_groups['all'] ) ) {
+			$meta_table = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
+			$ph         = implode( ', ', array_fill( 0, count( $id_groups['all'] ), '%d' ) );
+			$rows       = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT campaign_id, meta_value FROM {$meta_table} WHERE campaign_id IN ({$ph}) AND meta_key = %s",
+					array_merge( $id_groups['all'], array( 'total_recipients' ) )
+				),
+				ARRAY_A
+			);
+			foreach ( $rows as $row ) {
+				$stats['meta'][ (int) $row['campaign_id'] ] = $row['meta_value'] ?: 0;
+			}
+		}
+
+		// All broadcast-specific queries (sent/failed, email count, opens, clicks, unsubs).
+		if ( ! empty( $id_groups['broadcast'] ) ) {
+			$broadcast_table       = $wpdb->prefix . EmailSchema::$table_name;
+			$broadcast_meta_table  = $wpdb->prefix . EmailMetaSchema::$table_name;
+			$campaign_emails_table = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
+			$ph                    = implode( ', ', array_fill( 0, count( $id_groups['broadcast'] ), '%d' ) );
+
+			// Status counts (sent + failed).
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT campaign_id, status, COUNT(id) as total FROM {$broadcast_table} WHERE campaign_id IN ({$ph}) AND status IN ('sent', 'failed') GROUP BY campaign_id, status",
+					$id_groups['broadcast']
+				),
+				ARRAY_A
+			);
+			foreach ( $rows as $row ) {
+				$cid = (int) $row['campaign_id'];
+				if ( ! isset( $stats['status'][ $cid ] ) ) {
+					$stats['status'][ $cid ] = array( 'sent' => 0, 'failed' => 0 );
+				}
+				$stats['status'][ $cid ][ $row['status'] ] = (int) $row['total'];
+			}
+
+			// Email step count.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT campaign_id, COUNT(id) as cnt FROM {$campaign_emails_table} WHERE campaign_id IN ({$ph}) GROUP BY campaign_id",
+					$id_groups['broadcast']
+				),
+				ARRAY_A
+			);
+			foreach ( $rows as $row ) {
+				$stats['email_count'][ (int) $row['campaign_id'] ] = (int) $row['cnt'];
+			}
+
+			// Open counts (JOIN instead of subquery).
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT be.campaign_id, COUNT(bem.mint_email_id) as total FROM {$broadcast_meta_table} bem JOIN {$broadcast_table} be ON be.id = bem.mint_email_id WHERE bem.meta_key = 'is_open' AND bem.meta_value = 1 AND be.campaign_id IN ({$ph}) GROUP BY be.campaign_id",
+					$id_groups['broadcast']
+				),
+				ARRAY_A
+			);
+			foreach ( $rows as $row ) {
+				$stats['open'][ (int) $row['campaign_id'] ] = (int) $row['total'];
+			}
+
+			// Click counts.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT be.campaign_id, COUNT(bem.mint_email_id) as total FROM {$broadcast_meta_table} bem JOIN {$broadcast_table} be ON be.id = bem.mint_email_id WHERE bem.meta_key = 'is_click' AND bem.meta_value = 1 AND be.campaign_id IN ({$ph}) GROUP BY be.campaign_id",
+					$id_groups['broadcast']
+				),
+				ARRAY_A
+			);
+			foreach ( $rows as $row ) {
+				$stats['click'][ (int) $row['campaign_id'] ] = (int) $row['total'];
+			}
+
+			// Unsubscribe counts.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT be.campaign_id, COUNT(bem.mint_email_id) as total FROM {$broadcast_meta_table} bem JOIN {$broadcast_table} be ON be.id = bem.mint_email_id WHERE bem.meta_key = 'is_unsubscribe' AND bem.meta_value = 1 AND be.campaign_id IN ({$ph}) GROUP BY be.campaign_id",
+					$id_groups['broadcast']
+				),
+				ARRAY_A
+			);
+			foreach ( $rows as $row ) {
+				$stats['unsub'][ (int) $row['campaign_id'] ] = (int) $row['total'];
+			}
+
+			// Recurring-specific — total recipients from broadcast table.
+			if ( ! empty( $id_groups['recurring'] ) ) {
+				$rc_ph = implode( ', ', array_fill( 0, count( $id_groups['recurring'] ), '%d' ) );
+				$rows  = $wpdb->get_results(
+					$wpdb->prepare(
+						"SELECT campaign_id, COUNT(campaign_id) as total_recipients FROM {$broadcast_table} WHERE campaign_id IN ({$rc_ph}) GROUP BY campaign_id",
+						$id_groups['recurring']
+					),
+					ARRAY_A
+				);
+				foreach ( $rows as $row ) {
+					$stats['recurring'][ (int) $row['campaign_id'] ] = (int) $row['total_recipients'];
+				}
+			}
+		}
+
+		return $stats;
+	}
+
+	/**
+	 * Enrich a single campaign array with pre-loaded batch stats.
+	 *
+	 * @param array $campaign The campaign data array.
+	 * @param array $stats    Lookup maps from batch_load_campaign_stats().
+	 *
+	 * @return array The enriched campaign data.
+	 *
+	 * @since 1.15.0
+	 */
+	private function enrich_campaign_with_stats( array $campaign, array $stats ) {
+		if ( ! isset( $campaign['id'] ) ) {
+			return $campaign;
+		}
+
+		$cid     = (int) $campaign['id'];
+		$cstatus = isset( $campaign['status'] ) ? $campaign['status'] : 'draft';
+		$ctype   = isset( $campaign['type'] ) ? $campaign['type'] : 'regular';
+
+		if ( 'draft' !== $cstatus && in_array( $ctype, array( 'regular', 'sequence', 'recurring' ), true ) ) {
+			$campaign['total_recipients'] = isset( $stats['meta'][ $cid ] ) ? $stats['meta'][ $cid ] : 0;
+
+			if ( 'recurring' === $ctype && isset( $stats['recurring'][ $cid ] ) ) {
+				$campaign['total_recipients'] = $stats['recurring'][ $cid ];
+			}
+
+			$total_delivered = isset( $stats['status'][ $cid ]['sent'] ) ? $stats['status'][ $cid ]['sent'] : 0;
+			$total_bounced   = isset( $stats['status'][ $cid ]['failed'] ) ? $stats['status'][ $cid ]['failed'] : 0;
+
+			if ( 0 === (int) $total_delivered ) {
+				$campaign['open_rate']   = 0.00;
+				$campaign['click_rate']  = 0.00;
+				$campaign['unsubscribe'] = 0;
+			} else {
+				$total_recipients = (int) $campaign['total_recipients'];
+				$email_count      = isset( $stats['email_count'][ $cid ] ) ? $stats['email_count'][ $cid ] : 1;
+				$total_opened     = isset( $stats['open'][ $cid ] ) ? $stats['open'][ $cid ] : 0;
+				$total_clicked    = isset( $stats['click'][ $cid ] ) ? $stats['click'][ $cid ] : 0;
+
+				$divisor = ( $total_recipients * $email_count ) - $total_bounced;
+				$divisor = 0 === $divisor ? 1 : $divisor;
+
+				$campaign['open_rate']   = number_format( (float) ( $total_opened / $divisor ) * 100, 2, '.', '' );
+				$campaign['click_rate']  = number_format( (float) ( $total_clicked / $divisor ) * 100, 2, '.', '' );
+				$campaign['unsubscribe'] = isset( $stats['unsub'][ $cid ] ) ? $stats['unsub'][ $cid ] : 0;
+			}
+		} elseif ( 'draft' !== $cstatus && 'automation' === $ctype ) {
+			$campaign['automation_stats'] = AutomationLogModel::prepare_automation_statistics_for_campaign( $cid );
+		} else {
+			$campaign['total_recipients'] = isset( $stats['meta'][ $cid ] ) ? $stats['meta'][ $cid ] : 0;
+		}
+
+		$campaign['scheduled_at'] = MrmCommon::format_campaign_date_time( 'scheduled_at', $campaign );
+		$campaign['updated_at']   = MrmCommon::format_campaign_date_time( 'updated_at', $campaign );
+
+		return $campaign;
 	}
 }

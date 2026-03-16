@@ -42,6 +42,7 @@ class Editor extends Component {
 				data: {
 					action          	: 'show_form_markup',
 					post_id         	: form_id,
+					nonce           	: window.getmm_block_object.nonce,
 				},
 				// dataType: 'json',
 				success: function (response) {
@@ -73,6 +74,7 @@ class Editor extends Component {
                 data: {
                     action          	: 'show_form_markup',
                     post_id         	: value,
+                    nonce           	: window.getmm_block_object.nonce,
                 },
                 // dataType: 'json',
                 success: function (response) {

@@ -106,12 +106,13 @@ class FormPreview {
 
 		$form_close_button_color     = ! empty( $form_setting->settings->form_layout->close_button_color ) ? $form_setting->settings->form_layout->close_button_color : '#fff';
 		$form_close_background_color = ! empty( $form_setting->settings->form_layout->close_background_color ) ? $form_setting->settings->form_layout->close_background_color : '#000';
+		$exit_intent_enabled         = ! empty( $form_setting->settings->exit_intent->enable ) ? $form_setting->settings->exit_intent->enable : false;
 		$output                      = '';
 		ob_start();
 		?>
 
 		<div class="mintmrm mintmrm-form-preview">
-            <div id="mrm-<?php echo esc_attr( $form_placement ); ?>" class="mrm-form-wrapper mrm-<?php echo esc_attr( $form_animation ); echo isset( $this->attributes[ 'class' ] ) ? esc_attr( $this->attributes[ 'class' ] ) : ''; echo ' mrm-' . esc_attr( $form_placement ); // phpcs:ignore. ?>">
+            <div id="mrm-<?php echo esc_attr( $form_placement ); ?>" class="mrm-form-wrapper mrm-<?php echo esc_attr( $form_animation ); echo isset( $this->attributes[ 'class' ] ) ? esc_attr( $this->attributes[ 'class' ] ) : ''; echo ' mrm-' . esc_attr( $form_placement ); // phpcs:ignore. ?>" data-exit-intent="<?php echo ( 'popup' === $form_placement && $exit_intent_enabled ) ? esc_attr( 'true' ) : esc_attr( 'false' ); ?>" data-form-id="preview">
 				<div class="mrm-form-wrapper-inner custom-background">
 
 					<?php

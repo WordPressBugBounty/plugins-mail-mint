@@ -61,6 +61,31 @@
   color: #7a8b9a;
   box-shadow: none;
 }
+.mintmrm .mrm-form-group .mrm-validation-error,
+.mintmrm .mrm-input-group .mrm-validation-error {
+  color: #dd1212;
+  font-size: 12px;
+  margin-top: 4px;
+  display: none;
+}
+.mintmrm .mrm-form-group.has-error .mrm-validation-error,
+.mintmrm .mrm-input-group.has-error .mrm-validation-error {
+  display: block;
+}
+.mintmrm .mrm-form-group.has-error input[type=date],
+.mintmrm .mrm-form-group.has-error input[type=email],
+.mintmrm .mrm-form-group.has-error input[type=text],
+.mintmrm .mrm-form-group.has-error input[type=number],
+.mintmrm .mrm-form-group.has-error textarea,
+.mintmrm .mrm-form-group.has-error select,
+.mintmrm .mrm-input-group.has-error input[type=date],
+.mintmrm .mrm-input-group.has-error input[type=email],
+.mintmrm .mrm-input-group.has-error input[type=text],
+.mintmrm .mrm-input-group.has-error input[type=number],
+.mintmrm .mrm-input-group.has-error textarea,
+.mintmrm .mrm-input-group.has-error select {
+  border-color: #dd1212 !important;
+}
 .mintmrm .mrm-form-wrapper {
   box-sizing: border-box;
 }

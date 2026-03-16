@@ -32,7 +32,7 @@ class WPUserDelete {
 	 * @since 1.0.0
 	 */
 	public function init() {
-		add_action( 'deleted_user', array( $this, 'remove_from_mailmint_users' ) );
+		add_action( 'deleted_user', array( $this, 'remove_from_mailmint_users' ), 10, 3 );
 	}
 
 	/**
@@ -44,11 +44,13 @@ class WPUserDelete {
 	 *
 	 * @since 1.0.0
 	 */
-	public function remove_from_mailmint_users( $user_id ) {
+	public function remove_from_mailmint_users( $user_id, $reassign, $user ) {
         $is_user_delete                = get_option( '_mint_compliance');
-        $is_user_delete                = isset( $is_user_delete['user_info_delete'] ) ? $is_user_delete['user_info_delete'] : 'no';
+        $is_user_delete                = isset( $is_user_delete['user_info_delete'] ) 
+											? $is_user_delete['user_info_delete'] 
+											: 'no';
 		if ( 'yes' === $is_user_delete ) {
-			$mailmint_user_id = ContactModel::get_user_id_by_wp_user_id( $user_id );
+			$mailmint_user_id = ContactModel::get_id_by_email(sanitize_email($user->user_email) );
 
 			if ( $mailmint_user_id ) {
 				ContactModel::destroy( $mailmint_user_id );

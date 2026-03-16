@@ -924,23 +924,26 @@ class MrmCommon {
 	}
 
 	/**
-	 * Check if a action already exists
+	 * Check if an action already exists
 	 *
-	 * @param string $hook Hook.
+	 * @param string $hook     Hook.
+	 * @param array  $statuses Action statuses to check. Default: array( 'pending' ).
 	 *
 	 * @return string|null
 	 *
 	 * @since 1.0.0
+	 * @since 1.x.x Added $statuses parameter to check multiple statuses (e.g. 'pending', 'in-progress').
 	 */
-	public static function mailmint_as_has_scheduled_action( $hook ) {
+	public static function mailmint_as_has_scheduled_action( $hook, $statuses = array( 'pending' ) ) {
 		global $wpdb;
+		$placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
 		$query  = "SELECT `action_id` FROM {$wpdb->actionscheduler_actions} ";
 		$query .= 'WHERE `hook` = %s ';
-		$query .= 'AND `status` = %s ';
+		$query .= "AND `status` IN ($placeholders) ";
 		$query .= 'ORDER BY `action_id` ASC ';
 		$query .= 'LIMIT 1';
 
-		return $wpdb->get_var( $wpdb->prepare( $query, $hook, 'pending' ), ARRAY_A ); //phpcs:ignore
+		return $wpdb->get_var( $wpdb->prepare( $query, array_merge( array( $hook ), $statuses ) ) ); //phpcs:ignore
 	}
 
 	/**
