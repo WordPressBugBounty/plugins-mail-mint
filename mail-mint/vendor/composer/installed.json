@@ -113,6 +113,61 @@
             "install-path": "../coderexltd/telemetry"
         },
         {
+            "name": "linno/telemetry",
+            "version": "dev-posthog",
+            "version_normalized": "dev-posthog",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/CODEREXLTD/linno-telemetry.git",
+                "reference": "32e7975d19bf532f7762a76a34f150e050cb609a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/CODEREXLTD/linno-telemetry/zipball/32e7975d19bf532f7762a76a34f150e050cb609a",
+                "reference": "32e7975d19bf532f7762a76a34f150e050cb609a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4",
+                "posthog/posthog-php": "^2.1"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.5",
+                "phpunit/phpunit": "^9.5"
+            },
+            "time": "2026-04-02T09:28:26+00:00",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "LinnoSDK\\Telemetry\\": "src/"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "LinnoSDK\\Telemetry\\Tests\\": "tests/"
+                }
+            },
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Linno",
+                    "email": "support@linno.co"
+                }
+            ],
+            "description": "Privacy-first telemetry SDK for Linno WordPress plugins",
+            "support": {
+                "source": "https://github.com/CODEREXLTD/linno-telemetry/tree/posthog",
+                "issues": "https://github.com/CODEREXLTD/linno-telemetry/issues"
+            },
+            "install-path": "../linno/telemetry"
+        },
+        {
             "name": "posthog/posthog-php",
             "version": "2.1.1",
             "version_normalized": "2.1.1.0",

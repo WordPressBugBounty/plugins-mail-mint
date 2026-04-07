@@ -1,0 +1,19 @@
+{
+    "name": "linno/telemetry-test-plugin",
+    "description": "Test plugin for Linno Telemetry SDK",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=7.4",
+        "linno/telemetry": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
+}

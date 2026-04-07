@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, post notification, woocomme
 Requires at least: 5.8
 Tested up to: 6.9.4
 Requires PHP: 7.4
-Stable tag:  1.20.0
+Stable tag:  1.20.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -526,6 +526,9 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.20.1 (2026-04-07) =
+* Bugfix: Cross-Site Request Forgery to Stored Cross-Site Scripting
 
 = 1.20.0 (2026-03-16) =
 * New: Introduce Campaign Pause and Resume Feature

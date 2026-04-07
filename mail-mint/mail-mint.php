@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.20.0
+ * Version:           1.20.1
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -24,7 +24,7 @@
  * Domain Path:       /languages
  */
 
-use CodeRex\Telemetry\Client;
+use LinnoSDK\Telemetry\Client;
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
@@ -36,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.20.0' );
+define( 'MRM_VERSION', '1.20.1' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.15.3' );
 define( 'MINT_DEV_MODE', false );
@@ -64,6 +64,10 @@ if ( !defined( 'MAILMINT_SCHEDULE_EMAILS' ) ) {
 
 if ( !defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) ) {
 	define( 'MAILMINT_SEND_SCHEDULED_EMAILS', 'mailmint_send_scheduled_emails' );
+}
+
+if ( ! defined( 'MRM_POSTHOG_API_KEY' ) ) {
+	define( 'MRM_POSTHOG_API_KEY', 'phc_rw2FnQu3QoGOkJs4r0uLGH7WQf8PTM1TscVUheNKB4U' );
 }
 
 // Automation trigger actions.
@@ -137,33 +141,67 @@ function MM() {
 }
 MM();
 
-if ( ! function_exists( 'appsero_init_tracker_mail_mint' ) ) {
+if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 	/**
-	 * Initialize the plugin tracker
+	 * Initialize the Linno Telemetry SDK client and register event triggers.
 	 *
-	 * @since  1.0.0
+	 * Registers declarative hook-to-event mappings for onboarding completion,
+	 * AHA moment (first campaign sent), and recurring feature usage events.
+	 * Plugin activation and deactivation events are handled natively by the SDK.
+	 *
+	 * @return void
+	 * @since 1.21.0
 	 */
-	function appsero_init_tracker_mail_mint() {
-		if ( ! class_exists( 'Appsero\Client' ) ) {
-			require_once __DIR__ . '/vendor/appsero/src/Client.php';
-		}
-		$client = new Appsero\Client( '9d981a5e-81ce-4a15-a61e-7f9d912625c0', 'Mail Mint', __FILE__ );
-		// Active insights.
-		$client->insights()->init();
+	function init_mail_mint_telemetry() {
+		$client = new Client(
+			array(
+				'pluginFile' => __FILE__,
+				'slug'       => 'mail-mint',
+				'pluginName' => 'Mail Mint',
+				'version'    => MRM_VERSION,
+				'driver'     => 'posthog',
+				'driver_config' => array(
+                    'host'    => 'https://eu.i.posthog.com',
+                    'api_key' => MRM_POSTHOG_API_KEY,
+                ),
+			)
+		);
+
+		$client->define_triggers(
+			array(
+				'setup' => 'mailmint_after_accept_consent',
+				'aha'   => array(
+					'first_campaign_sent' => array(
+						'hook' => 'mailmint_campaign_email_sent',
+					),
+				),
+				'feature_used' => array(
+					'campaign_sent' => array(
+						'hook' => 'mailmint_campaign_email_sent',
+					),
+					'automation_triggered' => array(
+						'hook' => 'mailmint_after_automation_send_mail',
+					),
+				),
+			)
+		);
+
+		/**
+		 * Sync consent state independently when user accepts tracking consent.
+		 *
+		 * Registered as a separate callback from the setup trigger per FR-007.
+		 * Calls set_optin_state('yes') to write consent to both the global
+		 * linno_telemetry_allow_tracking and plugin-specific mail-mint_allow_tracking options.
+		 *
+		 * @since 1.21.0
+		 */
+		add_action(
+			'mailmint_after_accept_consent',
+			function () use ( $client ) {
+				$client->set_optin_state( 'yes' );
+			}
+		);
 	}
-}
-appsero_init_tracker_mail_mint();
-
-
-function init_mail_mint_telemetry() {
-    $api_key = '5882108b-4887-4d39-8569-9f19283f14bd';
-    $api_secret = 'sec_4f9a839c83b4041423bd';
-    $telemetry = new Client(
-            $api_key,
-            $api_secret,
-            'Mail Mint',
-            __FILE__
-    );
 }
 init_mail_mint_telemetry();
 

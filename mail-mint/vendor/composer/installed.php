@@ -3,7 +3,7 @@
         'name' => 'coderex/code-rex-crm',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'b436e47b18667cb29d5000cb4da1857da9d59598',
+        'reference' => 'ffb95f5c767850eee3cc65972753baa75db709b3',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'coderex/code-rex-crm' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'b436e47b18667cb29d5000cb4da1857da9d59598',
+            'reference' => 'ffb95f5c767850eee3cc65972753baa75db709b3',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -37,6 +37,15 @@
             'aliases' => array(
                 0 => '9999999-dev',
             ),
+            'dev_requirement' => false,
+        ),
+        'linno/telemetry' => array(
+            'pretty_version' => 'dev-posthog',
+            'version' => 'dev-posthog',
+            'reference' => '32e7975d19bf532f7762a76a34f150e050cb609a',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../linno/telemetry',
+            'aliases' => array(),
             'dev_requirement' => false,
         ),
         'posthog/posthog-php' => array(
