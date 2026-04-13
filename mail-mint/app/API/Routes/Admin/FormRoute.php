@@ -290,6 +290,111 @@ class FormRoute {
 		);
 
 		/**
+		 * Route to list entries for a specific form.
+		 *
+		 * @return void
+		 * @since 1.16.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<form_id>[\d]+)/entries',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'get_form_entries',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
+				),
+			)
+		);
+
+		/**
+		 * Route to retrieve a single form entry.
+		 *
+		 * @return void
+		 * @since 1.16.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<form_id>[\d]+)/entries/(?P<entry_id>[\d]+)',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'get_form_entry',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_forms'),
+				),
+			)
+		);
+
+		/**
+		 * Route to mark a single form entry as read.
+		 *
+		 * @return void
+		 * @since 1.16.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<form_id>[\d]+)/entries/(?P<entry_id>[\d]+)/mark-read',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array(
+						$this->controller,
+						'mark_form_entry_read',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms'),
+				),
+			)
+		);
+
+		/**
+		 * Route to update the status of a single form entry.
+		 *
+		 * @return void
+		 * @since 1.16.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<form_id>[\d]+)/entries/(?P<entry_id>[\d]+)/update-status',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array(
+						$this->controller,
+						'update_form_entry_status',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms'),
+				),
+			)
+		);
+
+		/**
+		 * Route to delete one or more form entries.
+		 *
+		 * @return void
+		 * @since 1.16.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<form_id>[\d]+)/entries/delete',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array(
+						$this->controller,
+						'delete_form_entries',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms_delete'),
+				),
+			)
+		);
+
+		/**
 		 * Route to duplicate a form
 		 *
 		 * @return void

@@ -1,11 +1,11 @@
-=== Mail Mint - Newsletters, Email Marketing, Automation, WooCommerce Emails, Post Notification, and more ===
+=== Mail Mint - Email Marketing, Newsletter, Email Automation & WooCommerce Emails ===
 Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
-Tags: email automation, email marketing, newsletter, post notification, woocommerce emails
+Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 6.9.4
 Requires PHP: 7.4
-Stable tag:  1.20.1
+Stable tag:  1.21.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -526,6 +526,11 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.21.0 (2026-04-13) =
+* New: Add Webhook Support for Mail Mint Forms
+* New: Introduced Form Entries Tracking and Management
+* Bugfix: Resolved Nonce Verification Failure during Form Submission
 
 = 1.20.1 (2026-04-07) =
 * Bugfix: Cross-Site Request Forgery to Stored Cross-Site Scripting

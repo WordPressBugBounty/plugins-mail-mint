@@ -15,6 +15,7 @@ namespace Mint\MRM\Admin\API\Controllers;
 use Exception;
 use MailMint\App\Internal\FormBuilder\Storage;
 use Mint\MRM\DataBase\Models\FormModel;
+use Mint\MRM\DataBase\Models\FormSubmissionModel;
 use Mint\MRM\DataStores\FormData;
 use Mint\Mrm\Internal\Traits\Singleton;
 use WP_Query;
@@ -437,6 +438,173 @@ class FormController extends AdminBaseController {
 	}
 
 	/**
+	 * Return paginated entries (submissions + field values) for a specific form.
+	 *
+	 * GET /mrm/v1/forms/{form_id}/entries?page=1&per-page=25
+	 *
+	 * Response shape:
+	 * {
+	 *   code: 200,
+	 *   message: "...",
+	 *   data: {
+	 *     data: [ { id, form_id, contact_id, source_url, status, browser, device,
+	 *               ip, created_at, fields: { field_name: field_value } }, ... ],
+	 *     count: <int>,
+	 *     total_pages: <int>
+	 *   }
+	 * }
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return WP_REST_Response
+	 * @since 1.16.0
+	 */
+	public function get_form_entries( WP_REST_Request $request ) {
+		$params     = MrmCommon::get_api_params_values( $request );
+		$form_id    = isset( $params['form_id'] ) ? absint( $params['form_id'] ) : 0;
+		$page       = isset( $params['page'] ) ? absint( $params['page'] ) : 1;
+		$per_page   = isset( $params['per-page'] ) ? absint( $params['per-page'] ) : 25;
+		$order_by   = isset( $params['order-by'] ) ? sanitize_text_field( $params['order-by'] ) : 'created_at';
+		$order_type = isset( $params['order-type'] ) ? sanitize_text_field( $params['order-type'] ) : 'DESC';
+		$search      = isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '';
+		$read_status = isset( $params['read_status'] ) ? sanitize_text_field( $params['read_status'] ) : '';
+
+		if ( ! $form_id ) {
+			return $this->get_error_response( __( 'Invalid form ID', 'mrm' ), 400 );
+		}
+
+		$entries = FormSubmissionModel::get_form_entries( $form_id, $page, $per_page, $order_by, $order_type, $search, $read_status );
+
+		// Fetch the form body and extract ordered field columns from the block markup.
+		$form_body_rows = FormModel::get_form_body( $form_id );
+		$form_body      = ! empty( $form_body_rows[0]['form_body'] ) ? $form_body_rows[0]['form_body'] : '';
+		$entries['columns'] = self::parse_form_columns_from_body( $form_body );
+
+		return $this->get_success_response( __( 'Query Successful', 'mrm' ), 200, $entries );
+	}
+
+	/**
+	 * Parse a form's block markup and return an ordered list of field column definitions.
+	 *
+	 * Each entry is [ 'label' => <human label>, 'slug' => <field_name key used in submissions> ].
+	 *
+	 * Supported block types:
+	 *   - wp:mrmformfield/mrm-custom-field  → "field_name" / "field_slug"
+	 *   - wp:mrmformfield/first-name-block  → firstNamePlaceholder / first_name
+	 *   - wp:mrmformfield/last-name-block   → lastNamePlaceholder  / last_name
+	 *   - wp:mrmformfield/email-field-block → "Email"              / email
+	 *   - wp:mrmformfield/phone-block       → "Phone"              / phone
+	 *
+	 * @param string $form_body Raw block-markup content from wp_mint_forms.form_body.
+	 *
+	 * @return array[]  Array of { label: string, slug: string } maps.
+	 * @since 1.16.0
+	 */
+	private static function parse_form_columns_from_body( $form_body ) {
+		$columns = array();
+		$seen    = array();
+
+		if ( empty( $form_body ) ) {
+			return $columns;
+		}
+
+		// Match every opening block comment: <!-- wp:mrmformfield/<blocktype> {JSON} -->
+		$pattern = '/<!--\s*wp:mrmformfield\/([\w-]+)\s*(\{[^}]*(?:\{[^}]*\}[^}]*)*\})?\s*(?:\/)?-->/';
+
+		if ( ! preg_match_all( $pattern, $form_body, $matches, PREG_SET_ORDER ) ) {
+			return $columns;
+		}
+
+		foreach ( $matches as $match ) {
+			$block_type = $match[1];
+			$attrs_json = isset( $match[2] ) ? $match[2] : '';
+			$attrs      = $attrs_json ? json_decode( $attrs_json, true ) : array();
+
+			$label = '';
+			$slug  = '';
+
+			switch ( $block_type ) {
+				case 'mrm-custom-field':
+					$label = ! empty( $attrs['field_name'] ) ? sanitize_text_field( $attrs['field_name'] ) : '';
+					$slug  = ! empty( $attrs['field_slug'] ) ? sanitize_key( $attrs['field_slug'] ) : '';
+					break;
+
+				case 'first-name-block':
+					$label = ! empty( $attrs['firstNamePlaceholder'] ) ? sanitize_text_field( $attrs['firstNamePlaceholder'] ) : __( 'First Name', 'mrm' );
+					$slug  = 'first_name';
+					break;
+
+				case 'last-name-block':
+					$label = ! empty( $attrs['lastNamePlaceholder'] ) ? sanitize_text_field( $attrs['lastNamePlaceholder'] ) : __( 'Last Name', 'mrm' );
+					$slug  = 'last_name';
+					break;
+
+				case 'email-field-block':
+					$label = __( 'Email', 'mrm' );
+					$slug  = 'email';
+					break;
+
+				case 'phone-block':
+					$label = __( 'Phone', 'mrm' );
+					$slug  = 'phone';
+					break;
+
+				default:
+					// Ignore layout/button/recaptcha blocks.
+					continue 2;
+			}
+
+			if ( $slug && ! isset( $seen[ $slug ] ) ) {
+				$columns[]      = array(
+					'label' => $label,
+					'slug'  => $slug,
+				);
+				$seen[ $slug ] = true;
+			}
+		}
+
+		return $columns;
+	}
+
+	/**
+	 * Retrieve a single form entry with its field values and adjacent navigation IDs.
+	 *
+	 * @param WP_REST_Request $request
+	 *
+	 * @return WP_REST_Response
+	 * @since 1.16.0
+	 */
+	public function get_form_entry( WP_REST_Request $request ) {
+		$params   = MrmCommon::get_api_params_values( $request );
+		$form_id  = isset( $params['form_id'] ) ? absint( $params['form_id'] ) : 0;
+		$entry_id = isset( $params['entry_id'] ) ? absint( $params['entry_id'] ) : 0;
+
+		if ( ! $form_id || ! $entry_id ) {
+			return $this->get_error_response( __( 'Invalid form or entry ID', 'mrm' ), 400 );
+		}
+
+		$entry = FormSubmissionModel::get_single_entry( $form_id, $entry_id );
+
+		if ( false === $entry ) {
+			return $this->get_error_response( __( 'Entry not found', 'mrm' ), 404 );
+		}
+
+		// Attach column definitions so the frontend can render field labels.
+		$form_body_rows   = FormModel::get_form_body( $form_id );
+		$form_body        = ! empty( $form_body_rows[0]['form_body'] ) ? $form_body_rows[0]['form_body'] : '';
+		$entry['columns'] = self::parse_form_columns_from_body( $form_body );
+
+		// Attach WP display name for the submitting user when available.
+		$user_id = ! empty( $entry['submission']['user_id'] ) ? (int) $entry['submission']['user_id'] : 0;
+		if ( $user_id ) {
+			$wp_user = get_userdata( $user_id );
+			$entry['submission']['user_display_name'] = $wp_user ? $wp_user->display_name : '';
+		}
+
+		return $this->get_success_response( __( 'Query Successful', 'mrm' ), 200, $entry );
+	}
+
+	/**
 	 * Get form list by search
 	 *
 	 * @param WP_REST_Request $request
@@ -462,5 +630,87 @@ class FormController extends AdminBaseController {
 		$response['success'] = true;
 		$response['forms']   = $formatted_forms;
 		return $response;
+	}
+
+	/**
+	 * Mark a form entry as read.
+	 *
+	 * @param WP_REST_Request $request
+	 * @return WP_REST_Response
+	 * @since 1.16.0
+	 */
+	public function mark_form_entry_read( WP_REST_Request $request ) {
+		$entry_id = (int) $request->get_param( 'entry_id' );
+
+		$result = FormSubmissionModel::mark_as_read( $entry_id );
+
+		if ( false === $result ) {
+			return $this->get_error_response( __( 'Failed to mark entry as read.', 'mrm' ), 400 );
+		}
+
+		return $this->get_success_response( __( 'Entry marked as read.', 'mrm' ), 200 );
+	}
+
+	/**
+	 * Update the status of a single form entry.
+	 *
+	 * Expected JSON body: { "status": "read"|"unread"|"trashed" }
+	 *
+	 * @param WP_REST_Request $request
+	 * @return WP_REST_Response
+	 * @since 1.16.0
+	 */
+	public function update_form_entry_status( WP_REST_Request $request ) {
+		$entry_id = (int) $request->get_param( 'entry_id' );
+		$params   = MrmCommon::get_api_params_values( $request );
+		$status   = isset( $params['status'] ) ? sanitize_text_field( $params['status'] ) : '';
+
+		if ( ! $entry_id ) {
+			return $this->get_error_response( __( 'Invalid entry ID.', 'mrm' ), 400 );
+		}
+
+		$allowed = array( 'read', 'unread', 'trashed' );
+		if ( ! in_array( $status, $allowed, true ) ) {
+			return $this->get_error_response( __( 'Invalid status value.', 'mrm' ), 400 );
+		}
+
+		$result = FormSubmissionModel::update_status( $entry_id, $status );
+
+		if ( false === $result ) {
+			return $this->get_error_response( __( 'Failed to update entry status.', 'mrm' ), 500 );
+		}
+
+		return $this->get_success_response( __( 'Entry status updated.', 'mrm' ), 200 );
+	}
+
+	/**
+	 * Delete one or more form entries.
+	 *
+	 * Expected JSON body: { "ids": [1, 2, 3] }
+	 *
+	 * @param WP_REST_Request $request
+	 * @return WP_REST_Response
+	 * @since 1.16.0
+	 */
+	public function delete_form_entries( WP_REST_Request $request ) {
+		$params  = MrmCommon::get_api_params_values( $request );
+		$form_id = isset( $params['form_id'] ) ? absint( $params['form_id'] ) : 0;
+		$ids     = isset( $params['ids'] ) ? (array) $params['ids'] : array();
+
+		if ( ! $form_id ) {
+			return $this->get_error_response( __( 'Invalid form ID', 'mrm' ), 400 );
+		}
+
+		if ( empty( $ids ) ) {
+			return $this->get_error_response( __( 'No entry IDs provided.', 'mrm' ), 400 );
+		}
+
+		$result = FormSubmissionModel::delete_entries( $ids );
+
+		if ( ! $result ) {
+			return $this->get_error_response( __( 'Failed to delete entries.', 'mrm' ), 500 );
+		}
+
+		return $this->get_success_response( __( 'Entries deleted successfully.', 'mrm' ), 200 );
 	}
 }

@@ -1026,18 +1026,23 @@ class MrmCommon {
 				'required' => array()
 			),
 			'option' => array(
-				'value' => true,
+				'value'    => true,
+				'disabled' => true,
+				'selected' => true,
+				'hidden'   => true,
 			),
 			'script' => array(
 				'src' => array(),
 			),
 			'textarea' => array(
-				'name'     => array(),
-				'id'       => array(),
-				'class'    => array(),
-				'rows'     => array(),
-				'cols'     => array(),
-				'required' => array(),
+				'name'        => array(),
+				'id'          => array(),
+				'class'       => array(),
+				'rows'        => array(),
+				'cols'        => array(),
+				'required'    => array(),
+				'placeholder' => array(),
+				'style'       => array(),
 			),
 		);
 

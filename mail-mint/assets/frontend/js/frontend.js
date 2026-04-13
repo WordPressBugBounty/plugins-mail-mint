@@ -106,6 +106,14 @@ jQuery(document).ready(function ($) {
         data.append( "post_data", $(that).serialize() );
         data.append( "wp_nonce", window.MRM_Frontend_Vars.nonce ); // This nonce is created in the following file: /app/Internal/Frontend/FrontendAssets.php
         data.append( "action", "mrm_submit_form");
+        // Capture source URL and UTM parameters for submission tracking.
+        data.append( "source_url", window.location.href );
+        var _mintUrlParams = new URLSearchParams( window.location.search );
+        [ "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content" ].forEach( function( key ) {
+            if ( _mintUrlParams.has( key ) ) {
+                data.append( key, _mintUrlParams.get( key ) );
+            }
+        } );
         fetch(window.MRM_Frontend_Vars.rest_api_url+"mint-mail/v1/mint-form-submit",
             {
                 method: "POST",
@@ -276,6 +284,16 @@ jQuery(document).ready(function ($) {
         $(this).parent().parent().hide();
         var form_id = $(this).attr('form-id')
         let that = this;
+
+        // For "every_time" frequency, clear session mark so next exit intent can re-trigger
+        var formWrapper = $(this).closest('[data-exit-intent="true"]');
+        if (formWrapper.length && formWrapper.attr('data-exit-intent-frequency') === 'every_time') {
+            var sessionKey = 'exitIntentShownForms';
+            var shownForms = JSON.parse(sessionStorage.getItem(sessionKey) || '{}');
+            delete shownForms[form_id];
+            sessionStorage.setItem(sessionKey, JSON.stringify(shownForms));
+        }
+
         var data = new FormData();
         data.append( "form_id", form_id );
         data.append( "action", "set_mint_mail_cookie_for_form");
@@ -322,6 +340,7 @@ jQuery(document).ready(function ($) {
     /**
      * Exit Intent Detection
      * Triggers popup when user moves mouse towards the top of the page (exit intent)
+     * Supports frequency: once_per_session, once_per_x_days, every_time
      */
     function initExitIntentDetection() {
         const sessionKey = 'exitIntentShownForms';
@@ -342,72 +361,91 @@ jQuery(document).ready(function ($) {
             sessionStorage.setItem(sessionKey, JSON.stringify(shownForms));
         }
 
-        // Detect when mouse leaves the window from the top (exit intent)
-        document.addEventListener('mouseleave', function(e) {
-            // Only trigger on exit from top
-            if (e.clientY > 0) return;
+        function setFrequencyCookie(formId, days) {
+            var date = new Date();
+            date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+            document.cookie = 'mrm_exit_intent_' + formId + '=shown; expires=' + date.toUTCString() + '; path=/';
+        }
 
-            const exitIntentForms = document.querySelectorAll('[data-exit-intent="true"]');
-            
-            exitIntentForms.forEach(formWrapper => {
-                const formId = formWrapper.getAttribute('data-form-id');
-                
+        function hasFrequencyCookie(formId) {
+            return document.cookie.split('; ').some(function(row) {
+                return row.startsWith('mrm_exit_intent_' + formId + '=');
+            });
+        }
+
+        function canShowForm(formWrapper) {
+            var formId = formWrapper.getAttribute('data-form-id');
+            var frequency = formWrapper.getAttribute('data-exit-intent-frequency') || 'once_per_session';
+
+            if (frequency === 'every_time') {
+                // For every_time, still prevent multiple triggers within same mouse-exit event
+                // but allow re-trigger on next exit intent
+                return true;
+            }
+
+            if (frequency === 'once_per_x_days') {
+                return !hasFrequencyCookie(formId);
+            }
+
+            // Default: once_per_session
+            return !hasShownInSession(formId);
+        }
+
+        function markFormAsShown(formWrapper) {
+            var formId = formWrapper.getAttribute('data-form-id');
+            var frequency = formWrapper.getAttribute('data-exit-intent-frequency') || 'once_per_session';
+            var days = parseInt(formWrapper.getAttribute('data-exit-intent-frequency-days')) || 7;
+
+            // Always mark in session to prevent rapid re-triggers
+            markAsShownInSession(formId);
+
+            if (frequency === 'once_per_x_days') {
+                setFrequencyCookie(formId, days);
+            }
+        }
+
+        function showExitIntentForms() {
+            var exitIntentForms = document.querySelectorAll('[data-exit-intent="true"]');
+
+            exitIntentForms.forEach(function(formWrapper) {
+                var formId = formWrapper.getAttribute('data-form-id');
                 if (!formId) return;
 
-                // Check if already shown in this session
-                if (hasShownInSession(formId)) return;
+                if (!canShowForm(formWrapper)) return;
 
-                // Check for cookie
-                const cookieExists = document.cookie.split('; ').some(row => 
-                    row.startsWith(`mrm_form_cookie_${formId}=`)
-                );
+                // Check for dismiss cookie
+                var cookieExists = document.cookie.split('; ').some(function(row) {
+                    return row.startsWith('mrm_form_cookie_' + formId + '=');
+                });
 
                 if (!cookieExists) {
-                    // Remove the hide class to show the form
                     formWrapper.classList.remove('mrm-form-disable');
                     formWrapper.style.display = 'flex';
-                    markAsShownInSession(formId);
+                    markFormAsShown(formWrapper);
                 }
             });
+        }
+
+        // Detect when mouse leaves the window from the top (exit intent)
+        document.addEventListener('mouseleave', function(e) {
+            if (e.clientY > 0) return;
+            showExitIntentForms();
         });
 
         // Alternative: Detect cursor position very close to top
         let lastClientY = null;
-        const exitThreshold = 0; // pixels from top (near browser bookmarks)
-        
+        const exitThreshold = 0;
+
         document.addEventListener('mousemove', function(e) {
             const currentY = e.clientY;
-            
-            // Only check if mouse is near the top
+
             if (currentY > exitThreshold) {
                 lastClientY = currentY;
                 return;
             }
 
-            // Check if moving upward toward exit
             if (lastClientY !== null && currentY < lastClientY) {
-                const exitIntentForms = document.querySelectorAll('[data-exit-intent="true"]');
-                
-                exitIntentForms.forEach(formWrapper => {
-                    const formId = formWrapper.getAttribute('data-form-id');
-                    
-                    if (!formId) return;
-
-                    // Check if already shown in this session
-                    if (hasShownInSession(formId)) return;
-
-                    // Check for cookie
-                    const cookieExists = document.cookie.split('; ').some(row => 
-                        row.startsWith(`mrm_form_cookie_${formId}=`)
-                    );
-
-                    if (!cookieExists) {
-                        // Remove the hide class to show the form
-                        formWrapper.classList.remove('mrm-form-disable');
-                        formWrapper.style.display = 'flex';
-                        markAsShownInSession(formId);
-                    }
-                });
+                showExitIntentForms();
             }
 
             lastClientY = currentY;

@@ -14,6 +14,7 @@ namespace MailMint\App\Actions;
 
 use Mint\MRM\DataBase\Models\EmailModel;
 use MailMint\App\Helper;
+use MailMint\App\Actions\Handlers\FormSubmissionHandler;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\Utilities\Helper\PermissionManager;
 use MintMail\App\Internal\Automation\AutomationLogModel;
@@ -51,6 +52,9 @@ class Hooks {
 		add_action( 'mailmint_after_delete_contact', array( $this, 'delete_automation_logs' ), 10, 1 );
 		add_filter( 'rocket_cache_reject_uri', array( $this, 'exclude_endpoint_option' ), 100 );
 		add_action( 'mailmint_delete_expired_coupons', array( $this, 'delete_expired_dynamic_coupons' ) );
+
+		$form_submission_handler = new FormSubmissionHandler();
+		add_action( 'mailmint_after_form_submit', array( $form_submission_handler, 'store' ), 10, 3 );
 	}
 
 	/**

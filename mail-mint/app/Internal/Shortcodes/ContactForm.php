@@ -138,7 +138,12 @@ class ContactForm {
 		$is_time_delay = ! empty( $form_setting->settings->time_delay->enable ) ? $form_setting->settings->time_delay->enable : false;
 		$time_delay    = ! empty( $form_setting->settings->time_delay->time ) ? $form_setting->settings->time_delay->time : 0;
 
-		$exit_intent_enabled = ! empty( $form_setting->settings->exit_intent->enable ) ? $form_setting->settings->exit_intent->enable : false;
+		$exit_intent_enabled        = ! empty( $form_setting->settings->exit_intent->enable ) ? $form_setting->settings->exit_intent->enable : false;
+		$exit_intent_frequency      = ! empty( $form_setting->settings->exit_intent->frequency ) ? $form_setting->settings->exit_intent->frequency : 'once_per_session';
+		$exit_intent_frequency_days = ! empty( $form_setting->settings->exit_intent->frequency_days ) ? $form_setting->settings->exit_intent->frequency_days : 7;
+
+		$custom_css    = ! empty( $form_setting->settings->custom_css ) ? $form_setting->settings->custom_css : '';
+		$wrapper_class = ! empty( $form_setting->settings->wrapper_class ) ? implode( ' ', array_map( 'sanitize_html_class', explode( ' ', $form_setting->settings->wrapper_class ) ) ) : '';
 
 		$blocks = parse_blocks( $form_data[ 'form_body' ] );
 		$output = '';
@@ -211,6 +216,11 @@ class ContactForm {
 			// phpcs:disable Generic.PHP.DisallowShortOpenTag.PossibleFound
 			?>
 			<?php echo $recapcha_js; //phpcs:ignore ?>
+			<?php if ( ! empty( $custom_css ) ) : ?>
+				<style id="mintmrm-custom-css-<?php echo intval( $form_id ); ?>">
+					<?php echo wp_strip_all_tags( $custom_css ); ?>
+				</style>
+			<?php endif; ?>
 			<div class="mintmrm" id="mintmrm-<?php echo $form_id; //phpcs:ignore ?>">
 				<?php
 				if ( 'popup' === $form_placement && $is_form_open_button && $form_button_text ) {
@@ -229,7 +239,7 @@ class ContactForm {
 					$mrm_form_disable = 'mrm-form-disable';
 				}
 				?>
-                <div id="mrm-<?php echo esc_attr( $form_placement ); ?>" class="mrm-form-wrapper mrm-<?php echo esc_attr( $form_animation ); echo isset( $this->attributes[ 'class' ] ) ? esc_attr( $this->attributes[ 'class' ] ) : ''; echo ' mrm-' . esc_attr( $form_placement ); // phpcs:ignore. ?> <?php echo $mrm_form_disable  ?>" data-exit-intent="<?php echo ( 'popup' === $form_placement && $exit_intent_enabled ) ? esc_attr( 'true' ) : esc_attr( 'false' ); ?>" data-form-id="<?php echo esc_attr( $form_id ); ?>">
+                <div id="mrm-<?php echo esc_attr( $form_placement ); ?>" class="mrm-form-wrapper mrm-<?php echo esc_attr( $form_animation ); echo isset( $this->attributes[ 'class' ] ) ? esc_attr( $this->attributes[ 'class' ] ) : ''; echo ' mrm-' . esc_attr( $form_placement ); // phpcs:ignore. ?> <?php echo $mrm_form_disable; ?><?php echo ! empty( $wrapper_class ) ? ' ' . esc_attr( $wrapper_class ) : ''; ?>" data-exit-intent="<?php echo ( 'popup' === $form_placement && $exit_intent_enabled ) ? esc_attr( 'true' ) : esc_attr( 'false' ); ?>" data-exit-intent-frequency="<?php echo esc_attr( $exit_intent_frequency ); ?>" data-exit-intent-frequency-days="<?php echo esc_attr( $exit_intent_frequency_days ); ?>" data-form-id="<?php echo esc_attr( $form_id ); ?>">
 					<div class="mrm-form-wrapper-inner <?php echo esc_attr( $class ); ?> ">
 
 						<?php

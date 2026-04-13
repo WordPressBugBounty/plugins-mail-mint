@@ -63,6 +63,9 @@ class DatabaseMigrator {
 		'1.15.2' => array(
 			'mm_update_1152_migrate_templates_table',
 		),
+		'1.16.0' => array(
+			'mm_update_1160_migrate_form_submissions_tables',
+		),
 	);
 
 
@@ -91,7 +94,15 @@ class DatabaseMigrator {
 				'update_form_position_field_structure',
 				'update_form_group_id_field_structure',
 			),
+			'1.16.0' => array(
+				'mm_update_1160_migrate_form_submissions_tables',
+			),
 		);
+
+		$this->current_db_version = get_option( 'mail_mint_db_version', null );
+		if ( ! is_null( $this->current_db_version ) ) {
+			$this->upgrade_database_tables();
+		}
 	}
 
 
@@ -689,6 +700,80 @@ class DatabaseMigrator {
 
 		// Execute the SQL query.
         $wpdb->query( $query ); //phpcs:ignore
+	}
+
+	/**
+	 * Create form submissions and form entry details tables.
+	 *
+	 * Runs via the Action Scheduler for existing users upgrading to 1.16.0.
+	 * Fresh installs get these tables through Upgrade::upgrade_schema() instead.
+	 *
+	 * @param array $args An associative array containing the version for processing.
+	 *
+	 * @return void
+	 *
+	 * @since 1.16.0
+	 */
+	public function mm_update_1160_migrate_form_submissions_tables( $args = array() ) {
+		$version = ! empty( $args['version'] ) ? $args['version'] : '1.16.0';
+		global $wpdb;
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$sql = array();
+
+		$submissions_table = $wpdb->prefix . 'mint_form_submissions';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$submissions_table'" ) !== $submissions_table ) {
+			$sql[] = "CREATE TABLE {$submissions_table} (
+				id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				form_id         BIGINT UNSIGNED NOT NULL,
+				user_id         BIGINT UNSIGNED DEFAULT NULL,
+				contact_id      BIGINT UNSIGNED DEFAULT NULL,
+				source_url      TEXT DEFAULT NULL,
+				status          VARCHAR(45) DEFAULT 'unread',
+				browser         VARCHAR(45) DEFAULT NULL,
+				device          VARCHAR(45) DEFAULT NULL,
+				ip              VARCHAR(45) DEFAULT NULL,
+				city            VARCHAR(100) DEFAULT NULL,
+				country         VARCHAR(100) DEFAULT NULL,
+				utm_source      VARCHAR(191) DEFAULT NULL,
+				utm_medium      VARCHAR(191) DEFAULT NULL,
+				utm_campaign    VARCHAR(191) DEFAULT NULL,
+				utm_term        VARCHAR(191) DEFAULT NULL,
+				utm_content     VARCHAR(191) DEFAULT NULL,
+				created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+				updated_at      DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+				PRIMARY KEY (id),
+				INDEX idx_form_id    (form_id),
+				INDEX idx_user_id    (user_id),
+				INDEX idx_contact_id (contact_id),
+				INDEX idx_status     (status),
+				INDEX idx_created_at (created_at)
+			) $charset_collate;";
+		}
+
+		$entry_details_table = $wpdb->prefix . 'mint_form_entry_details';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$entry_details_table'" ) !== $entry_details_table ) {
+			$sql[] = "CREATE TABLE {$entry_details_table} (
+				id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+				submission_id   BIGINT UNSIGNED NOT NULL,
+				field_name      VARCHAR(255) NOT NULL,
+				field_type      VARCHAR(50) DEFAULT NULL,
+				field_value     LONGTEXT DEFAULT NULL,
+				PRIMARY KEY (id),
+				INDEX idx_submission_id    (submission_id),
+				INDEX idx_field_name       (field_name),
+				INDEX idx_submission_field (submission_id, field_name)
+			) $charset_collate;";
+		}
+
+		if ( ! empty( $sql ) ) {
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			foreach ( $sql as $query ) {
+				dbDelta( $query );
+			}
+		}
+
+		update_option( 'mail_mint_db_version', $version, false );
 	}
 
 }

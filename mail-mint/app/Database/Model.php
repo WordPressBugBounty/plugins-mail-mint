@@ -54,6 +54,8 @@ class Model {
 				'automation_job'                => 'AutomationJobSchema',
 				'automation_log'                => 'AutomationLogSchema',
 				'email_templates'				=> 'EmailTemplatesSchema',
+				'form_submissions'              => 'FormSubmissionsSchema',
+				'form_entry_details'            => 'FormEntryDetailsSchema',
 			)
 		);
 	}
