@@ -136,6 +136,7 @@ class MrmActivator {
 			self::set_activation_transient();
 			self::create_pages();
 			PermissionManager::assign_capabilities_to_admin();
+			set_transient( 'mailmint_fresh_install_pending', 'yes', HOUR_IN_SECONDS );
 		}
 		self::create_files();
 		self::update_mint_version();

@@ -15,6 +15,7 @@ namespace Mint\MRM\DataBase\Models;
 use Mint\MRM\DataBase\Tables\AutomationMetaSchema;
 use Mint\MRM\DataBase\Tables\FormSchema;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
+use Mint\MRM\DataBase\Tables\CampaignEmailBuilderSchema;
 use Mint\MRM\DataBase\Tables\ContactSchema;
 use MRM\Common\MrmCommon;
 use Mint\MRM\DataBase\Models\CampaignModel as ModelsCampaign;
@@ -425,34 +426,32 @@ class DashboardModel {
 	 */
 	public static function get_onboarding_stats() {
 
+		global $wpdb;
+		$email_builder_table = $wpdb->prefix . CampaignEmailBuilderSchema::$table_name;
+
 		$boarding_steps = [
 			[
-				'label'     => __('Create a List', 'mrm'),
-				'completed' => ContactGroupModel::get_groups_count('lists') > 0,
-				'link'      => 'lists',
-			],
-			[
-				'label'     => __('Create or Import Contacts', 'mrm'),
+				'label'     => __('Add your contacts', 'mrm'),
 				'completed' => ContactModel::get_contacts_count() > 0,
 				'link'      => 'contacts',
 			],
 			[
-				'label'     => __('Complete Email Settings', 'mrm'),
-				'completed' => get_option('_mrm_email_settings'),
-				'link'      => 'settings/email-settings',
+				'label'     => __('Create your first email', 'mrm'),
+				'completed' => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$email_builder_table}" ) > 0,
+				'link'      => 'campaigns/regular/create',
 			],
 			[
-				'label'     => __('Create a Campaign', 'mrm'),
-				'completed' => CampaignModel::get_campaign_count() > 0,
+				'label'     => __('Send your first campaign', 'mrm'),
+				'completed' => CampaignModel::get_sent_campaign_count() > 0,
 				'link'      => 'campaigns/regular',
 			],
 			[
-				'label'     => __('Create a Form', 'mrm'),
+				'label'     => __('Create a form', 'mrm'),
 				'completed' => FormModel::get_form_count() > 0,
 				'link'      => 'forms',
 			],
 			[
-				'label'     => __('Create a Automation', 'mrm'),
+				'label'     => __('Set up automation', 'mrm'),
 				'completed' => AutomationModel::get_automation_count() > 0,
 				'link'      => 'automations',
 			],

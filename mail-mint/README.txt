@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 6.9.4
 Requires PHP: 7.4
-Stable tag:  1.21.0
+Stable tag:  1.21.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -344,14 +344,12 @@ Make them more engaging and brand-optimized, all from within Mail Mint!
 * Regular Email Campaigns
 * Email Sequences (Pro)
 * Pre-made Email Templates
-* Scheduled Emails
 * Recurring Email Campaigns / Newsletter Automation (Pro)
 * Campaign Analytics
 * Individual Email Engagement Analytics (Pro)
 * Drag and drop Email Builder
 * Post Block In Emails (Pro)
 * WooCommerce Product Block In Emails (Pro)
-* Social Icons In Email
 * Email layout Customization
 * Text Editor Mode For Email
 * Lead Capture Form (Regular, Pop-up, Fly-in, Notification Bar, On-click Pop-up)
@@ -361,7 +359,6 @@ Make them more engaging and brand-optimized, all from within Mail Mint!
 * reCAPTCHA Support
 * Visual Automation Workflow Builder
 * Abandoned Cart Recovery (Cart Tracking, Automated Email Follow Ups, Reports & Analytics) (Pro)
-* 10+ Automation Recipies
 * Automation Trigger On Form Submission
 * Automation Trigger On Lists or Tags Assigned/Removed (Pro)
 * WordPress Login & Registration Triggers
@@ -378,22 +375,26 @@ Make them more engaging and brand-optimized, all from within Mail Mint!
 * Integration with WPFunnels Opt-in Form
 * Email Automation on WPFunnels Visual Canvas (Pro)
 
-== Upcoming Features ==
-
-* Integration with Booking Plugins
-* Countdown Timer
-* Analytics For Email Automation
-
 == Join Our Facebook Community ==
 
 [JOIN OUR FACEBOOK USERS COMMUNITY](https://www.facebook.com/groups/wpfunnels/): Discuss and learn how others are using WPFunnels and Mail Mint. Find out how and how you can effectively create complete funnel journeys for your WordPress or WooCommerce shop. Plus, stay up-to-date with our exciting upcoming features.
 
 ## Privacy Policy
-Mail Mint uses [Appsero](https://appsero.com/privacy-policy/) and [OpenPanel](https://openpanel.dev/privacy) to collect limited telemetry data after user consent. This helps us troubleshoot issues and improve the product.
+If you explicitly **opt in** to usage tracking, we collect specific telemetry data via **PostHog** to improve plugin performance and troubleshoot issues.
 
-No data is collected by default. Data collection starts only after a user allows it via the admin notice.
+### What Data is Collected?
+No data is collected by default. If you provide consent, the following information is gathered:
+* **System Environment:** WordPress version, PHP version, and active theme/plugin names.
+* **Plugin Details:** Product Feed Manager version and non-sensitive configuration settings.
+* **Usage Patterns:** Feature usage and in-plugin page views.
+* **Contact Info:** Site administrator email address.
 
-We do not collect or store any personal or sensitive information, and collected data is not shared with third parties.
+---
+
+### How to Request Data Removal
+You can revoke your consent at any time. If you would like your previously collected data to be deleted from our systems, please contact us at:
+
+**Email:** [support@getwpfunnels.com](mailto:support@getwpfunnels.com)
 
 
 == Installation ==
@@ -526,6 +527,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.21.1 (2026-04-21) =
+* Bugfix: reCAPTCHA Secret Key Issue
+* Bugfix: Email Builder throughs PHP Error
 
 = 1.21.0 (2026-04-13) =
 * New: Add Webhook Support for Mail Mint Forms

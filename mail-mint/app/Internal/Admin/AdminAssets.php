@@ -302,6 +302,8 @@ class AdminAssets {
                     'admin_email'                    => $admin_email,
                     'address'                        => MrmCommon::get_business_full_address(),
                     'current_user_email'             => $current_user_email,
+                    'current_user_name'              => $current_user->display_name,
+                    'current_user_first_name'        => $current_user->first_name,
                     'bounce_configs'                 => MrmCommon::get_bounce_configs(),
                     'is_wcs_active'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.0') ? Mint_Pro_Helper::is_woocommerce_subscription_active() : false,
                     'is_wcm_active'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.0') ? Mint_Pro_Helper::is_woocommerce_membership_active() : false,
@@ -313,6 +315,7 @@ class AdminAssets {
                     'is_wc_ads_active'               => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.18.6') ? Mint_Pro_Helper::is_wc_advanced_shipment_tracking_active() : false,
                     'is_zerobounce_connected'        => MrmCommon::is_mailmint_pro_active() && method_exists('MailMintPro\App\Utilities\Helper\Integration', 'is_zero_bounce_connected') ? Integration::is_zero_bounce_connected() : false,
                     'is_wpf_active'                  => MrmCommon::is_wpfnl_active(),
+                    'smtp_notice'                    => MrmCommon::find_active_smtp_plugin(),
 		        )
 	        );
         }

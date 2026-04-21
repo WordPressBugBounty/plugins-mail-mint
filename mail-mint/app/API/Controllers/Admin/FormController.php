@@ -98,6 +98,9 @@ class FormController extends AdminBaseController {
 			}
 
 			if ( $success ) {
+				if ( ! isset( $params['form_id'] ) ) {
+					do_action( 'mailmint_first_form_created', $success );
+				}
 				return $this->get_success_response( __( 'Form has been saved successfully', 'mrm' ), 201, $success );
 			}
 			return $this->get_error_response( __( 'Failed to save', 'mrm' ), 200 );

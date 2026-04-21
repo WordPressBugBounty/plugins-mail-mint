@@ -101,14 +101,16 @@ class CampaignModel {
 		$args['updated_at'] = current_time( 'mysql', 1 );
 		$args['title']      = $args['title'] ? $args['title'] : 'No title';
 
-		$result = $wpdb->insert(
+		$result      = $wpdb->insert(
 			$campaign_table,
 			$args
 		); // db call ok. ; no-cache ok.
 
-		do_action( 'mailmint_campaign_created', $wpdb->insert_id, $args );
+		$campaign_id = $wpdb->insert_id;
 
-		return $result ? self::get( $wpdb->insert_id ) : false;
+		do_action( 'mailmint_campaign_created', $campaign_id, $args );
+
+		return $result ? self::get( $campaign_id ) : false;
 	}
 
 
@@ -357,7 +359,7 @@ class CampaignModel {
 		$campaign_table      = $wpdb->prefix . CampaignSchema::$campaign_table;
 		$campaign_meta_table = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
 
-		$select_query = $wpdb->prepare( "SELECT * FROM $campaign_table as CT LEFT JOIN $campaign_meta_table as CMT on CT.id = CMT.campaign_id WHERE CT.id = %d", $id );
+		$select_query = $wpdb->prepare( "SELECT CT.*, CMT.id as meta_id, CMT.campaign_id, CMT.meta_key, CMT.meta_value FROM $campaign_table as CT LEFT JOIN $campaign_meta_table as CMT on CT.id = CMT.campaign_id WHERE CT.id = %d", $id );
 
 		$campaign           = $wpdb->get_row( $select_query, ARRAY_A ); // db call ok. ; no-cache ok.
 		$campaign['id']     = $id;
@@ -1527,6 +1529,13 @@ class CampaignModel {
 		$campaign_table = $wpdb->prefix . CampaignSchema::$campaign_table;
 
 		return absint($wpdb->get_var($wpdb->prepare('SELECT COUNT(`id`) FROM %1s', $campaign_table))); //phpcs:ignore
+	}
+
+	public static function get_sent_campaign_count() {
+		global $wpdb;
+		$campaign_table = $wpdb->prefix . CampaignSchema::$campaign_table;
+
+		return absint( $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(`id`) FROM %1s WHERE `status` != %s', $campaign_table, 'draft' ) ) ); //phpcs:ignore
 	}
 
 	/**

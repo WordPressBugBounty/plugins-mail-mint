@@ -97,12 +97,12 @@ class Server {
 			'automation-step' => 'AutomationStepRoute',
 			'automation-job'  => 'AutomationJobRoute',
 			'wp-apis'         => 'WPRoute',
-			'email-builder'   => 'EmailBuilderRoute',
 			'general-fields'  => 'GeneralFieldRoute',
 			'contact-import'  => 'ContactImportRoute',
 			'contact-profile' => 'ContactProfileRoute',
 			'email-template'  => 'TemplateRoute',
 			'connector' 	  => 'ConnectorRoute',
+			'onboarding'      => 'OnboardingRoute',
 		);
 		$frontend_routes = array(
 			'form'       => 'FormRoute',

@@ -349,6 +349,10 @@ class ContactImportAction implements Action {
             'imported'          => $imported,
         );
 
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, $import_type );
+        }
+
         return array(
             'status'  => 'success',
             'data'    => $result,
@@ -629,13 +633,16 @@ class ContactImportAction implements Action {
 	public function get_formatted_wp_roles() {
 		// Get and formatting editable roles.
 		$formatted_roles = array();
-		
-        $wp_roles = wp_roles();
+
+        $wp_roles    = wp_roles();
+        $count_users = count_users();
+        $avail_roles = isset( $count_users['avail_roles'] ) ? $count_users['avail_roles'] : array();
 
         foreach ( $wp_roles->get_names() as $key => $value ) {
             $formatted_roles[] = array(
-                'role' => $key,
-                'name' => $value,
+                'role'       => $key,
+                'name'       => $value,
+                'user_count' => isset( $avail_roles[ $key ] ) ? (int) $avail_roles[ $key ] : 0,
             );
         }
 

@@ -707,6 +707,13 @@ class Constants {
 				'slug'     => 'zoho-mail/zohoMail.php',
 				'function' => 'zmail_send_mail_callback',
 			),
+			/**
+			 * Url: https://wordpress.org/plugins/bit-smtp/
+			 */			array(
+				'name'  => 'Bit SMTP',
+				'slug'  => 'bit-smtp/bit_smtp.php',
+				'class' => 'bit_smtp',
+			),
 		);
 
 		return $plugins;

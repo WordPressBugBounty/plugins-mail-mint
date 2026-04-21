@@ -828,11 +828,422 @@ class DefaultEmailTemplates {
 				),
 				array(
 					'id'              => 5,
-					'is_pro'          => true,
-                    'emailCategories' => ['Welcome'],
-                    'industry'        => ['Business & Finance'],
+					'is_pro'          => false,
+          'emailCategories' => ['Welcome'],
+          'industry'        => ['Business & Finance'],
 					'title'           => 'Welcome Email-Skin Care!',
-					'json_content'    => [],
+					'json_content'    => array(
+              'subject'  => 'Welcome to MINT CRM email',
+              'subTitle' => 'Nice to meet you!',
+              'content'  => array(
+                'type'       => 'page',
+                'data'       => array(
+                  'value' => array(
+                    'breakpoint'     => '480px',
+                    'headAttributes' => '',
+                    'font-size'      => '14px',
+                    'line-height'    => '1.7',
+                    'headStyles'     => array(),
+                    'fonts'          => array(),
+                    'responsive'     => true,
+                    'font-family'    => 'lucida Grande,Verdana,Microsoft YaHei',
+                    'text-color'     => '#000000',
+                  ),
+                ),
+                'attributes' => array(
+                  'background-color' => '#ececec',
+                  'width'            => '600px',
+                  'css-class'        => 'mjml-body',
+                ),
+                'children'   => array(
+                  0 => array(
+                    'type'       => 'advanced_wrapper',
+                    'data'       => array(
+                      'value' => array(),
+                    ),
+                    'attributes' => array(
+                      'background-color' => '#F4F5FB',
+                      'padding'          => '24px 24px 40px 24px',
+                      'border'           => 'none',
+                      'direction'        => 'ltr',
+                      'text-align'       => 'center',
+                    ),
+                    'children'   => array(
+                      0 => array(
+                        'type'       => 'advanced_image',
+                        'data'       => array(
+                          'value' => array(),
+                        ),
+                        'attributes' => array(
+                          'align'   => 'center',
+                          'height'  => 'auto',
+                          'padding' => '0px 0px 20px 0px',
+                          'src'     => $image_path . 'your-logo.png',
+                          'width'   => '100%',
+                          'href'    => '#',
+                        ),
+                        'children'   => array(),
+                      ),
+                      1 => array(
+                        'type'       => 'advanced_hero',
+                        'data'       => array(
+                          'value' => array(),
+                        ),
+                        'attributes' => array(
+                          'background-color' => '#fff',
+                          'background-position' => 'center center',
+                          'mode'             => 'fluid-height',
+                          'padding'          => '40px 20px 45px 20px',
+                          'vertical-align'   => 'top',
+                          'background-url'   => $image_path . 'better-one.png',
+                          'height'           => '',
+                          'background-width' => '100%',
+                          'background-height' => '100%',
+                        ),
+                        'children'   => array(
+                          0 => array(
+                            'type'       => 'text',
+                            'data'       => array(
+                              'value' => array(
+                                'content' => 'Welcome to Boom<br>',
+                              ),
+                            ),
+                            'attributes' => array(
+                              'padding' => '0px 0px 10px 0px',
+                              'align'   => 'center',
+                              'color'   => 'rgba(43, 45, 56, 1)',
+                              'font-size' => '34px',
+                              'line-height' => '1.2',
+                              'font-weight' => '600',
+                              'font-family' => 'Lato',
+                            ),
+                            'children'   => array(),
+                          ),
+                          1 => array(
+                            'type'       => 'text',
+                            'data'       => array(
+                              'value' => array(
+                                'content' => "Congratulations on your recent purchase of\nCosmetic House's face bright beauty products!&nbsp;<div><br><div>By choosing these products, you are not only\nenhancing your beauty but also effectively safeguarding your skin.</div></div>",
+                              ),
+                            ),
+                            'attributes' => array(
+                              'align'   => 'center',
+                              'background-color' => '#414141',
+                              'color'   => 'rgba(43, 45, 56, 1)',
+                              'font-weight' => '400',
+                              'border-radius' => '3px',
+                              'padding' => '0px 0px 0px 0px',
+                              'inner-padding' => '10px 25px 10px 25px',
+                              'line-height' => '1.6',
+                              'target'  => '_blank',
+                              'vertical-align' => 'middle',
+                              'border'  => 'none',
+                              'text-align' => 'center',
+                              'href'    => '#',
+                              'font-size' => '16px',
+                              'font-family' => 'Lato',
+                            ),
+                            'children'   => array(),
+                          ),
+                        ),
+                      ),
+                      2 => array(
+                        'type'       => 'advanced_spacer',
+                        'data'       => array(
+                          'value' => array(),
+                        ),
+                        'attributes' => array(
+                          'height'  => '26px',
+                          'padding' => '   ',
+                        ),
+                        'children'   => array(),
+                      ),
+                      3 => array(
+                        'type'       => 'advanced_section',
+                        'data'       => array(
+                          'value' => array(
+                            'noWrap' => false,
+                          ),
+                        ),
+                        'attributes' => array(
+                          'background-color' => 'rgba(121, 110, 110, 1)',
+                          'padding'          => '40px 30px 40px 30px',
+                          'background-repeat' => 'repeat',
+                          'background-size'  => 'auto',
+                          'background-position' => 'top center',
+                          'border'           => 'none',
+                          'direction'        => 'ltr',
+                          'text-align'       => 'center',
+                        ),
+                        'children'   => array(
+                          0 => array(
+                            'type'       => 'advanced_column',
+                            'data'       => array(
+                              'value' => array(),
+                            ),
+                            'attributes' => array(
+                              'background-color' => '#ffffff',
+                              'padding' => '0px 0px 0px 0px',
+                              'border'  => 'none',
+                              'vertical-align' => 'top',
+                            ),
+                            'children'   => array(
+                              0 => array(
+                                'type' => 'advanced_text',
+                                'data' => array(
+                                  'value' => array(
+                                    'content' => 'Did you know. . .',
+                                  ),
+                                ),
+                                'attributes' => array(
+                                  'padding' => '0px 25px 30px 25px',
+                                  'align' => 'center',
+                                  'font-family' => 'Lato',
+                                  'font-size' => '28px',
+                                  'font-weight' => '700',
+                                  'line-height' => '1',
+                                  'letter-spacing' => 'normal',
+                                  'color' => '#fff',
+                                  'container-background-color' => 'rgba(121, 110, 110, 1)',
+                                ),
+                                'children' => array(),
+                              ),
+                              1 => array(
+                                'type' => 'advanced_text',
+                                'data' => array(
+                                  'value' => array(
+                                    'content' => '<div>Experience the difference in your skin with our formulas enriched with high levels of active skincare ingredients.<br></div>',
+                                  ),
+                                ),
+                                'attributes' => array(
+                                  'padding' => '17px 20px 17px 25px',
+                                  'align' => 'left',
+                                  'font-family' => 'Lato',
+                                  'font-size' => '16px',
+                                  'font-weight' => '400',
+                                  'line-height' => '1.7',
+                                  'letter-spacing' => 'normal',
+                                  'color' => 'rgba(255, 255, 255, 0.8)',
+                                  'container-background-color' => 'rgba(131, 120, 120, 1)',
+                                ),
+                                'children' => array(),
+                              ),
+                              2 => array(
+                                'type' => 'advanced_spacer',
+                                'data' => array(
+                                  'value' => array(),
+                                ),
+                                'attributes' => array(
+                                  'height' => '16px',
+                                  'padding' => '   ',
+                                  'container-background-color' => 'rgba(121, 110, 110, 1)',
+                                ),
+                                'children' => array(),
+                              ),
+                              3 => array(
+                                'type' => 'advanced_text',
+                                'data' => array(
+                                  'value' => array(
+                                    'content' => 'We carry the Leaping Bunny certificate which means none of our products are tested on our furry friends.',
+                                  ),
+                                ),
+                                'attributes' => array(
+                                  'padding' => '17px 20px 17px 25px',
+                                  'align' => 'left',
+                                  'font-family' => 'Lato',
+                                  'font-size' => '16px',
+                                  'font-weight' => '400',
+                                  'line-height' => '1.7',
+                                  'letter-spacing' => 'normal',
+                                  'color' => 'rgba(255, 255, 255, 0.8)',
+                                  'container-background-color' => 'rgba(131, 120, 120, 1)',
+                                ),
+                                'children' => array(),
+                              ),
+                              4 => array(
+                                'type' => 'advanced_spacer',
+                                'data' => array(
+                                  'value' => array(),
+                                ),
+                                'attributes' => array(
+                                  'height' => '16px',
+                                  'padding' => '   ',
+                                  'container-background-color' => 'rgba(121, 110, 110, 1)',
+                                ),
+                                'children' => array(),
+                              ),
+                              5 => array(
+                                'type' => 'advanced_text',
+                                'data' => array(
+                                  'value' => array(
+                                    'content' => '<div>Our sustainable packaging uses recycled aluminum and glass components.<br></div>',
+                                  ),
+                                ),
+                                'attributes' => array(
+                                  'padding' => '17px 20px 17px 25px',
+                                  'align' => 'left',
+                                  'font-family' => 'Lato',
+                                  'font-size' => '16px',
+                                  'font-weight' => '400',
+                                  'line-height' => '1.7',
+                                  'letter-spacing' => 'normal',
+                                  'color' => 'rgba(255, 255, 255, 0.8)',
+                                  'container-background-color' => 'rgba(131, 120, 120, 1)',
+                                ),
+                                'children' => array(),
+                              ),
+                              6 => array(
+                                'type' => 'advanced_button',
+                                'data' => array(
+                                  'value' => array(
+                                    'content' => 'Read More',
+                                  ),
+                                ),
+                                'attributes' => array(
+                                  'align' => 'center',
+                                  'font-family' => 'Lato',
+                                  'background-color' => 'rgba(212, 185, 136, 1)',
+                                  'color' => '#ffffff',
+                                  'font-weight' => '600',
+                                  'font-style' => 'normal',
+                                  'border-radius' => '100px',
+                                  'padding' => '30px 0px 0px 0px',
+                                  'inner-padding' => '17px 30px 17px 30px',
+                                  'font-size' => '15px',
+                                  'line-height' => '1.2',
+                                  'target' => '_blank',
+                                  'vertical-align' => 'middle',
+                                  'border' => 'none',
+                                  'text-align' => 'center',
+                                  'letter-spacing' => 'normal',
+                                  'href' => '#',
+                                  'container-background-color' => 'rgba(121, 110, 110, 1)',
+                                ),
+                                'children' => array(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      4 => array(
+                        'type'       => 'advanced_divider',
+                        'data'       => array(
+                          'value' => array(),
+                        ),
+                        'attributes' => array(
+                          'align'        => 'center',
+                          'border-width' => '1px',
+                          'border-style' => 'solid',
+                          'border-color' => 'EBEBEB',
+                          'padding'      => '0px 40px 0px 40px',
+                          'container-background-color' => '#fff',
+                        ),
+                        'children'   => array(),
+                      ),
+                      5 => array(
+                        'type'       => 'advanced_social',
+                        'data'       => array(
+                          'value' => array(
+                            'elements' => array(
+                              0 => array(
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src'  => $image_path . $pinterest,
+                                'content' => '',
+                              ),
+                              1 => array(
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src'  => $image_path . $facebook,
+                                'content' => '',
+                              ),
+                              2 => array(
+                                'href' => '',
+                                'target' => '_blank',
+                                'src'  => $image_path . $instagram,
+                                'content' => '',
+                              ),
+                              3 => array(
+                                'href' => '',
+                                'target' => '_blank',
+                                'src'  => $image_path . $twitter,
+                                'content' => '',
+                              ),
+                            ),
+                          ),
+                        ),
+                        'attributes' => array(
+                          'align'         => 'center',
+                          'color'         => '#333333',
+                          'mode'          => 'horizontal',
+                          'font-size'     => '13px',
+                          'font-weight'   => 'normal',
+                          'border-radius' => '3px',
+                          'padding'       => '36px 25px 36px 25px',
+                          'inner-padding' => '4px 5px 4px 5px',
+                          'line-height'   => '22px',
+                          'text-padding'  => '4px 4px 4px 0px',
+                          'icon-padding'  => '0px',
+                          'icon-size'     => '40px',
+                        ),
+                        'children'   => array(),
+                      ),
+                      6 => array(
+                        'type'       => 'advanced_divider',
+                        'data'       => array(
+                          'value' => array(),
+                        ),
+                        'attributes' => array(
+                          'align'        => 'center',
+                          'border-width' => '1px',
+                          'border-style' => 'solid',
+                          'border-color' => '#E2E3EC',
+                          'padding'      => '0px 0px 0px 0px',
+                        ),
+                        'children'   => array(),
+                      ),
+                      7 => array(
+                        'type'       => 'advanced_text',
+                        'data'       => array(
+                          'value' => array(
+                            'content' => 'No longer want to be Mail Mint friends?<br>&nbsp;<a href="{{link.preference}}" target="_blank" style="color: inherit; text-decoration: underline;" tabindex="-1">Email Preference</a>&nbsp;&nbsp;|&nbsp;&nbsp;<a href="{{link.unsubscribe}}" target="_blank" style="color: inherit; text-decoration: underline;" tabindex="-1">Unsubscribe</a><b><br></b>',
+                          ),
+                        ),
+                        'attributes' => array(
+                          'padding'     => '36px 25px 12px 25px',
+                          'align'       => 'center',
+                          'color'       => 'rgba(135, 135, 146, 1)',
+                          'line-height' => '1.47',
+                          'font-size'   => '15px',
+                          'font-family' => 'Lato',
+                          'font-weight' => '400',
+                        ),
+                        'children'   => array(),
+                      ),
+                      8 => array(
+                        'type'       => 'advanced_text',
+                        'data'       => array(
+                          'value' => array(
+                            'content' => '© '.date("Y") . ', ' . $busi_name .', '. $address,
+                          ),
+                        ),
+                        'attributes' => array(
+                          'padding'        => '10px 35px 10px 35px',
+                          'align'          => 'center',
+                          'font-family'    => 'Lato',
+                          'font-size'      => '14px',
+                          'font-weight'    => '400',
+                          'line-height'    => '1.7',
+                          'letter-spacing' => 'normal',
+                          'color'          => 'rgba(135, 135, 146, 1)',
+                        ),
+                        'children'   => array(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
 					'html_content'    => '',
 					'thumbnail_image' => $image_path . '/thumbnails/congratulate.png',
 				),
@@ -2399,11 +2810,771 @@ class DefaultEmailTemplates {
 				),
                 array(
                     'id'              => 9,
-                    'is_pro'          => true,
+                    'is_pro'          => false,
                     'emailCategories' => ['Selling Services'],
                     'industry'        => ['Health & Wellness'],
                     'title'           => 'Fitness Gym Membership',
-                    'json_content'    => [],
+                    'json_content'    =>  array(
+                        'subject'  => 'Welcome to MINT CRM email',
+                        'subTitle' => 'Nice to meet you!',
+                        'content'  => array(
+                          'type'       => 'page',
+                          'data'       => array(
+                            'value' => array(
+                              'breakpoint'     => '480px',
+                              'headAttributes' => '',
+                              'font-size'      => '14px',
+                              'line-height'    => '1.7',
+                              'headStyles'     => array(),
+                              'fonts'          => array(),
+                              'responsive'     => true,
+                              'font-family'    => 'lucida Grande,Verdana,Microsoft YaHei',
+                              'text-color'     => '#000000',
+                            ),
+                          ),
+                          'attributes' => array(
+                            'background-color' => '#ececec',
+                            'width'            => '600px',
+                            'css-class'        => 'mjml-body',
+                          ),
+                          'children'   => array(
+                            0 => array(
+                              'type'       => 'advanced_wrapper',
+                              'data'       => array(
+                                'value' => array(),
+                              ),
+                              'attributes' => array(
+                                'background-color' => '#F5F6FB',
+                                'padding'          => '26px 24px 38px 24px',
+                                'border'           => 'none',
+                                'direction'        => 'ltr',
+                                'text-align'       => 'center',
+                              ),
+                              'children'   => array(
+                                0  => array(
+                                  'type'       => 'advanced_image',
+                                  'data'       => array(
+                                    'value' => array(),
+                                  ),
+                                  'attributes' => array(
+                                    'align'   => 'center',
+                                    'height'  => 'auto',
+                                    'padding' => '0px 0px 26px 0px',
+                                    'src'     => $image_path . 'your-logo.png',
+                                    'width'   => '100%',
+                                    'href'    => '#',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                1  => array(
+                                  'type'       => 'advanced_divider',
+                                  'data'       => array(
+                                    'value' => array(),
+                                  ),
+                                  'attributes' => array(
+                                    'align'        => 'center',
+                                    'border-width' => '1px',
+                                    'border-style' => 'solid',
+                                    'border-color' => '#E5E7F2',
+                                    'padding'      => '0px 0px 0px 0px',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                2  => array(
+                                  'type'       => 'advanced_hero',
+                                  'data'       => array(
+                                    'value' => array(),
+                                  ),
+                                  'attributes' => array(
+                                    'background-color' => '#fff',
+                                    'background-position' => 'center center',
+                                    'mode'             => 'fluid-height',
+                                    'padding'          => '65px 20px 65px 20px',
+                                    'vertical-align'   => 'top',
+                                    'background-url'   => $image_path . 'fitness-hero-bg.png',
+                                  ),
+                                  'children'   => array(
+                                    0 => array(
+                                      'type'       => 'text',
+                                      'data'       => array(
+                                        'value' => array(
+                                          'content' => 'Get In Shape &amp; Be Fit With Just $200',
+                                        ),
+                                      ),
+                                      'attributes' => array(
+                                        'padding' => '0px 0px 24px 0px',
+                                        'align'   => 'center',
+                                        'color'   => '#FFFFFF',
+                                        'font-size' => '46px',
+                                        'line-height' => '1.22',
+                                        'font-weight' => '700',
+                                        'font-family' => 'Arial',
+                                      ),
+                                      'children'   => array(),
+                                    ),
+                                    1 => array(
+                                      'type'       => 'advanced_button',
+                                      'data'       => array(
+                                        'value' => array(
+                                          'content' => 'SHOP WITH GYM HERO',
+                                        ),
+                                      ),
+                                      'attributes' => array(
+                                        'align'   => 'center',
+                                        'font-family' => 'Arial',
+                                        'background-color' => '#E3B152',
+                                        'color'   => '#ffffff',
+                                        'font-weight' => '600',
+                                        'font-style' => 'normal',
+                                        'border-radius' => '100px',
+                                        'padding' => '0px 0px 0px 0px',
+                                        'inner-padding' => '17px 30px 17px 30px',
+                                        'font-size' => '15px',
+                                        'line-height' => '1.2',
+                                        'target'  => '_blank',
+                                        'vertical-align' => 'middle',
+                                        'border'  => 'none',
+                                        'text-align' => 'center',
+                                        'letter-spacing' => '1px',
+                                        'href'    => '#',
+                                      ),
+                                      'children'   => array(),
+                                    ),
+                                  ),
+                                ),
+                                3  => array(
+                                  'type'       => 'advanced_spacer',
+                                  'data'       => array(
+                                    'value' => array(),
+                                  ),
+                                  'attributes' => array(
+                                    'height'  => '24px',
+                                    'padding' => '   ',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                4  => array(
+                                  'type'       => 'advanced_image',
+                                  'data'       => array(
+                                    'value' => array(),
+                                  ),
+                                  'attributes' => array(
+                                    'align'   => 'center',
+                                    'height'  => 'auto',
+                                    'padding' => '0px 0px 0px 0px',
+                                    'src'     => $image_path . 'fitness-hero-image.png',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                5  => array(
+                                  'type'       => 'advanced_section',
+                                  'data'       => array(
+                                    'value' => array(
+                                      'noWrap' => false,
+                                    ),
+                                  ),
+                                  'attributes' => array(
+                                    'background-color' => '#ffffff',
+                                    'padding'          => '30px 20px 40px 20px',
+                                    'background-repeat' => 'repeat',
+                                    'background-size'  => 'auto',
+                                    'background-position' => 'top center',
+                                    'border'           => 'none',
+                                    'direction'        => 'ltr',
+                                    'text-align'       => 'center',
+                                  ),
+                                  'children'   => array(
+                                    0 => array(
+                                      'type'       => 'advanced_column',
+                                      'attributes' => array(
+                                        'width'   => array(
+                                          0 => '25%',
+                                          1 => '25%',
+                                          2 => '25%',
+                                          3 => '25%',
+                                        ),
+                                        'padding' => '0px 0px 0px 0px',
+                                      ),
+                                      'data'       => array(
+                                        'value' => array(),
+                                      ),
+                                      'children'   => array(
+                                        0 => array(
+                                          'type' => 'advanced_text',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'Fitness Made Easy',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'padding' => '0px 0px 16px 0px',
+                                            'align' => 'center',
+                                            'font-family' => 'Arial',
+                                            'font-size' => '34px',
+                                            'font-weight' => '600',
+                                            'line-height' => '1.22',
+                                            'letter-spacing' => 'normal',
+                                            'color' => '#2B2D38',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                        1 => array(
+                                          'type' => 'advanced_text',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'Experience a simplified fitness journey with Gym Hero. We provide personalized 1 on 1 training for a more hands-on approach. We also have 24-hour fitness classes designed for active aging and improved health and strength.',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'padding' => '0px 0px 30px 0px',
+                                            'align' => 'center',
+                                            'font-family' => 'Arial',
+                                            'font-size' => '16px',
+                                            'font-weight' => '400',
+                                            'line-height' => '1.62',
+                                            'letter-spacing' => 'normal',
+                                            'color' => '#878792',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                        2 => array(
+                                          'type' => 'advanced_button',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'VISIT OUR STORE',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'align' => 'center',
+                                            'font-family' => 'Arial',
+                                            'background-color' => '#E3B152',
+                                            'color' => '#ffffff',
+                                            'font-weight' => '600',
+                                            'font-style' => 'normal',
+                                            'border-radius' => '100px',
+                                            'padding' => '0px 0px 0px 0px',
+                                            'inner-padding' => '17px 30px 17px 30px',
+                                            'font-size' => '15px',
+                                            'line-height' => '1.2',
+                                            'target' => '_blank',
+                                            'vertical-align' => 'middle',
+                                            'border' => 'none',
+                                            'text-align' => 'center',
+                                            'letter-spacing' => 'normal',
+                                            'href' => '#',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                6  => array(
+                                  'type'       => 'advanced_section',
+                                  'data'       => array(
+                                    'value' => array(
+                                      'noWrap' => false,
+                                    ),
+                                  ),
+                                  'attributes' => array(
+                                    'background-color' => '#ffffff',
+                                    'padding'          => '24px 40px 24px 24px',
+                                    'background-repeat' => 'repeat',
+                                    'background-size'  => 'auto',
+                                    'background-position' => 'top center',
+                                    'border'           => '',
+                                    'direction'        => 'ltr',
+                                    'text-align'       => 'center',
+                                  ),
+                                  'children'   => array(
+                                    0 => array(
+                                      'type'       => 'advanced_column',
+                                      'attributes' => array(
+                                        'width'   => '30%',
+                                        'padding' => '0px 0px 0px 0px',
+                                        'vertical-align' => 'middle',
+                                      ),
+                                      'data'       => array(
+                                        'value' => array(),
+                                      ),
+                                      'children'   => array(
+                                        0 => array(
+                                          'type' => 'advanced_image',
+                                          'data' => array(
+                                            'value' => array(),
+                                          ),
+                                          'attributes' => array(
+                                            'align' => 'center',
+                                            'height' => 'auto',
+                                            'padding' => '0px 0px 0px 0px',
+                                            'src' => $image_path . 'plan-for-senior-image.png',
+                                            'width' => '164px',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                      ),
+                                    ),
+                                    1 => array(
+                                      'type'       => 'advanced_column',
+                                      'attributes' => array(
+                                        'width'   => '70%',
+                                        'padding' => '0px 0px 0px 0px',
+                                        'vertical-align' => 'middle',
+                                      ),
+                                      'data'       => array(
+                                        'value' => array(),
+                                      ),
+                                      'children'   => array(
+                                        0 => array(
+                                          'type' => 'advanced_text',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'Exercise Plans For Senior ',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'padding' => '20px 0px 14px 20px',
+                                            'align' => 'left',
+                                            'font-family' => 'Arial',
+                                            'font-size' => '22px',
+                                            'font-weight' => '600',
+                                            'line-height' => '1.22',
+                                            'letter-spacing' => 'normal',
+                                            'color' => '#0E1D3F',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                        1 => array(
+                                          'type' => 'advanced_text',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'Boost your fitness with our specialized exercise plans for senior citizens. Our exercise programs are designed to promote fitness among seniors.',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'padding' => '0px 0px 20px 20px',
+                                            'align' => 'left',
+                                            'font-family' => 'Arial',
+                                            'font-size' => '16px',
+                                            'font-weight' => '400',
+                                            'line-height' => '1.62',
+                                            'letter-spacing' => 'normal',
+                                            'color' => '#878792',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                7  => array(
+                                  'type'       => 'advanced_section',
+                                  'data'       => array(
+                                    'value' => array(
+                                      'noWrap' => false,
+                                    ),
+                                  ),
+                                  'attributes' => array(
+                                    'background-color' => '#ffffff',
+                                    'padding'          => '24px 40px 24px 24px',
+                                    'background-repeat' => 'repeat',
+                                    'background-size'  => 'auto',
+                                    'background-position' => 'top center',
+                                    'border'           => '',
+                                    'direction'        => 'ltr',
+                                    'text-align'       => 'center',
+                                  ),
+                                  'children'   => array(
+                                    0 => array(
+                                      'type'       => 'advanced_column',
+                                      'attributes' => array(
+                                        'width'   => '30%',
+                                        'padding' => '0px 0px 0px 0px',
+                                        'vertical-align' => 'middle',
+                                      ),
+                                      'data'       => array(
+                                        'value' => array(),
+                                      ),
+                                      'children'   => array(
+                                        0 => array(
+                                          'type' => 'advanced_image',
+                                          'data' => array(
+                                            'value' => array(),
+                                          ),
+                                          'attributes' => array(
+                                            'align' => 'center',
+                                            'height' => 'auto',
+                                            'padding' => '0px 0px 0px 0px',
+                                            'src' => $image_path . 'special-package.png',
+                                            'width' => '164px',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                      ),
+                                    ),
+                                    1 => array(
+                                      'type'       => 'advanced_column',
+                                      'attributes' => array(
+                                        'width'   => '70%',
+                                        'padding' => '0px 0px 0px 0px',
+                                        'vertical-align' => 'middle',
+                                      ),
+                                      'data'       => array(
+                                        'value' => array(),
+                                      ),
+                                      'children'   => array(
+                                        0 => array(
+                                          'type' => 'advanced_text',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'Special Membership Offer',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'padding' => '20px 0px 14px 20px',
+                                            'align' => 'left',
+                                            'font-family' => 'Arial',
+                                            'font-size' => '22px',
+                                            'font-weight' => '600',
+                                            'line-height' => '1.22',
+                                            'letter-spacing' => 'normal',
+                                            'color' => '#0E1D3F',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                        1 => array(
+                                          'type' => 'advanced_text',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'Experience more with Gym Hero! As a member, you\'ll receive more than just world-class training. Enjoy a 10% discount on all services exclusively for Gym Hero members.',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'padding' => '0px 0px 20px 20px',
+                                            'align' => 'left',
+                                            'font-family' => 'Arial',
+                                            'font-size' => '16px',
+                                            'font-weight' => '400',
+                                            'line-height' => '1.62',
+                                            'letter-spacing' => 'normal',
+                                            'color' => '#878792',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                8  => array(
+                                  'type'       => 'advanced_section',
+                                  'data'       => array(
+                                    'value' => array(
+                                      'noWrap' => false,
+                                    ),
+                                  ),
+                                  'attributes' => array(
+                                    'background-color' => '#ffffff',
+                                    'padding'          => '0px 0px 40px 0px',
+                                    'background-repeat' => 'repeat',
+                                    'background-size'  => 'auto',
+                                    'background-position' => 'top center',
+                                    'border'           => 'none',
+                                    'direction'        => 'ltr',
+                                    'text-align'       => 'center',
+                                  ),
+                                  'children'   => array(
+                                    0 => array(
+                                      'type'       => 'advanced_column',
+                                      'attributes' => array(
+                                        'width'   => array(
+                                          0 => '25%',
+                                          1 => '25%',
+                                          2 => '25%',
+                                          3 => '25%',
+                                        ),
+                                        'padding' => '0px 0px 0px 0px',
+                                      ),
+                                      'data'       => array(
+                                        'value' => array(),
+                                      ),
+                                      'children'   => array(
+                                        0 => array(
+                                          'type' => 'advanced_button',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'SHOP WITH GYM HERO',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'align' => 'center',
+                                            'font-family' => 'Arial',
+                                            'background-color' => '#E3B152',
+                                            'color' => '#ffffff',
+                                            'font-weight' => '600',
+                                            'font-style' => 'normal',
+                                            'border-radius' => '100px',
+                                            'padding' => '0px 0px 0px 0px',
+                                            'inner-padding' => '17px 30px 17px 30px',
+                                            'font-size' => '15px',
+                                            'line-height' => '1.2',
+                                            'target' => '_blank',
+                                            'vertical-align' => 'middle',
+                                            'border' => 'none',
+                                            'text-align' => 'center',
+                                            'letter-spacing' => 'normal',
+                                            'href' => '#',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                9  => array(
+                                  'type'       => 'advanced_spacer',
+                                  'data'       => array(
+                                    'value' => array(),
+                                  ),
+                                  'attributes' => array(
+                                    'height'  => '24px',
+                                    'padding' => '   ',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                10 => array(
+                                  'type'       => 'advanced_section',
+                                  'data'       => array(
+                                    'value' => array(
+                                      'noWrap' => false,
+                                    ),
+                                  ),
+                                  'attributes' => array(
+                                    'background-color' => '#2B2D38',
+                                    'padding'          => '0px 0px 0px 0px',
+                                    'background-repeat' => 'no-repeat',
+                                    'background-size'  => 'auto',
+                                    'background-position' => 'top center',
+                                    'border'           => 'none',
+                                    'direction'        => 'ltr',
+                                    'text-align'       => 'center',
+                                  ),
+                                  'children'   => array(
+                                    0 => array(
+                                      'type'       => 'advanced_column',
+                                      'attributes' => array(
+                                        'width'   => '100%',
+                                        'padding' => '50px 20px 54px 20px',
+                                        'vertical-align' => 'middle',
+                                      ),
+                                      'data'       => array(
+                                        'value' => array(),
+                                      ),
+                                      'children'   => array(
+                                        0 => array(
+                                          'type' => 'advanced_image',
+                                          'data' => array(
+                                            'value' => array(),
+                                          ),
+                                          'attributes' => array(
+                                            'align' => 'center',
+                                            'height' => 'auto',
+                                            'padding' => '0px 0px 0px 0px',
+                                            'src' => $image_path . 'customer-service.png',
+                                            'width' => '30px',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                        1 => array(
+                                          'type' => 'advanced_text',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'Any Questions<br>',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'padding' => '20px 25px 0px 25px',
+                                            'align' => 'center',
+                                            'font-family' => 'Arial',
+                                            'font-size' => '22px',
+                                            'font-weight' => '600',
+                                            'line-height' => '1.5',
+                                            'letter-spacing' => 'normal',
+                                            'color' => '#FFFFFFCC',
+                                            'container-background-color' => '',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                        2 => array(
+                                          'type' => 'advanced_text',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'We’re here for you. Contact Number - (780) 349 - 1599<br>',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'padding' => '8px 25px 25px 25px',
+                                            'align' => 'center',
+                                            'font-family' => 'Arial',
+                                            'font-size' => '16px',
+                                            'font-weight' => '400',
+                                            'line-height' => '1.5',
+                                            'letter-spacing' => 'normal',
+                                            'color' => '#FFFFFFCC',
+                                            'container-background-color' => '',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                        3 => array(
+                                          'type' => 'advanced_button',
+                                          'data' => array(
+                                            'value' => array(
+                                              'content' => 'CONTACT US',
+                                            ),
+                                          ),
+                                          'attributes' => array(
+                                            'align' => 'center',
+                                            'font-family' => 'Arial',
+                                            'background-color' => '#2B2D38',
+                                            'color' => '#ffffff',
+                                            'font-weight' => '600',
+                                            'font-style' => 'normal',
+                                            'border-radius' => '100px',
+                                            'padding' => '0px 0px 0px 0px',
+                                            'inner-padding' => '17px 30px 17px 30px',
+                                            'font-size' => '15px',
+                                            'line-height' => '1.2',
+                                            'target' => '_blank',
+                                            'vertical-align' => 'middle',
+                                            'border' => '1px solid #ffffff',
+                                            'text-align' => 'center',
+                                            'letter-spacing' => 'normal',
+                                            'href' => '#',
+                                          ),
+                                          'children' => array(),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                11 => array(
+                                  'type'       => 'advanced_divider',
+                                  'data'       => array(
+                                    'value' => array(),
+                                  ),
+                                  'attributes' => array(
+                                    'align'        => 'center',
+                                    'border-width' => '1px',
+                                    'border-style' => 'solid',
+                                    'border-color' => 'EBEBEB',
+                                    'padding'      => '0px 40px 0px 40px',
+                                    'container-background-color' => '#fff',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                12 => array(
+                                  'type'       => 'advanced_social',
+                                  'data'       => array(
+                                    'value' => array(
+                                      'elements' => array(
+                                        0 => array(
+                                          'href' => '#',
+                                          'target' => '_blank',
+                                          'src'  => $image_path . $pinterest,
+                                          'content' => '',
+                                        ),
+                                        1 => array(
+                                          'href' => '#',
+                                          'target' => '_blank',
+                                          'src'  => $image_path . $facebook,
+                                          'content' => '',
+                                        ),
+                                        2 => array(
+                                          'href' => '',
+                                          'target' => '_blank',
+                                          'src'  => $image_path . $instagram,
+                                          'content' => '',
+                                        ),
+                                        3 => array(
+                                          'href' => '',
+                                          'target' => '_blank',
+                                          'src'  => $image_path . $twitter,
+                                          'content' => '',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  'attributes' => array(
+                                    'align'         => 'center',
+                                    'color'         => '#333333',
+                                    'mode'          => 'horizontal',
+                                    'font-size'     => '13px',
+                                    'font-weight'   => 'normal',
+                                    'border-radius' => '3px',
+                                    'padding'       => '36px 25px 36px 25px',
+                                    'inner-padding' => '4px 5px 4px 5px',
+                                    'line-height'   => '22px',
+                                    'text-padding'  => '4px 4px 4px 0px',
+                                    'icon-padding'  => '0px',
+                                    'icon-size'     => '40px',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                13 => array(
+                                  'type'       => 'advanced_divider',
+                                  'data'       => array(
+                                    'value' => array(),
+                                  ),
+                                  'attributes' => array(
+                                    'align'        => 'center',
+                                    'border-width' => '1px',
+                                    'border-style' => 'solid',
+                                    'border-color' => '#E2E3EC',
+                                    'padding'      => '0px 0px 0px 0px',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                14 => array(
+                                  'type'       => 'advanced_text',
+                                  'data'       => array(
+                                    'value' => array(
+                                      'content' => 'No longer want to be Mail Mint friends?<br>&nbsp;<a href="{{link.preference}}" target="_blank" style="color: inherit; text-decoration: underline;" tabindex="-1">Email Preference</a>&nbsp; |&nbsp;&nbsp;<a href="{{link.unsubscribe}}" target="_blank" style="color: inherit; text-decoration: underline;" tabindex="-1">Unsubscribe</a><b><br></b>',
+                                    ),
+                                  ),
+                                  'attributes' => array(
+                                    'padding'     => '30px 0px 24px 0px',
+                                    'align'       => 'center',
+                                    'color'       => 'rgba(135, 135, 146, 1)',
+                                    'line-height' => '1.6',
+                                    'font-size'   => '15px',
+                                    'font-family' => 'Arial',
+                                    'font-weight' => '400',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                                15 => array(
+                                  'type'       => 'advanced_text',
+                                  'data'       => array(
+                                    'value' => array(
+                                      'content' => '© '.date("Y") . ', ' . $busi_name .', '. $address,
+                                    ),
+                                  ),
+                                  'attributes' => array(
+                                    'padding'        => '0px 35px 0px 35px',
+                                    'align'          => 'center',
+                                    'font-family'    => 'Arial',
+                                    'font-size'      => '14px',
+                                    'font-weight'    => '400',
+                                    'line-height'    => '1.7',
+                                    'letter-spacing' => 'normal',
+                                    'color'          => 'rgba(135, 135, 146, 1)',
+                                  ),
+                                  'children'   => array(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     'html_content'    => '',
                     'thumbnail_image' => $image_path . '/thumbnails/marketing-email.jpg',
                 ),
@@ -5473,11 +6644,1065 @@ class DefaultEmailTemplates {
                 ),
                 array(
                     'id'              => 22,
-                    'is_pro'          => true,
+                    'is_pro'          => false,
                     'emailCategories' => ['Events'],
                     'industry'        => ['Education & Non Profit', 'Business & Finance'],
                     'title'           => 'Event Invitation',
-                    'json_content'    => [],
+                    'json_content'    => array (
+                          'subject' => 'Welcome to Mail Mint email marketing and automation',
+                          'subTitle' => 'Nice to meet you!',
+                          'content' => 
+                          array (
+                            'type' => 'page',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'breakpoint' => '480px',
+                                'headAttributes' => '',
+                                'font-size' => '14px',
+                                'font-weight' => '400',
+                                'line-height' => '1.7',
+                                'headStyles' => 
+                                array (
+                                ),
+                                'fonts' => 
+                                array (
+                                ),
+                                'responsive' => true,
+                                'font-family' => 'Arial',
+                                'text-color' => '#000000',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#efeeea',
+                              'width' => '600px',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'advanced_wrapper',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'background-color' => '#F3F3F3',
+                                  'padding' => '24px 24px 24px 24px',
+                                  'border' => 'none',
+                                  'direction' => 'ltr',
+                                  'text-align' => 'center',
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_image',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'height' => 'auto',
+                                      'padding' => '0px 0px 24px 0px',
+                                      'src'   => $image_path . 'your-logo.png',
+                                      'width' => '100%',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_hero',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'background-color' => '#ffffff',
+                                      'background-position' => 'center center',
+                                      'mode' => 'fluid-height',
+                                      'padding' => '50px 10px 50px 10px',
+                                      'vertical-align' => 'top',
+                                      'background-url' => $image_path . 'event-invitation/hero-bg.png',
+                                      'border-radius' => '20px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                      0 => 
+                                      array (
+                                        'type' => 'text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Unlock Learning Impact: Join Our Webinar on Effective Tech Stacks',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'padding' => '10px 25px 10px 25px',
+                                          'align' => 'center',
+                                          'color' => '#FFFFFF',
+                                          'font-size' => '40px',
+                                          'line-height' => '1.5',
+                                          'font-weight' => '700',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      1 => 
+                                      array (
+                                        'type' => 'text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Wednesday, April 26,2023  .  16:00 - 8:30 PDT',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'align' => 'center',
+                                          'background-color' => '#414141',
+                                          'color' => '#E4E4E4',
+                                          'font-weight' => '500',
+                                          'border-radius' => '3px',
+                                          'padding' => '30px 25px 50px 25px',
+                                          'inner-padding' => '10px 25px 10px 25px',
+                                          'line-height' => '1.5',
+                                          'target' => '_blank',
+                                          'vertical-align' => 'middle',
+                                          'border' => 'none',
+                                          'text-align' => 'center',
+                                          'href' => '#',
+                                          'font-size' => '18px',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      2 => 
+                                      array (
+                                        'type' => 'button',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Register Now',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'align' => 'center',
+                                          'background-color' => '#573BFF',
+                                          'color' => '#ffffff',
+                                          'font-size' => '16px',
+                                          'font-weight' => 'normal',
+                                          'border-radius' => '30px',
+                                          'padding' => '10px 25px 10px 25px',
+                                          'inner-padding' => '17px 40px 17px 40px',
+                                          'line-height' => '1',
+                                          'target' => '_blank',
+                                          'vertical-align' => 'middle',
+                                          'border' => 'none',
+                                          'text-align' => 'center',
+                                          'href' => '#',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  2 => 
+                                  array (
+                                    'type' => 'advanced_spacer',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'height' => '40px',
+                                      'padding' => '0px 0px 0px 0px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  3 => 
+                                  array (
+                                    'type' => 'advanced_hero',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'background-color' => '',
+                                      'background-position' => 'center center',
+                                      'mode' => 'fluid-height',
+                                      'padding' => '30px 40px 30px 40px',
+                                      'vertical-align' => 'top',
+                                      'background-url' => '',
+                                      'border-radius' => '20px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                      0 => 
+                                      array (
+                                        'type' => 'advanced_text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Dear John Doe,',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'padding' => '0px 0px 20px 0px',
+                                          'align' => 'left',
+                                          'font-size' => '16px',
+                                          'line-height' => '1.7',
+                                          'color' => '#0B1B1B',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      1 => 
+                                      array (
+                                        'type' => 'advanced_text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Hope this message finds you well! We\'re thrilled to invite you to our upcoming webinar, "Maximizing Learning Impact With an Effective Tech Stack."&nbsp;<div><br></div><div>&nbsp;In this session, we\'ll explore how the right technology stack can elevate the impact of your learning initiatives. From enhancing engagement to tracking progress, we\'ve got the insights to revolutionize your approach.</div>',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'padding' => '0px 0px 30px 0px',
+                                          'align' => 'left',
+                                          'font-size' => '16px',
+                                          'line-height' => '1.7',
+                                          'color' => '#0B1B1B',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      2 => 
+                                      array (
+                                        'type' => 'advanced_text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Key Highlights:<br>',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'padding' => '0px 0px 20px 0px',
+                                          'align' => 'left',
+                                          'font-size' => '20px',
+                                          'line-height' => '1.7',
+                                          'color' => '#353535',
+                                          'font-weight' => '700',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      3 => 
+                                      array (
+                                        'type' => 'advanced_text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => '<ul><li><b>Live Interaction:</b> Engage in real-time discussions, ask questions, and connect with fellow participants.</li><li><b>Screen Sharing:</b> Visualize concepts with dynamic presentations, live demonstrations, and interactive content.<br></li><li><b>Q&amp;A Sessions: </b>Pose questions directly to our expert panel and gain valuable insights.<br></li></ul>',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'padding' => '0px 0px 20px 0px',
+                                          'align' => 'left',
+                                          'font-size' => '16px',
+                                          'line-height' => '1.8',
+                                          'color' => '#0B1B1B',
+                                          'font-weight' => '400',
+                                          'text-decoration' => '',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      4 => 
+                                      array (
+                                        'type' => 'advanced_text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Don\'t miss out on this opportunity to revolutionize your learning approach with cutting-edge technology. <a href="#" target="_blank" style="" tabindex="-1"><font color="#0064ff">Register now</font></a>',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'padding' => '0px 0px 20px 0px',
+                                          'align' => 'left',
+                                          'font-size' => '16px',
+                                          'line-height' => '1.7',
+                                          'color' => '#0B1B1B',
+                                          'text-decoration' => '',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  4 => 
+                                  array (
+                                    'type' => 'advanced_spacer',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'height' => '40px',
+                                      'padding' => '0px 0px 0px 0px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  5 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Meet Our Speakers',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '0px 25px 0px 25px',
+                                      'align' => 'center',
+                                      'font-size' => '28px',
+                                      'line-height' => '0.85',
+                                      'color' => '#353535',
+                                      'font-weight' => '700',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  6 => 
+                                  array (
+                                    'type' => 'advanced_section',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'noWrap' => false,
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'background-color' => '',
+                                      'padding' => '20px 0px 0px 0px',
+                                      'background-repeat' => 'repeat',
+                                      'background-size' => 'auto',
+                                      'background-position' => 'top center',
+                                      'border' => 'none',
+                                      'direction' => 'ltr',
+                                      'text-align' => 'center',
+                                    ),
+                                    'children' => 
+                                    array (
+                                      0 => 
+                                      array (
+                                        'type' => 'group',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'vertical-align' => 'top',
+                                          'direction' => 'ltr',
+                                        ),
+                                        'children' => 
+                                        array (
+                                          0 => 
+                                          array (
+                                            'type' => 'advanced_column',
+                                            'attributes' => 
+                                            array (
+                                              'width' => '33.33%',
+                                              'padding' => '0px 0px 0px 0px',
+                                            ),
+                                            'data' => 
+                                            array (
+                                              'value' => 
+                                              array (
+                                              ),
+                                            ),
+                                            'children' => 
+                                            array (
+                                              0 => 
+                                              array (
+                                                'type' => 'advanced_image',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'align' => 'center',
+                                                  'height' => 'auto',
+                                                  'padding' => '0px 15px 0px 15px',
+                                                  'src' => $image_path . 'event-invitation/client-1.png',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                              1 => 
+                                              array (
+                                                'type' => 'advanced_text',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                    'content' => 'Alexandra Webster',
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'padding' => '10px 0px 0px 25px',
+                                                  'align' => 'left',
+                                                  'font-size' => '16px',
+                                                  'line-height' => '1',
+                                                  'font-weight' => '700',
+                                                  'color' => '#353535',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                              2 => 
+                                              array (
+                                                'type' => 'advanced_text',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                    'content' => 'Senior Learning Consultant',
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'padding' => '8px 0px 10px 25px',
+                                                  'align' => 'center',
+                                                  'font-size' => '15px',
+                                                  'line-height' => '1.3',
+                                                  'font-weight' => '400',
+                                                  'color' => '#353535',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          1 => 
+                                          array (
+                                            'type' => 'advanced_column',
+                                            'attributes' => 
+                                            array (
+                                              'width' => '33.33%',
+                                            ),
+                                            'data' => 
+                                            array (
+                                              'value' => 
+                                              array (
+                                              ),
+                                            ),
+                                            'children' => 
+                                            array (
+                                              0 => 
+                                              array (
+                                                'type' => 'advanced_image',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'align' => 'center',
+                                                  'height' => 'auto',
+                                                  'padding' => '0px 15px 0px 15px',
+                                                  'src' => $image_path . 'event-invitation/client-2.png',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                              1 => 
+                                              array (
+                                                'type' => 'advanced_text',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                    'content' => 'Alexandra Webster',
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'padding' => '10px 0px 0px 25px',
+                                                  'align' => 'left',
+                                                  'font-size' => '16px',
+                                                  'line-height' => '1',
+                                                  'font-weight' => '700',
+                                                  'color' => '#353535',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                              2 => 
+                                              array (
+                                                'type' => 'advanced_text',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                    'content' => 'Senior Learning Consultant',
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'padding' => '8px 0px 10px 25px',
+                                                  'align' => 'center',
+                                                  'font-size' => '15px',
+                                                  'line-height' => '1.3',
+                                                  'font-weight' => '400',
+                                                  'color' => '#353535',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          2 => 
+                                          array (
+                                            'type' => 'advanced_column',
+                                            'attributes' => 
+                                            array (
+                                              'width' => '33.33%',
+                                            ),
+                                            'data' => 
+                                            array (
+                                              'value' => 
+                                              array (
+                                              ),
+                                            ),
+                                            'children' => 
+                                            array (
+                                              0 => 
+                                              array (
+                                                'type' => 'advanced_image',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'align' => 'center',
+                                                  'height' => 'auto',
+                                                  'padding' => '0px 15px 0px 15px',
+                                                  'src' => $image_path . 'event-invitation/client-3.png',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                              1 => 
+                                              array (
+                                                'type' => 'advanced_text',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                    'content' => 'Alexandra Webster',
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'padding' => '10px 0px 0px 25px',
+                                                  'align' => 'left',
+                                                  'font-size' => '16px',
+                                                  'line-height' => '1',
+                                                  'font-weight' => '700',
+                                                  'color' => '#353535',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                              2 => 
+                                              array (
+                                                'type' => 'advanced_text',
+                                                'data' => 
+                                                array (
+                                                  'value' => 
+                                                  array (
+                                                    'content' => 'Senior Learning Consultant',
+                                                  ),
+                                                ),
+                                                'attributes' => 
+                                                array (
+                                                  'padding' => '8px 0px 10px 25px',
+                                                  'align' => 'center',
+                                                  'font-size' => '15px',
+                                                  'line-height' => '1.3',
+                                                  'font-weight' => '400',
+                                                  'color' => '#353535',
+                                                ),
+                                                'children' => 
+                                                array (
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  7 => 
+                                  array (
+                                    'type' => 'advanced_spacer',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'height' => '40px',
+                                      'padding' => '0px 0px 0px 0px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  8 => 
+                                  array (
+                                    'type' => 'advanced_hero',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'background-color' => '#ffffff',
+                                      'background-position' => 'center center',
+                                      'mode' => 'fluid-height',
+                                      'padding' => '50px 10px 50px 10px',
+                                      'vertical-align' => 'top',
+                                      'background-url' => $image_path . 'event-invitation/event-bg.png',
+                                      'border-radius' => '20px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                      0 => 
+                                      array (
+                                        'type' => 'text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Event Details',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'padding' => '10px 25px 10px 25px',
+                                          'align' => 'center',
+                                          'color' => '#FFFFFF',
+                                          'font-size' => '40px',
+                                          'line-height' => '1.5',
+                                          'font-weight' => '700',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      1 => 
+                                      array (
+                                        'type' => 'advanced_text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Maximizing Learning Impact With an Effective Tech Stack.',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'padding' => '0px 35px 0px 35px',
+                                          'align' => 'center',
+                                          'font-size' => '24px',
+                                          'line-height' => '1.5',
+                                          'font-weight' => '500',
+                                          'color' => '#FFFFFF',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      2 => 
+                                      array (
+                                        'type' => 'text',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Wednesday, April 26,2023  .  16:00 - 8:30 PDT',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'align' => 'center',
+                                          'background-color' => '#414141',
+                                          'color' => '#E4E4E4',
+                                          'font-weight' => '500',
+                                          'border-radius' => '3px',
+                                          'padding' => '16px 25px 40px 25px',
+                                          'inner-padding' => '10px 25px 10px 25px',
+                                          'line-height' => '1.5',
+                                          'target' => '_blank',
+                                          'vertical-align' => 'middle',
+                                          'border' => 'none',
+                                          'text-align' => 'center',
+                                          'href' => '#',
+                                          'font-size' => '18px',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                      3 => 
+                                      array (
+                                        'type' => 'button',
+                                        'data' => 
+                                        array (
+                                          'value' => 
+                                          array (
+                                            'content' => 'Register Now',
+                                          ),
+                                        ),
+                                        'attributes' => 
+                                        array (
+                                          'align' => 'center',
+                                          'background-color' => '#FFFFFF',
+                                          'color' => '#0064FF',
+                                          'font-size' => '16px',
+                                          'font-weight' => 'normal',
+                                          'border-radius' => '30px',
+                                          'padding' => '0px 25px 10px 25px',
+                                          'inner-padding' => '17px 40px 17px 40px',
+                                          'line-height' => '1',
+                                          'target' => '_blank',
+                                          'vertical-align' => 'middle',
+                                          'border' => 'none',
+                                          'text-align' => 'center',
+                                          'href' => '#',
+                                        ),
+                                        'children' => 
+                                        array (
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  9 => 
+                                  array (
+                                    'type' => 'advanced_spacer',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'height' => '30px',
+                                      'padding' => '0px 0px 0px 0px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  10 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Need Help? Ask at <font color="#0064ff"><a href="#" target="_blank" style="color: inherit; text-decoration: underline;" tabindex="-1">Customer Support</a></font>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '10px 25px 10px 25px',
+                                      'align' => 'center',
+                                      'font-size' => '16px',
+                                      'line-height' => '1',
+                                      'font-weight' => '700',
+                                      'color' => '#333232',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  11 => 
+                                  array (
+                                    'type' => 'advanced_divider',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'border-width' => '1px',
+                                      'border-style' => 'solid',
+                                      'border-color' => '#E4E4E4',
+                                      'padding' => '10px 0px 10px 0px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  12 => 
+                                  array (
+                                    'type' => 'advanced_social',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'elements' => 
+                                        array (
+                                          0 => 
+                                          array (
+                                            'href' => '#',
+                                            'target' => '_blank',
+                                            'src' => $image_path . 'event-invitation/pinterest.png',
+                                            'content' => '',
+                                          ),
+                                          1 => 
+                                          array (
+                                            'href' => '#',
+                                            'target' => '_blank',
+                                            'src' => $image_path . 'event-invitation/facebook.png',
+                                            'content' => '',
+                                          ),
+                                          2 => 
+                                          array (
+                                            'href' => '#',
+                                            'target' => '_blank',
+                                            'src' => $image_path . 'event-invitation/instagram.png',
+                                            'content' => '',
+                                          ),
+                                          3 => 
+                                          array (
+                                            'href' => '#',
+                                            'target' => '_blank',
+                                            'src' => $image_path . 'event-invitation/twitter.png',
+                                            'content' => '',
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'color' => '#333333',
+                                      'mode' => 'horizontal',
+                                      'font-size' => '13px',
+                                      'font-weight' => 'normal',
+                                      'font-style' => 'normal',
+                                      'font-family' => 'Arial',
+                                      'border-radius' => '3px',
+                                      'padding' => '10px 0px 10px 0px',
+                                      'inner-padding' => '4px 20px 4px 0px',
+                                      'line-height' => '1.6',
+                                      'text-padding' => '4px 4px 4px 0px',
+                                      'icon-padding' => '0px',
+                                      'icon-size' => '40px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  13 => 
+                                  array (
+                                    'type' => 'advanced_divider',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'border-width' => '1px',
+                                      'border-style' => 'solid',
+                                      'border-color' => '#E4E4E4',
+                                      'padding' => '10px 0px 10px 0px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  14 => 
+                                  array (
+                                    'type' => 'advanced_spacer',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'height' => '40px',
+                                      'padding' => '0px 0px 0px 0px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  15 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'No longer want to be Mail Mint friends?',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '0px 25px 8px 25px',
+                                      'align' => 'center',
+                                      'font-size' => '15px',
+                                      'line-height' => '1.4',
+                                      'color' => '#666666',
+                                      'font-weight' => '500',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  16 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => '<a href="{{link.preference}}" target="_blank" style="color: inherit; text-decoration: underline;">Email Preference</a>&nbsp;.&nbsp;<a href="{{link.unsubscribe}}" target="_blank" style="color: inherit; text-decoration: underline;">Unsubscribe</a>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '0px 25px 8px 25px',
+                                      'align' => 'center',
+                                      'font-size' => '15px',
+                                      'line-height' => '1.4',
+                                      'color' => '#666666',
+                                      'font-weight' => '500',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  17 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => '© '.date("Y") . ', ' . $busi_name .', '. $address,
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '24px 0px 8px 0px',
+                                      'align' => 'center',
+                                      'font-size' => '14px',
+                                      'line-height' => '1.5',
+                                      'color' => '#666666',
+                                      'font-weight' => '400',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ),
                     'html_content'    => '',
                     'thumbnail_image' => $image_path . '/thumbnails/event-invitation.jpg',
                 ),
@@ -8029,11 +10254,1070 @@ class DefaultEmailTemplates {
             ),
             array(
               'id'              => 38,
-              'is_pro'          => true,
+              'is_pro'          => false,
               'emailCategories' => ['Selling Services'],
               'industry'        => ['Business & Finance', 'Education & Non Profit', 'Others'],
               'title'           => 'Educational Content',
-              'json_content'    => [],
+              'json_content'    => array (
+                  'subject' => 'Welcome to Mail Mint email marketing and automation',
+                  'subTitle' => 'Nice to meet you!',
+                  'content' => 
+                  array (
+                    'type' => 'page',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'breakpoint' => '480px',
+                        'headAttributes' => '',
+                        'font-size' => '14px',
+                        'font-weight' => '400',
+                        'line-height' => '1.7',
+                        'headStyles' => 
+                        array (
+                        ),
+                        'fonts' => 
+                        array (
+                        ),
+                        'responsive' => true,
+                        'font-family' => 'Arial',
+                        'text-color' => '#000000',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#efeeea',
+                      'width' => '600px',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_image',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'height' => 'auto',
+                          'padding' => '20px 0px 20px 0px',
+                          'src' => $image_path . 'your-logo.png',
+                          'width' => '142px',
+                          'container-background-color' => '#fff',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_wrapper',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'background-color' => '#1F1D19',
+                          'padding' => '0px 0px 0px 0px',
+                          'border' => 'none',
+                          'direction' => 'ltr',
+                          'text-align' => 'center',
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_hero',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#1F1D19',
+                              'background-position' => 'center center',
+                              'mode' => 'fluid-height',
+                              'padding' => '0px 0px 20px 0px',
+                              'vertical-align' => 'top',
+                              'background-url' => '',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'text',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                    'content' => 'Start pursuing your&nbsp;<span style="word-spacing: normal;">creative goals for the&nbsp;</span><span style="word-spacing: normal;">next year ahead.</span>',
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'padding' => '40px 20px 0px 20px',
+                                  'align' => 'center',
+                                  'color' => '#fff',
+                                  'font-size' => '32px',
+                                  'line-height' => '1.17',
+                                  'font-family' => 'Arial',
+                                  'font-weight' => '700',
+                                ),
+                                'children' => 
+                                array (
+                                ),
+                              ),
+                              1 => 
+                              array (
+                                'type' => 'text',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                    'content' => 'What skills or knowledge do you aim to acquire this year?&nbsp;<div>We\'re here to assist you in reaching your goals.</div>',
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'align' => 'center',
+                                  'background-color' => '#414141',
+                                  'color' => '#A1A1A1',
+                                  'font-weight' => 'normal',
+                                  'border-radius' => '3px',
+                                  'padding' => '16px 0px 0px 0px',
+                                  'inner-padding' => '10px 25px 10px 25px',
+                                  'line-height' => '1.56',
+                                  'target' => '_blank',
+                                  'vertical-align' => 'middle',
+                                  'border' => 'none',
+                                  'text-align' => 'center',
+                                  'href' => '#',
+                                  'font-size' => '16px',
+                                  'font-style' => 'normal',
+                                ),
+                                'children' => 
+                                array (
+                                ),
+                              ),
+                              2 => 
+                              array (
+                                'type' => 'button',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                    'content' => 'Get Your Order Here!',
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'align' => 'center',
+                                  'background-color' => '#F5CA31',
+                                  'color' => '#060502',
+                                  'font-size' => '16px',
+                                  'font-weight' => '600',
+                                  'border-radius' => '30px',
+                                  'padding' => '30px 0px 0px 0px',
+                                  'inner-padding' => '17px 31px 17px 31px',
+                                  'line-height' => '0.93',
+                                  'target' => '_blank',
+                                  'vertical-align' => 'middle',
+                                  'border' => 'none',
+                                  'text-align' => 'center',
+                                  'href' => '#',
+                                  'font-family' => 'Arial',
+                                ),
+                                'children' => 
+                                array (
+                                ),
+                              ),
+                              3 => 
+                              array (
+                                'type' => 'advanced_image',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'align' => 'center',
+                                  'height' => 'auto',
+                                  'padding' => '60px 30px 0px 30px',
+                                  'src' => $image_path . 'educational-content/hero-img.png',
+                                  'alt' => 'banner-image',
+                                ),
+                                'children' => 
+                                array (
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'advanced_wrapper',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'background-color' => '#EEEDEA',
+                          'padding' => '40px 23px 20px 25px',
+                          'border' => 'none',
+                          'direction' => 'ltr',
+                          'text-align' => 'center',
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_section',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'noWrap' => false,
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#ffffff',
+                              'padding' => '0px 0px 0px 0px',
+                              'background-repeat' => 'repeat',
+                              'background-size' => 'auto',
+                              'background-position' => 'top center',
+                              'border' => 'none',
+                              'direction' => 'ltr',
+                              'text-align' => 'center',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => 
+                                  array (
+                                    0 => '25%',
+                                    1 => '25%',
+                                    2 => '25%',
+                                    3 => '25%',
+                                  ),
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Need Ideas?',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '40px 0px 0px 0px',
+                                      'align' => 'center',
+                                      'color' => '#FFA219',
+                                      'font-weight' => '700',
+                                      'font-family' => 'Arial',
+                                      'font-size' => '14px',
+                                      'font-style' => 'normal',
+                                      'line-height' => '1',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Explore the trendiest courses of the year and start shopping now',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '10px 20px 0px 20px',
+                                      'align' => 'center',
+                                      'font-family' => 'Arial',
+                                      'font-size' => '24px',
+                                      'line-height' => '1.25',
+                                      'font-weight' => '700',
+                                      'font-style' => 'normal',
+                                      'color' => '#0B0F12',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_section',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'noWrap' => false,
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#ffffff',
+                              'padding' => '0px 0px 20px 0px',
+                              'background-repeat' => 'repeat',
+                              'background-size' => 'auto',
+                              'background-position' => 'top center',
+                              'border' => 'none',
+                              'direction' => 'ltr',
+                              'text-align' => 'center',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '50%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_image',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'height' => 'auto',
+                                      'padding' => '40px 24px 0px 24px',
+                                      'src' => $image_path . 'educational-content/marketing.png',
+                                      'alt' => 'card-image',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Digital Marketing&nbsp;<div>Mastery</div>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '12px 25px 0px 24px',
+                                      'align' => 'left',
+                                      'font-size' => '16px',
+                                      'font-family' => 'Arial',
+                                      'font-weight' => '700',
+                                      'line-height' => '1.31',
+                                      'color' => '#2B2D38',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  2 => 
+                                  array (
+                                    'type' => 'advanced_button',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Explore Now',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'left',
+                                      'font-family' => 'Arial',
+                                      'background-color' => '#1F1D19',
+                                      'color' => '#ffffff',
+                                      'font-weight' => 'normal',
+                                      'font-style' => 'normal',
+                                      'border-radius' => '100px',
+                                      'padding' => '14px 0px 0px 24px',
+                                      'inner-padding' => '9px 20px 9px 20px',
+                                      'font-size' => '13px',
+                                      'line-height' => '1.2',
+                                      'target' => '_blank',
+                                      'vertical-align' => 'middle',
+                                      'border' => 'none',
+                                      'text-align' => 'center',
+                                      'letter-spacing' => 'normal',
+                                      'href' => '#',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              1 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '50%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_image',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'height' => 'auto',
+                                      'padding' => '40px 24px 0px 24px',
+                                      'src' => $image_path . 'educational-content/design.png',
+                                      'alt' => 'card-img-2',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Graphic Design Fundamentals<br>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '12px 25px 0px 24px',
+                                      'align' => 'left',
+                                      'font-size' => '16px',
+                                      'font-family' => 'Arial',
+                                      'font-weight' => '700',
+                                      'line-height' => '1.31',
+                                      'color' => '#2B2D38',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  2 => 
+                                  array (
+                                    'type' => 'advanced_button',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Explore Now',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'left',
+                                      'font-family' => 'Arial',
+                                      'background-color' => '#1F1D19',
+                                      'color' => '#ffffff',
+                                      'font-weight' => 'normal',
+                                      'font-style' => 'normal',
+                                      'border-radius' => '100px',
+                                      'padding' => '14px 0px 0px 24px',
+                                      'inner-padding' => '9px 20px 9px 20px',
+                                      'font-size' => '13px',
+                                      'line-height' => '1.2',
+                                      'target' => '_blank',
+                                      'vertical-align' => 'middle',
+                                      'border' => 'none',
+                                      'text-align' => 'center',
+                                      'letter-spacing' => 'normal',
+                                      'href' => '#',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_section',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'noWrap' => false,
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#ffffff',
+                              'padding' => '0px 0px 40px 0px',
+                              'background-repeat' => 'repeat',
+                              'background-size' => 'auto',
+                              'background-position' => 'top center',
+                              'border' => 'none',
+                              'direction' => 'ltr',
+                              'text-align' => 'center',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '50%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_image',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'height' => 'auto',
+                                      'padding' => '40px 24px 0px 24px',
+                                      'src' => $image_path . 'educational-content/coding.png',
+                                      'alt' => 'card-img-3',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Machine Learning&nbsp;<div>Basics<br></div>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '12px 25px 0px 24px',
+                                      'align' => 'left',
+                                      'font-size' => '16px',
+                                      'font-family' => 'Arial',
+                                      'font-weight' => '700',
+                                      'line-height' => '1.31',
+                                      'color' => '#2B2D38',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  2 => 
+                                  array (
+                                    'type' => 'advanced_button',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Explore Now',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'left',
+                                      'font-family' => 'Arial',
+                                      'background-color' => '#1F1D19',
+                                      'color' => '#ffffff',
+                                      'font-weight' => 'normal',
+                                      'font-style' => 'normal',
+                                      'border-radius' => '100px',
+                                      'padding' => '14px 0px 0px 24px',
+                                      'inner-padding' => '9px 20px 9px 20px',
+                                      'font-size' => '13px',
+                                      'line-height' => '1.2',
+                                      'target' => '_blank',
+                                      'vertical-align' => 'middle',
+                                      'border' => 'none',
+                                      'text-align' => 'center',
+                                      'letter-spacing' => 'normal',
+                                      'href' => '#',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              1 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '50%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_image',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'height' => 'auto',
+                                      'padding' => '40px 24px 0px 24px',
+                                      'src' => $image_path . 'educational-content/photography.png',
+                                      'alt' => 'card-img-4',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Photography&nbsp;<div>Masterclass<br></div>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '12px 25px 0px 24px',
+                                      'align' => 'left',
+                                      'font-size' => '16px',
+                                      'font-family' => 'Arial',
+                                      'font-weight' => '700',
+                                      'line-height' => '1.31',
+                                      'color' => '#2B2D38',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  2 => 
+                                  array (
+                                    'type' => 'advanced_button',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Explore Now',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'left',
+                                      'font-family' => 'Arial',
+                                      'background-color' => '#1F1D19',
+                                      'color' => '#ffffff',
+                                      'font-weight' => 'normal',
+                                      'font-style' => 'normal',
+                                      'border-radius' => '100px',
+                                      'padding' => '14px 0px 0px 24px',
+                                      'inner-padding' => '9px 20px 9px 20px',
+                                      'font-size' => '13px',
+                                      'line-height' => '1.2',
+                                      'target' => '_blank',
+                                      'vertical-align' => 'middle',
+                                      'border' => 'none',
+                                      'text-align' => 'center',
+                                      'letter-spacing' => 'normal',
+                                      'href' => '#',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          3 => 
+                          array (
+                            'type' => 'advanced_spacer',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'height' => '20px',
+                              'padding' => '0px 0px 0px 0px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          4 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              'src' => $image_path . 'educational-content/footer-img.png',
+                              'alt' => 'banner-img-2',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          5 => 
+                          array (
+                            'type' => 'advanced_hero',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#1F1D19',
+                              'background-position' => 'center center',
+                              'mode' => 'fluid-height',
+                              'padding' => '0px 0px 0px 0px',
+                              'vertical-align' => 'top',
+                              'background-url' => '',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'text',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                    'content' => 'Join now and start learning today!',
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'padding' => '25px 0px 0px 0px',
+                                  'align' => 'center',
+                                  'color' => '#FFFFFF',
+                                  'font-size' => '24px',
+                                  'line-height' => '1.25',
+                                  'font-weight' => '700',
+                                  'font-family' => 'Arial',
+                                ),
+                                'children' => 
+                                array (
+                                ),
+                              ),
+                              1 => 
+                              array (
+                                'type' => 'button',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                    'content' => 'Explore Courses',
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'align' => 'center',
+                                  'background-color' => '#F5CA31',
+                                  'color' => '#060502',
+                                  'font-size' => '16px',
+                                  'font-weight' => '700',
+                                  'border-radius' => '30px',
+                                  'padding' => '10px 25px 46px 25px',
+                                  'inner-padding' => '17px 31px 17px 31px',
+                                  'line-height' => '0.93',
+                                  'target' => '_blank',
+                                  'vertical-align' => 'middle',
+                                  'border' => 'none',
+                                  'text-align' => 'center',
+                                  'href' => '#',
+                                ),
+                                'children' => 
+                                array (
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'type' => 'advanced_wrapper',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'background-color' => '#ffffff',
+                          'padding' => '0px 0px 0px 0px',
+                          'border' => 'none',
+                          'direction' => 'ltr',
+                          'text-align' => 'center',
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_social',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'elements' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'href' => '#',
+                                    'target' => '_blank',
+                                    'src' => $image_path . 'educational-content/pinterest.png',
+                                    'content' => '',
+                                  ),
+                                  1 => 
+                                  array (
+                                    'href' => '#',
+                                    'target' => '_blank',
+                                    'src' => $image_path . 'educational-content/facebook.png',
+                                    'content' => '',
+                                  ),
+                                  2 => 
+                                  array (
+                                    'href' => '#',
+                                    'target' => '_blank',
+                                    'src' => $image_path . 'educational-content/instagram.png',
+                                    'content' => '',
+                                  ),
+                                  3 => 
+                                  array (
+                                    'href' => '#',
+                                    'target' => '_blank',
+                                    'src' => $image_path . 'educational-content/twiter.png',
+                                    'content' => '',
+                                  ),
+                                ),
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'color' => '#333333',
+                              'mode' => 'horizontal',
+                              'font-size' => '13px',
+                              'font-weight' => 'normal',
+                              'font-style' => 'normal',
+                              'font-family' => 'Arial',
+                              'border-radius' => '3px',
+                              'padding' => '30px 0px 0px 0px',
+                              'inner-padding' => '0px 0px 0px 20px',
+                              'line-height' => '1.6',
+                              'text-padding' => '4px 4px 4px 0px',
+                              'icon-padding' => '0px',
+                              'icon-size' => '40px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_divider',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'border-width' => '1px',
+                              'border-style' => 'solid',
+                              'border-color' => '#EDECE9',
+                              'padding' => '30px 24px 0px 24px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => 'No longer want to be Mail Mint friends?',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '40px 25px 0px 25px',
+                              'align' => 'center',
+                              'font-family' => 'Arial',
+                              'font-size' => '15px',
+                              'line-height' => '1.46',
+                              'color' => '#8F8F8F',
+                              'font-weight' => '400',
+                              'font-style' => 'normal',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          3 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<a href="{{link.preference}}" target="_blank" style="color: inherit; text-decoration: underline;">Email Preference</a>&nbsp; .&nbsp;&nbsp;<a href="{{link.unsubscribe}}" target="_blank" style="color: inherit; text-decoration: underline;">Unsubscribe</a>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '8px 0px 0px 0px',
+                              'align' => 'center',
+                              'color' => '#8F8F8F',
+                              'font-family' => 'Arial',
+                              'font-size' => '15px',
+                              'line-height' => '1.46',
+                              'font-weight' => '400',
+                              'font-style' => 'normal',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          4 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '© '.date("Y") . ', ' . $busi_name .', '. $address,
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '24px 20px 30px 20px',
+                              'align' => 'center',
+                              'color' => '#8F8F8F',
+                              'font-size' => '15px',
+                              'font-family' => 'Arial',
+                              'line-height' => '1.57',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               'html_content'    => '',
               'thumbnail_image' => $image_path . '/thumbnails/educational-content.jpg',
             ),
@@ -8059,11 +11343,926 @@ class DefaultEmailTemplates {
             ),
             array(
               'id'              => 41,
-              'is_pro'          => true,
+              'is_pro'          => false,
               'emailCategories' => ['Selling Products'],
               'industry'        => ['E-commerce & Retail', 'Health & Wellness'],
               'title'           => 'Personalized Recommendation',
-              'json_content'    => [],
+              'json_content'    => array (
+                  'content' => 
+                  array (
+                    'type' => 'page',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'breakpoint' => '480px',
+                        'headAttributes' => '',
+                        'font-size' => '14px',
+                        'font-weight' => '400',
+                        'line-height' => '1.7',
+                        'headStyles' => 
+                        array (
+                        ),
+                        'fonts' => 
+                        array (
+                        ),
+                        'responsive' => true,
+                        'font-family' => 'Arial',
+                        'text-color' => '#000000',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#efeeea',
+                      'width' => '600px',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_image',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'height' => 'auto',
+                          'padding' => '20px 0px 20px 0px',
+                          'src' => $image_path . 'your-logo.png',
+                          'width' => '100%',
+                          'container-background-color' => '#fff',
+                          'alt' => 'Logo',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_wrapper',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'background-color' => '#0F0740',
+                          'padding' => '0px 0px 0px 0px',
+                          'border' => 'none',
+                          'direction' => 'ltr',
+                          'text-align' => 'center',
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_hero',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#261B5C',
+                              'background-position' => 'center center',
+                              'mode' => 'fluid-height',
+                              'padding' => '0px 0px 0px 0px',
+                              'vertical-align' => 'top',
+                              'background-url' => '',
+                              'border-radius' => '10px',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'text',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                    'content' => '🌟 Your Personalized Product Picks&nbsp;<div>Just For You! 🌟</div>',
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'padding' => '40px 0px 0px 0px',
+                                  'align' => 'center',
+                                  'color' => '#ffff',
+                                  'font-size' => '30px',
+                                  'line-height' => '1.2',
+                                  'font-family' => 'Arial',
+                                  'font-weight' => '700',
+                                  'font-style' => 'normal',
+                                ),
+                                'children' => 
+                                array (
+                                ),
+                              ),
+                              1 => 
+                              array (
+                                'type' => 'text',
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                    'content' => 'Boost your sales with personalized product recommendation emails for your most engaged customers. Here\'s a collection of eight examples to spark your inspiration!&nbsp;<br>',
+                                  ),
+                                ),
+                                'attributes' => 
+                                array (
+                                  'align' => 'center',
+                                  'background-color' => '#414141',
+                                  'color' => '#FFFFFFCC',
+                                  'font-weight' => 'normal',
+                                  'border-radius' => '3px',
+                                  'padding' => '16px 20px 40px 20px',
+                                  'inner-padding' => '10px 25px 10px 25px',
+                                  'line-height' => '1.55',
+                                  'target' => '_blank',
+                                  'vertical-align' => 'middle',
+                                  'border' => 'none',
+                                  'text-align' => 'center',
+                                  'href' => '#',
+                                  'font-size' => '18px',
+                                  'font-style' => 'normal',
+                                ),
+                                'children' => 
+                                array (
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'advanced_wrapper',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'background-color' => '#ffffff',
+                          'padding' => '0px 0px 0px 0px',
+                          'border' => 'none',
+                          'direction' => 'ltr',
+                          'text-align' => 'center',
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_section',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'noWrap' => false,
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#ffffff',
+                              'padding' => '44px 0px 0px 24px',
+                              'background-repeat' => 'repeat',
+                              'background-size' => 'auto',
+                              'background-position' => 'top center',
+                              'border' => 'none',
+                              'direction' => 'ltr',
+                              'text-align' => 'center',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '33%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_image',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'height' => 'auto',
+                                      'padding' => '10px 0px 10px 0px',
+                                      'src' => $image_path . 'recommendation/fitnes.png',
+                                      'border-radius' => '10px',
+                                      'width' => '',
+                                      'alt' => 'Complete Guide',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              1 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '67%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'SmartTech Fitness Tracker',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '10px 0px 0px 26px',
+                                      'align' => 'left',
+                                      'color' => '#0B0F12',
+                                      'font-weight' => '700',
+                                      'font-size' => '18px',
+                                      'line-height' => '1.44',
+                                      'font-style' => 'normal',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Unleash your potential with our SmartTech Fitness Tracker - the perfect blend of style and health monitoring for an active lifestyle.&nbsp;<br>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '14px 0px 0px 26px',
+                                      'align' => 'left',
+                                      'line-height' => '1.56',
+                                      'font-size' => '16px',
+                                      'font-weight' => '400',
+                                      'font-style' => 'normal',
+                                      'color' => '#737373',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  2 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => '$45.00',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '0px 0px 10px 25px',
+                                      'align' => 'left',
+                                      'font-size' => '16px',
+                                      'font-weight' => '700',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  3 => 
+                                  array (
+                                    'type' => 'advanced_button',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Read More',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'left',
+                                      'font-family' => 'Arial',
+                                      'background-color' => '#573BFF',
+                                      'color' => '#ffffff',
+                                      'font-weight' => 'normal',
+                                      'font-style' => 'normal',
+                                      'border-radius' => '100px',
+                                      'padding' => '0px 25px 10px 26px',
+                                      'inner-padding' => '10px 25px 10px 25px',
+                                      'font-size' => '13px',
+                                      'line-height' => '1.15',
+                                      'target' => '_blank',
+                                      'vertical-align' => 'middle',
+                                      'border' => 'none',
+                                      'text-align' => 'center',
+                                      'letter-spacing' => 'normal',
+                                      'href' => '#',
+                                      'width' => '',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_section',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'noWrap' => false,
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#ffffff',
+                              'padding' => '44px 24px 0px 0px',
+                              'background-repeat' => 'repeat',
+                              'background-size' => 'auto',
+                              'background-position' => 'top center',
+                              'border' => 'none',
+                              'direction' => 'ltr',
+                              'text-align' => 'center',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '67%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Smart Water Bottles<br>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '10px 0px 0px 40px',
+                                      'align' => 'left',
+                                      'font-size' => '18px',
+                                      'font-weight' => '700',
+                                      'line-height' => '1.44',
+                                      'color' => '#0B0F12',
+                                      'font-style' => 'normal',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'The HidrateZ Smart Water Bottle, one of the first of its kind, links up with an app to remind you to drink enough water every day.<br>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '14px 26px 10px 40px',
+                                      'align' => 'left',
+                                      'color' => '#737373',
+                                      'font-size' => '16px',
+                                      'line-height' => '1.56',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  2 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => '$75.00',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '0px 0px 10px 40px',
+                                      'align' => 'left',
+                                      'color' => '#0B0F12',
+                                      'font-weight' => '700',
+                                      'font-size' => '16px',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  3 => 
+                                  array (
+                                    'type' => 'advanced_button',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Read More',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'left',
+                                      'font-family' => 'Arial',
+                                      'background-color' => '#573BFF',
+                                      'color' => '#ffffff',
+                                      'font-weight' => 'normal',
+                                      'font-style' => 'normal',
+                                      'border-radius' => '100px',
+                                      'padding' => '10px 0px 10px 30px',
+                                      'inner-padding' => '10px 25px 10px 25px',
+                                      'font-size' => '13px',
+                                      'line-height' => '1.15',
+                                      'target' => '_blank',
+                                      'vertical-align' => 'middle',
+                                      'border' => 'none',
+                                      'text-align' => 'center',
+                                      'letter-spacing' => 'normal',
+                                      'href' => '#',
+                                      'width' => '',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              1 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '33%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_image',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'height' => 'auto',
+                                      'padding' => '10px 0px 10px 0px',
+                                      'src' => $image_path . 'recommendation/smart.png',
+                                      'border-radius' => '10px',
+                                      'width' => '',
+                                      'alt' => 'Product Update',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_section',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'noWrap' => false,
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'background-color' => '#ffffff',
+                              'padding' => '44px 0px 0px 24px',
+                              'background-repeat' => 'repeat',
+                              'background-size' => 'auto',
+                              'background-position' => 'top center',
+                              'border' => 'none',
+                              'direction' => 'ltr',
+                              'text-align' => 'center',
+                            ),
+                            'children' => 
+                            array (
+                              0 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '33%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_image',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'center',
+                                      'height' => 'auto',
+                                      'padding' => '10px 0px 10px 0px',
+                                      'src' => $image_path . 'recommendation/clozy-sleep.png',
+                                      'border-radius' => '10px',
+                                      'width' => '',
+                                      'alt' => 'Email Marketing',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              1 => 
+                              array (
+                                'type' => 'advanced_column',
+                                'attributes' => 
+                                array (
+                                  'width' => '67%',
+                                  'padding' => '0px 0px 0px 0px',
+                                ),
+                                'data' => 
+                                array (
+                                  'value' => 
+                                  array (
+                                  ),
+                                ),
+                                'children' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'CozyCloud Memory Foam Pillow',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '10px 57px 0px 26px',
+                                      'align' => 'left',
+                                      'color' => '#0B0F12',
+                                      'font-weight' => '700',
+                                      'font-size' => '18px',
+                                      'line-height' => '1.44',
+                                      'font-style' => 'normal',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  1 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Enhance your sleep sanctuary with our CozyCloud Memory Foam Pillow, meticulously designed for optimal support and peaceful sleep.<br>',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '14px 57px 0px 26px',
+                                      'align' => 'left',
+                                      'line-height' => '1.56',
+                                      'font-size' => '16px',
+                                      'font-weight' => '400',
+                                      'font-style' => 'normal',
+                                      'color' => '#737373',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  2 => 
+                                  array (
+                                    'type' => 'advanced_text',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => '$45.00',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'padding' => '0px 25px 10px 25px',
+                                      'align' => 'left',
+                                      'font-size' => '16px',
+                                      'font-weight' => '700',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                  3 => 
+                                  array (
+                                    'type' => 'advanced_button',
+                                    'data' => 
+                                    array (
+                                      'value' => 
+                                      array (
+                                        'content' => 'Read More',
+                                      ),
+                                    ),
+                                    'attributes' => 
+                                    array (
+                                      'align' => 'left',
+                                      'font-family' => 'Arial',
+                                      'background-color' => '#573BFF',
+                                      'color' => '#ffffff',
+                                      'font-weight' => 'normal',
+                                      'font-style' => 'normal',
+                                      'border-radius' => '100px',
+                                      'padding' => '0px 25px 20px 26px',
+                                      'inner-padding' => '10px 25px 10px 25px',
+                                      'font-size' => '13px',
+                                      'line-height' => '1.15',
+                                      'target' => '_blank',
+                                      'vertical-align' => 'middle',
+                                      'border' => 'none',
+                                      'text-align' => 'center',
+                                      'letter-spacing' => 'normal',
+                                      'href' => '#',
+                                      'width' => '',
+                                    ),
+                                    'children' => 
+                                    array (
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'attributes' => 
+                        array (
+                          'padding' => '0px 0px 0px 0px',
+                        ),
+                      ),
+                      4 => 
+                      array (
+                        'type' => 'advanced_wrapper',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'background-color' => '#0F0740',
+                          'padding' => '0px 0px 0px 0px',
+                          'border' => 'none',
+                          'direction' => 'ltr',
+                          'text-align' => 'center',
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_social',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'elements' => 
+                                array (
+                                  0 => 
+                                  array (
+                                    'href' => '#',
+                                    'target' => '_blank',
+                                    'src' => $image_path . $pinterest,
+                                    'content' => '',
+                                  ),
+                                  1 => 
+                                  array (
+                                    'href' => '#',
+                                    'target' => '_blank',
+                                    'src' => $image_path . $facebook,
+                                    'content' => '',
+                                  ),
+                                  2 => 
+                                  array (
+                                    'href' => '#',
+                                    'target' => '_blank',
+                                    'src' => $image_path . $instagram,
+                                    'content' => '',
+                                  ),
+                                  3 => 
+                                  array (
+                                    'href' => '#',
+                                    'target' => '_blank',
+                                    'src' => $image_path . $twitter,
+                                    'content' => '',
+                                  ),
+                                ),
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'color' => '#333333',
+                              'mode' => 'horizontal',
+                              'font-size' => '13px',
+                              'font-weight' => 'normal',
+                              'font-style' => 'normal',
+                              'font-family' => 'Arial',
+                              'border-radius' => '3px',
+                              'padding' => '30px 0px 0 0px',
+                              'inner-padding' => '0px 0px 0px 20px',
+                              'line-height' => '1.6',
+                              'text-padding' => '0px 0px 0px 0px',
+                              'icon-padding' => '0px',
+                              'icon-size' => '40px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_divider',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'border-width' => '2px',
+                              'border-style' => 'solid',
+                              'border-color' => '#2D2368',
+                              'padding' => '30px 24px 40px 24px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => 'No longer want to be Mail Mint friends?',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 0px 0px',
+                              'align' => 'center',
+                              'color' => '#928AC1',
+                              'font-size' => '15px',
+                              'line-height' => '1.46',
+                              'font-weight' => '400',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          3 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<a href="{{link.preference}}">Email Preference</a>&nbsp; .&nbsp; <a href="{{link.unsubscribe}}">Unsubscribe</a>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '8px 0px 0px 0px',
+                              'align' => 'center',
+                              'color' => '#928AC1',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          4 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '© '.date("Y") . ', ' . $busi_name .', '. $address,
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '24px 0px 40px 0px',
+                              'align' => 'center',
+                              'color' => '#928AC1',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  'subTitle' => 'Nice to meet you!',
+                ),
               'html_content'    => '',
               'thumbnail_image' => $image_path . '/thumbnails/personalized-recommendations.jpg',
             ),
@@ -9879,31 +14078,2575 @@ class DefaultEmailTemplates {
           ),
           array(
             'id'              => 49,
-            'is_pro'          => true,
+            'is_pro'          => false,
             'emailCategories' => ['Welcome'],
             'industry'        => ['Others'],
             'title'           => 'Podcast Welcome',
-            'json_content'    => [],
+            'json_content'    => array (
+              'subject' => 'Welcome to Mail Mint email marketing and automation',
+              'subTitle' => 'Nice to meet you!',
+              'content' => 
+              array (
+                'type' => 'page',
+                'data' => 
+                array (
+                  'value' => 
+                  array (
+                    'breakpoint' => '480px',
+                    'headAttributes' => '',
+                    'font-size' => '14px',
+                    'font-weight' => '400',
+                    'line-height' => '1.7',
+                    'headStyles' => 
+                    array (
+                    ),
+                    'fonts' => 
+                    array (
+                    ),
+                    'responsive' => true,
+                    'font-family' => 'Arial',
+                    'text-color' => '#000000',
+                  ),
+                ),
+                'attributes' => 
+                array (
+                  'background-color' => '#efeeea',
+                  'width' => '600px',
+                ),
+                'children' => 
+                array (
+                  0 => 
+                  array (
+                    'type' => 'advanced_image',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'height' => 'auto',
+                      'padding' => '17px 0px 17px 0px',
+                      'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAABCCAMAAABD95VFAAAAzFBMVEUAAAAOHT8NHT8MHUALHEAOHT8OHT/39/f19fUNHEDz8/P09PQOHT/09PT///8QIED09PTz8/MOHUD09PQOHEDz8/MPHEALH0AQEEAOHD/z8/P19fUOHD/19fUNHUD09PQOHT709PQNHD/19fUOHkD19fXv7+9UX3YOHUAPHD8QG0CfpbHl5enCxs0vO1ng4uVIVGylqrUOHT/09PQcKkrX2d5HUmwqOFXm5um7vseeo7Bze46BiJpkbYM5RWGPlqWBiZmtsbzJzNI6RWFWlNgqAAAAMnRSTlMAn79AIN/vIN9gQL9w7xAQYFDfkICAYDAQz6DQkHBQ338wr6CAfxD9sNAw2O/f369AMACNfgwAAAXGSURBVGjexZrbYqIwEIYDIqIWlVW3WrWu7m7d8yHDUUFr9/3faTOZ0Nii1gto/4uKJcl8zEwGEmQVqLPwer2e1+qwN1Gn1W+7kMv52GKvrMasDc/VbrDXU+czAcT7XbaNOOf+drUOAOAzeyW1CCDZbPkTZcErQXRmDgH4ZDhaZWmabkIfjwVEj1UpCoKLIbgngDBNYsiVZCIkAbh3rFIRQRKifT9b5/bd+RxQO0EFMGRV6oAg3EkAtz3zaC4seg7AhvMEHFadWk5O4G8SBJj3nxSEuwnEPs8AKpugjfYjQRqjB3IArQZAxiMAj5UuSgQACDRB2ztWmueYEdXMDApDfK8JThTlCayrYuj0AWCP1XCDBB9PxnsOKfcriUXLUWEIH87fEu4wH7YA5d+60Ak7X4RhT1E4LQ/gH86LsotUY4JOUGFwzkf6BgLO1+XXBwcgEU6IsCD0O+dxAVMygI8lI7QA7pUTJosX2vYAIh6Wnw4ejouZ4M4ucNm+/FCQf/ebgJzwgj4DhDyCkkNBeYbqX0DrYjasK7lbDB2ckBfBRuSGN1MPk5fc8FZqOBDwC91wZRhTOqoZhoGfow9mvT42bum/14ZxdXgwNaSuLD3Ee8OoqUPd/ydGggfgNMTI0zGOaD1r8tjLsjknI3XOPyGUzUljS5JxbrKDg3dc6QPLZXDe1AjUP8VI4N8eGy250jRvwpVyrAHn9givhvO6+PjAH1W3zjAQeZFhylEhwIOMRJtZdS5kSzKD2j8xgerS9WPTJiF+rXWF57HF6ChDTQRmKYYtMtAlmLW/DgSRfKRuSIuDrjBgEDc1yU2MWT64beEZg0gMlQg2sh1lQHJx1ioyYGQNzEfYcr7DSNzyx7NTyW1xHFeqqc+ZnC/xjEUBEcx5kOonGZiNnwUG6j+Rz9MbgO+MfUEoUnd51ZWerh8EztTwY4KjHqoLYh1noJiNigxfMPFuZD5uAQLfylm1zINMuqZR1BUrOFMPR+aOMZiGYXINqxmov0DY4SIPU+IbU1YsJcbE1d6yXOT9PC357cUMpK/d4wzfAdYSAVaiP1qhEyQcoMCQh9HMfXl12ODbKQabmhVjkcpZ6T8ADGV/lbuaYaxby/wcPWcY4AFJZrQ0PaavOh9wUjSPMkzXAsHnfC8QxKD2Y/jfD4REtzwPdQrrY32x/L2qpzRNr+VIlIVfFIOaMkWGzm9CECR96i+bjvRVkwnKUqoEBQbEpmhYXylWeM0fVPtmzkCOKDB0JgBrQrjR/VXVp4JJJmzZvlbHylRgoIb1JSa+KiUD/IextKk9MagCrxnsutCvH5iOEmGt+zdlkR4MDFmtD0yMdcHXDBqCdDX7OGzgpFFCeMXQxSKqGaS2gawLfoIkenx9h7IFmDahM1sz6C/UxPwzAcBq253SdwyirlHKEZohiwE2OCMUgnn9mP3UwLQGxMC6A7qPLS12Ute15nUXy10AciOnW2veWi8vvuKQ6kKf+muJAW6fDaCbvLhACQG8S/cigojiMSz1+Tm6dL3akosviseszHUEPZm7jcsWwff08OR6rGQ3RJd4diEXwTQhHCQuTQ654eVBZy7A3qdUaHdKXlaGl7hh0QaIN7gIpsVXiaKdgx1A4+U9oSTCOFAqlCrnkp0Dz1FOCHERXPZ66g5ghRPTO79XT5ng78qOA42PG0mrc6FoIMFDqJzgtFjp6gH4PAX3JMENqDBEe7UnVAUDpqRzJgr0tiCNcydUw5AeZeh4OQGFAYblO0HvOmUAi4IL+q4mSKp8aUYb7n4Mk7unAHN6aZQTYBiq0xwSWfuc3oKgvBm9uIx3Ic8J3CGrUkOAELMSNZ+7QIrXmX9A0GGV6s6FAB8IEsgVJ/eCit4WVE2gszKI0GK4SdM0W+GxfmnkzKonoGgEGX+iLQKc26uvAgKC9WorX5Vus90+JoBqg1C8JTxXe/bqu42tGwdyue3+2/2iQf6gYlGh+f8IOXR/2/R2QgAAAABJRU5ErkJggg==',
+                      'width' => '100%',
+                      'container-background-color' => '#F1F1F1',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  1 => 
+                  array (
+                    'type' => 'advanced_image',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'height' => 'auto',
+                      'padding' => '0px 0px 0px 0px',
+                      'src' => $image_path . 'podcast-welcome/hero.jpeg',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  2 => 
+                  array (
+                    'type' => 'advanced_text',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><font color="#ffffff">Welcome to Creator’s Corner</font></span></div>',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'padding' => '12px 25px 10px 25px',
+                      'align' => 'left',
+                      'font-size' => '30px',
+                      'font-weight' => '600',
+                      'container-background-color' => '#000000',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  3 => 
+                  array (
+                    'type' => 'advanced_text',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'content' => '<div style="text-align: center;"><span style="color: rgb(255, 255, 255); word-spacing: normal;">The podcast that is dedicated to empowering creators, indie hackers, and side hustlers like you! We\'re thrilled to have you on board for this exciting journey of inspiration, knowledge, and growth.</span></div>',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'padding' => '0px 25px 10px 25px',
+                      'align' => 'left',
+                      'container-background-color' => '#000000',
+                      'font-size' => '16px',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  4 => 
+                  array (
+                    'type' => 'advanced_button',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'content' => 'Listen Now',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'font-family' => 'Arial',
+                      'background-color' => '#00FE61',
+                      'color' => '#000000',
+                      'font-weight' => 'normal',
+                      'font-style' => 'normal',
+                      'border-radius' => '3px',
+                      'padding' => '10px 25px 20px 25px',
+                      'inner-padding' => '10px 25px 10px 25px',
+                      'font-size' => '16px',
+                      'line-height' => '1.2',
+                      'target' => '_blank',
+                      'vertical-align' => 'middle',
+                      'border' => 'none',
+                      'text-align' => 'center',
+                      'letter-spacing' => 'normal',
+                      'href' => '#',
+                      'container-background-color' => '#000000',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  5 => 
+                  array (
+                    'type' => 'advanced_divider',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'border-width' => '1px',
+                      'border-style' => 'solid',
+                      'border-color' => '#C9CCCF',
+                      'padding' => '10px 0px 10px 0px',
+                      'container-background-color' => '#000000',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  6 => 
+                  array (
+                    'type' => 'advanced_text',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'content' => '<div style="text-align: center;"><span style="color: rgb(255, 255, 255); word-spacing: normal;"><b>Check out our best episodes</b></span></div>',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'padding' => '10px 25px 10px 25px',
+                      'align' => 'left',
+                      'container-background-color' => '#000000',
+                      'font-size' => '30px',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  7 => 
+                  array (
+                    'type' => 'advanced_section',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'noWrap' => false,
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#000000',
+                      'padding' => '20px 10px 20px 10px',
+                      'background-repeat' => 'repeat',
+                      'background-size' => 'auto',
+                      'background-position' => 'top center',
+                      'border' => 'none',
+                      'direction' => 'ltr',
+                      'text-align' => 'center',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              'src' => $image_path . '/podcast-welcome/insta-model.webp',
+                              'border-radius' => '5px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#ffffff"><b>#320: Instagram reels to $20Mn beauty lines</b></font>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 25px 10px 0px',
+                              'align' => 'left',
+                              'font-size' => '16px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#e0e0e0">Learn the secrets of a successful influencer who created her line of makeup products.</font>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                              'font-size' => '15px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          3 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<span data-slate-fragment="JTVCJTdCJTIydHlwZSUyMiUzQSUyMmRvY3VtZW50JTIyJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJkb2N1bWVudCUyMiUzQSU3QiUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMiUyMzMzMzMzMyUyMiU3RCUyQyUyMmJ1dHRvbiUyMiUzQSU3QiUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMiUyMzAwMDAwMCUyMiUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzZmZmZmZmJTIyJTJDJTIyYm9yZGVyUmFkaXVzJTIyJTNBJTIyNCUyMiU3RCU3RCUyQyUyMmNoaWxkcmVuJTIyJTNBJTVCJTdCJTIydHlwZSUyMiUzQSUyMnNlY3Rpb24lMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJsYXlvdXQlMjIlMkMlMjJiYWNrZ3JvdW5kQ29sb3IlMjIlM0ElMjJ0cmFuc3BhcmVudCUyMiUyQyUyMmJhY2tncm91bmRJbWFnZSUyMiUzQSUyMiUyMiUyQyUyMnBhZGRpbmdUb3AlMjIlM0EwJTJDJTIycGFkZGluZ1JpZ2h0JTIyJTNBMCUyQyUyMnBhZGRpbmdCb3R0b20lMjIlM0EwJTJDJTIycGFkZGluZ0xlZnQlMjIlM0EwJTJDJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpblJpZ2h0JTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTM2JTJDJTIybWFyZ2luTGVmdCUyMiUzQTAlMkMlMjJib3JkZXJUb3BMZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlclRvcFJpZ2h0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbUxlZnRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tUmlnaHRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyQ29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJib3JkZXJTdHlsZSUyMiUzQSUyMnNvbGlkJTIyJTJDJTIyYm9yZGVyVG9wV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyUmlnaHRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJMZWZ0V2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tV2lkdGglMjIlM0EwJTJDJTIyZ2FwJTIyJTNBNDAlMkMlMjJjb2x1bW5zJTIyJTNBMiUyQyUyMmNvbHVtblJhdGlvJTIyJTNBNTAlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJjb2x1bW4lMjIlMkMlMjJwYWRkaW5nVG9wJTIyJTNBMCUyQyUyMnBhZGRpbmdSaWdodCUyMiUzQTAlMkMlMjJwYWRkaW5nQm90dG9tJTIyJTNBMCUyQyUyMnBhZGRpbmdMZWZ0JTIyJTNBMCUyQyUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMnRyYW5zcGFyZW50JTIyJTJDJTIyYmFja2dyb3VuZEltYWdlJTIyJTNBJTIyJTIyJTJDJTIyYm9yZGVyQ29sb3IlMjIlM0ElMjIlMjNGRkYlMjIlMkMlMjJib3JkZXJTdHlsZSUyMiUzQSUyMnNvbGlkJTIyJTJDJTIyYm9yZGVyVG9wV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyUmlnaHRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJMZWZ0V2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyVG9wTGVmdFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJUb3BSaWdodFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21MZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbVJpZ2h0UmFkaXVzJTIyJTNBMCUyQyUyMnZlcnRpY2FsQWxpZ24lMjIlM0ElMjJ0b3AlMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJwYXJhZ3JhcGglMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnRleHQlMjIlM0ElMjJMaXN0ZW4lMjBOb3clMjIlMkMlMjJjb2xvciUyMiUzQSUyMiUyMzAwZmU2MSUyMiUyQyUyMmJvbGQlMjIlM0F0cnVlJTdEJTVEJTdEJTVEJTJDJTIyY2FyZCUyMiUzQWZhbHNlJTJDJTIyY2FyZEltYWdlJTIyJTNBJTIyJTIyJTJDJTIyY2FyZEltYWdlQWx0JTIyJTNBJTIyJTIyJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJoZWFkaW5nLXRocmVlJTIyJTNBJTdCJTIyZm9udFNpemUlMjIlM0EyMCUyQyUyMm1hcmdpblRvcCUyMiUzQTE4JTdEJTJDJTIycGFyYWdyYXBoJTIyJTNBJTdCJTIyZm9udFNpemUlMjIlM0ExNSU3RCU3RCU3RCU1RCUyQyUyMnRoZW1lJTIyJTNBJTdCJTIyaGVhZGluZy1vbmUlMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy10d28lMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy10aHJlZSUyMiUzQSU3QiUyMm1hcmdpblRvcCUyMiUzQTAlMkMlMjJtYXJnaW5Cb3R0b20lMjIlM0EwJTJDJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNzAwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNGRkYlMjIlN0QlMkMlMjJoZWFkaW5nLWZvdXIlMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy1maXZlJTIyJTNBJTdCJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJmb250RmFtaWx5JTIyJTNBJTIyJ05ldyUyMFlvcmsnJTJDJTIwQ2hhcnRlciUyQyUyMEdlb3JnaWElMkMlMjBzZXJpZiUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E3MDAlMkMlMjJjb2xvciUyMiUzQSUyMiUyM0ZGRiUyMiU3RCUyQyUyMmhlYWRpbmctc2l4JTIyJTNBJTdCJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJmb250RmFtaWx5JTIyJTNBJTIyJ05ldyUyMFlvcmsnJTJDJTIwQ2hhcnRlciUyQyUyMEdlb3JnaWElMkMlMjBzZXJpZiUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E3MDAlMkMlMjJjb2xvciUyMiUzQSUyMiUyM0ZGRiUyMiU3RCUyQyUyMnBhcmFncmFwaCUyMiUzQSU3QiUyMm1hcmdpblRvcCUyMiUzQTglMkMlMjJtYXJnaW5Cb3R0b20lMjIlM0E4JTJDJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNFMEUwRTAlMjIlN0QlN0QlMkMlMjJjb2x1bW5TdGFja2luZyUyMiUzQSUyMnN0YWNrJTIyJTdEJTVEJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJoZWFkaW5nLW9uZSUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0E0MCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzZmZmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuMiUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMmhlYWRpbmctdHdvJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTMyJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNmZmYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNzAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIyaGVhZGluZy10aHJlZSUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0EyMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRjJGMkYyJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMmhlYWRpbmctZm91ciUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMjQlMkMlMjJjb2xvciUyMiUzQSUyMiUyMzAwMDAwMCUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJoZWFkaW5nLWZpdmUlMjIlM0ElN0IlMjJmb250RmFtaWx5JTIyJTNBJTIyLWFwcGxlLXN5c3RlbSUyQyUyMEJsaW5rTWFjU3lzdGVtRm9udCUyQyUyMHNhbnMtc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTIwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIyaGVhZGluZy1zaXglMjIlM0ElN0IlMjJmb250RmFtaWx5JTIyJTNBJTIyLWFwcGxlLXN5c3RlbSUyQyUyMEJsaW5rTWFjU3lzdGVtRm9udCUyQyUyMHNhbnMtc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTE2JTJDJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIycGFyYWdyYXBoJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMi1hcHBsZS1zeXN0ZW0lMkMlMjBCbGlua01hY1N5c3RlbUZvbnQlMkMlMjBzYW5zLXNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0ExNiUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzMzUzNTM1JTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMm9yZGVyZWQtbGlzdCUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMTglMkMlMjJjb2xvciUyMiUzQSUyMiUyMzM1MzUzNSUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJ1bm9yZGVyZWQtbGlzdCUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMTglMkMlMjJjb2xvciUyMiUzQSUyMiUyMzM1MzUzNSUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJibG9ja3F1b3RlJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMi1hcHBsZS1zeXN0ZW0lMkMlMjBCbGlua01hY1N5c3RlbUZvbnQlMkMlMjBzYW5zLXNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0ExOCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzMzUzNTM1JTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiUyQyUyMmJvcmRlckxlZnRXaWR0aCUyMiUzQTUlMkMlMjJib3JkZXJMZWZ0Q29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlN0QlMkMlMjJsaW5rJTIyJTNBJTdCJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwZmYlMjIlN0QlN0QlMkMlMjJiYWNrZ3JvdW5kQ29sb3IlMjIlM0ElMjIlMjMxMTExMTElMjIlMkMlMjJiYWNrZ3JvdW5kSW1hZ2UlMjIlM0FudWxsJTJDJTIyYmFja2dyb3VuZE9wYWNpdHklMjIlM0ExJTJDJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpblJpZ2h0JTIyJTNBJTIyYXV0byUyMiUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJtYXJnaW5MZWZ0JTIyJTNBJTIyYXV0byUyMiUyQyUyMnBhZGRpbmdUb3AlMjIlM0EzOCUyQyUyMnBhZGRpbmdSaWdodCUyMiUzQTYwJTJDJTIycGFkZGluZ0JvdHRvbSUyMiUzQTM4JTJDJTIycGFkZGluZ0xlZnQlMjIlM0E2MCUyQyUyMmJvcmRlckNvbG9yJTIyJTNBJTIyJTIzRURGMkY0JTIyJTJDJTIyYm9yZGVyVG9wUmlnaHRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyVG9wTGVmdFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21SaWdodFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21MZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlclRvcFdpZHRoJTIyJTNBMCUyQyUyMmJvcmRlckxlZnRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJSaWdodFdpZHRoJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbVdpZHRoJTIyJTNBMCUyQyUyMm1heFdpZHRoJTIyJTNBNzAwJTJDJTIyY29udGVudFdpZHRoJTIyJTNBbnVsbCU3RCU1RCUyQyUyMmJ1aWx0V2l0aFNldHRpbmdzJTIyJTNBJTdCJTIyc2hvdyUyMiUzQWZhbHNlJTJDJTIyYWxpZ25tZW50JTIyJTNBJTIyY2VudGVyJTIyJTdEJTdEJTVE" style="white-space: pre;"><font color="#00fe61"><a href="#" target="_blank" style="color: inherit; text-decoration: underline;"><b>Listen Now</b></a></font></span><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 25px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              'src' => $image_path . '/podcast-welcome/game-dev.webp',
+                              'border-radius' => '5px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#ffffff"><b>#128: Building a viral game that broke the internet</b></font><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 25px 10px 0px',
+                              'align' => 'left',
+                              'font-size' => '16px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#e0e0e0">Discover how Jack transformed his creative hobbies into a successful side hustle</font><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                              'font-size' => '15px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          3 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<span data-slate-fragment="JTVCJTdCJTIydHlwZSUyMiUzQSUyMmRvY3VtZW50JTIyJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJkb2N1bWVudCUyMiUzQSU3QiUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMiUyMzMzMzMzMyUyMiU3RCUyQyUyMmJ1dHRvbiUyMiUzQSU3QiUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMiUyMzAwMDAwMCUyMiUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzZmZmZmZmJTIyJTJDJTIyYm9yZGVyUmFkaXVzJTIyJTNBJTIyNCUyMiU3RCU3RCUyQyUyMmNoaWxkcmVuJTIyJTNBJTVCJTdCJTIydHlwZSUyMiUzQSUyMnNlY3Rpb24lMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJsYXlvdXQlMjIlMkMlMjJiYWNrZ3JvdW5kQ29sb3IlMjIlM0ElMjJ0cmFuc3BhcmVudCUyMiUyQyUyMmJhY2tncm91bmRJbWFnZSUyMiUzQSUyMiUyMiUyQyUyMnBhZGRpbmdUb3AlMjIlM0EwJTJDJTIycGFkZGluZ1JpZ2h0JTIyJTNBMCUyQyUyMnBhZGRpbmdCb3R0b20lMjIlM0EwJTJDJTIycGFkZGluZ0xlZnQlMjIlM0EwJTJDJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpblJpZ2h0JTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTM2JTJDJTIybWFyZ2luTGVmdCUyMiUzQTAlMkMlMjJib3JkZXJUb3BMZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlclRvcFJpZ2h0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbUxlZnRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tUmlnaHRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyQ29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJib3JkZXJTdHlsZSUyMiUzQSUyMnNvbGlkJTIyJTJDJTIyYm9yZGVyVG9wV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyUmlnaHRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJMZWZ0V2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tV2lkdGglMjIlM0EwJTJDJTIyZ2FwJTIyJTNBNDAlMkMlMjJjb2x1bW5zJTIyJTNBMiUyQyUyMmNvbHVtblJhdGlvJTIyJTNBNTAlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJjb2x1bW4lMjIlMkMlMjJwYWRkaW5nVG9wJTIyJTNBMCUyQyUyMnBhZGRpbmdSaWdodCUyMiUzQTAlMkMlMjJwYWRkaW5nQm90dG9tJTIyJTNBMCUyQyUyMnBhZGRpbmdMZWZ0JTIyJTNBMCUyQyUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMnRyYW5zcGFyZW50JTIyJTJDJTIyYmFja2dyb3VuZEltYWdlJTIyJTNBJTIyJTIyJTJDJTIyYm9yZGVyQ29sb3IlMjIlM0ElMjIlMjNGRkYlMjIlMkMlMjJib3JkZXJTdHlsZSUyMiUzQSUyMnNvbGlkJTIyJTJDJTIyYm9yZGVyVG9wV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyUmlnaHRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJMZWZ0V2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyVG9wTGVmdFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJUb3BSaWdodFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21MZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbVJpZ2h0UmFkaXVzJTIyJTNBMCUyQyUyMnZlcnRpY2FsQWxpZ24lMjIlM0ElMjJ0b3AlMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJwYXJhZ3JhcGglMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnRleHQlMjIlM0ElMjJMaXN0ZW4lMjBOb3clMjIlMkMlMjJjb2xvciUyMiUzQSUyMiUyMzAwZmU2MSUyMiUyQyUyMmJvbGQlMjIlM0F0cnVlJTdEJTVEJTdEJTVEJTJDJTIyY2FyZCUyMiUzQWZhbHNlJTJDJTIyY2FyZEltYWdlJTIyJTNBJTIyJTIyJTJDJTIyY2FyZEltYWdlQWx0JTIyJTNBJTIyJTIyJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJoZWFkaW5nLXRocmVlJTIyJTNBJTdCJTIyZm9udFNpemUlMjIlM0EyMCUyQyUyMm1hcmdpblRvcCUyMiUzQTE4JTdEJTJDJTIycGFyYWdyYXBoJTIyJTNBJTdCJTIyZm9udFNpemUlMjIlM0ExNSU3RCU3RCU3RCU1RCUyQyUyMnRoZW1lJTIyJTNBJTdCJTIyaGVhZGluZy1vbmUlMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy10d28lMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy10aHJlZSUyMiUzQSU3QiUyMm1hcmdpblRvcCUyMiUzQTAlMkMlMjJtYXJnaW5Cb3R0b20lMjIlM0EwJTJDJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNzAwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNGRkYlMjIlN0QlMkMlMjJoZWFkaW5nLWZvdXIlMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy1maXZlJTIyJTNBJTdCJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJmb250RmFtaWx5JTIyJTNBJTIyJ05ldyUyMFlvcmsnJTJDJTIwQ2hhcnRlciUyQyUyMEdlb3JnaWElMkMlMjBzZXJpZiUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E3MDAlMkMlMjJjb2xvciUyMiUzQSUyMiUyM0ZGRiUyMiU3RCUyQyUyMmhlYWRpbmctc2l4JTIyJTNBJTdCJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJmb250RmFtaWx5JTIyJTNBJTIyJ05ldyUyMFlvcmsnJTJDJTIwQ2hhcnRlciUyQyUyMEdlb3JnaWElMkMlMjBzZXJpZiUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E3MDAlMkMlMjJjb2xvciUyMiUzQSUyMiUyM0ZGRiUyMiU3RCUyQyUyMnBhcmFncmFwaCUyMiUzQSU3QiUyMm1hcmdpblRvcCUyMiUzQTglMkMlMjJtYXJnaW5Cb3R0b20lMjIlM0E4JTJDJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNFMEUwRTAlMjIlN0QlN0QlMkMlMjJjb2x1bW5TdGFja2luZyUyMiUzQSUyMnN0YWNrJTIyJTdEJTVEJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJoZWFkaW5nLW9uZSUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0E0MCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzZmZmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuMiUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMmhlYWRpbmctdHdvJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTMyJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNmZmYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNzAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIyaGVhZGluZy10aHJlZSUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0EyMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRjJGMkYyJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMmhlYWRpbmctZm91ciUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMjQlMkMlMjJjb2xvciUyMiUzQSUyMiUyMzAwMDAwMCUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJoZWFkaW5nLWZpdmUlMjIlM0ElN0IlMjJmb250RmFtaWx5JTIyJTNBJTIyLWFwcGxlLXN5c3RlbSUyQyUyMEJsaW5rTWFjU3lzdGVtRm9udCUyQyUyMHNhbnMtc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTIwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIyaGVhZGluZy1zaXglMjIlM0ElN0IlMjJmb250RmFtaWx5JTIyJTNBJTIyLWFwcGxlLXN5c3RlbSUyQyUyMEJsaW5rTWFjU3lzdGVtRm9udCUyQyUyMHNhbnMtc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTE2JTJDJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIycGFyYWdyYXBoJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMi1hcHBsZS1zeXN0ZW0lMkMlMjBCbGlua01hY1N5c3RlbUZvbnQlMkMlMjBzYW5zLXNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0ExNiUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzMzUzNTM1JTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMm9yZGVyZWQtbGlzdCUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMTglMkMlMjJjb2xvciUyMiUzQSUyMiUyMzM1MzUzNSUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJ1bm9yZGVyZWQtbGlzdCUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMTglMkMlMjJjb2xvciUyMiUzQSUyMiUyMzM1MzUzNSUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJibG9ja3F1b3RlJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMi1hcHBsZS1zeXN0ZW0lMkMlMjBCbGlua01hY1N5c3RlbUZvbnQlMkMlMjBzYW5zLXNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0ExOCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzMzUzNTM1JTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiUyQyUyMmJvcmRlckxlZnRXaWR0aCUyMiUzQTUlMkMlMjJib3JkZXJMZWZ0Q29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlN0QlMkMlMjJsaW5rJTIyJTNBJTdCJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwZmYlMjIlN0QlN0QlMkMlMjJiYWNrZ3JvdW5kQ29sb3IlMjIlM0ElMjIlMjMxMTExMTElMjIlMkMlMjJiYWNrZ3JvdW5kSW1hZ2UlMjIlM0FudWxsJTJDJTIyYmFja2dyb3VuZE9wYWNpdHklMjIlM0ExJTJDJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpblJpZ2h0JTIyJTNBJTIyYXV0byUyMiUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJtYXJnaW5MZWZ0JTIyJTNBJTIyYXV0byUyMiUyQyUyMnBhZGRpbmdUb3AlMjIlM0EzOCUyQyUyMnBhZGRpbmdSaWdodCUyMiUzQTYwJTJDJTIycGFkZGluZ0JvdHRvbSUyMiUzQTM4JTJDJTIycGFkZGluZ0xlZnQlMjIlM0E2MCUyQyUyMmJvcmRlckNvbG9yJTIyJTNBJTIyJTIzRURGMkY0JTIyJTJDJTIyYm9yZGVyVG9wUmlnaHRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyVG9wTGVmdFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21SaWdodFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21MZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlclRvcFdpZHRoJTIyJTNBMCUyQyUyMmJvcmRlckxlZnRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJSaWdodFdpZHRoJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbVdpZHRoJTIyJTNBMCUyQyUyMm1heFdpZHRoJTIyJTNBNzAwJTJDJTIyY29udGVudFdpZHRoJTIyJTNBbnVsbCU3RCU1RCUyQyUyMmJ1aWx0V2l0aFNldHRpbmdzJTIyJTNBJTdCJTIyc2hvdyUyMiUzQWZhbHNlJTJDJTIyYWxpZ25tZW50JTIyJTNBJTIyY2VudGVyJTIyJTdEJTdEJTVE" style="white-space: pre;"><font color="#00fe61"><a href="#" target="_blank" style="color: inherit; text-decoration: underline;"><b>Listen Now</b></a></font></span><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 25px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  8 => 
+                  array (
+                    'type' => 'advanced_section',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'noWrap' => false,
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#000000',
+                      'padding' => '20px 10px 20px 10px',
+                      'background-repeat' => 'repeat',
+                      'background-size' => 'auto',
+                      'background-position' => 'top center',
+                      'border' => 'none',
+                      'direction' => 'ltr',
+                      'text-align' => 'center',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              'src' => $image_path . '/podcast-welcome/freelancer.jpeg',
+                              'border-radius' => '5px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#ffffff"><b>#23: Thriving as a Creative Freelancer</b></font><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 25px 10px 0px',
+                              'align' => 'left',
+                              'font-size' => '16px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#e0e0e0">Explore the world of freelance creativity and gain insights from an experienced freelancer</font><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                              'font-size' => '15px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          3 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<span data-slate-fragment="JTVCJTdCJTIydHlwZSUyMiUzQSUyMmRvY3VtZW50JTIyJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJkb2N1bWVudCUyMiUzQSU3QiUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMiUyMzMzMzMzMyUyMiU3RCUyQyUyMmJ1dHRvbiUyMiUzQSU3QiUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMiUyMzAwMDAwMCUyMiUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzZmZmZmZmJTIyJTJDJTIyYm9yZGVyUmFkaXVzJTIyJTNBJTIyNCUyMiU3RCU3RCUyQyUyMmNoaWxkcmVuJTIyJTNBJTVCJTdCJTIydHlwZSUyMiUzQSUyMnNlY3Rpb24lMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJsYXlvdXQlMjIlMkMlMjJiYWNrZ3JvdW5kQ29sb3IlMjIlM0ElMjJ0cmFuc3BhcmVudCUyMiUyQyUyMmJhY2tncm91bmRJbWFnZSUyMiUzQSUyMiUyMiUyQyUyMnBhZGRpbmdUb3AlMjIlM0EwJTJDJTIycGFkZGluZ1JpZ2h0JTIyJTNBMCUyQyUyMnBhZGRpbmdCb3R0b20lMjIlM0EwJTJDJTIycGFkZGluZ0xlZnQlMjIlM0EwJTJDJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpblJpZ2h0JTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTM2JTJDJTIybWFyZ2luTGVmdCUyMiUzQTAlMkMlMjJib3JkZXJUb3BMZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlclRvcFJpZ2h0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbUxlZnRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tUmlnaHRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyQ29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJib3JkZXJTdHlsZSUyMiUzQSUyMnNvbGlkJTIyJTJDJTIyYm9yZGVyVG9wV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyUmlnaHRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJMZWZ0V2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tV2lkdGglMjIlM0EwJTJDJTIyZ2FwJTIyJTNBNDAlMkMlMjJjb2x1bW5zJTIyJTNBMiUyQyUyMmNvbHVtblJhdGlvJTIyJTNBNTAlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJjb2x1bW4lMjIlMkMlMjJwYWRkaW5nVG9wJTIyJTNBMCUyQyUyMnBhZGRpbmdSaWdodCUyMiUzQTAlMkMlMjJwYWRkaW5nQm90dG9tJTIyJTNBMCUyQyUyMnBhZGRpbmdMZWZ0JTIyJTNBMCUyQyUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMnRyYW5zcGFyZW50JTIyJTJDJTIyYmFja2dyb3VuZEltYWdlJTIyJTNBJTIyJTIyJTJDJTIyYm9yZGVyQ29sb3IlMjIlM0ElMjIlMjNGRkYlMjIlMkMlMjJib3JkZXJTdHlsZSUyMiUzQSUyMnNvbGlkJTIyJTJDJTIyYm9yZGVyVG9wV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyUmlnaHRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJMZWZ0V2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyVG9wTGVmdFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJUb3BSaWdodFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21MZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbVJpZ2h0UmFkaXVzJTIyJTNBMCUyQyUyMnZlcnRpY2FsQWxpZ24lMjIlM0ElMjJ0b3AlMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJwYXJhZ3JhcGglMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnRleHQlMjIlM0ElMjJMaXN0ZW4lMjBOb3clMjIlMkMlMjJjb2xvciUyMiUzQSUyMiUyMzAwZmU2MSUyMiUyQyUyMmJvbGQlMjIlM0F0cnVlJTdEJTVEJTdEJTVEJTJDJTIyY2FyZCUyMiUzQWZhbHNlJTJDJTIyY2FyZEltYWdlJTIyJTNBJTIyJTIyJTJDJTIyY2FyZEltYWdlQWx0JTIyJTNBJTIyJTIyJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJoZWFkaW5nLXRocmVlJTIyJTNBJTdCJTIyZm9udFNpemUlMjIlM0EyMCUyQyUyMm1hcmdpblRvcCUyMiUzQTE4JTdEJTJDJTIycGFyYWdyYXBoJTIyJTNBJTdCJTIyZm9udFNpemUlMjIlM0ExNSU3RCU3RCU3RCU1RCUyQyUyMnRoZW1lJTIyJTNBJTdCJTIyaGVhZGluZy1vbmUlMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy10d28lMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy10aHJlZSUyMiUzQSU3QiUyMm1hcmdpblRvcCUyMiUzQTAlMkMlMjJtYXJnaW5Cb3R0b20lMjIlM0EwJTJDJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNzAwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNGRkYlMjIlN0QlMkMlMjJoZWFkaW5nLWZvdXIlMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy1maXZlJTIyJTNBJTdCJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJmb250RmFtaWx5JTIyJTNBJTIyJ05ldyUyMFlvcmsnJTJDJTIwQ2hhcnRlciUyQyUyMEdlb3JnaWElMkMlMjBzZXJpZiUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E3MDAlMkMlMjJjb2xvciUyMiUzQSUyMiUyM0ZGRiUyMiU3RCUyQyUyMmhlYWRpbmctc2l4JTIyJTNBJTdCJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJmb250RmFtaWx5JTIyJTNBJTIyJ05ldyUyMFlvcmsnJTJDJTIwQ2hhcnRlciUyQyUyMEdlb3JnaWElMkMlMjBzZXJpZiUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E3MDAlMkMlMjJjb2xvciUyMiUzQSUyMiUyM0ZGRiUyMiU3RCUyQyUyMnBhcmFncmFwaCUyMiUzQSU3QiUyMm1hcmdpblRvcCUyMiUzQTglMkMlMjJtYXJnaW5Cb3R0b20lMjIlM0E4JTJDJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNFMEUwRTAlMjIlN0QlN0QlMkMlMjJjb2x1bW5TdGFja2luZyUyMiUzQSUyMnN0YWNrJTIyJTdEJTVEJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJoZWFkaW5nLW9uZSUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0E0MCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzZmZmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuMiUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMmhlYWRpbmctdHdvJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTMyJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNmZmYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNzAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIyaGVhZGluZy10aHJlZSUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0EyMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRjJGMkYyJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMmhlYWRpbmctZm91ciUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMjQlMkMlMjJjb2xvciUyMiUzQSUyMiUyMzAwMDAwMCUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJoZWFkaW5nLWZpdmUlMjIlM0ElN0IlMjJmb250RmFtaWx5JTIyJTNBJTIyLWFwcGxlLXN5c3RlbSUyQyUyMEJsaW5rTWFjU3lzdGVtRm9udCUyQyUyMHNhbnMtc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTIwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIyaGVhZGluZy1zaXglMjIlM0ElN0IlMjJmb250RmFtaWx5JTIyJTNBJTIyLWFwcGxlLXN5c3RlbSUyQyUyMEJsaW5rTWFjU3lzdGVtRm9udCUyQyUyMHNhbnMtc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTE2JTJDJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIycGFyYWdyYXBoJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMi1hcHBsZS1zeXN0ZW0lMkMlMjBCbGlua01hY1N5c3RlbUZvbnQlMkMlMjBzYW5zLXNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0ExNiUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzMzUzNTM1JTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMm9yZGVyZWQtbGlzdCUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMTglMkMlMjJjb2xvciUyMiUzQSUyMiUyMzM1MzUzNSUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJ1bm9yZGVyZWQtbGlzdCUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMTglMkMlMjJjb2xvciUyMiUzQSUyMiUyMzM1MzUzNSUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJibG9ja3F1b3RlJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMi1hcHBsZS1zeXN0ZW0lMkMlMjBCbGlua01hY1N5c3RlbUZvbnQlMkMlMjBzYW5zLXNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0ExOCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzMzUzNTM1JTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiUyQyUyMmJvcmRlckxlZnRXaWR0aCUyMiUzQTUlMkMlMjJib3JkZXJMZWZ0Q29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlN0QlMkMlMjJsaW5rJTIyJTNBJTdCJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwZmYlMjIlN0QlN0QlMkMlMjJiYWNrZ3JvdW5kQ29sb3IlMjIlM0ElMjIlMjMxMTExMTElMjIlMkMlMjJiYWNrZ3JvdW5kSW1hZ2UlMjIlM0FudWxsJTJDJTIyYmFja2dyb3VuZE9wYWNpdHklMjIlM0ExJTJDJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpblJpZ2h0JTIyJTNBJTIyYXV0byUyMiUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJtYXJnaW5MZWZ0JTIyJTNBJTIyYXV0byUyMiUyQyUyMnBhZGRpbmdUb3AlMjIlM0EzOCUyQyUyMnBhZGRpbmdSaWdodCUyMiUzQTYwJTJDJTIycGFkZGluZ0JvdHRvbSUyMiUzQTM4JTJDJTIycGFkZGluZ0xlZnQlMjIlM0E2MCUyQyUyMmJvcmRlckNvbG9yJTIyJTNBJTIyJTIzRURGMkY0JTIyJTJDJTIyYm9yZGVyVG9wUmlnaHRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyVG9wTGVmdFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21SaWdodFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21MZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlclRvcFdpZHRoJTIyJTNBMCUyQyUyMmJvcmRlckxlZnRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJSaWdodFdpZHRoJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbVdpZHRoJTIyJTNBMCUyQyUyMm1heFdpZHRoJTIyJTNBNzAwJTJDJTIyY29udGVudFdpZHRoJTIyJTNBbnVsbCU3RCU1RCUyQyUyMmJ1aWx0V2l0aFNldHRpbmdzJTIyJTNBJTdCJTIyc2hvdyUyMiUzQWZhbHNlJTJDJTIyYWxpZ25tZW50JTIyJTNBJTIyY2VudGVyJTIyJTdEJTdEJTVE" style="white-space: pre;"><font color="#00fe61"><a href="#" target="_blank" style="color: inherit; text-decoration: underline;"><b>Listen Now</b></a></font></span><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 25px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              'src' => $image_path . '/podcast-welcome/store-owner.jpeg',
+                              'border-radius' => '5px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#ffffff"><b>#215: Building an Online Store That Stands Out</b></font><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 25px 10px 0px',
+                              'align' => 'left',
+                              'font-size' => '16px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#e0e0e0">Discover the secrets to creating a thriving online store and standing out</font><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                              'font-size' => '15px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          3 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<span data-slate-fragment="JTVCJTdCJTIydHlwZSUyMiUzQSUyMmRvY3VtZW50JTIyJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJkb2N1bWVudCUyMiUzQSU3QiUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMiUyMzMzMzMzMyUyMiU3RCUyQyUyMmJ1dHRvbiUyMiUzQSU3QiUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMiUyMzAwMDAwMCUyMiUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzZmZmZmZmJTIyJTJDJTIyYm9yZGVyUmFkaXVzJTIyJTNBJTIyNCUyMiU3RCU3RCUyQyUyMmNoaWxkcmVuJTIyJTNBJTVCJTdCJTIydHlwZSUyMiUzQSUyMnNlY3Rpb24lMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJsYXlvdXQlMjIlMkMlMjJiYWNrZ3JvdW5kQ29sb3IlMjIlM0ElMjJ0cmFuc3BhcmVudCUyMiUyQyUyMmJhY2tncm91bmRJbWFnZSUyMiUzQSUyMiUyMiUyQyUyMnBhZGRpbmdUb3AlMjIlM0EwJTJDJTIycGFkZGluZ1JpZ2h0JTIyJTNBMCUyQyUyMnBhZGRpbmdCb3R0b20lMjIlM0EwJTJDJTIycGFkZGluZ0xlZnQlMjIlM0EwJTJDJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpblJpZ2h0JTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTM2JTJDJTIybWFyZ2luTGVmdCUyMiUzQTAlMkMlMjJib3JkZXJUb3BMZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlclRvcFJpZ2h0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbUxlZnRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tUmlnaHRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyQ29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJib3JkZXJTdHlsZSUyMiUzQSUyMnNvbGlkJTIyJTJDJTIyYm9yZGVyVG9wV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyUmlnaHRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJMZWZ0V2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tV2lkdGglMjIlM0EwJTJDJTIyZ2FwJTIyJTNBNDAlMkMlMjJjb2x1bW5zJTIyJTNBMiUyQyUyMmNvbHVtblJhdGlvJTIyJTNBNTAlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJjb2x1bW4lMjIlMkMlMjJwYWRkaW5nVG9wJTIyJTNBMCUyQyUyMnBhZGRpbmdSaWdodCUyMiUzQTAlMkMlMjJwYWRkaW5nQm90dG9tJTIyJTNBMCUyQyUyMnBhZGRpbmdMZWZ0JTIyJTNBMCUyQyUyMmJhY2tncm91bmRDb2xvciUyMiUzQSUyMnRyYW5zcGFyZW50JTIyJTJDJTIyYmFja2dyb3VuZEltYWdlJTIyJTNBJTIyJTIyJTJDJTIyYm9yZGVyQ29sb3IlMjIlM0ElMjIlMjNGRkYlMjIlMkMlMjJib3JkZXJTdHlsZSUyMiUzQSUyMnNvbGlkJTIyJTJDJTIyYm9yZGVyVG9wV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyUmlnaHRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJMZWZ0V2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyQm90dG9tV2lkdGglMjIlM0EwJTJDJTIyYm9yZGVyVG9wTGVmdFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJUb3BSaWdodFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21MZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbVJpZ2h0UmFkaXVzJTIyJTNBMCUyQyUyMnZlcnRpY2FsQWxpZ24lMjIlM0ElMjJ0b3AlMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnR5cGUlMjIlM0ElMjJwYXJhZ3JhcGglMjIlMkMlMjJjaGlsZHJlbiUyMiUzQSU1QiU3QiUyMnRleHQlMjIlM0ElMjJMaXN0ZW4lMjBOb3clMjIlMkMlMjJjb2xvciUyMiUzQSUyMiUyMzAwZmU2MSUyMiUyQyUyMmJvbGQlMjIlM0F0cnVlJTdEJTVEJTdEJTVEJTJDJTIyY2FyZCUyMiUzQWZhbHNlJTJDJTIyY2FyZEltYWdlJTIyJTNBJTIyJTIyJTJDJTIyY2FyZEltYWdlQWx0JTIyJTNBJTIyJTIyJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJoZWFkaW5nLXRocmVlJTIyJTNBJTdCJTIyZm9udFNpemUlMjIlM0EyMCUyQyUyMm1hcmdpblRvcCUyMiUzQTE4JTdEJTJDJTIycGFyYWdyYXBoJTIyJTNBJTdCJTIyZm9udFNpemUlMjIlM0ExNSU3RCU3RCU3RCU1RCUyQyUyMnRoZW1lJTIyJTNBJTdCJTIyaGVhZGluZy1vbmUlMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy10d28lMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy10aHJlZSUyMiUzQSU3QiUyMm1hcmdpblRvcCUyMiUzQTAlMkMlMjJtYXJnaW5Cb3R0b20lMjIlM0EwJTJDJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNzAwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNGRkYlMjIlN0QlMkMlMjJoZWFkaW5nLWZvdXIlMjIlM0ElN0IlMjJtYXJnaW5Ub3AlMjIlM0EwJTJDJTIybWFyZ2luQm90dG9tJTIyJTNBMCUyQyUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRkZGJTIyJTdEJTJDJTIyaGVhZGluZy1maXZlJTIyJTNBJTdCJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJmb250RmFtaWx5JTIyJTNBJTIyJ05ldyUyMFlvcmsnJTJDJTIwQ2hhcnRlciUyQyUyMEdlb3JnaWElMkMlMjBzZXJpZiUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E3MDAlMkMlMjJjb2xvciUyMiUzQSUyMiUyM0ZGRiUyMiU3RCUyQyUyMmhlYWRpbmctc2l4JTIyJTNBJTdCJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJmb250RmFtaWx5JTIyJTNBJTIyJ05ldyUyMFlvcmsnJTJDJTIwQ2hhcnRlciUyQyUyMEdlb3JnaWElMkMlMjBzZXJpZiUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E3MDAlMkMlMjJjb2xvciUyMiUzQSUyMiUyM0ZGRiUyMiU3RCUyQyUyMnBhcmFncmFwaCUyMiUzQSU3QiUyMm1hcmdpblRvcCUyMiUzQTglMkMlMjJtYXJnaW5Cb3R0b20lMjIlM0E4JTJDJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNFMEUwRTAlMjIlN0QlN0QlMkMlMjJjb2x1bW5TdGFja2luZyUyMiUzQSUyMnN0YWNrJTIyJTdEJTVEJTJDJTIydGhlbWUlMjIlM0ElN0IlMjJoZWFkaW5nLW9uZSUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0E0MCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzZmZmJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTcwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuMiUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMmhlYWRpbmctdHdvJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMidOZXclMjBZb3JrJyUyQyUyMENoYXJ0ZXIlMkMlMjBHZW9yZ2lhJTJDJTIwc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTMyJTJDJTIyY29sb3IlMjIlM0ElMjIlMjNmZmYlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNzAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIyaGVhZGluZy10aHJlZSUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjInTmV3JTIwWW9yayclMkMlMjBDaGFydGVyJTJDJTIwR2VvcmdpYSUyQyUyMHNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0EyMCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzRjJGMkYyJTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMmhlYWRpbmctZm91ciUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMjQlMkMlMjJjb2xvciUyMiUzQSUyMiUyMzAwMDAwMCUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJoZWFkaW5nLWZpdmUlMjIlM0ElN0IlMjJmb250RmFtaWx5JTIyJTNBJTIyLWFwcGxlLXN5c3RlbSUyQyUyMEJsaW5rTWFjU3lzdGVtRm9udCUyQyUyMHNhbnMtc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTIwJTJDJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIyaGVhZGluZy1zaXglMjIlM0ElN0IlMjJmb250RmFtaWx5JTIyJTNBJTIyLWFwcGxlLXN5c3RlbSUyQyUyMEJsaW5rTWFjU3lzdGVtRm9udCUyQyUyMHNhbnMtc2VyaWYlMjIlMkMlMjJmb250U2l6ZSUyMiUzQTE2JTJDJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlMkMlMjJmb250V2VpZ2h0JTIyJTNBNDAwJTJDJTIybGV0dGVyU3BhY2luZyUyMiUzQTAlMkMlMjJsaW5lSGVpZ2h0JTIyJTNBMS41JTJDJTIydGV4dEFsaWduJTIyJTNBJTIybGVmdCUyMiUyQyUyMnRleHRUcmFuc2Zvcm0lMjIlM0ElMjJub25lJTIyJTdEJTJDJTIycGFyYWdyYXBoJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMi1hcHBsZS1zeXN0ZW0lMkMlMjBCbGlua01hY1N5c3RlbUZvbnQlMkMlMjBzYW5zLXNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0ExNiUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzMzUzNTM1JTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiU3RCUyQyUyMm9yZGVyZWQtbGlzdCUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMTglMkMlMjJjb2xvciUyMiUzQSUyMiUyMzM1MzUzNSUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJ1bm9yZGVyZWQtbGlzdCUyMiUzQSU3QiUyMmZvbnRGYW1pbHklMjIlM0ElMjItYXBwbGUtc3lzdGVtJTJDJTIwQmxpbmtNYWNTeXN0ZW1Gb250JTJDJTIwc2Fucy1zZXJpZiUyMiUyQyUyMmZvbnRTaXplJTIyJTNBMTglMkMlMjJjb2xvciUyMiUzQSUyMiUyMzM1MzUzNSUyMiUyQyUyMmZvbnRXZWlnaHQlMjIlM0E0MDAlMkMlMjJsZXR0ZXJTcGFjaW5nJTIyJTNBMCUyQyUyMmxpbmVIZWlnaHQlMjIlM0ExLjUlMkMlMjJ0ZXh0QWxpZ24lMjIlM0ElMjJsZWZ0JTIyJTJDJTIydGV4dFRyYW5zZm9ybSUyMiUzQSUyMm5vbmUlMjIlN0QlMkMlMjJibG9ja3F1b3RlJTIyJTNBJTdCJTIyZm9udEZhbWlseSUyMiUzQSUyMi1hcHBsZS1zeXN0ZW0lMkMlMjBCbGlua01hY1N5c3RlbUZvbnQlMkMlMjBzYW5zLXNlcmlmJTIyJTJDJTIyZm9udFNpemUlMjIlM0ExOCUyQyUyMmNvbG9yJTIyJTNBJTIyJTIzMzUzNTM1JTIyJTJDJTIyZm9udFdlaWdodCUyMiUzQTQwMCUyQyUyMmxldHRlclNwYWNpbmclMjIlM0EwJTJDJTIybGluZUhlaWdodCUyMiUzQTEuNSUyQyUyMnRleHRBbGlnbiUyMiUzQSUyMmxlZnQlMjIlMkMlMjJ0ZXh0VHJhbnNmb3JtJTIyJTNBJTIybm9uZSUyMiUyQyUyMmJvcmRlckxlZnRXaWR0aCUyMiUzQTUlMkMlMjJib3JkZXJMZWZ0Q29sb3IlMjIlM0ElMjIlMjMwMDAwMDAlMjIlN0QlMkMlMjJsaW5rJTIyJTNBJTdCJTIyY29sb3IlMjIlM0ElMjIlMjMwMDAwZmYlMjIlN0QlN0QlMkMlMjJiYWNrZ3JvdW5kQ29sb3IlMjIlM0ElMjIlMjMxMTExMTElMjIlMkMlMjJiYWNrZ3JvdW5kSW1hZ2UlMjIlM0FudWxsJTJDJTIyYmFja2dyb3VuZE9wYWNpdHklMjIlM0ExJTJDJTIybWFyZ2luVG9wJTIyJTNBMCUyQyUyMm1hcmdpblJpZ2h0JTIyJTNBJTIyYXV0byUyMiUyQyUyMm1hcmdpbkJvdHRvbSUyMiUzQTAlMkMlMjJtYXJnaW5MZWZ0JTIyJTNBJTIyYXV0byUyMiUyQyUyMnBhZGRpbmdUb3AlMjIlM0EzOCUyQyUyMnBhZGRpbmdSaWdodCUyMiUzQTYwJTJDJTIycGFkZGluZ0JvdHRvbSUyMiUzQTM4JTJDJTIycGFkZGluZ0xlZnQlMjIlM0E2MCUyQyUyMmJvcmRlckNvbG9yJTIyJTNBJTIyJTIzRURGMkY0JTIyJTJDJTIyYm9yZGVyVG9wUmlnaHRSYWRpdXMlMjIlM0EwJTJDJTIyYm9yZGVyVG9wTGVmdFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21SaWdodFJhZGl1cyUyMiUzQTAlMkMlMjJib3JkZXJCb3R0b21MZWZ0UmFkaXVzJTIyJTNBMCUyQyUyMmJvcmRlclRvcFdpZHRoJTIyJTNBMCUyQyUyMmJvcmRlckxlZnRXaWR0aCUyMiUzQTAlMkMlMjJib3JkZXJSaWdodFdpZHRoJTIyJTNBMCUyQyUyMmJvcmRlckJvdHRvbVdpZHRoJTIyJTNBMCUyQyUyMm1heFdpZHRoJTIyJTNBNzAwJTJDJTIyY29udGVudFdpZHRoJTIyJTNBbnVsbCU3RCU1RCUyQyUyMmJ1aWx0V2l0aFNldHRpbmdzJTIyJTNBJTdCJTIyc2hvdyUyMiUzQWZhbHNlJTJDJTIyYWxpZ25tZW50JTIyJTNBJTIyY2VudGVyJTIyJTdEJTdEJTVE" style="white-space: pre;"><font color="#00fe61"><a href="#" target="_blank" style="color: inherit; text-decoration: underline;"><b>Listen Now</b></a></font></span><br>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 25px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  9 => 
+                  array (
+                    'type' => 'advanced_divider',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'border-width' => '1px',
+                      'border-style' => 'solid',
+                      'border-color' => '#C9CCCF',
+                      'padding' => '10px 0px 10px 0px',
+                      'container-background-color' => '#000000',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  10 => 
+                  array (
+                    'type' => 'advanced_text',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'content' => '<div style="text-align: center;"><span style="color: rgb(255, 255, 255); word-spacing: normal;"><b>Meet your host</b></span></div>',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'padding' => '10px 25px 10px 25px',
+                      'align' => 'left',
+                      'container-background-color' => '#000000',
+                      'font-size' => '30px',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  11 => 
+                  array (
+                    'type' => 'advanced_section',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'noWrap' => false,
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#000000',
+                      'padding' => '0px 20px 20px 20px',
+                      'background-repeat' => 'repeat',
+                      'background-size' => 'auto',
+                      'background-position' => 'top center',
+                      'border' => 'none',
+                      'direction' => 'ltr',
+                      'text-align' => 'center',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              'src' => $image_path . '/podcast-welcome/sophia.webp',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#ffffff">Sophia Ramirez</font>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 5px 10px 25px',
+                              'align' => 'left',
+                              'font-size' => '28px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<font color="#e0e0e0">The charismatic and knowledgeable host of the podcast, is a seasoned entrepreneur with a genuine passion for helping others succeed in their creative pursuits and side hustles. With a warm and engaging personality, Sophia effortlessly connects with her listeners, making them feel like they\'re having a conversation with a trusted friend.</font>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 5px 0px 25px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  12 => 
+                  array (
+                    'type' => 'advanced_divider',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'border-width' => '1px',
+                      'border-style' => 'solid',
+                      'border-color' => '#C9CCCF',
+                      'padding' => '10px 0px 0px 0px',
+                      'container-background-color' => '#000000',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  13 => 
+                  array (
+                    'type' => 'advanced_footer',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#000000',
+                      'background-position' => 'center center',
+                      'mode' => 'fluid-height',
+                      'padding' => '0px 0px 0px 0px',
+                      'vertical-align' => 'top',
+                      'background-url' => '',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_social',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'elements' => 
+                            array (
+                              0 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAMAAAC7IEhfAAAAclBMVEUAAAA7WZg7Wpg6WZg8WJdAU586Wpg6Wpc7WZg8WZk6WZg7WZg6WZg7WZY5WJc6Wpc7WJg7WZk7W5Y6WpU7WZj////m6vKdrMvO1eW2wdhUbaWEl7+El75sgrKpt9KRosV4jbhTbqXy9fiQocVsgrFHY58FMJF5AAAAFHRSTlMAv++AIBCfQJBQ39+wcHBg0M9wMJn76TsAAAEYSURBVDjLjdTZbsMgEEDRYcziPU2LCa3rNOny/79YnESaDAaZ+2gdgQEB8JR51SLUV42CfEagpcQhw5rWRnUpKoWliMrNcGjTVdxVNlu94yhNrrFRH6G/7ewSmVr8tPZOX8wD8vWeAopgp27uwNx1IhhN3jJ4TkFU25X4Fbl5npd4N3sO3QrPNgoDtAl4snEGTBkc+aH8ej+tOe/9F4Oa/+LnRHHYgcjBC4OYh4tlcXhx7oa+nXPXGJatGkGXwSPUZVBAUwYrUKVHCKIEdgAwlkAdoMICKOmu5iHd2HYPorxDswcHeDTmIX9Uno/Hu9DPs3tREEmKu7LnTKvMe8vDATbJKjGchFRyYKNizRjvbeiPGEzb1wZY/0BgYWSlhMOpAAAAAElFTkSuQmCC',
+                                'content' => '',
+                              ),
+                              1 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAMAAAC7IEhfAAAC5VBMVEUAAAD/nTr+hUetB8b/QnD+2haQANv/2hWTAdulBcuxCsL+ozb/tiuTAdr/0xv3HoieBNH/lT//wiSTANzSE6bqG5L+KXyXAtbGELGVAdfyKYbxKoaXANW/DLP/g0j/yyCPAN/TFKP/XGD/1xjHEK7eF5v+RG7/d1H/zh/+2BegBc61C77IEa7fGJz/RW7/dlH/nTv/vSjyHYuQAN2hBs61DL76IIT+nTv/vSn/3RWQANz/3BW4Dbm5DLv9VGT9bFb91xj/0hv9VWHWFaD/blb9i0T9xSD/0Ry9Drj92xT/jEX/yCCSAN3/2hj///+sCMT3H4f+IoH/sC/UFKT/Xl7/Zlr/fkz/tyuhBc6xCsG1C77ED7HMEqvzHYr7IIT/dlD/ozaeBNLnGpTrG5H/Mnf/wyOaAtW5DLvIEK7YFaHcFp7fGJv/TWj/jUP+O3L+KXylBsuoB8fADrXPEqfvHI7+blX+qTP+vif+yCD/8viSANr+RG3+zR2pB8juHI3+lT7+qTKWAdj+VmO9Dbi8DbjQE6jjGJjjGJekBsr/nTr/0xqRANz1qNneM6z+hkf/vij+2Rf4nM7cas3/uMnhbMnmbcXDKsLMLbvYMLL/hqf+dnD/i2T/b1X/1Bv78Pv/+PT94/L/5O/uw+6VAdj4qdb9rNH/ss3/ocbqbsLub7/ILL7xcLy/DrT/oZj+p5P/Knz/Z3r/aHP/VmP+VWP+lV//hkj+lj//ySD44fX+1en5xuXck+XppeL/zd3/5839ncrqfMj7j8PxfsP6gbzSL7f/jbL/fqv/nKn/2Kf/jqL/lJ//mpz3Opf/rZD7LYz/O4P+vm7/RG7+gWr/nVv+pFf/lj/z0vH/8OjstOfklt7/6dzOZdnDR9H1mtDqitDoe8v/0LvFHrr/rLD/yK//e63wVK3aJKf/oabtOJ/+X53oKJvrKZjzLJLzK5L+RIz/PHL/RW7+Q23/b1b+blT+jFP+qjP/zh0+TXPsAAAATnRSTlMA/v4QEJCPEO/v7+/v39+/sK+vn5+QkIB/b29fQEBAQCAgICDv7+/v7+/f39/f39/f39DPz8/Pz8/Pv7+wr6CgoJ+Qj4CAgH9wcG9vYGDagDuYAAADXUlEQVQ4y3WTZVxVQRDFVxS7u7u7uztHhQcGKooYpB3PQkVCeCid0p3SAtIpnXZ3d3x2du9euI84n/+/M3tmzhJlDVi9YFzbjUfaTO/cqz9pUs17D9c6euXA9m0bz1tu3bO/Q7fBjWPL1I/tOKgVIZCHkbx0pjG07wh9PUYeNaXkEUtGdlhfn+uhY27AyQhTiad1SyWsRafje3UsKGnGPfk7kZzWXALO3LRTIPn0unf6n7GeW8f13LyLkeJ0aXZ/yfR+ujcpeYGSNjaurrkuLmHOzjQRf2cfgRs60Vj3EPN8myKHOvk9FhO1Fp650PCsMfO0g3q6jZ5sektmKLuMJHpmAMjtwkNDQpycHB3t7VOTkBQ9qeUiDVksJd8AJH+RJgq7B/CEv7MXgpNOaDDPNPAtYYn4lvwevPQCP56oNSEDNbVvUM8fAEEs++dshSLTRv1YUqrWQ/ASs/cnK65paqNnXDRAPs2eIwR/Rm9kD+DM796HdDFSYZ4IumH2LEwU8NQH4DlOpyBvSGcyy8SIebojaKz7DSDwKyZSgNc7dTNHgDB+zbGkXTOBRLDw7Pc88GXX/CSHTD11BF1469qQk7uRTNDUrgIoMqx0gGDhmgGg0NdzQlDsJ1G7uLvZXXynB0BxrKEDBB1ipB0oDPQRzBX7SdqrMU8VBCNllwtAXs5IH8i2MAgBcOX9bEumbEHyaqJRPIIashhvCMJrlgUCfNCxCEWQt24G6XqKkSbVAFG4z/cAvsGBuMssvBGCNryf88m6fQJZA1BKN/8KqOQ5NHs4gvx39CaDTiNJE3nDa3ajmAIHh7xyligAQPxHAwgZfUsg08H7D5K0IT+FJpf4QIq5QI7H9qz6d3rfdSQrAB7Fs2vGCf0sSwYI1xHI7gi28jzHyJN3AO6/KI2KiiwuKnRzyw/GRHZiP4cQlKrVOWE6ksrKEPuJhtRyDHqy7BXpEkqe9pElQnICGlKtsbUSpuONaqrjPTyq3N1joiv538Tp/QiXKiX5PlmX+O/gZA9Sq3m2bDq/pooyOZXUqdUc7il0KYFtiZOdWhCpVCXvTKTkL77PnqSeNnT0rPU0qZ0+si9poGGLcZ/U8y9P9FtDtpSNbYgu6Sj1HLUcsaY0aGXX2e3VLrab3GXtQKKk/w+PIuw30x39AAAAAElFTkSuQmCC',
+                                'content' => '',
+                              ),
+                              2 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => $image_path . $twitter,
+                                'content' => '',
+                              ),
+                            ),
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'color' => '#333333',
+                          'mode' => 'horizontal',
+                          'font-size' => '13px',
+                          'font-weight' => 'normal',
+                          'font-style' => 'normal',
+                          'font-family' => 'Arial',
+                          'border-radius' => '3px',
+                          'padding' => '15px 0px 15px 0px',
+                          'inner-padding' => '0px 20px 0px 0px',
+                          'line-height' => '1.6',
+                          'text-padding' => '4px 4px 4px 0px',
+                          'icon-padding' => '0px',
+                          'icon-size' => '25px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_divider',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'border-width' => '1px',
+                          'border-style' => 'solid',
+                          'border-color' => '#D3CFD8',
+                          'padding' => '0px 0px 15px 0px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#ffffff">{{business.name}}</font>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '10px 25px 10px 25px',
+                          'align' => 'center',
+                          'font-size' => '16px',
+                          'line-height' => '15px',
+                          'font-weight' => '500',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#ffffff">© 2024&nbsp;{{business.name}} {{business.address}}</font>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '12px 0px 12px 0px',
+                          'align' => 'center',
+                          'font-size' => '14px',
+                          'line-height' => '20px',
+                          'color' => '#908A99',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      4 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<a href="{{link.preference}}" target="_blank" style="text-decoration: underline;"><font color="#0064ff">Update Preference</font></a> . <a href="{{link.unsubscribe}}" target="_blank" style="text-decoration: underline;"><font color="#0064ff">Unsubscribe</font></a>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '10px 25px 20px 25px',
+                          'align' => 'center',
+                          'font-size' => '10px',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             'html_content'    => '',
             'thumbnail_image' => $image_path . '/thumbnails/podcast-welcome.png',
           ),
           array(
             'id'              => 50,
-            'is_pro'          => true,
+            'is_pro'          => false,
             'emailCategories' => ['Deals & Offers'],
             'industry'        => ['Fashion & Jewelry'],
             'title'           => 'Summer Collection Offers',
-            'json_content'    => [],
+            'json_content'    => array (
+              'subject' => 'Welcome to Mail Mint email marketing and automation',
+              'subTitle' => 'Nice to meet you!',
+              'content' => 
+              array (
+                'type' => 'page',
+                'data' => 
+                array (
+                  'value' => 
+                  array (
+                    'breakpoint' => '480px',
+                    'headAttributes' => '',
+                    'font-size' => '14px',
+                    'font-weight' => '400',
+                    'line-height' => '1.7',
+                    'headStyles' => 
+                    array (
+                    ),
+                    'fonts' => 
+                    array (
+                    ),
+                    'responsive' => true,
+                    'font-family' => 'Arial',
+                    'text-color' => '#000000',
+                  ),
+                ),
+                'attributes' => 
+                array (
+                  'background-color' => '#efeeea',
+                  'width' => '600px',
+                ),
+                'children' => 
+                array (
+                  0 => 
+                  array (
+                    'type' => 'advanced_image',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'height' => 'auto',
+                      'padding' => '17px 0px 17px 0px',
+                      'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAABCCAMAAABD95VFAAAAzFBMVEUAAAAOHT8NHT8MHUALHEAOHT8OHT/39/f19fUNHEDz8/P09PQOHT/09PT///8QIED09PTz8/MOHUD09PQOHEDz8/MPHEALH0AQEEAOHD/z8/P19fUOHD/19fUNHUD09PQOHT709PQNHD/19fUOHkD19fXv7+9UX3YOHUAPHD8QG0CfpbHl5enCxs0vO1ng4uVIVGylqrUOHT/09PQcKkrX2d5HUmwqOFXm5um7vseeo7Bze46BiJpkbYM5RWGPlqWBiZmtsbzJzNI6RWFWlNgqAAAAMnRSTlMAn79AIN/vIN9gQL9w7xAQYFDfkICAYDAQz6DQkHBQ338wr6CAfxD9sNAw2O/f369AMACNfgwAAAXGSURBVGjexZrbYqIwEIYDIqIWlVW3WrWu7m7d8yHDUUFr9/3faTOZ0Nii1gto/4uKJcl8zEwGEmQVqLPwer2e1+qwN1Gn1W+7kMv52GKvrMasDc/VbrDXU+czAcT7XbaNOOf+drUOAOAzeyW1CCDZbPkTZcErQXRmDgH4ZDhaZWmabkIfjwVEj1UpCoKLIbgngDBNYsiVZCIkAbh3rFIRQRKifT9b5/bd+RxQO0EFMGRV6oAg3EkAtz3zaC4seg7AhvMEHFadWk5O4G8SBJj3nxSEuwnEPs8AKpugjfYjQRqjB3IArQZAxiMAj5UuSgQACDRB2ztWmueYEdXMDApDfK8JThTlCayrYuj0AWCP1XCDBB9PxnsOKfcriUXLUWEIH87fEu4wH7YA5d+60Ak7X4RhT1E4LQ/gH86LsotUY4JOUGFwzkf6BgLO1+XXBwcgEU6IsCD0O+dxAVMygI8lI7QA7pUTJosX2vYAIh6Wnw4ejouZ4M4ucNm+/FCQf/ebgJzwgj4DhDyCkkNBeYbqX0DrYjasK7lbDB2ckBfBRuSGN1MPk5fc8FZqOBDwC91wZRhTOqoZhoGfow9mvT42bum/14ZxdXgwNaSuLD3Ee8OoqUPd/ydGggfgNMTI0zGOaD1r8tjLsjknI3XOPyGUzUljS5JxbrKDg3dc6QPLZXDe1AjUP8VI4N8eGy250jRvwpVyrAHn9givhvO6+PjAH1W3zjAQeZFhylEhwIOMRJtZdS5kSzKD2j8xgerS9WPTJiF+rXWF57HF6ChDTQRmKYYtMtAlmLW/DgSRfKRuSIuDrjBgEDc1yU2MWT64beEZg0gMlQg2sh1lQHJx1ioyYGQNzEfYcr7DSNzyx7NTyW1xHFeqqc+ZnC/xjEUBEcx5kOonGZiNnwUG6j+Rz9MbgO+MfUEoUnd51ZWerh8EztTwY4KjHqoLYh1noJiNigxfMPFuZD5uAQLfylm1zINMuqZR1BUrOFMPR+aOMZiGYXINqxmov0DY4SIPU+IbU1YsJcbE1d6yXOT9PC357cUMpK/d4wzfAdYSAVaiP1qhEyQcoMCQh9HMfXl12ODbKQabmhVjkcpZ6T8ADGV/lbuaYaxby/wcPWcY4AFJZrQ0PaavOh9wUjSPMkzXAsHnfC8QxKD2Y/jfD4REtzwPdQrrY32x/L2qpzRNr+VIlIVfFIOaMkWGzm9CECR96i+bjvRVkwnKUqoEBQbEpmhYXylWeM0fVPtmzkCOKDB0JgBrQrjR/VXVp4JJJmzZvlbHylRgoIb1JSa+KiUD/IextKk9MagCrxnsutCvH5iOEmGt+zdlkR4MDFmtD0yMdcHXDBqCdDX7OGzgpFFCeMXQxSKqGaS2gawLfoIkenx9h7IFmDahM1sz6C/UxPwzAcBq253SdwyirlHKEZohiwE2OCMUgnn9mP3UwLQGxMC6A7qPLS12Ute15nUXy10AciOnW2veWi8vvuKQ6kKf+muJAW6fDaCbvLhACQG8S/cigojiMSz1+Tm6dL3akosviseszHUEPZm7jcsWwff08OR6rGQ3RJd4diEXwTQhHCQuTQ654eVBZy7A3qdUaHdKXlaGl7hh0QaIN7gIpsVXiaKdgx1A4+U9oSTCOFAqlCrnkp0Dz1FOCHERXPZ66g5ghRPTO79XT5ng78qOA42PG0mrc6FoIMFDqJzgtFjp6gH4PAX3JMENqDBEe7UnVAUDpqRzJgr0tiCNcydUw5AeZeh4OQGFAYblO0HvOmUAi4IL+q4mSKp8aUYb7n4Mk7unAHN6aZQTYBiq0xwSWfuc3oKgvBm9uIx3Ic8J3CGrUkOAELMSNZ+7QIrXmX9A0GGV6s6FAB8IEsgVJ/eCit4WVE2gszKI0GK4SdM0W+GxfmnkzKonoGgEGX+iLQKc26uvAgKC9WorX5Vus90+JoBqg1C8JTxXe/bqu42tGwdyue3+2/2iQf6gYlGh+f8IOXR/2/R2QgAAAABJRU5ErkJggg==',
+                      'width' => '100%',
+                      'container-background-color' => '#FFFDED',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  1 => 
+                  array (
+                    'type' => 'advanced_hero',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#ffffff',
+                      'background-position' => 'center center',
+                      'mode' => 'fluid-height',
+                      'padding' => '40px 0px 40px 0px',
+                      'vertical-align' => 'top',
+                      'background-url' => $image_path . '/summer-collection/hero.webp',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#ffffff">SA</font><div><font color="#ffffff">LE</font></div>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '0px 0px 0px 0px',
+                          'align' => 'center',
+                          'color' => '#000000',
+                          'font-size' => '150px',
+                          'line-height' => '0.9',
+                          'font-weight' => '800',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#ffffff"><i>15% off on everything</i></font>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#414141',
+                          'color' => '#2B2D38',
+                          'font-weight' => 'normal',
+                          'border-radius' => '3px',
+                          'padding' => '14px 0px 30px 14px',
+                          'inner-padding' => '10px 25px 10px 25px',
+                          'line-height' => '30px',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                          'font-size' => '32px',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'button',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => 'Start Shopping',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#273616',
+                          'color' => '#ffffff',
+                          'font-size' => '16px',
+                          'font-weight' => 'normal',
+                          'border-radius' => '5px',
+                          'padding' => '0px 0px 0px 0px',
+                          'inner-padding' => '16px 30px 16px 30px',
+                          'line-height' => '120%',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                    ),
+                  ),
+                  2 => 
+                  array (
+                    'type' => 'advanced_text',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><font color="#273616">✦ Summer Sale Collection ✦</font></span></div>',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'padding' => '20px 25px 0px 25px',
+                      'align' => 'left',
+                      'font-size' => '24px',
+                      'container-background-color' => '#FFFDED',
+                      'line-height' => '1',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  3 => 
+                  array (
+                    'type' => 'advanced_section',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'noWrap' => false,
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#FFFDED',
+                      'padding' => '20px 10px 20px 10px',
+                      'background-repeat' => 'repeat',
+                      'background-size' => 'auto',
+                      'background-position' => 'top center',
+                      'border' => 'none',
+                      'direction' => 'ltr',
+                      'text-align' => 'center',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              "src" => $image_path . '/summer-collection/blue-summer-dress.png',
+                            ),
+                            'children' => array(),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><span style="color: rgb(39, 54, 22); word-spacing: normal;">Blue Summer Dress</span></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 0px 0px 0px',
+                              'align' => 'left',
+                              'font-size' => '18px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><b>$49.99 </b><strike>$</strike></span><span style="white-space: pre; text-align: left; word-spacing: normal;"><strike>79.99</strike></span></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              "src" => $image_path . '/summer-collection/orange-sunscreen.webp',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><font color="#273616">Orange Sunscreen</font><br></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 0px 0px 0px',
+                              'align' => 'left',
+                              'font-size' => '18px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><b>$89.99 </b><strike>$9</strike></span><span style="white-space: pre; text-align: left; word-spacing: normal;"><strike>9.99</strike></span></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              "src" => $image_path . '/summer-collection/straw-sun-hat.png',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><font color="#273616">Straw Sun Hat</font><br></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 0px 0px 0px',
+                              'align' => 'left',
+                              'font-size' => '18px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><b>$29.99 </b><strike>$3</strike></span><span style="white-space: pre; text-align: left; word-spacing: normal;"><strike>9.99</strike></span></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              "src" => $image_path . '/summer-collection/sunglasses.png',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><font color="#273616">Sunglasses</font><br></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 0px 0px 0px',
+                              'align' => 'left',
+                              'font-size' => '18px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><b>$15.99 </b><strike>$2</strike></span><span style="white-space: pre; text-align: left; word-spacing: normal;"><strike>9.99</strike></span></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  4 => 
+                  array (
+                    'type' => 'advanced_divider',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'border-width' => '1px',
+                      'border-style' => 'solid',
+                      'border-color' => '#C9CCCF',
+                      'padding' => '10px 0px 10px 0px',
+                      'container-background-color' => '#FFFDED',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  5 => 
+                  array (
+                    'type' => 'advanced_hero',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#FFFDED',
+                      'background-position' => 'center center',
+                      'mode' => 'fluid-height',
+                      'padding' => '20px 20px 20px 20px',
+                      'vertical-align' => 'top',
+                      'background-url' => '',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_image',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'height' => 'auto',
+                          'padding' => '0px 0px 0px 10px',
+                          "src" => $image_path . '/summer-collection/embrace-cloths.webp',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => 'Embrace Effortless Bohemian Style',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '10px 25px 0px 25px',
+                          'align' => 'center',
+                          'color' => '#000000',
+                          'font-size' => '24px',
+                          'line-height' => '45px',
+                          'font-weight' => '600',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#5f6c37">Discover the enchanting allure of our latest Boho Girl collection, where vibrant patterns and flowing silhouettes intertwine to create a sense of whimsical freedom.</font>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#414141',
+                          'color' => '#000000',
+                          'font-weight' => 'normal',
+                          'border-radius' => '3px',
+                          'padding' => '0px 5px 10px 5px',
+                          'inner-padding' => '10px 25px 10px 25px',
+                          'line-height' => '1.5',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                          'font-size' => '16px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'type' => 'button',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => 'Find Your Style',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#273616',
+                          'color' => '#ffffff',
+                          'font-size' => '16px',
+                          'font-weight' => 'normal',
+                          'border-radius' => '3px',
+                          'padding' => '10px 25px 10px 25px',
+                          'inner-padding' => '10px 25px 10px 25px',
+                          'line-height' => '120%',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                    ),
+                  ),
+                  6 => 
+                  array (
+                    'type' => 'advanced_footer',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#FFFDED',
+                      'background-position' => 'center center',
+                      'mode' => 'fluid-height',
+                      'padding' => '0px 0px 0px 0px',
+                      'vertical-align' => 'top',
+                      'background-url' => '',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_social',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'elements' => 
+                            array (
+                              0 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAMAAAC7IEhfAAAAclBMVEUAAAA7WZg7Wpg6WZg8WJdAU586Wpg6Wpc7WZg8WZk6WZg7WZg6WZg7WZY5WJc6Wpc7WJg7WZk7W5Y6WpU7WZj////m6vKdrMvO1eW2wdhUbaWEl7+El75sgrKpt9KRosV4jbhTbqXy9fiQocVsgrFHY58FMJF5AAAAFHRSTlMAv++AIBCfQJBQ39+wcHBg0M9wMJn76TsAAAEYSURBVDjLjdTZbsMgEEDRYcziPU2LCa3rNOny/79YnESaDAaZ+2gdgQEB8JR51SLUV42CfEagpcQhw5rWRnUpKoWliMrNcGjTVdxVNlu94yhNrrFRH6G/7ewSmVr8tPZOX8wD8vWeAopgp27uwNx1IhhN3jJ4TkFU25X4Fbl5npd4N3sO3QrPNgoDtAl4snEGTBkc+aH8ej+tOe/9F4Oa/+LnRHHYgcjBC4OYh4tlcXhx7oa+nXPXGJatGkGXwSPUZVBAUwYrUKVHCKIEdgAwlkAdoMICKOmu5iHd2HYPorxDswcHeDTmIX9Uno/Hu9DPs3tREEmKu7LnTKvMe8vDATbJKjGchFRyYKNizRjvbeiPGEzb1wZY/0BgYWSlhMOpAAAAAElFTkSuQmCC',
+                                'content' => '',
+                              ),
+                              1 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAMAAAC7IEhfAAAC5VBMVEUAAAD/nTr+hUetB8b/QnD+2haQANv/2hWTAdulBcuxCsL+ozb/tiuTAdr/0xv3HoieBNH/lT//wiSTANzSE6bqG5L+KXyXAtbGELGVAdfyKYbxKoaXANW/DLP/g0j/yyCPAN/TFKP/XGD/1xjHEK7eF5v+RG7/d1H/zh/+2BegBc61C77IEa7fGJz/RW7/dlH/nTv/vSjyHYuQAN2hBs61DL76IIT+nTv/vSn/3RWQANz/3BW4Dbm5DLv9VGT9bFb91xj/0hv9VWHWFaD/blb9i0T9xSD/0Ry9Drj92xT/jEX/yCCSAN3/2hj///+sCMT3H4f+IoH/sC/UFKT/Xl7/Zlr/fkz/tyuhBc6xCsG1C77ED7HMEqvzHYr7IIT/dlD/ozaeBNLnGpTrG5H/Mnf/wyOaAtW5DLvIEK7YFaHcFp7fGJv/TWj/jUP+O3L+KXylBsuoB8fADrXPEqfvHI7+blX+qTP+vif+yCD/8viSANr+RG3+zR2pB8juHI3+lT7+qTKWAdj+VmO9Dbi8DbjQE6jjGJjjGJekBsr/nTr/0xqRANz1qNneM6z+hkf/vij+2Rf4nM7cas3/uMnhbMnmbcXDKsLMLbvYMLL/hqf+dnD/i2T/b1X/1Bv78Pv/+PT94/L/5O/uw+6VAdj4qdb9rNH/ss3/ocbqbsLub7/ILL7xcLy/DrT/oZj+p5P/Knz/Z3r/aHP/VmP+VWP+lV//hkj+lj//ySD44fX+1en5xuXck+XppeL/zd3/5839ncrqfMj7j8PxfsP6gbzSL7f/jbL/fqv/nKn/2Kf/jqL/lJ//mpz3Opf/rZD7LYz/O4P+vm7/RG7+gWr/nVv+pFf/lj/z0vH/8OjstOfklt7/6dzOZdnDR9H1mtDqitDoe8v/0LvFHrr/rLD/yK//e63wVK3aJKf/oabtOJ/+X53oKJvrKZjzLJLzK5L+RIz/PHL/RW7+Q23/b1b+blT+jFP+qjP/zh0+TXPsAAAATnRSTlMA/v4QEJCPEO/v7+/v39+/sK+vn5+QkIB/b29fQEBAQCAgICDv7+/v7+/f39/f39/f39DPz8/Pz8/Pv7+wr6CgoJ+Qj4CAgH9wcG9vYGDagDuYAAADXUlEQVQ4y3WTZVxVQRDFVxS7u7u7uztHhQcGKooYpB3PQkVCeCid0p3SAtIpnXZ3d3x2du9euI84n/+/M3tmzhJlDVi9YFzbjUfaTO/cqz9pUs17D9c6euXA9m0bz1tu3bO/Q7fBjWPL1I/tOKgVIZCHkbx0pjG07wh9PUYeNaXkEUtGdlhfn+uhY27AyQhTiad1SyWsRafje3UsKGnGPfk7kZzWXALO3LRTIPn0unf6n7GeW8f13LyLkeJ0aXZ/yfR+ujcpeYGSNjaurrkuLmHOzjQRf2cfgRs60Vj3EPN8myKHOvk9FhO1Fp650PCsMfO0g3q6jZ5sektmKLuMJHpmAMjtwkNDQpycHB3t7VOTkBQ9qeUiDVksJd8AJH+RJgq7B/CEv7MXgpNOaDDPNPAtYYn4lvwevPQCP56oNSEDNbVvUM8fAEEs++dshSLTRv1YUqrWQ/ASs/cnK65paqNnXDRAPs2eIwR/Rm9kD+DM796HdDFSYZ4IumH2LEwU8NQH4DlOpyBvSGcyy8SIebojaKz7DSDwKyZSgNc7dTNHgDB+zbGkXTOBRLDw7Pc88GXX/CSHTD11BF1469qQk7uRTNDUrgIoMqx0gGDhmgGg0NdzQlDsJ1G7uLvZXXynB0BxrKEDBB1ipB0oDPQRzBX7SdqrMU8VBCNllwtAXs5IH8i2MAgBcOX9bEumbEHyaqJRPIIashhvCMJrlgUCfNCxCEWQt24G6XqKkSbVAFG4z/cAvsGBuMssvBGCNryf88m6fQJZA1BKN/8KqOQ5NHs4gvx39CaDTiNJE3nDa3ajmAIHh7xyligAQPxHAwgZfUsg08H7D5K0IT+FJpf4QIq5QI7H9qz6d3rfdSQrAB7Fs2vGCf0sSwYI1xHI7gi28jzHyJN3AO6/KI2KiiwuKnRzyw/GRHZiP4cQlKrVOWE6ksrKEPuJhtRyDHqy7BXpEkqe9pElQnICGlKtsbUSpuONaqrjPTyq3N1joiv538Tp/QiXKiX5PlmX+O/gZA9Sq3m2bDq/pooyOZXUqdUc7il0KYFtiZOdWhCpVCXvTKTkL77PnqSeNnT0rPU0qZ0+si9poGGLcZ/U8y9P9FtDtpSNbYgu6Sj1HLUcsaY0aGXX2e3VLrab3GXtQKKk/w+PIuw30x39AAAAAElFTkSuQmCC',
+                                'content' => '',
+                              ),
+                              2 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => $image_path . $twitter,
+                                'content' => '',
+                              ),
+                            ),
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'color' => '#333333',
+                          'mode' => 'horizontal',
+                          'font-size' => '13px',
+                          'font-weight' => 'normal',
+                          'font-style' => 'normal',
+                          'font-family' => 'Arial',
+                          'border-radius' => '3px',
+                          'padding' => '15px 0px 15px 0px',
+                          'inner-padding' => '0px 20px 0px 0px',
+                          'line-height' => '1.6',
+                          'text-padding' => '4px 4px 4px 0px',
+                          'icon-padding' => '0px',
+                          'icon-size' => '25px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_divider',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'border-width' => '1px',
+                          'border-style' => 'solid',
+                          'border-color' => '#D3CFD8',
+                          'padding' => '0px 24px 15px 24px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#5f6c37">{{business.name}}</font><br>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '12px 0px 0px 0px',
+                          'align' => 'center',
+                          'font-size' => '14px',
+                          'line-height' => '20px',
+                          'color' => '#908A99',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#5f6c37">© 2024 {{business.name}} {{business.address}}</font>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '12px 0px 12px 0px',
+                          'align' => 'center',
+                          'font-size' => '14px',
+                          'line-height' => '20px',
+                          'color' => '#908A99',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      4 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<a href="{{link.preference}}" target="_blank" style="text-decoration: underline;"><font color="#0064ff">Update Preference</font></a> . <a href="{{link.unsubscribe}}" target="_blank" style="text-decoration: underline;"><font color="#0064ff">Unsubscribe</font></a>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '10px 25px 20px 25px',
+                          'align' => 'center',
+                          'font-size' => '10px',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             'html_content'    => '',
             'thumbnail_image' => $image_path . '/thumbnails/summer-collection-deals.png',
           ),
           array(
             'id'              => 51,
-            'is_pro'          => true,
+            'is_pro'          => false,
             'emailCategories' => ['Deals & Offers'],
             'industry'        => ['Fashion & Jewelry'],
             'title'           => 'E-Commerce Newsletter',
-            'json_content'    => [],
+            'json_content'    => array (
+              'content' => 
+              array (
+                'type' => 'page',
+                'data' => 
+                array (
+                  'value' => 
+                  array (
+                    'breakpoint' => '480px',
+                    'headAttributes' => '',
+                    'font-size' => '14px',
+                    'font-weight' => '400',
+                    'line-height' => '1.7',
+                    'headStyles' => 
+                    array (
+                    ),
+                    'fonts' => 
+                    array (
+                    ),
+                    'responsive' => true,
+                    'font-family' => 'Arial',
+                    'text-color' => '#000000',
+                  ),
+                ),
+                'attributes' => 
+                array (
+                  'background-color' => '#efeeea',
+                  'width' => '600px',
+                ),
+                'children' => 
+                array (
+                  0 => 
+                  array (
+                    'type' => 'advanced_image',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'height' => 'auto',
+                      'padding' => '17px 0px 17px 0px',
+                      'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIMAAABCCAMAAABD95VFAAAAzFBMVEUAAAAOHT8NHT8MHUALHEAOHT8OHT/39/f19fUNHEDz8/P09PQOHT/09PT///8QIED09PTz8/MOHUD09PQOHEDz8/MPHEALH0AQEEAOHD/z8/P19fUOHD/19fUNHUD09PQOHT709PQNHD/19fUOHkD19fXv7+9UX3YOHUAPHD8QG0CfpbHl5enCxs0vO1ng4uVIVGylqrUOHT/09PQcKkrX2d5HUmwqOFXm5um7vseeo7Bze46BiJpkbYM5RWGPlqWBiZmtsbzJzNI6RWFWlNgqAAAAMnRSTlMAn79AIN/vIN9gQL9w7xAQYFDfkICAYDAQz6DQkHBQ338wr6CAfxD9sNAw2O/f369AMACNfgwAAAXGSURBVGjexZrbYqIwEIYDIqIWlVW3WrWu7m7d8yHDUUFr9/3faTOZ0Nii1gto/4uKJcl8zEwGEmQVqLPwer2e1+qwN1Gn1W+7kMv52GKvrMasDc/VbrDXU+czAcT7XbaNOOf+drUOAOAzeyW1CCDZbPkTZcErQXRmDgH4ZDhaZWmabkIfjwVEj1UpCoKLIbgngDBNYsiVZCIkAbh3rFIRQRKifT9b5/bd+RxQO0EFMGRV6oAg3EkAtz3zaC4seg7AhvMEHFadWk5O4G8SBJj3nxSEuwnEPs8AKpugjfYjQRqjB3IArQZAxiMAj5UuSgQACDRB2ztWmueYEdXMDApDfK8JThTlCayrYuj0AWCP1XCDBB9PxnsOKfcriUXLUWEIH87fEu4wH7YA5d+60Ak7X4RhT1E4LQ/gH86LsotUY4JOUGFwzkf6BgLO1+XXBwcgEU6IsCD0O+dxAVMygI8lI7QA7pUTJosX2vYAIh6Wnw4ejouZ4M4ucNm+/FCQf/ebgJzwgj4DhDyCkkNBeYbqX0DrYjasK7lbDB2ckBfBRuSGN1MPk5fc8FZqOBDwC91wZRhTOqoZhoGfow9mvT42bum/14ZxdXgwNaSuLD3Ee8OoqUPd/ydGggfgNMTI0zGOaD1r8tjLsjknI3XOPyGUzUljS5JxbrKDg3dc6QPLZXDe1AjUP8VI4N8eGy250jRvwpVyrAHn9givhvO6+PjAH1W3zjAQeZFhylEhwIOMRJtZdS5kSzKD2j8xgerS9WPTJiF+rXWF57HF6ChDTQRmKYYtMtAlmLW/DgSRfKRuSIuDrjBgEDc1yU2MWT64beEZg0gMlQg2sh1lQHJx1ioyYGQNzEfYcr7DSNzyx7NTyW1xHFeqqc+ZnC/xjEUBEcx5kOonGZiNnwUG6j+Rz9MbgO+MfUEoUnd51ZWerh8EztTwY4KjHqoLYh1noJiNigxfMPFuZD5uAQLfylm1zINMuqZR1BUrOFMPR+aOMZiGYXINqxmov0DY4SIPU+IbU1YsJcbE1d6yXOT9PC357cUMpK/d4wzfAdYSAVaiP1qhEyQcoMCQh9HMfXl12ODbKQabmhVjkcpZ6T8ADGV/lbuaYaxby/wcPWcY4AFJZrQ0PaavOh9wUjSPMkzXAsHnfC8QxKD2Y/jfD4REtzwPdQrrY32x/L2qpzRNr+VIlIVfFIOaMkWGzm9CECR96i+bjvRVkwnKUqoEBQbEpmhYXylWeM0fVPtmzkCOKDB0JgBrQrjR/VXVp4JJJmzZvlbHylRgoIb1JSa+KiUD/IextKk9MagCrxnsutCvH5iOEmGt+zdlkR4MDFmtD0yMdcHXDBqCdDX7OGzgpFFCeMXQxSKqGaS2gawLfoIkenx9h7IFmDahM1sz6C/UxPwzAcBq253SdwyirlHKEZohiwE2OCMUgnn9mP3UwLQGxMC6A7qPLS12Ute15nUXy10AciOnW2veWi8vvuKQ6kKf+muJAW6fDaCbvLhACQG8S/cigojiMSz1+Tm6dL3akosviseszHUEPZm7jcsWwff08OR6rGQ3RJd4diEXwTQhHCQuTQ654eVBZy7A3qdUaHdKXlaGl7hh0QaIN7gIpsVXiaKdgx1A4+U9oSTCOFAqlCrnkp0Dz1FOCHERXPZ66g5ghRPTO79XT5ng78qOA42PG0mrc6FoIMFDqJzgtFjp6gH4PAX3JMENqDBEe7UnVAUDpqRzJgr0tiCNcydUw5AeZeh4OQGFAYblO0HvOmUAi4IL+q4mSKp8aUYb7n4Mk7unAHN6aZQTYBiq0xwSWfuc3oKgvBm9uIx3Ic8J3CGrUkOAELMSNZ+7QIrXmX9A0GGV6s6FAB8IEsgVJ/eCit4WVE2gszKI0GK4SdM0W+GxfmnkzKonoGgEGX+iLQKc26uvAgKC9WorX5Vus90+JoBqg1C8JTxXe/bqu42tGwdyue3+2/2iQf6gYlGh+f8IOXR/2/R2QgAAAABJRU5ErkJggg==',
+                      'width' => '100%',
+                      'container-background-color' => '#FFFDED',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  1 => 
+                  array (
+                    'type' => 'advanced_hero',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#FFFDED',
+                      'background-position' => 'center center',
+                      'mode' => 'fluid-height',
+                      'padding' => '30px 0px 30px 0px',
+                      'vertical-align' => 'top',
+                      'background-url' => '',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<div><font color="#5f6c37">GREETINGS FROM</font></div>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#414141',
+                          'color' => '#000000',
+                          'font-weight' => 'normal',
+                          'border-radius' => '3px',
+                          'padding' => '0px 5px 0px 5px',
+                          'inner-padding' => '10px 25px 10px 25px',
+                          'line-height' => '1.5',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                          'font-size' => '14px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<h1 style="box-sizing: border-box; border-width: 0px; border-style: solid; border-color: rgb(207, 212, 217); -webkit-font-smoothing: antialiased; font-family: Charter, Georgia, Times, &quot;Times New Roman&quot;, serif; line-height: 1; margin-top: 0px; margin-bottom: 16px; font-size: 64px; letter-spacing: 0px; margin-right: 0px !important; margin-left: 0px !important; padding: 0px !important;"><font color="#5f6c37">Serene</font></h1>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#414141',
+                          'color' => '#000000',
+                          'font-weight' => 'normal',
+                          'border-radius' => '3px',
+                          'padding' => '10px 5px 0px 5px',
+                          'inner-padding' => '10px 25px 10px 25px',
+                          'line-height' => '1.5',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                          'font-size' => '64px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><font color="#5f6c37">Welcome to our vibrant community of free spirits and fashion enthusiasts! We are thrilled to have you join us on this exciting boho journey. Get ready to immerse yourself in a world of bohemian fashion inspiration, exclusive offers, and more!</font></span></div>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '10px 25px 10px 25px',
+                          'align' => 'left',
+                          'font-size' => '18px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'type' => 'button',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => 'Find Your Style',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#273616',
+                          'color' => '#ffffff',
+                          'font-size' => '20px',
+                          'font-weight' => 'normal',
+                          'border-radius' => '0px',
+                          'padding' => '10px 25px 10px 25px',
+                          'inner-padding' => '10px 25px 10px 25px',
+                          'line-height' => '120%',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      4 => 
+                      array (
+                        'type' => 'advanced_image',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'height' => 'auto',
+                          'padding' => '20px 80px 0px 80px',
+                          'src' => $image_path . '/summer-collection/fashion-model.png',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                    ),
+                  ),
+                  2 => 
+                  array (
+                    'type' => 'advanced_text',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'content' => '<div style="text-align: center;"><h1 style="box-sizing: border-box; border-width: 0px; border-style: solid; border-color: rgb(207, 212, 217); -webkit-font-smoothing: antialiased; font-family: Charter, Georgia, Times, &quot;Times New Roman&quot;, serif; line-height: 1; color: rgb(39, 54, 22); margin: 0px; font-size: 24px; letter-spacing: 0px;"><span style="box-sizing: border-box; border-width: 0px; border-style: solid; border-color: rgb(207, 212, 217); -webkit-font-smoothing: antialiased; font-size: 16px;">✦</span>&nbsp;Latest Collection&nbsp;<span style="box-sizing: border-box; border-width: 0px; border-style: solid; border-color: rgb(207, 212, 217); -webkit-font-smoothing: antialiased; font-size: 16px;">✦</span></h1></div>',
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'padding' => '20px 25px 0px 25px',
+                      'align' => 'left',
+                      'font-size' => '24px',
+                      'container-background-color' => '#FFFDED',
+                      'line-height' => '1',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  3 => 
+                  array (
+                    'type' => 'advanced_section',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                        'noWrap' => false,
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#FFFDED',
+                      'padding' => '20px 10px 20px 10px',
+                      'background-repeat' => 'repeat',
+                      'background-size' => 'auto',
+                      'background-position' => 'top center',
+                      'border' => 'none',
+                      'direction' => 'ltr',
+                      'text-align' => 'center',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              "src" => $image_path . '/summer-collection/blue-summer-dress.png',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><span style="color: rgb(39, 54, 22); word-spacing: normal;">Blue Summer Dress</span></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 0px 0px 0px',
+                              'align' => 'left',
+                              'font-size' => '18px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><b>$49.99 </b><strike>$</strike></span><span style="white-space: pre; text-align: left; word-spacing: normal;"><strike>79.99</strike></span></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_column',
+                        'attributes' => 
+                        array (
+                          'width' => '50%',
+                          'padding' => '0px 10px 0px 10px',
+                        ),
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'children' => 
+                        array (
+                          0 => 
+                          array (
+                            'type' => 'advanced_image',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'align' => 'center',
+                              'height' => 'auto',
+                              'padding' => '0px 0px 0px 0px',
+                              "src" => $image_path . '/summer-collection/orange-sunscreen.webp',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          1 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><font color="#273616">Orange Sunscreen</font><br></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '10px 0px 0px 0px',
+                              'align' => 'left',
+                              'font-size' => '18px',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                          2 => 
+                          array (
+                            'type' => 'advanced_text',
+                            'data' => 
+                            array (
+                              'value' => 
+                              array (
+                                'content' => '<div style="text-align: center;"><span style="word-spacing: normal;"><b>$89.99 </b><strike>$9</strike></span><span style="white-space: pre; text-align: left; word-spacing: normal;"><strike>9.99</strike></span></div>',
+                              ),
+                            ),
+                            'attributes' => 
+                            array (
+                              'padding' => '0px 0px 10px 0px',
+                              'align' => 'left',
+                            ),
+                            'children' => 
+                            array (
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  4 => 
+                  array (
+                    'type' => 'advanced_divider',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'align' => 'center',
+                      'border-width' => '1px',
+                      'border-style' => 'solid',
+                      'border-color' => '#C9CCCF',
+                      'padding' => '10px 0px 10px 0px',
+                      'container-background-color' => '#FFFDED',
+                    ),
+                    'children' => 
+                    array (
+                    ),
+                  ),
+                  5 => 
+                  array (
+                    'type' => 'advanced_hero',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#FFFDED',
+                      'background-position' => 'center center',
+                      'mode' => 'fluid-height',
+                      'padding' => '20px 20px 20px 20px',
+                      'vertical-align' => 'top',
+                      'background-url' => '',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_image',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'height' => 'auto',
+                          'padding' => '0px 0px 0px 10px',
+                          "src" => $image_path . '/summer-collection/embrace-cloths.webp',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => 'Embrace Effortless Bohemian Style',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '10px 25px 0px 25px',
+                          'align' => 'center',
+                          'color' => '#000000',
+                          'font-size' => '24px',
+                          'line-height' => '45px',
+                          'font-weight' => '600',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#5f6c37">Discover the enchanting allure of our latest Boho Girl collection, where vibrant patterns and flowing silhouettes intertwine to create a sense of whimsical freedom.</font>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#414141',
+                          'color' => '#000000',
+                          'font-weight' => 'normal',
+                          'border-radius' => '3px',
+                          'padding' => '0px 5px 10px 5px',
+                          'inner-padding' => '10px 25px 10px 25px',
+                          'line-height' => '1.5',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                          'font-size' => '16px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'type' => 'button',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => 'Find Your Style',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'background-color' => '#273616',
+                          'color' => '#ffffff',
+                          'font-size' => '16px',
+                          'font-weight' => 'normal',
+                          'border-radius' => '3px',
+                          'padding' => '10px 25px 10px 25px',
+                          'inner-padding' => '10px 25px 10px 25px',
+                          'line-height' => '120%',
+                          'target' => '_blank',
+                          'vertical-align' => 'middle',
+                          'border' => 'none',
+                          'text-align' => 'center',
+                          'href' => '#',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                    ),
+                  ),
+                  6 => 
+                  array (
+                    'type' => 'advanced_footer',
+                    'data' => 
+                    array (
+                      'value' => 
+                      array (
+                      ),
+                    ),
+                    'attributes' => 
+                    array (
+                      'background-color' => '#FFFDED',
+                      'background-position' => 'center center',
+                      'mode' => 'fluid-height',
+                      'padding' => '0px 0px 0px 0px',
+                      'vertical-align' => 'top',
+                      'background-url' => '',
+                    ),
+                    'children' => 
+                    array (
+                      0 => 
+                      array (
+                        'type' => 'advanced_social',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'elements' => 
+                            array (
+                              0 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAMAAAC7IEhfAAAAclBMVEUAAAA7WZg7Wpg6WZg8WJdAU586Wpg6Wpc7WZg8WZk6WZg7WZg6WZg7WZY5WJc6Wpc7WJg7WZk7W5Y6WpU7WZj////m6vKdrMvO1eW2wdhUbaWEl7+El75sgrKpt9KRosV4jbhTbqXy9fiQocVsgrFHY58FMJF5AAAAFHRSTlMAv++AIBCfQJBQ39+wcHBg0M9wMJn76TsAAAEYSURBVDjLjdTZbsMgEEDRYcziPU2LCa3rNOny/79YnESaDAaZ+2gdgQEB8JR51SLUV42CfEagpcQhw5rWRnUpKoWliMrNcGjTVdxVNlu94yhNrrFRH6G/7ewSmVr8tPZOX8wD8vWeAopgp27uwNx1IhhN3jJ4TkFU25X4Fbl5npd4N3sO3QrPNgoDtAl4snEGTBkc+aH8ej+tOe/9F4Oa/+LnRHHYgcjBC4OYh4tlcXhx7oa+nXPXGJatGkGXwSPUZVBAUwYrUKVHCKIEdgAwlkAdoMICKOmu5iHd2HYPorxDswcHeDTmIX9Uno/Hu9DPs3tREEmKu7LnTKvMe8vDATbJKjGchFRyYKNizRjvbeiPGEzb1wZY/0BgYWSlhMOpAAAAAElFTkSuQmCC',
+                                'content' => '',
+                              ),
+                              1 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAMAAAC7IEhfAAAC5VBMVEUAAAD/nTr+hUetB8b/QnD+2haQANv/2hWTAdulBcuxCsL+ozb/tiuTAdr/0xv3HoieBNH/lT//wiSTANzSE6bqG5L+KXyXAtbGELGVAdfyKYbxKoaXANW/DLP/g0j/yyCPAN/TFKP/XGD/1xjHEK7eF5v+RG7/d1H/zh/+2BegBc61C77IEa7fGJz/RW7/dlH/nTv/vSjyHYuQAN2hBs61DL76IIT+nTv/vSn/3RWQANz/3BW4Dbm5DLv9VGT9bFb91xj/0hv9VWHWFaD/blb9i0T9xSD/0Ry9Drj92xT/jEX/yCCSAN3/2hj///+sCMT3H4f+IoH/sC/UFKT/Xl7/Zlr/fkz/tyuhBc6xCsG1C77ED7HMEqvzHYr7IIT/dlD/ozaeBNLnGpTrG5H/Mnf/wyOaAtW5DLvIEK7YFaHcFp7fGJv/TWj/jUP+O3L+KXylBsuoB8fADrXPEqfvHI7+blX+qTP+vif+yCD/8viSANr+RG3+zR2pB8juHI3+lT7+qTKWAdj+VmO9Dbi8DbjQE6jjGJjjGJekBsr/nTr/0xqRANz1qNneM6z+hkf/vij+2Rf4nM7cas3/uMnhbMnmbcXDKsLMLbvYMLL/hqf+dnD/i2T/b1X/1Bv78Pv/+PT94/L/5O/uw+6VAdj4qdb9rNH/ss3/ocbqbsLub7/ILL7xcLy/DrT/oZj+p5P/Knz/Z3r/aHP/VmP+VWP+lV//hkj+lj//ySD44fX+1en5xuXck+XppeL/zd3/5839ncrqfMj7j8PxfsP6gbzSL7f/jbL/fqv/nKn/2Kf/jqL/lJ//mpz3Opf/rZD7LYz/O4P+vm7/RG7+gWr/nVv+pFf/lj/z0vH/8OjstOfklt7/6dzOZdnDR9H1mtDqitDoe8v/0LvFHrr/rLD/yK//e63wVK3aJKf/oabtOJ/+X53oKJvrKZjzLJLzK5L+RIz/PHL/RW7+Q23/b1b+blT+jFP+qjP/zh0+TXPsAAAATnRSTlMA/v4QEJCPEO/v7+/v39+/sK+vn5+QkIB/b29fQEBAQCAgICDv7+/v7+/f39/f39/f39DPz8/Pz8/Pv7+wr6CgoJ+Qj4CAgH9wcG9vYGDagDuYAAADXUlEQVQ4y3WTZVxVQRDFVxS7u7u7uztHhQcGKooYpB3PQkVCeCid0p3SAtIpnXZ3d3x2du9euI84n/+/M3tmzhJlDVi9YFzbjUfaTO/cqz9pUs17D9c6euXA9m0bz1tu3bO/Q7fBjWPL1I/tOKgVIZCHkbx0pjG07wh9PUYeNaXkEUtGdlhfn+uhY27AyQhTiad1SyWsRafje3UsKGnGPfk7kZzWXALO3LRTIPn0unf6n7GeW8f13LyLkeJ0aXZ/yfR+ujcpeYGSNjaurrkuLmHOzjQRf2cfgRs60Vj3EPN8myKHOvk9FhO1Fp650PCsMfO0g3q6jZ5sektmKLuMJHpmAMjtwkNDQpycHB3t7VOTkBQ9qeUiDVksJd8AJH+RJgq7B/CEv7MXgpNOaDDPNPAtYYn4lvwevPQCP56oNSEDNbVvUM8fAEEs++dshSLTRv1YUqrWQ/ASs/cnK65paqNnXDRAPs2eIwR/Rm9kD+DM796HdDFSYZ4IumH2LEwU8NQH4DlOpyBvSGcyy8SIebojaKz7DSDwKyZSgNc7dTNHgDB+zbGkXTOBRLDw7Pc88GXX/CSHTD11BF1469qQk7uRTNDUrgIoMqx0gGDhmgGg0NdzQlDsJ1G7uLvZXXynB0BxrKEDBB1ipB0oDPQRzBX7SdqrMU8VBCNllwtAXs5IH8i2MAgBcOX9bEumbEHyaqJRPIIashhvCMJrlgUCfNCxCEWQt24G6XqKkSbVAFG4z/cAvsGBuMssvBGCNryf88m6fQJZA1BKN/8KqOQ5NHs4gvx39CaDTiNJE3nDa3ajmAIHh7xyligAQPxHAwgZfUsg08H7D5K0IT+FJpf4QIq5QI7H9qz6d3rfdSQrAB7Fs2vGCf0sSwYI1xHI7gi28jzHyJN3AO6/KI2KiiwuKnRzyw/GRHZiP4cQlKrVOWE6ksrKEPuJhtRyDHqy7BXpEkqe9pElQnICGlKtsbUSpuONaqrjPTyq3N1joiv538Tp/QiXKiX5PlmX+O/gZA9Sq3m2bDq/pooyOZXUqdUc7il0KYFtiZOdWhCpVCXvTKTkL77PnqSeNnT0rPU0qZ0+si9poGGLcZ/U8y9P9FtDtpSNbYgu6Sj1HLUcsaY0aGXX2e3VLrab3GXtQKKk/w+PIuw30x39AAAAAElFTkSuQmCC',
+                                'content' => '',
+                              ),
+                              2 => 
+                              array (
+                                'href' => '#',
+                                'target' => '_blank',
+                                'src' => $image_path . $twitter,
+                                'content' => '',
+                              ),
+                            ),
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'color' => '#333333',
+                          'mode' => 'horizontal',
+                          'font-size' => '13px',
+                          'font-weight' => 'normal',
+                          'font-style' => 'normal',
+                          'font-family' => 'Arial',
+                          'border-radius' => '3px',
+                          'padding' => '15px 0px 15px 0px',
+                          'inner-padding' => '0px 20px 0px 0px',
+                          'line-height' => '1.6',
+                          'text-padding' => '4px 4px 4px 0px',
+                          'icon-padding' => '0px',
+                          'icon-size' => '25px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      1 => 
+                      array (
+                        'type' => 'advanced_divider',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'align' => 'center',
+                          'border-width' => '1px',
+                          'border-style' => 'solid',
+                          'border-color' => '#D3CFD8',
+                          'padding' => '0px 24px 15px 24px',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      2 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#5f6c37">{{business.name}}</font><br>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '12px 0px 0px 0px',
+                          'align' => 'center',
+                          'font-size' => '14px',
+                          'line-height' => '20px',
+                          'color' => '#908A99',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      3 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<font color="#5f6c37">© 2024 {{business.name}} {{business.address}}</font>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '12px 0px 12px 0px',
+                          'align' => 'center',
+                          'font-size' => '14px',
+                          'line-height' => '20px',
+                          'color' => '#908A99',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                      4 => 
+                      array (
+                        'type' => 'advanced_text',
+                        'data' => 
+                        array (
+                          'value' => 
+                          array (
+                            'content' => '<a href="{{link.preference}}" target="_blank" style="text-decoration: underline;"><font color="#0064ff">Update Preference</font></a> . <a href="{{link.unsubscribe}}" target="_blank" style="text-decoration: underline;"><font color="#0064ff">Unsubscribe</font></a>',
+                          ),
+                        ),
+                        'attributes' => 
+                        array (
+                          'padding' => '10px 25px 20px 25px',
+                          'align' => 'center',
+                          'font-size' => '10px',
+                          'font-family' => 'Arial',
+                        ),
+                        'children' => 
+                        array (
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              'subTitle' => 'Nice to meet you!',
+            ),
             'html_content'    => '',
             'thumbnail_image' => $image_path . '/thumbnails/ecommerce-newsletter.png',
           ),

@@ -564,7 +564,7 @@ class TransStrings
 			'SaveSettings' => __('Save Settings', 'mrm'),
 
 			// Email Settings
-			'EmailSettings' => __('Email Settings', 'mrm'),
+			'EmailSettings' => __('Email Sending', 'mrm'),
 			'FromName' => __('From Name', 'mrm'),
 			'EmailSettingsFromNameToolTip' => __('This will be the Name that your recipients will see as the person who sent the emails.', 'mrm'),
 			'EnterFromName' => __('Enter From Name', 'mrm'),

@@ -1432,8 +1432,17 @@ class MrmCommon {
 			}
 		}
 		$get_notice = get_option( 'mint_notice_update', false );
-		if ( empty( $active_plugins ) && !$get_notice ) {
-			return true;
+		if ( !empty( $active_plugins ) ) {
+			return array(
+				'configured' => true,
+				'name'       => $active_plugins[0]['name'] ?? '',
+			);
+		}
+		if ( !$get_notice ) {
+			return array(
+				'configured' => false,
+				'name'       => '',
+			);
 		}
 		return false;
 	}

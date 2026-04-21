@@ -44,7 +44,18 @@ class FrontendAssets {
 	 * @since 1.0.0
 	 */
 	public function enqueue_scripts( $hook ) {
-		$recaptcha_default = MrmCommon::recaptcha_default_configuration();
+		$recaptcha_default    = MrmCommon::recaptcha_default_configuration();
+		$recaptcha_raw        = get_option( '_mint_recaptcha_settings', $recaptcha_default );
+		$recaptcha_public     = array(
+			'enable'       => isset( $recaptcha_raw['enable'] ) ? $recaptcha_raw['enable'] : false,
+			'api_version'  => isset( $recaptcha_raw['api_version'] ) ? $recaptcha_raw['api_version'] : 'v2_visible',
+			'v2_visible'   => array(
+				'site_key' => isset( $recaptcha_raw['v2_visible']['site_key'] ) ? $recaptcha_raw['v2_visible']['site_key'] : '',
+			),
+			'v3_invisible' => array(
+				'site_key' => isset( $recaptcha_raw['v3_invisible']['site_key'] ) ? $recaptcha_raw['v3_invisible']['site_key'] : '',
+			),
+		);
 		wp_enqueue_script(
 			MRM_PLUGIN_NAME,
 			MRM_DIR_URL . 'assets/frontend/js/frontend.js',
@@ -62,7 +73,7 @@ class FrontendAssets {
 				'nonce'              => wp_create_nonce( 'wp_rest' ),
 				'rest_api_url'       => get_rest_url(),
 				'form_cookies_time'  => apply_filters( 'mailmint_set_form_cookies_time', $this->set_dissmiss_time() ),
-				'recaptcha_settings' => get_option( '_mint_recaptcha_settings', $recaptcha_default ),
+				'recaptcha_settings' => $recaptcha_public,
 
 			)
 		);

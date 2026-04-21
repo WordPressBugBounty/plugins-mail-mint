@@ -69,9 +69,8 @@ class DashboardController {
 	 * 
 	 *  Description:
      *  - This method retrieves the performance data for campaigns, automations, and onboarding.
-     *  - It checks if the community banner should be shown and if there is an active SMTP plugin.
-     *  - The response includes the performance data and the status of the community banner
-     *    and SMTP warning.
+	 *  - It checks if there is an active SMTP plugin.
+	 *  - The response includes performance data and SMTP warning status.
      *
      * @param WP_REST_Request $request
      * @return \WP_Error|\WP_REST_Response
@@ -85,11 +84,10 @@ class DashboardController {
 		$response = [
 			'success' => true,
 			'data'    => [
-				'campaigns'      => $campaigns,
-				'automations'    => $automations,
-				'onboarding'     => $onboarding,
-				'show_community' => $this->should_show_community_banner(),
-				'smtp_warning'   => MrmCommon::find_active_smtp_plugin(),
+				'campaigns'    => $campaigns,
+				'automations'  => $automations,
+				'onboarding'   => $onboarding,
+				'smtp_warning' => MrmCommon::find_active_smtp_plugin(),
 			]
 		];
 
@@ -125,67 +123,6 @@ class DashboardController {
 		];
 
 		return rest_ensure_response( $response );
-	}
-
-	/**
-	 * Check if community banner should be shown.
-	 * 
-	 * Description:
-	 * - If the user has permanently hidden the banner, it will not be shown.
-	 * - If the banner is temporarily hidden, it will not be shown.
-	 * - If neither of the above conditions are met, the banner will be shown.
-	 *
-	 * @return bool
-	 * @since 1.17.9
-	 */
-	private function should_show_community_banner(){
-		// Check if user has permanently hidden the banner.
-		$permanently_hidden = get_transient('wpfnl_community_banner_permanently_hidden');
-		if ($permanently_hidden) {
-			return false;
-		}
-
-		// Check if banner is temporarily hidden.
-		$temporarily_hidden = get_transient('wpfnl_community_banner_temporarily_hidden');
-		if ($temporarily_hidden) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Hide community banner temporarily.
-	 * 
-	 * Description:
-	 * - Set a transient for 7 days to hide the banner.
-	 *
-	 * @return \WP_REST_Response
-	 * @since 1.17.9
-	 */
-	public function hide_community_banner_temporarily(){
-		// Set transient for 7 days.
-		set_transient('wpfnl_community_banner_temporarily_hidden', true, 7 * DAY_IN_SECONDS);
-		return rest_ensure_response([
-			'success' => true
-		]);
-	}
-
-	/**
-	 * Hide community banner permanently.
-	 *
-	 * Description:
-	 * - Set a permanent transient to hide the banner.
-	 *
-	 * @return \WP_REST_Response
-	 * @since 1.17.9
-	 */
-	public function hide_community_banner_permanently(){
-		// Set permanent transient (0 = no expiration).
-		set_transient('wpfnl_community_banner_permanently_hidden', true, 0);
-		return rest_ensure_response([
-			'success' => true
-		]);
 	}
 
 	public function hide_checklist() {

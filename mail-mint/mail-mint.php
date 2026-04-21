@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.21.0
+ * Version:           1.21.1
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -36,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.21.0' );
+define( 'MRM_VERSION', '1.21.1' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.16.0' );
 define( 'MINT_DEV_MODE', false );
@@ -160,27 +160,92 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 				'pluginName' => 'Mail Mint',
 				'version'    => MRM_VERSION,
 				'driver'     => 'posthog',
-				'driver_config' => array(
+				'driver_config'  => array(
                     'host'    => 'https://eu.i.posthog.com',
                     'api_key' => MRM_POSTHOG_API_KEY,
                 ),
+				'review_prompt' => array(
+					'webhook'              => 'https://getwpfunnels.com/wp-json/mrm/v1/form/44/webhook/receive?token=b553ed8f2d6f9ff1612b4fe79c19ff9ee8a30c170eb547f1aba9376eb7ac8039',
+					'min_feedback_length'  => 50,
+					'snooze_schedule'      => array( 7, 30, 90 ),
+					'nps_question'         => 'How likely are you to recommend Mail Mint to your friends or colleagues?',
+					'low_score_threshold'  => 7,
+					'review_url'           => 'https://wordpress.org/support/plugin/mail-mint/reviews/#new-post',
+					'support_url'          => 'https://getwpfunnels.com/support/',
+					'privacy_url'          => 'https://getwpfunnels.com/privacy-policy/',
+					'installed_option_key' => 'mailmint_install_timestamp',
+					'position'             => 'bottom-right',
+					'allowed_screens'      => array(
+						'toplevel_page_mrm-admin',
+						'mail-mint_page_mrm-admin',
+					),
+				),
 			)
 		);
 
 		$client->define_triggers(
 			array(
-				'setup' => 'mailmint_after_accept_consent',
-				'aha'   => array(
-					'first_campaign_sent' => array(
+				'onboarding' => array(
+					'hook'     => 'mailmint_setup_wizard_complete',
+					'callback' => function ( $goal ) {
+						return array( 'goal' => sanitize_text_field( $goal ) );
+					},
+				),
+				'aha' => array(
+					'first_campaign_sent'       => array(
 						'hook' => 'mailmint_campaign_email_sent',
+					),
+					'first_campaign_created'    => array(
+						'hook'     => 'mailmint_campaign_created',
+						'callback' => function ( $campaign_id ) {
+							return array( 'campaign_id' => (int) $campaign_id );
+						},
+					),
+					'contacts_imported'         => array(
+						'hook'     => 'mailmint_contacts_imported',
+						'callback' => function ( $count, $source ) {
+							return array(
+								'count'  => (int) $count,
+								'source' => sanitize_text_field( $source ),
+							);
+						},
+					),
+					'first_form_created'        => array(
+						'hook'     => 'mailmint_first_form_created',
+						'callback' => function ( $form_id ) {
+							return array( 'form_id' => (int) $form_id );
+						},
+					),
+					'first_automation_created'  => array(
+						'hook'     => 'mailmint_automation_created',
+						'callback' => function ( $automation_id, $trigger_name ) {
+							return array(
+								'automation_id' => (int) $automation_id,
+								'trigger_type'  => sanitize_text_field( $trigger_name ),
+							);
+						},
+					),
+					'wpfunnels_connected'       => array(
+						'hook' => 'mailmint_wpfunnels_connected',
+					),
+					'woocommerce_connected'     => array(
+						'hook' => 'mailmint_woocommerce_connected',
 					),
 				),
 				'feature_used' => array(
-					'campaign_sent' => array(
-						'hook' => 'mailmint_campaign_email_sent',
+					// Fires once per campaign completion (not per recipient) — safe frequency.
+					'campaign_sent'            => array(
+						'hook'     => 'mailmint_campaign_email_sent',
+						'callback' => function ( $campaign_id ) {
+							return array( 'campaign_id' => (int) $campaign_id );
+						},
 					),
-					'automation_triggered' => array(
-						'hook' => 'mailmint_after_automation_send_mail',
+					// Fires per visitor opt-in form submission.
+					'form_submission_received' => array(
+						'hook'     => 'mailmint_after_form_submit',
+						'callback' => function ( $form_id ) {
+							return array( 'form_id' => (int) $form_id );
+						},
 					),
 				),
 			)
@@ -205,6 +270,63 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 }
 init_mail_mint_telemetry();
 
+/**
+ * Fire one-time integration-connected hooks on plugins_loaded so the Linno
+ * SDK can track when WooCommerce or WPFunnels becomes active alongside Mail Mint.
+ */
+add_action( 'plugins_loaded', function () {
+	if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true )
+		&& ! get_option( 'mail_mint_woocommerce_connected_tracked' ) ) {
+		do_action( 'mailmint_woocommerce_connected' );
+		update_option( 'mail_mint_woocommerce_connected_tracked', 'yes' );
+	}
+
+	if ( in_array( 'wpfunnels/wpfnl.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true )
+		&& ! get_option( 'mail_mint_wpfunnels_connected_tracked' ) ) {
+		do_action( 'mailmint_wpfunnels_connected' );
+		update_option( 'mail_mint_wpfunnels_connected_tracked', 'yes' );
+	}
+}, 20 );
+
+/**
+ * Aggregate high-frequency retention events (automation emails sent, form
+ * submissions) into a single daily PostHog event instead of one per occurrence.
+ *
+ * Counters are stored in wp_options and flushed once per day via WP-Cron.
+ * This prevents flooding PostHog on busy sites.
+ */
+add_action( 'mailmint_after_automation_send_mail', function ( $automation_id, $user_email, $is_sent ) {
+	if ( $is_sent ) {
+		$counts = get_option( 'mail_mint_telemetry_daily_counts', array() );
+		$counts['automation_triggered'] = ( (int) ( $counts['automation_triggered'] ?? 0 ) ) + 1;
+		update_option( 'mail_mint_telemetry_daily_counts', $counts, false );
+	}
+}, 10, 3 );
+
+
+add_action( 'mail_mint_telemetry_daily_flush', function () {
+	$counts = get_option( 'mail_mint_telemetry_daily_counts', array() );
+	if ( empty( $counts ) ) {
+		return;
+	}
+
+	foreach ( $counts as $feature => $count ) {
+		if ( $count > 0 ) {
+			do_action( 'mail-mint_telemetry_track', 'retention/feature_used', array(
+				'feature' => $feature,
+				'count'   => (int) $count,
+			) );
+		}
+	}
+
+	delete_option( 'mail_mint_telemetry_daily_counts' );
+} );
+
+add_action( 'init', function () {
+	if ( ! wp_next_scheduled( 'mail_mint_telemetry_daily_flush' ) ) {
+		wp_schedule_event( time(), 'daily', 'mail_mint_telemetry_daily_flush' );
+	}
+} );
 
 if ( ! function_exists( 'mmempty' ) ) {
 	/**

@@ -15,6 +15,7 @@ use Mint\App\Internal\EmailCustomization\WooCommerce\EmailTrigger;
 use Mint\MRM\Admin\API\Server;
 use Mint\MRM\DataBase\Migration\DatabaseMigrator;
 use Mint\MRM\Internal\Admin\AdminAssets;
+use Mint\MRM\Internal\Admin\DefaultListsCreator;
 use Mint\MRM\Internal\Admin\FrontendAssets;
 use Mint\MRM\Internal\Admin\HandleFrontendMenu;
 use Mint\MRM\Internal\Admin\Page\PageController;
@@ -86,6 +87,8 @@ class App {
 		TemplateHandler::get_instance()->init();
 
 		WPUserDelete::get_instance()->init();
+
+		DefaultListsCreator::get_instance();
 
 		// Initialize server class.
 		$server = new Server();

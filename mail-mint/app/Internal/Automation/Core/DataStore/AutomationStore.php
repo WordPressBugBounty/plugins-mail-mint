@@ -370,6 +370,7 @@ class AutomationModel {
 				)
 			); // db call ok.
 			do_action( 'mailmint_'.$payload['trigger_name'].'_automation_created' );
+			do_action( 'mailmint_automation_created', $wpdb->insert_id, $payload['trigger_name'] ?? '' );
 			return $wpdb->insert_id;
 		} catch ( \Exception $e ) {
 			return false;

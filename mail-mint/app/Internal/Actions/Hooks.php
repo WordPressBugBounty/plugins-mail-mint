@@ -769,17 +769,21 @@ class Hooks {
 					}
 				});
 
-				if(window.location.href.includes('setup-wizard')){
-					document.documentElement.classList.add('mrm-setup-wizard');
+				function mrmSyncWizardClass() {
+					if ( window.location.href.includes('setup-wizard') ) {
+						document.documentElement.classList.add('mrm-setup-wizard');
 
-					// Select all elements with the 'notice' and 'notice-success' classes
-    				const notices = document.querySelectorAll('.notice-success');
-
-					// Loop through each element and apply styles
-					notices.forEach(notice => {
-						notice.style.display = 'none';
-					});
+						// Hide success notices inside the wizard.
+						document.querySelectorAll('.notice-success').forEach(notice => {
+							notice.style.display = 'none';
+						});
+					} else {
+						document.documentElement.classList.remove('mrm-setup-wizard');
+					}
 				}
+
+				mrmSyncWizardClass();
+				window.addEventListener('hashchange', mrmSyncWizardClass);
 			</script>
 			<?php
 		}
