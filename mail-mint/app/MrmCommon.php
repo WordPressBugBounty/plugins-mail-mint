@@ -1787,6 +1787,13 @@ class MrmCommon {
         }
 
         $bounce_settings = array(
+			'ses' => array(
+				'label'       => __('Amazon SES', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/ses/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('Amazon SES Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please use this bounce handler url in your Amazon SES + SNS settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
             'mailgun' => array(
 				'label'       => __('Mailgun', 'mrm'),
                 'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/mailgun/handle/' . $security_code),
@@ -1800,13 +1807,6 @@ class MrmCommon {
                 'doc_url'     => '',
                 'input_title' => __('SendGrid Bounce Handler Webhook URL', 'mrm'),
                 'input_info'  => __('Please paste this URL into your SendGrid\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
-			),
-			'ses' => array(
-				'label'       => __('Amazon SES', 'mrm'),
-				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/ses/handle/' . $security_code),
-				'doc_url'     => '',
-				'input_title' => __('Amazon SES Bounce Handler Webhook URL', 'mrm'),
-				'input_info'  => __('Please use this bounce handler url in your Amazon SES + SNS settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
 			'postmark' => array(
 				'label'       => __('Postmark', 'mrm'),
@@ -1842,6 +1842,27 @@ class MrmCommon {
 				'doc_url'     => '',
 				'input_title' => __('Mailjet Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please paste this URL into your Mailjet\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'elasticemail' => array(
+				'label'       => __('Elastic Email', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/elasticemail/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('Elastic Email Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please paste this URL into your Elastic Email\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'postalserver' => array(
+				'label'       => __('Postal Server', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/postalserver/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('Postal Server Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please paste this URL into your Postal Server\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
+			),
+			'smtp2go' => array(
+				'label'       => __('SMTP2GO', 'mrm'),
+				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/smtp2go/handle/' . $security_code),
+				'doc_url'     => '',
+				'input_title' => __('SMTP2GO Bounce Handler Webhook URL', 'mrm'),
+				'input_info'  => __('Please paste this URL into your SMTP2GO\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
 		);
 

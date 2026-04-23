@@ -123,8 +123,8 @@ class Email {
             'bounce_tracking' => array(
                 'enable' => false,
                 'esp'  => array(
-                    'value' => 'mailgun',
-                    'label' => 'Mailgun',
+                    'value' => 'ses',
+                    'label' => 'Amazon SES',
                 ),
             ),
 		);

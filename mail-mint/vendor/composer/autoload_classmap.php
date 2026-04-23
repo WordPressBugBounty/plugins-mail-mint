@@ -6,14 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Appsero\\Client' => $vendorDir . '/appsero/client/src/Client.php',
-    'Appsero\\Insights' => $vendorDir . '/appsero/client/src/Insights.php',
-    'Appsero\\License' => $vendorDir . '/appsero/client/src/License.php',
-    'CodeRex\\Telemetry\\Client' => $vendorDir . '/coderexltd/telemetry/src/Client.php',
-    'CodeRex\\Telemetry\\Drivers\\DriverInterface' => $vendorDir . '/coderexltd/telemetry/src/Drivers/DriverInterface.php',
-    'CodeRex\\Telemetry\\Drivers\\OpenPanelDriver' => $vendorDir . '/coderexltd/telemetry/src/Drivers/OpenPanelDriver.php',
-    'CodeRex\\Telemetry\\EventDispatcher' => $vendorDir . '/coderexltd/telemetry/src/EventDispatcher.php',
-    'CodeRex\\Telemetry\\Helpers\\Utils' => $vendorDir . '/coderexltd/telemetry/src/Helpers/Utils.php',
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'ContactImportAction' => $baseDir . '/app/API/Actions/Admin/Contact/ContactImportAction.php',
     'ContactProfileAction' => $baseDir . '/app/API/Actions/Admin/Contact/ContactProfileAction.php',
@@ -30,6 +22,7 @@ return array(
     'LinnoSDK\\Telemetry\\EventDispatcher' => $vendorDir . '/linno/telemetry/src/EventDispatcher.php',
     'LinnoSDK\\Telemetry\\Helpers\\Utils' => $vendorDir . '/linno/telemetry/src/Helpers/Utils.php',
     'LinnoSDK\\Telemetry\\Queue' => $vendorDir . '/linno/telemetry/src/Queue.php',
+    'LinnoSDK\\Telemetry\\ReviewPrompt' => $vendorDir . '/linno/telemetry/src/ReviewPrompt.php',
     'LinnoSDK\\Telemetry\\TriggerManager' => $vendorDir . '/linno/telemetry/src/TriggerManager.php',
     'MRM\\Common\\MrmCommon' => $baseDir . '/app/MrmCommon.php',
     'MailMint' => $baseDir . '/includes/MailMint.php',

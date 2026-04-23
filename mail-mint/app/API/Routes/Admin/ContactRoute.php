@@ -159,7 +159,7 @@ class ContactRoute {
 						'status' => array(
 							'type'        => 'string',
 							'required'    => true,
-							'enum'        => array('pending', 'subscribed', 'unsubscribed', 'complained', 'bounced'),
+							'enum'        => array('pending', 'subscribed', 'unsubscribed', 'complained', 'bounced', 'inactive'),
 							'description' => 'The new status for the contact',
 						),
 					),

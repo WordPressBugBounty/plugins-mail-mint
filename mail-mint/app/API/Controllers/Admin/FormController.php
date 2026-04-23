@@ -511,17 +511,18 @@ class FormController extends AdminBaseController {
 			return $columns;
 		}
 
-		// Match every opening block comment: <!-- wp:mrmformfield/<blocktype> {JSON} -->
-		$pattern = '/<!--\s*wp:mrmformfield\/([\w-]+)\s*(\{[^}]*(?:\{[^}]*\}[^}]*)*\})?\s*(?:\/)?-->/';
+		// parse_blocks() correctly handles arbitrarily nested JSON attributes,
+		// unlike a hand-rolled regex which breaks on deeply nested objects.
+		$blocks = parse_blocks( $form_body );
 
-		if ( ! preg_match_all( $pattern, $form_body, $matches, PREG_SET_ORDER ) ) {
-			return $columns;
-		}
+		foreach ( self::flatten_blocks( $blocks ) as $block ) {
+			$name = isset( $block['blockName'] ) ? $block['blockName'] : '';
+			if ( 0 !== strpos( $name, 'mrmformfield/' ) ) {
+				continue;
+			}
 
-		foreach ( $matches as $match ) {
-			$block_type = $match[1];
-			$attrs_json = isset( $match[2] ) ? $match[2] : '';
-			$attrs      = $attrs_json ? json_decode( $attrs_json, true ) : array();
+			$block_type = substr( $name, strlen( 'mrmformfield/' ) );
+			$attrs      = isset( $block['attrs'] ) && is_array( $block['attrs'] ) ? $block['attrs'] : array();
 
 			$label = '';
 			$slug  = '';
@@ -558,7 +559,7 @@ class FormController extends AdminBaseController {
 			}
 
 			if ( $slug && ! isset( $seen[ $slug ] ) ) {
-				$columns[]      = array(
+				$columns[]     = array(
 					'label' => $label,
 					'slug'  => $slug,
 				);
@@ -567,6 +568,24 @@ class FormController extends AdminBaseController {
 		}
 
 		return $columns;
+	}
+
+	/**
+	 * Recursively flatten a nested parse_blocks() result into a single list.
+	 *
+	 * @param array $blocks Block list from parse_blocks().
+	 * @return array
+	 * @since 1.16.0
+	 */
+	private static function flatten_blocks( array $blocks ) {
+		$flat = array();
+		foreach ( $blocks as $block ) {
+			$flat[] = $block;
+			if ( ! empty( $block['innerBlocks'] ) ) {
+				$flat = array_merge( $flat, self::flatten_blocks( $block['innerBlocks'] ) );
+			}
+		}
+		return $flat;
 	}
 
 	/**

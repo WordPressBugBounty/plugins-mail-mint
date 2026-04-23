@@ -216,7 +216,7 @@ class AutomationManager {
 			}
 			$prev_step = HelperFunctions::get_prev_step( $data['automation_id'], $data['step_id'] );
 
-			if ( $prev_step && isset( $prev_step['key'] ) && ( 'stopAutomation' === $prev_step['key'] ) ) {
+			if ( $prev_step && isset( $prev_step['key'] ) && 'stopAutomation' === $prev_step['key'] ) {
 				global $wpdb;
 				$log_table = $wpdb->prefix . AutomationLogSchema::$table_name;
 

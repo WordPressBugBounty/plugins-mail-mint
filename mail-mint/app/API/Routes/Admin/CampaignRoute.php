@@ -285,6 +285,18 @@ class CampaignRoute {
 
 		register_rest_route(
 			$this->namespace,
+			$this->rest_base . '/for-segment',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_campaigns_for_segment' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
 			$this->rest_base . '/(?P<campaign_id>[\d]+)/urls',
 			array(
 				array(

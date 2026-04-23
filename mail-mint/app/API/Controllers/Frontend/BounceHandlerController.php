@@ -34,7 +34,7 @@ class BounceHandlerController extends FrontendBaseController{
      * @var array
      * @since 1.15.0
      */
-    private $valid_services = array('mailgun', 'sendgrid', 'ses', 'postmark', 'brevo', 'sparkpost', 'pepipost', 'mailjet');
+    private $valid_services = array('mailgun', 'sendgrid', 'ses', 'postmark', 'brevo', 'sparkpost', 'pepipost', 'mailjet', 'elasticemail', 'postalserver', 'smtp2go');
 
     /**
      * Handles the bounce event from the email provider.

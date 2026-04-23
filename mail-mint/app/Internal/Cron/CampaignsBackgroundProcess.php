@@ -54,17 +54,6 @@ class CampaignsBackgroundProcess {
 		add_action( 'mailmint_batch_email_sent', array( $this, 'delete_actions' ) );
 		add_action( 'mailmint_campaign_email_sent', array( $this, 'update_campaign_status' ), 10, 2 );
 		add_action( 'mailmint_after_campaign_start', array( $this, 'activate_scheduled_campaign' ), 10, 2 );
-
-		// Recovery: Periodically check for and recover emails stuck in 'sending' status
-		// (e.g. after a 300s Action Scheduler timeout).
-		add_action( 'mailmint_recover_stuck_emails', array( $this, 'recover_stuck_sending_emails' ) );
-		if (
-			function_exists( 'as_has_scheduled_action' )
-			&& function_exists( 'as_schedule_recurring_action' )
-			&& ! as_has_scheduled_action( 'mailmint_recover_stuck_emails', array(), 'mailmint-recovery' )
-		) {
-			as_schedule_recurring_action( time() + 300, 600, 'mailmint_recover_stuck_emails', array(), 'mailmint-recovery' );
-		}
 	}
 
 	/**
@@ -515,62 +504,6 @@ class CampaignsBackgroundProcess {
 	public function activate_scheduled_campaign( $args ) {
 		if ( !empty( $args[ 'campaign_id' ] ) && !empty( $args[ 'campaign_status' ] ) && 'schedule' === $args[ 'campaign_status' ] ) {
 			CampaignModel::update_campaign_status( $args[ 'campaign_id' ], 'active' );
-		}
-	}
-
-	/**
-	 * Recover emails stuck in 'sending' status.
-	 *
-	 * When an Action Scheduler action times out (e.g., after 300 seconds),
-	 * emails that were claimed as 'sending' never get updated to 'sent' or 'failed'.
-	 * This method resets any 'sending' emails older than 10 minutes back to 'scheduled'
-	 * and reschedules the send action so the campaign continues.
-	 *
-	 * @return void
-	 *
-	 * @since 1.x.x
-	 */
-	public function recover_stuck_sending_emails() {
-		global $wpdb;
-		$broadcast_email_table = $wpdb->prefix . EmailSchema::$table_name;
-
-		// Find distinct campaign/email combos with emails stuck in 'sending' for over 10 minutes.
-		$stuck_timeout = gmdate( 'Y-m-d H:i:s', time() - 600 ); // 10 minutes ago.
-
-		$stuck_campaigns = $wpdb->get_results( $wpdb->prepare(
-			"SELECT DISTINCT `campaign_id`, `email_id` FROM {$broadcast_email_table} WHERE `status` = %s AND `email_type` = %s AND `updated_at` < %s",
-			'sending',
-			'campaign',
-			$stuck_timeout
-		), ARRAY_A ); //phpcs:ignore
-
-		if ( empty( $stuck_campaigns ) ) {
-			return;
-		}
-
-		// Reset all stuck 'sending' emails back to 'scheduled'.
-		$wpdb->query( $wpdb->prepare(
-			"UPDATE {$broadcast_email_table} SET `status` = 'scheduled', `updated_at` = %s WHERE `status` = %s AND `email_type` = %s AND `updated_at` < %s",
-			current_time( 'mysql', true ),
-			'sending',
-			'campaign',
-			$stuck_timeout
-		) ); //phpcs:ignore
-
-		// Reschedule send actions for affected campaigns (if not already scheduled).
-		foreach ( $stuck_campaigns as $stuck ) {
-			$campaign_id = (int) $stuck['campaign_id'];
-			$email_id    = (int) $stuck['email_id'];
-
-			// Only skip scheduling if this specific campaign/email already has a pending/in-progress action.
-			$action_args = array(
-				'campaign_id' => $campaign_id,
-				'email_id'    => $email_id,
-			);
-
-			if ( defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) && ! MrmCommon::mailmint_as_has_scheduled_action( MAILMINT_SEND_SCHEDULED_EMAILS, $action_args, array( 'pending', 'in-progress' ) ) ) {
-				CampaignModel::schedule_async_send_email_action( $campaign_id, $email_id );
-			}
 		}
 	}
 }

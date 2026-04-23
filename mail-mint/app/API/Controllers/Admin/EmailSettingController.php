@@ -91,7 +91,7 @@ class EmailSettingController extends SettingBaseController {
 			'reply_name'      => $reply_name,
 			'reply_email'     => $reply_email,
             'email_frequency' => $email_frequency,
-			'bounce_tracking' => !empty( $params['bounce_tracking'] ) ? $params['bounce_tracking'] : array('enable' => false, 'esp'  => array('value' => 'mailgun', 'label' => 'Mailgun')),
+			'bounce_tracking' => !empty( $params['bounce_tracking'] ) ? $params['bounce_tracking'] : array('enable' => false, 'esp'  => array('value' => 'ses', 'label' => 'Amazon SES')),
 		);
 		// enqueue to wp option table.
 		update_option( '_mrm_email_settings', $email_settings );

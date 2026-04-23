@@ -48,6 +48,7 @@ class Hooks {
 		add_action( 'woocommerce_order_status_changed', array($this, 'handle_payment_status_changed'), 100, 4);
 		add_action( 'woocommerce_refund_created', array($this, 'handle_partial_refund'), 10, 2);
 		add_action( 'init', array( $this, 'check_and_assign_capabilities_on_update' ) );
+		add_action( 'init', array( $this, 'remove_recover_stuck_emails_cron' ) );
 		add_filter( 'mint_wordpress_user_import_headers', array( $this, 'merge_woocommerce_headers' ) );
 		add_action( 'mailmint_after_delete_contact', array( $this, 'delete_automation_logs' ), 10, 1 );
 		add_filter( 'rocket_cache_reject_uri', array( $this, 'exclude_endpoint_option' ), 100 );
@@ -77,6 +78,24 @@ class Hooks {
 		}
 	}
 	
+
+	/**
+	 * Remove the mailmint_recover_stuck_emails recurring Action Scheduler event.
+	 *
+	 * This hook was removed in a prior release. This one-time cleanup
+	 * ensures the scheduled action is cleared from Action Scheduler on update.
+	 *
+	 * @return void
+	 * @since 1.21.2
+	 */
+	public function remove_recover_stuck_emails_cron() {
+		if ( get_option( 'mailmint_recover_stuck_emails_as_removed' ) ) {
+			return;
+		}
+		as_unschedule_all_actions( 'mailmint_recover_stuck_emails' );
+		update_option( 'mailmint_recover_stuck_emails_as_removed', true );
+	}
+
 
 	public function mint_merge_tag_fallback( $value_key, $contact ) {
 		switch ($value_key) {

@@ -420,6 +420,172 @@ class EmailBounce{
     }
 
     /**
+     * Handles Elastic Email events and records unsubscribe data if necessary.
+     *
+     * This function processes an Elastic Email webhook event. If the status is 'bounced',
+     * 'abusereport', or 'unsubscribed', it records the unsubscribe data for the affected email.
+     * It also treats certain 'error' categories (NoMailbox, BlackListed, ManualCancel) as bounces.
+     *
+     * @param \WP_REST_Request $request The request object containing the bounce data.
+     * @return bool|array|mixed False if the event is not handled, otherwise the result of recording the unsubscribe.
+     * @since 1.16.0
+     */
+    private function handle_elasticemail( $request ){
+        $params = MrmCommon::get_api_params_values($request);
+
+        $status   = strtolower( Arr::get( $params, 'status', '' ) );
+        $category = Arr::get( $params, 'category', 'unknown' );
+
+        $bounce_categories = array( 'NoMailbox', 'BlackListed', 'ManualCancel' );
+
+        if ( 'error' === $status && in_array( $category, $bounce_categories ) ) {
+            $status = 'bounced';
+        }
+
+        $process_statuses = array( 'bounced', 'abusereport', 'unsubscribed' );
+
+        if ( !in_array( $status, $process_statuses ) ) {
+            return false;
+        }
+
+        $email = Arr::get( $params, 'to' );
+
+        if ( !is_email( $email ) ) {
+            return false;
+        }
+
+        if ( 'unsubscribed' === $status ) {
+            $unsubscribe_data = array(
+                'email'    => $email,
+                'reason'   => __( 'Unsubscribed from Elastic Email Webhook API', 'mrm' ),
+                'status'   => 'unsubscribed',
+                'provider' => 'Elastic Email',
+            );
+
+            return ContactModel::record_unsubscribe( $unsubscribe_data );
+        }
+
+        $unsubscribe_data = array(
+            'email'    => $email,
+            'reason'   => sprintf( __( 'Bounced via Elastic Email Webhook with Category: %s', 'mrm' ), $category ),
+            'status'   => 'bounced',
+            'provider' => 'Elastic Email',
+        );
+
+        return ContactModel::record_unsubscribe( $unsubscribe_data );
+    }
+
+    /**
+     * Handles Postal Server events and records unsubscribe data if necessary.
+     *
+     * This function processes a Postal Server webhook event. It handles 'messagebounced'
+     * and 'messagedeliveryfailed' (HardFail only) events, recording the bounce for the recipient.
+     *
+     * @param \WP_REST_Request $request The request object containing the bounce data.
+     * @return bool|mixed False if the event is not handled, otherwise the result of recording the unsubscribe.
+     * @since 1.16.0
+     */
+    private function handle_postalserver( $request ){
+        $params = MrmCommon::get_api_params_values($request);
+
+        $event = strtolower( Arr::get( $params, 'event', '' ) );
+
+        $process_statuses = array( 'messagebounced', 'messagedeliveryfailed' );
+
+        if ( !in_array( $event, $process_statuses ) ) {
+            return false;
+        }
+
+        $payload = Arr::get( $params, 'payload' );
+
+        if ( !$payload || !is_array( $payload ) ) {
+            return false;
+        }
+
+        $reason = Arr::get( $payload, 'details', __( 'Unknown Reason', 'mrm' ) );
+
+        if ( 'messagedeliveryfailed' === $event ) {
+            $payload_status = Arr::get( $payload, 'status' );
+            if ( 'HardFail' !== $payload_status ) {
+                return false;
+            }
+            $to_email = Arr::get( $payload, 'message.to' );
+        } else {
+            $to_email = Arr::get( $payload, 'bounce.to' );
+
+            if ( !$to_email ) {
+                $to_email = Arr::get( $payload, 'message.to' );
+            }
+        }
+
+        if ( !$to_email || !is_email( $to_email ) ) {
+            return false;
+        }
+
+        $unsubscribe_data = array(
+            'email'    => $to_email,
+            'reason'   => $reason,
+            'status'   => 'bounced',
+            'provider' => 'Postal Server',
+        );
+
+        return ContactModel::record_unsubscribe( $unsubscribe_data );
+    }
+
+    /**
+     * Handles SMTP2GO events and records unsubscribe data if necessary.
+     *
+     * This function processes an SMTP2GO webhook event. It handles 'bounce' (hard only),
+     * 'spam', and 'unsubscribe' events, recording the appropriate status for the recipient.
+     *
+     * @param \WP_REST_Request $request The request object containing the bounce data.
+     * @return bool|mixed False if the event is not handled, otherwise the result of recording the unsubscribe.
+     * @since 1.16.0
+     */
+    private function handle_smtp2go( $request ){
+        $params = MrmCommon::get_api_params_values($request);
+
+        $event = strtolower( Arr::get( $params, 'event', '' ) );
+
+        $process_statuses = array( 'bounce', 'spam', 'unsubscribe' );
+
+        if ( !in_array( $event, $process_statuses ) ) {
+            return false;
+        }
+
+        if ( 'bounce' === $event ) {
+            $bounce_type = Arr::get( $params, 'bounce' );
+            if ( 'soft' === $bounce_type ) {
+                return false;
+            }
+        }
+
+        $to_email = Arr::get( $params, 'rcpt' );
+
+        if ( !$to_email || !is_email( $to_email ) ) {
+            return false;
+        }
+
+        $reason = sanitize_textarea_field( Arr::get( $params, 'message', __( 'Unknown Reason', 'mrm' ) ) );
+
+        $new_status = 'bounced';
+        if ( 'unsubscribe' === $event ) {
+            $new_status = 'unsubscribed';
+        } else if ( 'spam' === $event ) {
+            $new_status = 'complained';
+        }
+
+        $unsubscribe_data = array(
+            'email'    => $to_email,
+            'reason'   => $reason,
+            'status'   => $new_status,
+            'provider' => 'SMTP2GO',
+        );
+
+        return ContactModel::record_unsubscribe( $unsubscribe_data );
+    }
+
+    /**
      * Extract and validate an email address from a string.
      *
      * This function extracts an email address from a string that may contain additional text,

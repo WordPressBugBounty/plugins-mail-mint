@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.21.1
+ * Version:           1.21.2
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -36,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.21.1' );
+define( 'MRM_VERSION', '1.21.2' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.16.0' );
 define( 'MINT_DEV_MODE', false );
@@ -266,6 +266,52 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 				$client->set_optin_state( 'yes' );
 			}
 		);
+
+		// Replace generic SDK deactivation reasons with mail mint specific ones.
+        add_filter( 'mail-mint_telemetry_deactivation_reasons', function( $reasons ) {
+			return [
+				[
+					'id'   => 'smtp-email-sending-issue',
+					'text' => __( 'Emails are not sending', 'mrm' ),
+					'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="#3B86FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 6l-10 7L2 6" stroke="#3B86FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+				],
+				[
+					'id'   => 'too-complex-to-use',
+					'text' => __( 'Too complex to get started', 'mrm' ),
+					'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#3B86FF" stroke-width="2"/><path d="M9 9h6M9 12h4" stroke="#3B86FF" stroke-width="2" stroke-linecap="round"/></svg>',
+				],
+				[
+					'id'   => 'fatal-error-or-conflict',
+					'text' => __( 'Caused a fatal error or conflict with another plugin', 'mrm' ),
+					'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#3B86FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+				],
+				[
+					'id'   => 'missing-integration',
+					'text' => __( 'Missing a integration I need', 'mrm' ),
+					'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#3B86FF" stroke-width="2"/><path d="M12 8v4M12 16h.01" stroke="#3B86FF" stroke-width="2" stroke-linecap="round"/></svg>',
+				],
+				[
+					'id'   => 'switching-to-another-plugin',
+					'text' => __( 'Switching to another plugin', 'mrm' ),
+					'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="#3B86FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+				],
+				[
+					'id'   => 'no-longer-needed',
+					'text' => __( 'No longer need email marketing', 'mrm' ),
+					'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#3B86FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+				],
+				[
+					'id'   => 'temporary',
+					'text' => __( 'Temporarily deactivating', 'mrm' ),
+					'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#3B86FF" stroke-width="2"/><path d="M12 6v6l4 2" stroke="#3B86FF" stroke-width="2" stroke-linecap="round"/></svg>',
+				],
+				[
+					'id'   => 'missing-feature',
+					'text' => __( 'Missing a feature I need', 'mrm' ),
+					'icon' => '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#3B86FF" stroke-width="2"/><path d="M9 9a3 3 0 1 1 4 2.83V13M12 17h.01" stroke="#3B86FF" stroke-width="2" stroke-linecap="round"/></svg>',
+				],
+			];
+		} );
 	}
 }
 init_mail_mint_telemetry();
@@ -288,45 +334,6 @@ add_action( 'plugins_loaded', function () {
 	}
 }, 20 );
 
-/**
- * Aggregate high-frequency retention events (automation emails sent, form
- * submissions) into a single daily PostHog event instead of one per occurrence.
- *
- * Counters are stored in wp_options and flushed once per day via WP-Cron.
- * This prevents flooding PostHog on busy sites.
- */
-add_action( 'mailmint_after_automation_send_mail', function ( $automation_id, $user_email, $is_sent ) {
-	if ( $is_sent ) {
-		$counts = get_option( 'mail_mint_telemetry_daily_counts', array() );
-		$counts['automation_triggered'] = ( (int) ( $counts['automation_triggered'] ?? 0 ) ) + 1;
-		update_option( 'mail_mint_telemetry_daily_counts', $counts, false );
-	}
-}, 10, 3 );
-
-
-add_action( 'mail_mint_telemetry_daily_flush', function () {
-	$counts = get_option( 'mail_mint_telemetry_daily_counts', array() );
-	if ( empty( $counts ) ) {
-		return;
-	}
-
-	foreach ( $counts as $feature => $count ) {
-		if ( $count > 0 ) {
-			do_action( 'mail-mint_telemetry_track', 'retention/feature_used', array(
-				'feature' => $feature,
-				'count'   => (int) $count,
-			) );
-		}
-	}
-
-	delete_option( 'mail_mint_telemetry_daily_counts' );
-} );
-
-add_action( 'init', function () {
-	if ( ! wp_next_scheduled( 'mail_mint_telemetry_daily_flush' ) ) {
-		wp_schedule_event( time(), 'daily', 'mail_mint_telemetry_daily_flush' );
-	}
-} );
 
 if ( ! function_exists( 'mmempty' ) ) {
 	/**

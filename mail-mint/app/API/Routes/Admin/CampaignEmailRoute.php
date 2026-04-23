@@ -62,6 +62,18 @@ class CampaignEmailRoute {
 
 		register_rest_route(
 			$this->namespace,
+			'/' . $this->rest_base . '/emails/search',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'search_campaign_emails' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
 			'/' . $this->rest_base . '/email/create/',
 			array(
 				array(

@@ -487,6 +487,78 @@ class CampaignController extends AdminBaseController {
 		$response['campaigns'] = $campaigns;
 		return rest_ensure_response( $response );
 	}
+
+	/**
+	 * Get campaigns for segment builder — lightweight, paginated, grouped by type.
+	 * Returns only id, title, type. Supports search and scroll pagination.
+	 *
+	 * @param WP_REST_Request $request
+	 * @return WP_REST_Response
+	 * @since 1.19.6
+	 */
+	public function get_campaigns_for_segment( WP_REST_Request $request ) {
+		global $wpdb;
+
+		$params   = MrmCommon::get_api_params_values( $request );
+		$page     = max( 1, intval( isset( $params['page'] ) ? $params['page'] : 1 ) );
+		$per_page = max( 1, intval( isset( $params['per_page'] ) ? $params['per_page'] : 10 ) );
+		$search   = isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '';
+		$offset   = ( $page - 1 ) * $per_page;
+
+		$table = $wpdb->prefix . CampaignSchema::$campaign_table;
+
+		$where = '';
+		if ( ! empty( $search ) ) {
+			$where = $wpdb->prepare( 'WHERE title LIKE %s', '%' . $wpdb->esc_like( $search ) . '%' );
+		}
+
+		// Fetch only id, title, type — no stats, no meta
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id, title, type FROM {$table} {$where} ORDER BY type ASC, id DESC LIMIT %d, %d",
+				$offset,
+				$per_page
+			),
+			ARRAY_A
+		);
+
+		$total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} {$where}" );
+
+		// Group by type
+		$type_labels = array(
+			'regular'   => __( 'Regular Campaign', 'mrm' ),
+			'recurring' => __( 'Recurring Campaign', 'mrm' ),
+			'sequence'  => __( 'Campaign Sequence', 'mrm' ),
+			'automation' => __( 'Automation Sequence', 'mrm' ),
+		);
+
+		$grouped = array();
+		foreach ( $results as $row ) {
+			$type  = isset( $row['type'] ) ? $row['type'] : 'regular';
+			$label = isset( $type_labels[ $type ] ) ? $type_labels[ $type ] : ucfirst( $type );
+			if ( ! isset( $grouped[ $type ] ) ) {
+				$grouped[ $type ] = array(
+					'label'   => $label,
+					'options' => array(),
+				);
+			}
+			$grouped[ $type ]['options'][] = array(
+				'value' => (int) $row['id'],
+				'label' => $row['title'],
+			);
+		}
+
+		$response = array(
+			'success'    => true,
+			'groups'     => array_values( $grouped ),
+			'total'      => $total,
+			'page'       => $page,
+			'per_page'   => $per_page,
+			'has_more'   => ( $offset + $per_page ) < $total,
+		);
+
+		return rest_ensure_response( $response );
+	}
 	
 	
 	/**

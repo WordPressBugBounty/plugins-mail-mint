@@ -6,6 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'ff3063ba1525be89739a1851bfba6fcb' => $vendorDir . '/coderexltd/telemetry/src/helpers.php',
     'aed659f3655c497c30e044c41fa917c6' => $vendorDir . '/linno/telemetry/src/helpers.php',
 );

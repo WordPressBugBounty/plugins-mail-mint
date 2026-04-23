@@ -611,12 +611,13 @@ class ContactController extends AdminBaseController {
      * @since 1.4.9
      */
     public function get_native_wc_customers() {
-        $total_orders = wc_get_orders(
-            array(
-                'limit' => -1,
-			)
-        );
-        
+        $order_query  = new \WC_Order_Query( array(
+            'limit'  => 1,
+            'return' => 'ids',
+            'paginate' => true,
+        ) );
+        $total_orders = $order_query->get_orders()->total;
+
         $headers = apply_filters( 'mint_woocommerce_customer_import_headers', array(
             'billing_email',
             'billing_first_name',
@@ -653,7 +654,7 @@ class ContactController extends AdminBaseController {
         $per_batch = apply_filters( 'mint_import_batch_limit', 500 );
 
         return $this->get_success_response( __( 'Total orders has been retrieved successfully.', 'mrm' ), 200, array(
-            'total_batch' => ceil( count( $total_orders ) / (int) $per_batch ),
+            'total_batch' => ceil( $total_orders / (int) $per_batch ),
             'headers'     => $headers,
         ) );
     }
@@ -1360,7 +1361,7 @@ class ContactController extends AdminBaseController {
         }
 
         // Validate status
-        $allowed_statuses = array('pending', 'subscribed', 'unsubscribed', 'complained', 'bounced');
+        $allowed_statuses = array('pending', 'subscribed', 'unsubscribed', 'complained', 'bounced', 'inactive');
         if (! in_array($status, $allowed_statuses, true)) {
             return $this->get_error_response(__('Invalid status provided.', 'mrm'), 400);
         }

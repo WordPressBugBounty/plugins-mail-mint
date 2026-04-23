@@ -1,130 +1,18 @@
 {
     "packages": [
         {
-            "name": "appsero/client",
-            "version": "v2.0.4",
-            "version_normalized": "2.0.4.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/Appsero/client.git",
-                "reference": "12ff65b9770286d21edf314e7acfcd26fdde3315"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Appsero/client/zipball/12ff65b9770286d21edf314e7acfcd26fdde3315",
-                "reference": "12ff65b9770286d21edf314e7acfcd26fdde3315",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.6"
-            },
-            "require-dev": {
-                "dealerdirect/phpcodesniffer-composer-installer": "^0.7.2",
-                "phpcompatibility/phpcompatibility-wp": "dev-master",
-                "phpunit/phpunit": "^8.5.31",
-                "squizlabs/php_codesniffer": "^3.7",
-                "tareq1988/wp-php-cs-fixer": "dev-master",
-                "wp-coding-standards/wpcs": "dev-develop"
-            },
-            "time": "2024-11-25T05:58:23+00:00",
-            "type": "library",
-            "installation-source": "dist",
-            "autoload": {
-                "psr-4": {
-                    "Appsero\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Tareq Hasan",
-                    "email": "tareq@appsero.com"
-                }
-            ],
-            "description": "Appsero Client",
-            "keywords": [
-                "analytics",
-                "plugin",
-                "theme",
-                "wordpress"
-            ],
-            "support": {
-                "issues": "https://github.com/Appsero/client/issues",
-                "source": "https://github.com/Appsero/client/tree/v2.0.4"
-            },
-            "install-path": "../appsero/client"
-        },
-        {
-            "name": "coderexltd/telemetry",
-            "version": "dev-master",
-            "version_normalized": "dev-master",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/CODEREXLTD/coderex-telemetry.git",
-                "reference": "4831df7a5dcb18e92fac5415ae7443b4ad746aaa"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/CODEREXLTD/coderex-telemetry/zipball/4831df7a5dcb18e92fac5415ae7443b4ad746aaa",
-                "reference": "4831df7a5dcb18e92fac5415ae7443b4ad746aaa",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.4"
-            },
-            "require-dev": {
-                "mockery/mockery": "^1.5",
-                "phpunit/phpunit": "^9.5"
-            },
-            "time": "2025-11-17T07:34:58+00:00",
-            "default-branch": true,
-            "type": "library",
-            "installation-source": "dist",
-            "autoload": {
-                "psr-4": {
-                    "CodeRex\\Telemetry\\": "src/"
-                },
-                "files": [
-                    "src/helpers.php"
-                ]
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "CodeRex\\Telemetry\\Tests\\": "tests/"
-                }
-            },
-            "license": [
-                "GPL-2.0-or-later"
-            ],
-            "authors": [
-                {
-                    "name": "Code Rex",
-                    "email": "support@coderex.co"
-                }
-            ],
-            "description": "Privacy-first telemetry SDK for Code Rex WordPress plugins",
-            "support": {
-                "source": "https://github.com/CODEREXLTD/coderex-telemetry/tree/master",
-                "issues": "https://github.com/CODEREXLTD/coderex-telemetry/issues"
-            },
-            "install-path": "../coderexltd/telemetry"
-        },
-        {
             "name": "linno/telemetry",
-            "version": "dev-posthog",
-            "version_normalized": "dev-posthog",
+            "version": "dev-update-for-onboarding",
+            "version_normalized": "dev-update-for-onboarding",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CODEREXLTD/linno-telemetry.git",
-                "reference": "32e7975d19bf532f7762a76a34f150e050cb609a"
+                "reference": "66b72eb17f930c16dd29027c1defce1997a5efdd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CODEREXLTD/linno-telemetry/zipball/32e7975d19bf532f7762a76a34f150e050cb609a",
-                "reference": "32e7975d19bf532f7762a76a34f150e050cb609a",
+                "url": "https://api.github.com/repos/CODEREXLTD/linno-telemetry/zipball/66b72eb17f930c16dd29027c1defce1997a5efdd",
+                "reference": "66b72eb17f930c16dd29027c1defce1997a5efdd",
                 "shasum": ""
             },
             "require": {
@@ -135,7 +23,7 @@
                 "mockery/mockery": "^1.5",
                 "phpunit/phpunit": "^9.5"
             },
-            "time": "2026-04-02T09:28:26+00:00",
+            "time": "2026-04-21T16:24:22+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -162,7 +50,7 @@
             ],
             "description": "Privacy-first telemetry SDK for Linno WordPress plugins",
             "support": {
-                "source": "https://github.com/CODEREXLTD/linno-telemetry/tree/posthog",
+                "source": "https://github.com/CODEREXLTD/linno-telemetry/tree/update-for-onboarding",
                 "issues": "https://github.com/CODEREXLTD/linno-telemetry/issues"
             },
             "install-path": "../linno/telemetry"
@@ -225,29 +113,29 @@
         },
         {
             "name": "woocommerce/action-scheduler",
-            "version": "3.9.2",
-            "version_normalized": "3.9.2.0",
+            "version": "3.9.3",
+            "version_normalized": "3.9.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/woocommerce/action-scheduler.git",
-                "reference": "efbb7953f72a433086335b249292f280dd43ddfe"
+                "reference": "c58cdbab17651303d406cd3b22cf9d75c71c986c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/woocommerce/action-scheduler/zipball/efbb7953f72a433086335b249292f280dd43ddfe",
-                "reference": "efbb7953f72a433086335b249292f280dd43ddfe",
+                "url": "https://api.github.com/repos/woocommerce/action-scheduler/zipball/c58cdbab17651303d406cd3b22cf9d75c71c986c",
+                "reference": "c58cdbab17651303d406cd3b22cf9d75c71c986c",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.1"
+                "php": ">=7.2"
             },
             "require-dev": {
-                "phpunit/phpunit": "^7.5",
+                "phpunit/phpunit": "^8.5",
                 "woocommerce/woocommerce-sniffs": "0.1.0",
                 "wp-cli/wp-cli": "~2.5.0",
                 "yoast/phpunit-polyfills": "^2.0"
             },
-            "time": "2025-02-03T09:09:30+00:00",
+            "time": "2025-07-15T09:32:30+00:00",
             "type": "wordpress-plugin",
             "extra": {
                 "scripts-description": {
@@ -265,7 +153,7 @@
             "homepage": "https://actionscheduler.org/",
             "support": {
                 "issues": "https://github.com/woocommerce/action-scheduler/issues",
-                "source": "https://github.com/woocommerce/action-scheduler/tree/3.9.2"
+                "source": "https://github.com/woocommerce/action-scheduler/tree/3.9.3"
             },
             "install-path": "../woocommerce/action-scheduler"
         }

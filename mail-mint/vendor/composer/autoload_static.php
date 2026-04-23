@@ -4,10 +4,9 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit8f0f7aab29df42b3954d4983c34ff204
+class ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732
 {
     public static $files = array (
-        'ff3063ba1525be89739a1851bfba6fcb' => __DIR__ . '/..' . '/coderexltd/telemetry/src/helpers.php',
         'aed659f3655c497c30e044c41fa917c6' => __DIR__ . '/..' . '/linno/telemetry/src/helpers.php',
     );
 
@@ -23,14 +22,6 @@ class ComposerStaticInit8f0f7aab29df42b3954d4983c34ff204
         'L' => 
         array (
             'LinnoSDK\\Telemetry\\' => 19,
-        ),
-        'C' => 
-        array (
-            'CodeRex\\Telemetry\\' => 18,
-        ),
-        'A' => 
-        array (
-            'Appsero\\' => 8,
         ),
     );
 
@@ -48,25 +39,9 @@ class ComposerStaticInit8f0f7aab29df42b3954d4983c34ff204
         array (
             0 => __DIR__ . '/..' . '/linno/telemetry/src',
         ),
-        'CodeRex\\Telemetry\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/coderexltd/telemetry/src',
-        ),
-        'Appsero\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/appsero/client/src',
-        ),
     );
 
     public static $classMap = array (
-        'Appsero\\Client' => __DIR__ . '/..' . '/appsero/client/src/Client.php',
-        'Appsero\\Insights' => __DIR__ . '/..' . '/appsero/client/src/Insights.php',
-        'Appsero\\License' => __DIR__ . '/..' . '/appsero/client/src/License.php',
-        'CodeRex\\Telemetry\\Client' => __DIR__ . '/..' . '/coderexltd/telemetry/src/Client.php',
-        'CodeRex\\Telemetry\\Drivers\\DriverInterface' => __DIR__ . '/..' . '/coderexltd/telemetry/src/Drivers/DriverInterface.php',
-        'CodeRex\\Telemetry\\Drivers\\OpenPanelDriver' => __DIR__ . '/..' . '/coderexltd/telemetry/src/Drivers/OpenPanelDriver.php',
-        'CodeRex\\Telemetry\\EventDispatcher' => __DIR__ . '/..' . '/coderexltd/telemetry/src/EventDispatcher.php',
-        'CodeRex\\Telemetry\\Helpers\\Utils' => __DIR__ . '/..' . '/coderexltd/telemetry/src/Helpers/Utils.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'ContactImportAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Contact/ContactImportAction.php',
         'ContactProfileAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Contact/ContactProfileAction.php',
@@ -83,6 +58,7 @@ class ComposerStaticInit8f0f7aab29df42b3954d4983c34ff204
         'LinnoSDK\\Telemetry\\EventDispatcher' => __DIR__ . '/..' . '/linno/telemetry/src/EventDispatcher.php',
         'LinnoSDK\\Telemetry\\Helpers\\Utils' => __DIR__ . '/..' . '/linno/telemetry/src/Helpers/Utils.php',
         'LinnoSDK\\Telemetry\\Queue' => __DIR__ . '/..' . '/linno/telemetry/src/Queue.php',
+        'LinnoSDK\\Telemetry\\ReviewPrompt' => __DIR__ . '/..' . '/linno/telemetry/src/ReviewPrompt.php',
         'LinnoSDK\\Telemetry\\TriggerManager' => __DIR__ . '/..' . '/linno/telemetry/src/TriggerManager.php',
         'MRM\\Common\\MrmCommon' => __DIR__ . '/../..' . '/app/MrmCommon.php',
         'MailMint' => __DIR__ . '/../..' . '/includes/MailMint.php',
@@ -329,9 +305,9 @@ class ComposerStaticInit8f0f7aab29df42b3954d4983c34ff204
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit8f0f7aab29df42b3954d4983c34ff204::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit8f0f7aab29df42b3954d4983c34ff204::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit8f0f7aab29df42b3954d4983c34ff204::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732::$classMap;
 
         }, null, ClassLoader::class);
     }

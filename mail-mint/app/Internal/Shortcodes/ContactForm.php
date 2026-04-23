@@ -208,7 +208,7 @@ class ContactForm {
 		$hidden_recaptcha   = '';
 		if ( 'v3_invisible' === $version && $recaptch_is_enable ) {
 			$recapcha_js      = ' <script src="https://www.google.com/recaptcha/api.js?render=' . $v3_site_key . '"></script>'; //phpcs:ignore
-			$hidden_recaptcha = '<input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>';
+			$hidden_recaptcha = '<input type="hidden" id="g-recaptcha-response-' . $form_id . '" name="g-recaptcha-response"/>';
 		}
 		$mrm_form_disable = '';
 		if ( $show ) {
@@ -264,7 +264,7 @@ class ContactForm {
 								<script>
 									grecaptcha.ready(function() {
 										grecaptcha.execute('<?php echo $v3_site_key; //phpcs:ignore ?>', {action: 'homepage'}).then(function(token) {
-											document.getElementById("g-recaptcha-response").value = token;
+											document.getElementById("g-recaptcha-response-<?php echo intval( $form_id ); //phpcs:ignore ?>").value = token;
 										});
 									});
 								</script>

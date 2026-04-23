@@ -242,7 +242,7 @@ class MintFormBlock {
 		$mrm_form_disable   = '';
 		if ( 'v3_invisible' === $version && $recaptch_is_enable ) {
 			$recapcha_js      = '<script src="https://www.google.com/recaptcha/api.js?render=' . $v3_site_key . '"></script>'; //phpcs:ignore
-			$hidden_recaptcha = '<input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response"/>';
+			$hidden_recaptcha = '<input type="hidden" id="g-recaptcha-response-' . $form_id . '" name="g-recaptcha-response"/>';
 		}
 		if ( 0 === $form_id ) {
 			$html = '<div class="mintmrm">
@@ -279,7 +279,7 @@ class MintFormBlock {
 					$html .= '<script>
                                 grecaptcha.ready(function() {
                                     grecaptcha.execute("' . $v3_site_key . '", {action: "homepage"}).then(function(token) {
-                                        document.getElementById("g-recaptcha-response").value = token;
+                                        document.getElementById("g-recaptcha-response-' . $form_id . '").value = token;
                                     });
                                 });
                             </script>';

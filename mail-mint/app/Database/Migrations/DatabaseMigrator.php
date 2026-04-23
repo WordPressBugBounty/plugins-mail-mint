@@ -102,6 +102,7 @@ class DatabaseMigrator {
 		$this->current_db_version = get_option( 'mail_mint_db_version', null );
 		if ( ! is_null( $this->current_db_version ) ) {
 			$this->upgrade_database_tables();
+			$this->maybe_create_email_templates_table();
 		}
 	}
 
@@ -600,6 +601,27 @@ class DatabaseMigrator {
 
 		update_option( 'mail_mint_db_version', $version, false );
 		update_option( 'mail_mint_db_1152_version_updated', 'yes' );
+	}
+
+
+	/**
+	 * Ensure the mint_email_templates table exists for existing installs.
+	 *
+	 * The table is created on fresh installs via Upgrade::upgrade_schema(), but for
+	 * users who upgraded past 1.15.2 without triggering the async migration (e.g.
+	 * the admin notice was suppressed for MRM >= 1.17.7), the table may be missing.
+	 * This check runs on every init and is a no-op once the table exists.
+	 *
+	 * @return void
+	 * @since 1.15.2
+	 */
+	private function maybe_create_email_templates_table() {
+		global $wpdb;
+		$table = $wpdb->prefix . 'mint_email_templates';
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table'" ) !== $table ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$schema = new \Mint\MRM\DataBase\Tables\EmailTemplatesSchema();
+			$schema->get_sql();
+		}
 	}
 
 

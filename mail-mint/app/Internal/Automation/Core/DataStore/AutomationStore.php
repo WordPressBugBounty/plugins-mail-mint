@@ -257,6 +257,95 @@ class AutomationModel {
 						as_schedule_recurring_action( $time, DAY_IN_SECONDS, 'mailmint_process_contact_anniversary_daily', $args, $group );
 					}
 
+					// Schedule events for Inactive Subscriber automation.
+					if ( 'mint_inactive_subscriber' === $payload['trigger_name'] && 'active' === $payload['status'] ) {
+						$trigger  = !empty( $payload['steps'] ) ? $payload['steps'][0] : array();
+						$step_id  = isset( $trigger['step_id'] ) ? $trigger['step_id'] : '';
+						$schedule = isset( $trigger['settings']['inactive_subscriber']['schedule'] ) ? $trigger['settings']['inactive_subscriber']['schedule'] : array();
+
+						$frequency = isset( $schedule['frequency'] ) ? $schedule['frequency'] : 'daily';
+						$hour      = isset( $schedule['hour'] )      ? $schedule['hour']      : '09';
+						$minute    = isset( $schedule['minute'] )    ? $schedule['minute']    : '00';
+						$ampm      = isset( $schedule['ampm'] )      ? $schedule['ampm']      : 'AM';
+
+						// Build the 24-hour time string.
+						$hour_24 = ( 'PM' === $ampm && intval( $hour ) < 12 )
+							? intval( $hour ) + 12
+							: ( ( 'AM' === $ampm && '12' === $hour ) ? 0 : intval( $hour ) );
+						$time_string = sprintf( '%02d:%s:00', $hour_24, $minute );
+
+						// Determine the first run date.
+						switch ( $frequency ) {
+							case 'weekly':
+								$weekday     = isset( $schedule['weekday'] ) ? $schedule['weekday'] : 'monday';
+								$first_run   = date( 'Y-m-d', strtotime( "next {$weekday}" ) ) . ' ' . $time_string;
+								$interval    = WEEK_IN_SECONDS;
+								break;
+							case 'monthly':
+								$month_day = isset( $schedule['month_day'] ) ? $schedule['month_day'] : '1';
+								if ( 'last' === $month_day ) {
+									$first_run = date( 'Y-m-t' ) . ' ' . $time_string;
+								} else {
+									$day_num   = intval( $month_day );
+									$today_num = intval( date( 'j' ) );
+									if ( $today_num >= $day_num ) {
+										$first_run = date( 'Y-m-' . sprintf( '%02d', $day_num ), strtotime( 'first day of next month' ) ) . ' ' . $time_string;
+									} else {
+										$first_run = date( 'Y-m-' . sprintf( '%02d', $day_num ) ) . ' ' . $time_string;
+									}
+								}
+								$interval = 30 * DAY_IN_SECONDS;
+								break;
+							default: // daily
+								$first_run = date( 'Y-m-d' ) . ' ' . $time_string;
+								$interval  = DAY_IN_SECONDS;
+								break;
+						}
+
+						$time = Mint_Pro_Helper::get_action_scheduler_starting_timestamp( $first_run );
+
+						$args = array(
+							'automation_id' => $automation_id,
+							'step_id'       => $step_id,
+							'offset'        => 0,
+							'per_page'      => 200,
+						);
+
+						$group = 'mailmint-process-inactive-subscriber-' . $automation_id;
+						// Cancel any existing scheduled or in-progress jobs for this automation
+						// before scheduling a fresh one (e.g. user changed schedule settings).
+						if ( class_exists( 'ActionScheduler_Store' ) ) {
+							\ActionScheduler_Store::instance()->cancel_actions_by_group( $group );
+						}
+
+						/**
+						 * Action: mailmint_process_inactive_subscriber_daily
+						 *
+						 * Summary: Fires when processing inactive subscriber steps.
+						 *
+						 * Description: This action is triggered when processing inactive subscriber steps.
+						 * It provides an opportunity for developers to hook into the inactive subscriber
+						 * process and perform additional actions or custom logic.
+						 *
+						 * @param array $args An array containing information about the inactive subscriber steps being processed.
+						 * @since 1.14.0
+						 */
+						as_schedule_recurring_action( $time, $interval, 'mailmint_process_inactive_subscriber_daily', $args, $group );
+					}
+
+					// Cancel scheduled jobs when Inactive Subscriber automation is set to draft.
+					if ( 'mint_inactive_subscriber' === $payload['trigger_name'] && 'draft' === $payload['status'] ) {
+						$group = 'mailmint-process-inactive-subscriber-' . $automation_id;
+
+						// cancel_actions_by_group() is the only reliable way to cancel all pending
+						// jobs in a group when args vary (e.g. different offsets in batch jobs).
+						// as_unschedule_all_actions( $hook, array(), $group ) falls into a loop
+						// that tries to match by exact (empty) args and never finds a match.
+						if ( class_exists( 'ActionScheduler_Store' ) ) {
+							\ActionScheduler_Store::instance()->cancel_actions_by_group( $group );
+						}
+					}
+
 					// Schedule events for WooCommerce Subscription automation.
 					if ( 'wcs_subscription_before_renewal' === $payload['trigger_name'] && 'active' === $payload['status'] ) {
 						$trigger = !empty( $payload['steps'] ) ? $payload['steps'][0] : array();
@@ -369,9 +458,10 @@ class AutomationModel {
 					'updated_at'   => current_time( 'mysql' ),
 				)
 			); // db call ok.
+			$automation_id = $wpdb->insert_id;
 			do_action( 'mailmint_'.$payload['trigger_name'].'_automation_created' );
-			do_action( 'mailmint_automation_created', $wpdb->insert_id, $payload['trigger_name'] ?? '' );
-			return $wpdb->insert_id;
+			do_action( 'mailmint_automation_created', $automation_id, $payload['trigger_name'] ?? '' );
+			return $automation_id;
 		} catch ( \Exception $e ) {
 			return false;
 		}

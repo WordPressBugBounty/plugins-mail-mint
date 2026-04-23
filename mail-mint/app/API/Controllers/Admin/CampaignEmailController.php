@@ -59,6 +59,46 @@ class CampaignEmailController extends AdminBaseController {
 	 * @return \WP_REST_Response
 	 * @since 1.0.0
 	 */
+	public function search_campaign_emails( WP_REST_Request $request ) {
+		global $wpdb;
+		$term = isset( $request['term'] ) ? sanitize_text_field( $request['term'] ) : '';
+		$like = '%' . $wpdb->esc_like( $term ) . '%';
+
+		$campaign_table = $wpdb->prefix . 'mint_campaign_emails';
+		$campaign_rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT id AS value, email_subject AS label, 'campaign' AS source FROM {$campaign_table} WHERE email_subject LIKE %s ORDER BY id DESC LIMIT 50",
+				$like
+			),
+			ARRAY_A
+		);
+
+		$automation_table = $wpdb->prefix . 'mint_automation_steps';
+		$automation_rows  = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT step_id AS value, settings FROM {$automation_table} WHERE `key` = 'sendMail' AND settings LIKE %s ORDER BY id DESC LIMIT 50",
+				$like
+			),
+			ARRAY_A
+		);
+
+		$automation_emails = array();
+		foreach ( $automation_rows as $row ) {
+			$settings = maybe_unserialize( $row['settings'] );
+			$subject  = isset( $settings['message_data']['subject'] ) ? $settings['message_data']['subject'] : '';
+			if ( $subject && ( ! $term || stripos( $subject, $term ) !== false ) ) {
+				$automation_emails[] = array(
+					'value'  => $row['value'],
+					'label'  => $subject,
+					'source' => 'automation',
+				);
+			}
+		}
+
+		$emails = array_merge( $campaign_rows ? $campaign_rows : array(), $automation_emails );
+		return rest_ensure_response( array( 'success' => true, 'emails' => $emails ) );
+	}
+
 	public function create_or_update( WP_REST_Request $request ) {
 		$params = MrmCommon::get_api_params_values( $request );
 
@@ -472,7 +512,7 @@ class CampaignEmailController extends AdminBaseController {
 
 		// Check for errors
 		if ($inserted === false) {
-			return $this->get_error_response( __('Template could not be saved.', 'mrm'), 401 );
+			return $this->get_error_response( __('Template could not be saved.', 'mrm'), 500 );
 		}
 
 		$result = array(
