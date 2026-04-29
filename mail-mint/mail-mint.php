@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.21.2
+ * Version:           1.21.3
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -36,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.21.2' );
+define( 'MRM_VERSION', '1.21.3' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.16.0' );
 define( 'MINT_DEV_MODE', false );
@@ -264,6 +264,22 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 			'mailmint_after_accept_consent',
 			function () use ( $client ) {
 				$client->set_optin_state( 'yes' );
+			}
+		);
+
+		/**
+		 * Update tracking consent from the General Settings page.
+		 *
+		 * Fired by TrackingSettingController::create_or_update() with either 'yes'
+		 * or 'no', allowing the SDK to write to both linno_telemetry_allow_tracking
+		 * and mail-mint_allow_tracking in a single call.
+		 *
+		 * @since 1.0.0
+		 */
+		add_action(
+			'mailmint_tracking_consent_changed',
+			function ( $state ) use ( $client ) {
+				$client->set_optin_state( $state );
 			}
 		);
 

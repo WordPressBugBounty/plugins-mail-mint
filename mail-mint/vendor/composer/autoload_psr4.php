@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'cweagans\\Composer\\' => array($vendorDir . '/cweagans/composer-patches/src'),
     'PostHog\\' => array($vendorDir . '/posthog/posthog-php/lib'),
     'Mint\\MRM\\' => array($baseDir . '/app', $baseDir . '/includes'),
     'LinnoSDK\\Telemetry\\' => array($vendorDir . '/linno/telemetry/src'),

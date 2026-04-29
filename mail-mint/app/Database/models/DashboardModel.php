@@ -19,6 +19,7 @@ use Mint\MRM\DataBase\Tables\CampaignEmailBuilderSchema;
 use Mint\MRM\DataBase\Tables\ContactSchema;
 use MRM\Common\MrmCommon;
 use Mint\MRM\DataBase\Models\CampaignModel as ModelsCampaign;
+use Mint\MRM\DataBase\Tables\EmailTemplatesSchema;
 use MintMail\App\Internal\Automation\AutomationModel;
 use MintMail\App\Internal\Automation\HelperFunctions;
 
@@ -427,7 +428,7 @@ class DashboardModel {
 	public static function get_onboarding_stats() {
 
 		global $wpdb;
-		$email_builder_table = $wpdb->prefix . CampaignEmailBuilderSchema::$table_name;
+		$email_builder_table = $wpdb->prefix . EmailTemplatesSchema::$table_name;
 
 		$boarding_steps = [
 			[

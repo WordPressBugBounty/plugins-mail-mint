@@ -665,6 +665,27 @@ class CampaignEmailController extends AdminBaseController {
 	}
 
 	/**
+	 * Get a single default email template by its ID.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return \WP_REST_Response
+	 * @since 1.0.0
+	 */
+	public function get_single_default_email_template( WP_REST_Request $request ) {
+		$id        = (int) $request->get_param( 'id' );
+		$templates = DefaultEmailTemplates::get_default_templates();
+
+		foreach ( $templates as $template ) {
+			if ( isset( $template['id'] ) && (int) $template['id'] === $id ) {
+				return $this->get_success_response( __( 'Template fetched successfully.', 'mrm' ), 200, $template );
+			}
+		}
+
+		return $this->get_error_response( __( 'Template not found.', 'mrm' ), 404 );
+	}
+
+	/**
 	 * Retrieves the latest published post.
 	 *
 	 * This function queries the database for the most recent post of type 'post'

@@ -78,6 +78,7 @@ class DatabaseMigrator {
 	 */
 	public function init() {
 		add_action( 'mail_mint_run_update_callback', array( $this, 'run_update_callback' ), 10, 2 );
+		add_action( 'mail_mint_sync_wc_customers', array( $this, 'sync_wc_customers_batch' ), 10, 1 );
 		add_action( 'init', array( $this, 'install_actions' ) );
 
 		$this->update_db_versions = array(
@@ -796,6 +797,229 @@ class DatabaseMigrator {
 		}
 
 		update_option( 'mail_mint_db_version', $version, false );
+	}
+
+	/**
+	 * Sync WooCommerce customer data into the mint_wc_customers table in batches.
+	 *
+	 * Triggered on demand via the REST API. Creates the table if missing, truncates
+	 * on the first batch (offset 0), then processes orders in batches of 200 and
+	 * schedules the next batch via Action Scheduler until all orders are processed.
+	 *
+	 * @param array $args Associative array with 'offset' key for batch pagination.
+	 *
+	 * @return void
+	 *
+	 * @since 1.14.0
+	 */
+	public function sync_wc_customers_batch( $args = array() ) {
+		if ( ! MrmCommon::is_wc_active() ) {
+			return;
+		}
+
+		global $wpdb;
+		$new_table_name = $wpdb->prefix . 'mint_wc_customers';
+
+		if ( $wpdb->get_var( "SHOW TABLES LIKE '$new_table_name'" ) != $new_table_name ) {
+			$charset_collate        = $wpdb->get_charset_collate();
+			$create_table_query     = "
+				CREATE TABLE $new_table_name (
+					id int(12) unsigned AUTO_INCREMENT PRIMARY KEY,
+					email_address varchar(255),
+					l_order_date datetime,
+					f_order_date datetime,
+					total_order_count int(7),
+					total_order_value double,
+					aov double,
+					purchased_products longtext NULL,
+					purchased_products_cats longtext NULL,
+					purchased_products_tags longtext NULL,
+					used_coupons longtext NULL,
+					INDEX (email_address),
+					INDEX (l_order_date),
+					INDEX (f_order_date),
+					INDEX (total_order_count),
+					INDEX (total_order_value)
+				) $charset_collate;";
+			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+			dbDelta( $create_table_query );
+		}
+
+		$batch_size     = 200;
+		$offset         = ! empty( $args['offset'] ) ? (int) $args['offset'] : 0;
+		$valid_statuses = array( 'wc-completed', 'wc-processing', 'wc-on-hold' );
+
+		if ( 0 === $offset ) {
+			$wpdb->query( "TRUNCATE TABLE $new_table_name" ); //phpcs:ignore
+		}
+
+		$orders = wc_get_orders(
+			array(
+				'limit'  => $batch_size,
+				'offset' => $offset,
+				'status' => $valid_statuses,
+			)
+		);
+
+		if ( ! empty( $orders ) ) {
+			foreach ( $orders as $order ) {
+				if ( $order instanceof \WC_Order_Refund ) {
+					continue;
+				}
+
+				$customer      = Helper::getDbCustomerFromOrder( $order );
+				$email_address = $customer->email;
+				$order_date    = $order->get_date_created()->format( 'Y-m-d H:i:s' );
+				$total_value   = $order->get_total();
+				$items         = $order->get_items();
+
+				$existing_data = $wpdb->get_row(
+					$wpdb->prepare( "SELECT * FROM $new_table_name WHERE email_address = %s", $email_address ), //phpcs:ignore
+					ARRAY_A
+				);
+
+				if ( $existing_data ) {
+					$existing_data['l_order_date'] = max( $existing_data['l_order_date'], $order_date );
+					$existing_data['f_order_date'] = min( $existing_data['f_order_date'], $order_date );
+
+					if ( $order->get_parent_id() == 0 ) {
+						$existing_data['total_order_count'] += 1;
+					}
+
+					$existing_data['total_order_value'] += $total_value;
+
+					$existing_products = json_decode( $existing_data['purchased_products'], true );
+					$existing_cats     = json_decode( $existing_data['purchased_products_cats'], true );
+					$existing_tags     = json_decode( $existing_data['purchased_products_tags'], true );
+					$existing_coupons  = json_decode( $existing_data['used_coupons'], true );
+
+					foreach ( $items as $item ) {
+						$product = $item->get_product();
+						if ( $product ) {
+							$existing_products[] = $product->get_id();
+							$product_cats        = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+							$product_tags        = wp_get_post_terms( $product->get_id(), 'product_tag', array( 'fields' => 'ids' ) );
+							$existing_cats       = array_merge( $existing_cats, $product_cats );
+							$existing_tags       = array_merge( $existing_tags, $product_tags );
+						}
+					}
+
+					$existing_coupons = array_merge( $existing_coupons, $order->get_coupon_codes() );
+
+					$existing_data['purchased_products']      = array_values( array_unique( $existing_products ) );
+					$existing_data['purchased_products_cats'] = array_values( array_unique( $existing_cats ) );
+					$existing_data['purchased_products_tags'] = array_values( array_unique( $existing_tags ) );
+					$existing_data['used_coupons']            = array_values( array_unique( $existing_coupons ) );
+
+					if ( $existing_data['total_order_count'] > 0 ) {
+						$existing_data['aov'] = number_format( (float) ( $existing_data['total_order_value'] / $existing_data['total_order_count'] ), wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator() );
+					} else {
+						$existing_data['aov'] = number_format( 0.0, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator() );
+					}
+
+					if ( $existing_data['total_order_count'] > 0 ) {
+						$wpdb->update(
+							$new_table_name,
+							array(
+								'l_order_date'            => $existing_data['l_order_date'],
+								'f_order_date'            => $existing_data['f_order_date'],
+								'total_order_count'       => $existing_data['total_order_count'],
+								'total_order_value'       => $existing_data['total_order_value'],
+								'aov'                     => $existing_data['aov'],
+								'purchased_products'      => wp_json_encode( $existing_data['purchased_products'] ),
+								'purchased_products_cats' => wp_json_encode( $existing_data['purchased_products_cats'] ),
+								'purchased_products_tags' => wp_json_encode( $existing_data['purchased_products_tags'] ),
+								'used_coupons'            => wp_json_encode( $existing_data['used_coupons'] ),
+							),
+							array( 'email_address' => $email_address )
+						);
+					}
+				} else {
+					$purchased_products      = array();
+					$purchased_products_cats = array();
+					$purchased_products_tags = array();
+
+					foreach ( $items as $item ) {
+						$product = $item->get_product();
+						if ( $product ) {
+							$purchased_products[]    = $product->get_id();
+							$product_cats            = wp_get_post_terms( $product->get_id(), 'product_cat', array( 'fields' => 'ids' ) );
+							$product_tags            = wp_get_post_terms( $product->get_id(), 'product_tag', array( 'fields' => 'ids' ) );
+							$purchased_products_cats = array_merge( $purchased_products_cats, $product_cats );
+							$purchased_products_tags = array_merge( $purchased_products_tags, $product_tags );
+						}
+					}
+
+					$used_coupons = $order->get_coupon_codes();
+					$aov          = ( $order->get_parent_id() == 0 )
+						? number_format( (float) $total_value, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator() )
+						: number_format( 0.0, wc_get_price_decimals(), wc_get_price_decimal_separator(), wc_get_price_thousand_separator() );
+
+					if ( $order->get_parent_id() == 0 ) {
+						$wpdb->insert(
+							$new_table_name,
+							array(
+								'email_address'           => $email_address,
+								'l_order_date'            => $order_date,
+								'f_order_date'            => $order_date,
+								'total_order_count'       => 1,
+								'total_order_value'       => $total_value,
+								'aov'                     => $aov,
+								'purchased_products'      => wp_json_encode( array_values( array_unique( $purchased_products ) ) ),
+								'purchased_products_cats' => wp_json_encode( array_values( array_unique( $purchased_products_cats ) ) ),
+								'purchased_products_tags' => wp_json_encode( array_values( array_unique( $purchased_products_tags ) ) ),
+								'used_coupons'            => wp_json_encode( array_values( array_unique( $used_coupons ) ) ),
+							)
+						);
+					}
+				}
+			}
+
+			// Only schedule the next batch if we got a full batch — a partial result means this was the last one.
+			if ( count( $orders ) >= $batch_size ) {
+				$next_offset = $offset + $batch_size;
+				as_schedule_single_action(
+					time() + 60,
+					'mail_mint_sync_wc_customers',
+					array( 'offset' => $next_offset ),
+					'mail-mint-wc-sync'
+				);
+			} else {
+				self::cleanup_sync_wc_customers_actions();
+			}
+		} else {
+			self::cleanup_sync_wc_customers_actions();
+		}
+	}
+
+	/**
+	 * Delete all pending and completed Action Scheduler entries for the WC customer sync hook.
+	 *
+	 * @return void
+	 * @since 1.14.0
+	 */
+	private static function cleanup_sync_wc_customers_actions() {
+		$store    = \ActionScheduler::store();
+		$statuses = array(
+			\ActionScheduler_Store::STATUS_PENDING,
+			\ActionScheduler_Store::STATUS_COMPLETE,
+			\ActionScheduler_Store::STATUS_FAILED,
+			\ActionScheduler_Store::STATUS_CANCELED,
+		);
+
+		foreach ( $statuses as $status ) {
+			$action_ids = $store->query_actions(
+				array(
+					'hook'     => 'mail_mint_sync_wc_customers',
+					'group'    => 'mail-mint-wc-sync',
+					'status'   => $status,
+					'per_page' => -1,
+				)
+			);
+			foreach ( $action_ids as $action_id ) {
+				$store->delete_action( $action_id );
+			}
+		}
 	}
 
 }

@@ -75,6 +75,447 @@ class AutomationRecipe {
 				'tags'					=> ['WordPress'],
 				'category'				=> ['wordpress'],
 			),
+
+				array(
+					'id'                    => 99,
+					'isPro'                 => true,
+					'type'                  => 'mailmint',
+					'automationTitle'       => 'Win back inactive subscribers',
+					'automationDescription' => 'Re-engage your inactive subscribers with a win-back email campaign designed to rekindle their interest and bring them back into the fold.',
+					'automation_data'       => '{"id": "23","name": "Subscriber Win Back","author": "1","trigger_name": "mint_inactive_subscriber","status": "active","created_at": "2026-04-28 06:05:06","updated_at": "2026-04-28 06:08:26",
+                		"steps": [{"id": "75","automation_id": "23",
+                        "step_id": "lsfxo",
+                        "key": "mint_inactive_subscriber",
+                        "type": "trigger",
+                        "settings": {
+                            "inactive_subscriber": {
+                                "condition_groups": [
+                                    {
+                                        "id": "group_1",
+                                        "conditions": [
+                                            {
+                                                "id": "cond_1",
+                                                "metric": "last_open",
+                                                "operator": "more_than",
+                                                "value": 90
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "id": "group_2",
+                                        "conditions": [
+                                            {
+                                                "id": "cond_3",
+                                                "metric": "last_click",
+                                                "operator": "more_than",
+                                                "value": 90
+                                            }
+                                        ]
+                                    }
+                                ],
+                                "schedule": {
+                                    "frequency": "daily",
+                                    "weekday": "monday",
+                                    "month_day": "1",
+                                    "hour": "09",
+                                    "minute": "00",
+                                    "ampm": "AM"
+                                },
+                                "entry": "only_after_exit"
+                            }
+                        },
+                        "next_step_id": "scx76g",
+                        "created_at": null,
+                        "updated_at": null,
+                        "automation_step_id": null,
+                        "meta_key": null,
+                        "meta_value": null,
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "76",
+                        "automation_id": "23",
+                        "step_id": "scx76g",
+                        "key": "sendMail",
+                        "type": "action",
+                        "settings": {
+                            "message_data": {
+                                "subject": "We miss you",
+                                "sender_email": "dev-email@wpengine.local",
+                                "sender_name": "mail-mint",
+                                "reply_name": "mail-mint",
+                                "reply_email": "dev-email@wpengine.local",
+                                "email_preview_text": "",
+                                "body": "",
+                                "json_body": "",
+                                "make_transactional": false
+                            }
+                        },
+                        "next_step_id": "ma772",
+                        "created_at": null,
+                        "updated_at": null,
+                        "automation_step_id": null,
+                        "meta_key": null,
+                        "meta_value": null,
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "77",
+                        "automation_id": "23",
+                        "step_id": "ma772",
+                        "key": "condition",
+                        "type": "logical",
+                        "settings": {
+                            "rules": {
+                                "condition": [
+                                    [
+                                        {
+                                            "action": "Email Engagement",
+                                            "param": "engagement_email_open",
+                                            "name": "Email opens",
+                                            "condition_label": "Any of the emails",
+                                            "condition_value": "any_of_the_emails",
+                                            "value": [
+                                                {
+                                                    "value": "scx76g",
+                                                    "label": "We miss you",
+                                                    "source": "automation"
+                                                }
+                                            ],
+                                            "segmentValue": [],
+                                            "action_type": "email_engagement_picker"
+                                        }
+                                    ]
+                                ]
+                            }
+                        },
+                        "next_step_id": "1i5fu",
+                        "created_at": "2026-04-28 06:05:06",
+                        "updated_at": "2026-04-28 06:08:26",
+                        "automation_step_id": "77",
+                        "meta_key": "conditional_node_step",
+                        "meta_value": "a:2:{s:3:\"yes\";a:1:{i:0;a:13:{s:7:\"step_id\";s:5:\"me471\";s:3:\"key\";s:14:\"stopAutomation\";s:4:\"type\";s:6:\"action\";s:8:\"settings\";a:0:{}s:12:\"next_step_id\";s:5:\"1i5fu\";s:12:\"popover_type\";s:9:\"condition\";s:12:\"parent_index\";i:2;s:14:\"condition_type\";s:3:\"yes\";s:2:\"id\";i:78;s:9:\"enterance\";i:0;s:9:\"completed\";i:0;s:6:\"exited\";i:0;s:7:\"metrics\";a:2:{i:0;a:3:{s:5:\"label\";s:7:\"Entered\";s:5:\"value\";i:0;s:5:\"count\";i:0;}i:1;a:3:{s:5:\"label\";s:10:\"Progressed\";s:5:\"value\";s:2:\"0%\";s:5:\"count\";i:0;}}}}s:2:\"no\";a:0:{}}",
+                        "logical_next_step_id": {
+                            "yes": "me471",
+                            "no": ""
+                        },
+                        "node_data": {
+                            "yes": [
+                                {
+                                    "step_id": "me471",
+                                    "key": "stopAutomation",
+                                    "type": "action",
+                                    "settings": [],
+                                    "next_step_id": "1i5fu",
+                                    "popover_type": "condition",
+                                    "parent_index": 2,
+                                    "condition_type": "yes",
+                                    "id": 78,
+                                    "enterance": 0,
+                                    "completed": 0,
+                                    "exited": 0,
+                                    "metrics": [
+                                        {
+                                            "label": "Entered",
+                                            "value": 0,
+                                            "count": 0
+                                        },
+                                        {
+                                            "label": "Progressed",
+                                            "value": "0%",
+                                            "count": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "no": []
+                        },
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "80",
+                        "automation_id": "23",
+                        "step_id": "1i5fu",
+                        "key": "delay",
+                        "type": "action",
+                        "settings": {
+                            "delay_settings": {
+                                "delay": "3",
+                                "unit": "days"
+                            }
+                        },
+                        "next_step_id": "u6n8r",
+                        "created_at": null,
+                        "updated_at": null,
+                        "automation_step_id": null,
+                        "meta_key": null,
+                        "meta_value": null,
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "79",
+                        "automation_id": "23",
+                        "step_id": "u6n8r",
+                        "key": "sendMail",
+                        "type": "action",
+                        "settings": {
+                            "message_data": {
+                                "subject": "Value reminder",
+                                "sender_email": "dev-email@wpengine.local",
+                                "sender_name": "mail-mint",
+                                "reply_name": "mail-mint",
+                                "reply_email": "dev-email@wpengine.local",
+                                "email_preview_text": "",
+                                "body": "",
+                                "json_body": "",
+                                "make_transactional": false
+                            }
+                        },
+                        "next_step_id": "4v693",
+                        "created_at": null,
+                        "updated_at": null,
+                        "automation_step_id": null,
+                        "meta_key": null,
+                        "meta_value": null,
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "81",
+                        "automation_id": "23",
+                        "step_id": "4v693",
+                        "key": "condition",
+                        "type": "logical",
+                        "settings": {
+                            "rules": {
+                                "condition": [
+                                    [
+                                        {
+                                            "action": "Email Engagement",
+                                            "param": "engagement_email_open",
+                                            "name": "Email opens",
+                                            "condition_label": "Any of the emails",
+                                            "condition_value": "any_of_the_emails",
+                                            "value": [
+                                                {
+                                                    "value": "u6n8r",
+                                                    "label": "Value reminder",
+                                                    "source": "automation"
+                                                }
+                                            ],
+                                            "segmentValue": [],
+                                            "action_type": "email_engagement_picker"
+                                        }
+                                    ]
+                                ]
+                            }
+                        },
+                        "next_step_id": "tn6eqk",
+                        "created_at": "2026-04-28 06:07:09",
+                        "updated_at": "2026-04-28 06:08:26",
+                        "automation_step_id": "81",
+                        "meta_key": "conditional_node_step",
+                        "meta_value": "a:2:{s:3:\"yes\";a:1:{i:0;a:13:{s:7:\"step_id\";s:5:\"sgc7h\";s:3:\"key\";s:14:\"stopAutomation\";s:4:\"type\";s:6:\"action\";s:8:\"settings\";a:0:{}s:12:\"next_step_id\";s:6:\"tn6eqk\";s:12:\"popover_type\";s:9:\"condition\";s:12:\"parent_index\";i:5;s:14:\"condition_type\";s:3:\"yes\";s:2:\"id\";i:82;s:9:\"enterance\";i:0;s:9:\"completed\";i:0;s:6:\"exited\";i:0;s:7:\"metrics\";a:2:{i:0;a:3:{s:5:\"label\";s:7:\"Entered\";s:5:\"value\";i:0;s:5:\"count\";i:0;}i:1;a:3:{s:5:\"label\";s:10:\"Progressed\";s:5:\"value\";s:2:\"0%\";s:5:\"count\";i:0;}}}}s:2:\"no\";a:0:{}}",
+                        "logical_next_step_id": {
+                            "yes": "sgc7h",
+                            "no": ""
+                        },
+                        "node_data": {
+                            "yes": [
+                                {
+                                    "step_id": "sgc7h",
+                                    "key": "stopAutomation",
+                                    "type": "action",
+                                    "settings": [],
+                                    "next_step_id": "tn6eqk",
+                                    "popover_type": "condition",
+                                    "parent_index": 5,
+                                    "condition_type": "yes",
+                                    "id": 82,
+                                    "enterance": 0,
+                                    "completed": 0,
+                                    "exited": 0,
+                                    "metrics": [
+                                        {
+                                            "label": "Entered",
+                                            "value": 0,
+                                            "count": 0
+                                        },
+                                        {
+                                            "label": "Progressed",
+                                            "value": "0%",
+                                            "count": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "no": []
+                        },
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "83",
+                        "automation_id": "23",
+                        "step_id": "tn6eqk",
+                        "key": "delay",
+                        "type": "action",
+                        "settings": {
+                            "delay_settings": {
+                                "delay": "7",
+                                "unit": "days"
+                            }
+                        },
+                        "next_step_id": "riy9q",
+                        "created_at": null,
+                        "updated_at": null,
+                        "automation_step_id": null,
+                        "meta_key": null,
+                        "meta_value": null,
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "84",
+                        "automation_id": "23",
+                        "step_id": "riy9q",
+                        "key": "sendMail",
+                        "type": "action",
+                        "settings": {
+                            "message_data": {
+                                "subject": "Incentive offer",
+                                "sender_email": "dev-email@wpengine.local",
+                                "sender_name": "mail-mint",
+                                "reply_name": "mail-mint",
+                                "reply_email": "dev-email@wpengine.local",
+                                "email_preview_text": "",
+                                "body": "",
+                                "json_body": "",
+                                "make_transactional": false
+                            }
+                        },
+                        "next_step_id": "ychy9",
+                        "created_at": null,
+                        "updated_at": null,
+                        "automation_step_id": null,
+                        "meta_key": null,
+                        "meta_value": null,
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "85",
+                        "automation_id": "23",
+                        "step_id": "ychy9",
+                        "key": "condition",
+                        "type": "logical",
+                        "settings": {
+                            "rules": {
+                                "condition": [
+                                    [
+                                        {
+                                            "action": "Email Engagement",
+                                            "param": "engagement_email_open",
+                                            "name": "Email opens",
+                                            "condition_label": "Any of the emails",
+                                            "condition_value": "any_of_the_emails",
+                                            "value": [
+                                                {
+                                                    "value": "riy9q",
+                                                    "label": "Incentive offer",
+                                                    "source": "automation"
+                                                }
+                                            ],
+                                            "segmentValue": [],
+                                            "action_type": "email_engagement_picker"
+                                        }
+                                    ]
+                                ]
+                            }
+                        },
+                        "next_step_id": "6xgwm",
+                        "created_at": "2026-04-28 06:08:09",
+                        "updated_at": "2026-04-28 06:08:26",
+                        "automation_step_id": "85",
+                        "meta_key": "conditional_node_step",
+                        "meta_value": "a:2:{s:3:\"yes\";a:1:{i:0;a:9:{s:7:\"step_id\";s:4:\"iy3g\";s:3:\"key\";s:14:\"stopAutomation\";s:4:\"type\";s:6:\"action\";s:8:\"settings\";a:0:{}s:12:\"next_step_id\";s:5:\"6xgwm\";s:12:\"popover_type\";s:9:\"condition\";s:12:\"parent_index\";i:8;s:14:\"condition_type\";s:3:\"yes\";s:2:\"id\";i:86;}}s:2:\"no\";a:0:{}}",
+                        "logical_next_step_id": {
+                            "yes": "iy3g",
+                            "no": ""
+                        },
+                        "node_data": {
+                            "yes": [
+                                {
+                                    "step_id": "iy3g",
+                                    "key": "stopAutomation",
+                                    "type": "action",
+                                    "settings": [],
+                                    "next_step_id": "6xgwm",
+                                    "popover_type": "condition",
+                                    "parent_index": 8,
+                                    "condition_type": "yes",
+                                    "id": 86,
+                                    "enterance": 0,
+                                    "completed": 0,
+                                    "exited": 0,
+                                    "metrics": [
+                                        {
+                                            "label": "Entered",
+                                            "value": 0,
+                                            "count": 0
+                                        },
+                                        {
+                                            "label": "Progressed",
+                                            "value": "0%",
+                                            "count": 0
+                                        }
+                                    ]
+                                }
+                            ],
+                            "no": []
+                        },
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    },
+                    {
+                        "id": "87",
+                        "automation_id": "23",
+                        "step_id": "6xgwm",
+                        "key": "changeContactStatus",
+                        "type": "action",
+                        "settings": {
+                            "change_contact_status_settings": {
+                                "status": "inactive"
+                            }
+                        },
+                        "next_step_id": "a:0:{}",
+                        "created_at": null,
+                        "updated_at": null,
+                        "automation_step_id": null,
+                        "meta_key": null,
+                        "meta_value": null,
+                        "enterance": 0,
+                        "completed": 0,
+                        "exited": 0
+                    }
+                ],
+                "atMostDate": [],
+                "created_ago": "4 minutes"
+            }'
+		),
 		);
 		$recipe = array_merge( $recipe, self::mint_woocommerce_recipe() );
 		$recipe = array_merge( $recipe, self::mint_edd_recipe() );

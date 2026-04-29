@@ -52,7 +52,6 @@ class Hooks {
 		add_filter( 'mint_wordpress_user_import_headers', array( $this, 'merge_woocommerce_headers' ) );
 		add_action( 'mailmint_after_delete_contact', array( $this, 'delete_automation_logs' ), 10, 1 );
 		add_filter( 'rocket_cache_reject_uri', array( $this, 'exclude_endpoint_option' ), 100 );
-		add_action( 'mailmint_delete_expired_coupons', array( $this, 'delete_expired_dynamic_coupons' ) );
 
 		$form_submission_handler = new FormSubmissionHandler();
 		add_action( 'mailmint_after_form_submit', array( $form_submission_handler, 'store' ), 10, 3 );
@@ -1125,57 +1124,5 @@ class Hooks {
 		$uris[] = '/wp-cron.php';
     	$uris[] = 'doing_wp_cron';
 		return $uris;
-	}
-
-	/**
-	 * Deletes expired dynamic coupons from the database.
-	 *
-	 * This function retrieves dynamic coupons that have expired and deletes them from the database.
-	 * If no expired coupons are found, it unschedules the action to delete expired coupons.
-	 *
-	 * @return void
-	 * 
-	 * @since 1.19.1
-	 */
-	public static function delete_expired_dynamic_coupons() {
-		global $wpdb;
-		$current_timestamp = time();
-		$current_datetime  = gmdate( 'Y-m-d H:i:s' );
-		
-		//phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$coupons = $wpdb->get_results( $wpdb->prepare( "
-                                                SELECT DISTINCT m1.post_id as id
-                                                FROM {$wpdb->prefix}postmeta as m1
-                                                INNER JOIN {$wpdb->prefix}postmeta as m2
-                                                ON m1.post_id = m2.post_id
-                                                WHERE m1.meta_key = %s
-                                                AND m1.meta_value = %d
-                                                AND (
-                                                    (m2.meta_key = %s AND m2.meta_value != '' AND CAST(m2.meta_value AS UNSIGNED) > 0 AND CAST(m2.meta_value AS UNSIGNED) < %d)
-                                                    OR
-                                                    (m2.meta_key = %s AND m2.meta_value != '' AND m2.meta_value != '0000-00-00 00:00:00' AND m2.meta_value < %s)
-                                                )
-                                                LIMIT %d
-                                                ", 'is_mailmint_coupon', 1, 'date_expires', $current_timestamp, 'expiry_date', $current_datetime, 20 ) );
-
-		if ( empty( $coupons ) ) {
-			// Unschedule all recurring actions using Action Scheduler API
-			if ( function_exists( 'as_unschedule_all_actions' ) ) {
-				as_unschedule_all_actions( 'mailmint_delete_expired_coupons' );
-			}
-			
-			// Also delete any remaining scheduled actions directly from database
-			//phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			$wpdb->query( $wpdb->prepare( 
-				"DELETE FROM {$wpdb->prefix}actionscheduler_actions WHERE hook = %s",
-				'mailmint_delete_expired_coupons'
-			) );
-
-			return;
-		}
-
-		foreach ( $coupons as $coupon ) {
-			wp_delete_post( $coupon->id, true );
-		}
 	}
 }

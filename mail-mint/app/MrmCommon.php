@@ -1790,49 +1790,49 @@ class MrmCommon {
 			'ses' => array(
 				'label'       => __('Amazon SES', 'mrm'),
 				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/ses/handle/' . $security_code),
-				'doc_url'     => '',
+				'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/amazon-ses/',
 				'input_title' => __('Amazon SES Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please use this bounce handler url in your Amazon SES + SNS settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
             'mailgun' => array(
 				'label'       => __('Mailgun', 'mrm'),
                 'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/mailgun/handle/' . $security_code),
-                'doc_url'     => '',
+                'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-mailgun/',
                 'input_title' => __('Mailgun Bounce Handler Webhook URL', 'mrm'),
                 'input_info'  => __('Please paste this URL into your Mailgun\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
             'sendgrid' => array(
 				'label'       => __('SendGrid', 'mrm'),
                 'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/sendgrid/handle/' . $security_code),
-                'doc_url'     => '',
+                'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-sendgrid/',
                 'input_title' => __('SendGrid Bounce Handler Webhook URL', 'mrm'),
                 'input_info'  => __('Please paste this URL into your SendGrid\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
 			'postmark' => array(
 				'label'       => __('Postmark', 'mrm'),
 				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/postmark/handle/' . $security_code),
-				'doc_url'     => '',
+				'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-postmark/',
 				'input_title' => __('Postmark Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please paste this URL into your Postmark\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
 			'brevo' => array(
 				'label'       => __('Brevo (Sendinblue)', 'mrm'),
 				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/brevo/handle/' . $security_code),
-				'doc_url'     => '',
+				'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-brevo-sendinblue/',
 				'input_title' => __('Brevo Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please paste this URL into your Brevo\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
 			'sparkpost' => array(
 				'label'       => __('SparkPost', 'mrm'),
 				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/sparkpost/handle/' . $security_code),
-				'doc_url'     => '',
+				'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-sparkpost/',
 				'input_title' => __('SparkPost Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please paste this URL into your SparkPost\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
 			'pepipost' => array(
 				'label'       => __('Pepipost', 'mrm'),
 				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/pepipost/handle/' . $security_code),
-				'doc_url'     => '',
+				'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-pepipost/',
 				'input_title' => __('Pepipost Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please paste this URL into your Pepipost\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
@@ -1846,21 +1846,21 @@ class MrmCommon {
 			'elasticemail' => array(
 				'label'       => __('Elastic Email', 'mrm'),
 				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/elasticemail/handle/' . $security_code),
-				'doc_url'     => '',
+				'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-elastic-email/',
 				'input_title' => __('Elastic Email Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please paste this URL into your Elastic Email\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
 			'postalserver' => array(
 				'label'       => __('Postal Server', 'mrm'),
 				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/postalserver/handle/' . $security_code),
-				'doc_url'     => '',
+				'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-postal-server/',
 				'input_title' => __('Postal Server Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please paste this URL into your Postal Server\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),
 			'smtp2go' => array(
 				'label'       => __('SMTP2GO', 'mrm'),
 				'webhook_url' => get_rest_url(null, 'mint-mail/v1/bounce_handler/smtp2go/handle/' . $security_code),
-				'doc_url'     => '',
+				'doc_url'     => 'https://getwpfunnels.com/docs/mail-mint-email-bounce-handling/bounce-handling-with-smtp2go/',
 				'input_title' => __('SMTP2GO Bounce Handler Webhook URL', 'mrm'),
 				'input_info'  => __('Please paste this URL into your SMTP2GO\'s Webhook settings to enable Bounce Handling with Mail Mint.', 'mrm')
 			),

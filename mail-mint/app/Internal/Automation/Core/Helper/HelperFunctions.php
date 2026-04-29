@@ -113,13 +113,19 @@ class HelperFunctions { //phpcs:ignore
 					$results[ $key ]['settings'] = maybe_unserialize( $result['settings'] );
 				}
 				if ( 'logical' === $result['type'] && 'condition' === $result['key'] && isset( $result['next_step_id'] ) ) {
-					$logical_next_step                       = maybe_unserialize( $result['next_step_id'] );
-					$results[ $key ]['next_step_id']         = $logical_next_step['next_step_id'];
-					$results[ $key ]['logical_next_step_id'] = $logical_next_step['logical_next_step_id'];
-					$condition_node                          = maybe_unserialize( $result['meta_value'] );
-					$condition_node_yes                      = $condition_node['yes'];
-					$condition_node_no                       = $condition_node['no'];
-					$results[ $key ]['node_data']            = self::condition_node_step_analysis( $condition_node_yes, $condition_node_no );
+					$logical_next_step = maybe_unserialize( $result['next_step_id'] );
+					if ( is_array( $logical_next_step ) ) {
+						$results[ $key ]['next_step_id']         = $logical_next_step['next_step_id'];
+						$results[ $key ]['logical_next_step_id'] = $logical_next_step['logical_next_step_id'];
+					}
+					$condition_node = maybe_unserialize( $result['meta_value'] );
+					if ( is_array( $condition_node ) ) {
+						$condition_node_yes           = $condition_node['yes'];
+						$condition_node_no            = $condition_node['no'];
+						$results[ $key ]['node_data'] = self::condition_node_step_analysis( $condition_node_yes, $condition_node_no );
+					} else {
+						$results[ $key ]['node_data'] = array( 'yes' => array(), 'no' => array() );
+					}
 				}
 			}
 			$formatted_steps = self::get_formatted_steps( $automation_id, $results );

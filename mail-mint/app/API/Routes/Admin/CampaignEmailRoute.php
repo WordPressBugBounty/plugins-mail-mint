@@ -228,6 +228,21 @@ class CampaignEmailRoute {
 				),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/email/default-template/(?P<id>[\d]+)',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'get_single_default_email_template',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
+				),
+			)
+		);
 	}
 
 }

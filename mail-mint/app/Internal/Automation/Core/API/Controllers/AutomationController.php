@@ -371,20 +371,71 @@ class AutomationController extends AdminBaseController {
                                 }else{
                                     $step_data[$key]['step_id'] = $step_data[$key-1]['next_step_id'];
                                 }
-
+                                if ( 'logical' === $step['type'] ) {
+                                    $step_data[$key]['node_data']            = isset( $step['node_data'] ) ? $step['node_data'] : array( 'yes' => array(), 'no' => array() );
+                                    $step_data[$key]['logical_next_step_id'] = isset( $step['logical_next_step_id'] ) ? $step['logical_next_step_id'] : array();
+                                }
                             }
                         }
                         foreach ($step_data as $key => $dup_step ){
                             if ( isset( $dup_step['step_id'] ) ) {
+                                $next_step_id = isset( $dup_step['next_step_id'] ) ? $dup_step['next_step_id'] : '';
+                                if ( 'logical' === $dup_step['type'] ) {
+                                    $yes_steps = !empty( $dup_step['node_data']['yes'] ) ? $dup_step['node_data']['yes'] : array();
+                                    $no_steps  = !empty( $dup_step['node_data']['no'] )  ? $dup_step['node_data']['no']  : array();
+                                    foreach ( $yes_steps as $value => $logical_step ) {
+                                        $logical_step_data = array(
+                                            'automation_id' => $automation_id,
+                                            'step_id'       => $logical_step['step_id'],
+                                            'key'           => $logical_step['key'],
+                                            'type'          => $logical_step['type'],
+                                            'settings'      => isset( $logical_step['settings'] ) ? $logical_step['settings'] : array(),
+                                            'next_step_id'  => isset( $logical_step['next_step_id'] ) ? $logical_step['next_step_id'] : '',
+                                        );
+                                        $logical_step_id = AutomationStepModel::get_instance()->create_or_update( $logical_step_data );
+                                        $dup_step['node_data']['yes'][ $value ]['id'] = $logical_step_id;
+                                        $step_meta_value = array(
+                                            'popover_type'   => isset( $logical_step['popover_type'] )   ? $logical_step['popover_type']   : 'condition',
+                                            'parent_index'   => isset( $logical_step['parent_index'] )   ? $logical_step['parent_index']   : $key,
+                                            'condition_type' => 'yes',
+                                        );
+                                        HelperFunctions::update_automation_step_meta( $logical_step_id, 'conditional_data', maybe_serialize( $step_meta_value ) );
+                                    }
+                                    foreach ( $no_steps as $no_value => $logical_step ) {
+                                        $logical_step_data = array(
+                                            'automation_id' => $automation_id,
+                                            'step_id'       => $logical_step['step_id'],
+                                            'key'           => $logical_step['key'],
+                                            'type'          => $logical_step['type'],
+                                            'settings'      => isset( $logical_step['settings'] ) ? $logical_step['settings'] : array(),
+                                            'next_step_id'  => isset( $logical_step['next_step_id'] ) ? $logical_step['next_step_id'] : '',
+                                        );
+                                        $logical_step_id = AutomationStepModel::get_instance()->create_or_update( $logical_step_data );
+                                        $dup_step['node_data']['no'][ $no_value ]['id'] = $logical_step_id;
+                                        $step_meta_value = array(
+                                            'popover_type'   => isset( $logical_step['popover_type'] )   ? $logical_step['popover_type']   : 'condition',
+                                            'parent_index'   => isset( $logical_step['parent_index'] )   ? $logical_step['parent_index']   : $key,
+                                            'condition_type' => 'no',
+                                        );
+                                        HelperFunctions::update_automation_step_meta( $logical_step_id, 'conditional_data', maybe_serialize( $step_meta_value ) );
+                                    }
+                                    $next_step_id = array(
+                                        'next_step_id'         => $next_step_id,
+                                        'logical_next_step_id' => $dup_step['logical_next_step_id'],
+                                    );
+                                }
                                 $duplicate_step = array(
                                     'automation_id' => $automation_id,
                                     'step_id'       => $dup_step['step_id'],
                                     'key'           => $dup_step['key'],
                                     'type'          => $dup_step['type'],
                                     'settings'      => isset( $dup_step['settings'] ) ? $dup_step['settings'] : array(),
-                                    'next_step_id'  => isset( $dup_step['next_step_id'] ) ? $dup_step['next_step_id'] : '',
+                                    'next_step_id'  => $next_step_id,
                                 );
-                                AutomationStepModel::get_instance()->create_or_update( $duplicate_step );
+                                $step_id = AutomationStepModel::get_instance()->create_or_update( $duplicate_step );
+                                if ( 'logical' === $dup_step['type'] ) {
+                                    HelperFunctions::update_automation_step_meta( $step_id, 'conditional_node_step', maybe_serialize( $dup_step['node_data'] ) );
+                                }
                             }
                         }
 

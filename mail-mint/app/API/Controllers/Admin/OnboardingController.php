@@ -138,19 +138,42 @@ class OnboardingController extends SettingBaseController {
 	}
 
 	/**
-	 * Mark the setup wizard as complete and fire the telemetry hook.
+	 * Mark the setup wizard as complete and fire telemetry hooks.
 	 *
-	 * Called when the user lands on SuccessStep and clicks either CTA button.
-	 * Fires `mailmint_setup_wizard_complete` so the Linno SDK can track the
-	 * `activation/onboarding_completed` event at the true completion point.
+	 * Called from SuccessStep after the user gives consent (acceptWelcomeConsent
+	 * is awaited first on the frontend). Accepts wizard activity data so AHA
+	 * hooks can be re-fired here — after opt-in state is already set — ensuring
+	 * the Linno SDK tracks them correctly.
 	 *
-	 * @param WP_REST_Request $request Request payload with optional `goal` string.
+	 * @param WP_REST_Request $request Request payload with goal, form_id, campaign_id,
+	 *                                 automation_id, contacts_imported, contacts_source.
 	 *
 	 * @return WP_REST_Response
 	 */
 	public function complete_wizard( WP_REST_Request $request ) {
 		$params = $request->get_json_params();
 		$goal   = isset( $params['goal'] ) ? sanitize_text_field( $params['goal'] ) : '';
+
+		// Re-fire AHA telemetry hooks with the IDs created during the wizard.
+		// These fire after acceptWelcomeConsent has set the opt-in state, so
+		// the Linno SDK will track them regardless of when the original hooks
+		// fired during the wizard flow.
+		if ( ! empty( $params['form_id'] ) ) {
+			do_action( 'mailmint_first_form_created', (int) $params['form_id'] );
+		}
+
+		if ( ! empty( $params['campaign_id'] ) ) {
+			do_action( 'mailmint_campaign_created', (int) $params['campaign_id'] );
+		}
+
+		if ( ! empty( $params['automation_id'] ) ) {
+			do_action( 'mailmint_automation_created', (int) $params['automation_id'], '' );
+		}
+
+		if ( ! empty( $params['contacts_imported'] ) ) {
+			$contacts_source = isset( $params['contacts_source'] ) ? sanitize_text_field( $params['contacts_source'] ) : '';
+			do_action( 'mailmint_contacts_imported', 1, $contacts_source );
+		}
 
 		do_action( 'mailmint_setup_wizard_complete', $goal );
 

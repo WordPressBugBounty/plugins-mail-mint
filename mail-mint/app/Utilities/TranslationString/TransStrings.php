@@ -72,7 +72,7 @@ class TransStrings
 			// Contact Module
 			'Export' => __('Export', 'mrm'),
 			'Import' => __('Import', 'mrm'),
-			'NewContact' => __('New contact', 'mrm'),
+			'NewContact' => __('Add contact', 'mrm'),
 			'TotalContacts' => __('Total Contacts', 'mrm'),
 			'pro' => __('pro', 'mrm'),
 			'Lists' => __('Lists', 'mrm'),
@@ -330,7 +330,7 @@ class TransStrings
 			'Preview' => __('Preview', 'mrm'),
 
 			// Segment
-			'NewSegments' => __('New Segments', 'mrm'),
+			'NewSegments' => __('Create segment', 'mrm'),
 			'Description' => __('Description', 'mrm'),
 			'ContactsInSegment' => __('Contacts in segment', 'mrm'),
 			'DateCreated' => __('Created On', 'mrm'),
@@ -371,7 +371,7 @@ class TransStrings
 			'SelectAllItems' => __('Select All Items', 'mrm'),
 
 			// List Page
-			'NewList' => __('New List', 'mrm'),
+			'NewList' => __('Create list', 'mrm'),
 			'CreateANewList' => __('Create A New List', 'mrm'),
 			'UpdateList' => __('Update List', 'mrm'),
 			'ListName' => __('List Name', 'mrm'),
@@ -381,7 +381,7 @@ class TransStrings
 			'NoListFound' => __('No List Found ', 'mrm'),
 
 			// Tag Page
-			'NewTag' => __('New Tag', 'mrm'),
+			'NewTag' => __('Create tag', 'mrm'),
 			'CreateANewTag' => __('Create A New Tag', 'mrm'),
 			'UpdateTag' => __('Update Tag', 'mrm'),
 			'TagName' => __('Tag Name', 'mrm'),
@@ -544,8 +544,8 @@ class TransStrings
 			'GenerateCompellingEmailCopiesUsingAI' => __('Generate Compelling Email Copies Using AI', 'mrm'),
 
 			// Business Settings
-			'BusinessSettings' => __('Business Settings', 'mrm'),
-			'BasicSettings' => __('Basic Settings', 'mrm'),
+			'BusinessSettings' => __('Business Profile', 'mrm'),
+			'BasicSettings' => __('Basic Info', 'mrm'),
 			'SocialMedia' => __('Social Media', 'mrm'),
 			'BusinessName' => __('Business Name', 'mrm'),
 			'PhoneNumber' => __('Phone Number', 'mrm'),
@@ -558,7 +558,7 @@ class TransStrings
 			'SelectCountry' => __('Select Country', 'mrm'),
 			'WriteState' => __('Write state', 'mrm'),
 			'ZIP' => __('ZIP', 'mrm'),
-			'CompanyLogo' => __('Company logo', 'mrm'),
+			'CompanyLogo' => __('Logo', 'mrm'),
 			'ClickToUpload' => __('Click to upload', 'mrm'),
 			'SocialMedia' => __('Social Media', 'mrm'),
 			'AddASocialMedia' => __('Add a social media', 'mrm'),
@@ -930,7 +930,7 @@ class TransStrings
 			'RecoverableCarts' => __('Recoverable Carts', 'mrm'),
 
 			// Automation Module
-			'NewAutomation' => __('New Automation', 'mrm'),
+			'NewAutomation' => __('Create automation', 'mrm'),
 			'Active' => __('Active', 'mrm'),
 			'Pause' => __('Pause', 'mrm'),
 			'Entered' => __('Entered', 'mrm'),
@@ -1251,7 +1251,7 @@ class TransStrings
 			'SelectCouponTooltip' => __('Select the coupon(s) you want to delete', 'mrm'),
 
 			// Form Module
-			'NewForm' => __('New Form', 'mrm'),
+			'NewForm' => __('Create form', 'mrm'),
 			'Entries' => __('Entries', 'mrm'),
 			'Shortcode' => __('Shortcode', 'mrm'),
 			'FormDuplicating' => __('Form Duplicating...', 'mrm'),
@@ -1385,7 +1385,7 @@ class TransStrings
 
 			// Lead magnets.
 			'LeadMagnets' => __('Lead Magnets', 'mrm'),
-			'AddLeadMagnet' => __('Add Lead Magnet', 'mrm'),
+			'AddLeadMagnet' => __('Create lead magnet', 'mrm'),
 			'NoLeadMagnetsFound' => __('No Lead Magnets Found', 'mrm'),
 			'UploadMediaFile' => __('Upload Media File', 'mrm'),
 			'TitleIsRequired' => __('Title is required.', 'mrm'),
@@ -1495,7 +1495,7 @@ class TransStrings
 
 			// Tools Module
 			'linkTriggers'                                => __( 'Link Triggers', 'mrm' ),
-			'newLinkTrigger'							  => __( 'New Link Trigger', 'mrm' ),
+			'newLinkTrigger'							  => __( 'Create link trigger', 'mrm' ),
 			'SortBy'									  => __( 'Sort by', 'mrm' ),
 			'DeleteSelected'							  => __('Delete Selected', 'mrm'),
 			'DeleteMultipleLinks'						  => __('Delete Multiple Links', 'mrm'),

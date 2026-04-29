@@ -14,6 +14,7 @@ namespace Mint\MRM\Admin\API\Routes;
 use Mint\MRM\Admin\API\Controllers\AdvancedSettingController;
 use Mint\MRM\Admin\API\Controllers\ComplianceSettingController;
 use Mint\MRM\Admin\API\Controllers\GeneralSettingController;
+use Mint\MRM\Admin\API\Controllers\TrackingSettingController;
 use Mint\MRM\Admin\API\Controllers\WCSettingController;
 use Mint\MRM\Admin\API\Controllers\BusinessBasicSettingController;
 use Mint\MRM\Admin\API\Controllers\BusinessSocialSettingController;
@@ -136,6 +137,13 @@ class SettingRoute {
 	 */
 	protected $advanced_settings_controller;
 
+	/**
+	 * TrackingSettingController class instance variable
+	 *
+	 * @var object
+	 */
+	protected $tracking_controller;
+
 
 	/**
 	 * Register API endpoints routes for tags module
@@ -165,6 +173,22 @@ class SettingRoute {
 					'callback'            => array(
 						$this->wc_controller,
 						'get',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
+				),
+			)
+		);
+
+		// API route to trigger a background sync of WooCommerce customer data.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/wc/sync-customers',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array(
+						$this->wc_controller,
+						'sync_customers',
 					),
 					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
 				),
@@ -456,6 +480,26 @@ class SettingRoute {
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => array($this->advanced_settings_controller, 'delete_coupons'),
 					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
+				),
+			)
+		);
+
+		// API routes for usage tracking settings.
+		$this->tracking_controller = TrackingSettingController::get_instance();
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/tracking',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->tracking_controller, 'get' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_manage_settings' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->tracking_controller, 'create_or_update' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_manage_settings' ),
 				),
 			)
 		);

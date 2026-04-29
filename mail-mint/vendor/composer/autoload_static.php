@@ -4,13 +4,17 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732
+class ComposerStaticInit85420806b40650be8132e3f7a28292e1
 {
     public static $files = array (
         'aed659f3655c497c30e044c41fa917c6' => __DIR__ . '/..' . '/linno/telemetry/src/helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
+        'c' => 
+        array (
+            'cweagans\\Composer\\' => 18,
+        ),
         'P' => 
         array (
             'PostHog\\' => 8,
@@ -26,6 +30,10 @@ class ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732
     );
 
     public static $prefixDirsPsr4 = array (
+        'cweagans\\Composer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/cweagans/composer-patches/src',
+        ),
         'PostHog\\' => 
         array (
             0 => __DIR__ . '/..' . '/posthog/posthog-php/lib',
@@ -154,6 +162,7 @@ class ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732
         'Mint\\MRM\\Admin\\API\\Controllers\\SettingBaseController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/SettingBaseController.php',
         'Mint\\MRM\\Admin\\API\\Controllers\\TagController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/TagController.php',
         'Mint\\MRM\\Admin\\API\\Controllers\\TemplateController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/Email/TemplateController.php',
+        'Mint\\MRM\\Admin\\API\\Controllers\\TrackingSettingController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/TrackingSettingController.php',
         'Mint\\MRM\\Admin\\API\\Controllers\\WCSettingController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/WCSettingController.php',
         'Mint\\MRM\\Admin\\API\\Controllers\\WPController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/WPController.php',
         'Mint\\MRM\\Admin\\API\\Controllers\\reCaptchaSettingController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/reCaptchaSettingController.php',
@@ -300,14 +309,17 @@ class ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732
         'PostHog\\PostHog' => __DIR__ . '/..' . '/posthog/posthog-php/lib/PostHog.php',
         'PostHog\\QueueConsumer' => __DIR__ . '/..' . '/posthog/posthog-php/lib/QueueConsumer.php',
         'TemplateAction' => __DIR__ . '/../..' . '/app/API/Actions/Admin/Email/TemplateAction.php',
+        'cweagans\\Composer\\PatchEvent' => __DIR__ . '/..' . '/cweagans/composer-patches/src/PatchEvent.php',
+        'cweagans\\Composer\\PatchEvents' => __DIR__ . '/..' . '/cweagans/composer-patches/src/PatchEvents.php',
+        'cweagans\\Composer\\Patches' => __DIR__ . '/..' . '/cweagans/composer-patches/src/Patches.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit37d1056e4b5a0fdd5a79d19010c34732::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit85420806b40650be8132e3f7a28292e1::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit85420806b40650be8132e3f7a28292e1::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit85420806b40650be8132e3f7a28292e1::$classMap;
 
         }, null, ClassLoader::class);
     }

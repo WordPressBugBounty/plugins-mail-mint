@@ -772,12 +772,43 @@ class Storage {
 			),
 			array(
 				'id'              => '25',
-				'title'           => __( 'Newsletter Subscription 5', 'mrm' ),
+				'title'           => __( 'Newsletter Subscription Popup', 'mrm' ),
 				'form_position'   => __( 'Pop-ups', 'mrm' ),
 				'form_appearance' => '{"pages":{"all":false,"selected":[],"homepage":true},"post":{"all":false,"selected":[]},"product":{"all":false,"selected":[]},"categories":[],"tags":[],"category_archives":{"all":false,"selected":[]}}',
 				'type'            => 'free',
 				'featured_image'  => $image_path . '/newsletter-subscription-5.jpg',
 				'settings'        => '{"settings":{"confirmation_type":{"selected_confirmation_type":"same-page","same_page":{"message_to_show":"Form submitted successfully.","after_form_submission":"none"}},"form_layout":{"form_position":"popup","form_animation":"fade-in","close_button_color":"#a7a8b3","close_background_color":"#ffffff"},"schedule":{"form_scheduling":false,"submission_start":{"date":"2023-02-13","time":"11:08:35"}},"restriction":{"max_entries":false,"max_number":0,"max_type":""},"extras":{"cookies_timer":7,"show_always":true}}}',
+				'content'		  => '<!-- wp:columns {"style":{"color":{"background":"#2d2d4f"},"border":{"radius":"16px"}}} -->
+                <div class="wp-block-columns has-background" style="border-radius:16px;background-color:#2d2d4f"><!-- wp:column {"verticalAlignment":"top","width":""} -->
+                <div class="wp-block-column is-vertically-aligned-top"><!-- wp:columns -->
+                <div class="wp-block-columns"><!-- wp:column -->
+                <div class="wp-block-column"><!-- wp:heading {"textAlign":"center","style":{"color":{"text":"#ccd8ff"},"elements":{"link":{"color":{"text":"#ccd8ff"}}},"typography":{"fontWeight":700,"fontSize":40}}} -->
+                <h2 class="wp-block-heading has-text-align-center has-text-color has-link-color" style="color:#ccd8ff;font-size:40px;font-weight:700">Unlock Your <br> Business Potential</h2>
+                <!-- /wp:heading -->
+
+                <!-- wp:paragraph {"align":"center","style":{"color":{"text":"#f7eddf"},"elements":{"link":{"color":{"text":"#f7eddf"}}},"typography":{"fontSize":14}}} -->
+                <p class="has-text-align-center has-text-color has-link-color" style="color:#f7eddf;font-size:14px">Subscribe to our business growth newsletter for strategic advice, success stories, and networking opportunities.</p>
+                <!-- /wp:paragraph -->
+
+                <!-- wp:image {"id":1450,"sizeSlug":"large","linkDestination":"none","align":"center"} -->
+                <figure class="wp-block-image aligncenter size-large"><img src="' . $image_path . '/newsletter-subscription-5-hero.jpg" alt="Affiliate Registration" class="wp-image-1450"/></figure>
+                <!-- /wp:image -->
+
+                <!-- wp:mrmformfield/first-name-block {"firstNamePlaceholder":"Your Name","rowSpacing":8,"inputTextColor":"#000000","inputPaddingTop":15,"inputPaddingRight":20,"inputPaddingBottom":12,"inputPaddingLeft":20} -->
+                <div class="mrm-form-group mrm-input-group alignment-left first-name" style="margin-bottom:8px;width:% ;max-width:px "><label for="mrm-first-name" style="color:#363B4E;margin-bottom:7px"></label><div class="input-wrapper"><input type="text" name="first_name" id="mrm-first-name" placeholder="Your Name" style="background-color:#ffffff;color:#000000;font-size:14px;border-radius:5px;padding-top:15px;padding-right:20px;padding-bottom:12px;padding-left:20px;border-style:solid;border-width:1px;border-color:#DFE1E8"/></div></div>
+                <!-- /wp:mrmformfield/first-name-block -->
+
+                <!-- wp:mrmformfield/email-field-block {"emailPlaceholder":"Your Email","rowSpacing":8,"inputTextColor":"#000000","inputBorderRadius":8,"inputPaddingTop":15,"inputPaddingRight":20,"inputPaddingBottom":15,"inputPaddingLeft":20,"inputBorderColor":"#e9e9e9"} -->
+                <div class="mrm-form-group mrm-input-group alignment-left email" style="margin-bottom:8px ;width:100% ;max-width:px "><label for="mrm-email" style="color:#363B4E;margin-bottom:7px"></label><div class="input-wrapper"><input type="email" name="email" id="mrm-email" placeholder="Your Email" required style="background-color:#ffffff;color:#000000;font-size:14px;border-radius:8px;padding-top:15px;padding-right:20px;padding-bottom:15px;padding-left:20px;border-style:solid;border-width:1px;border-color:#e9e9e9" pattern="[^@\s]+@[^@\s]+\.[^@\s]+"/></div></div>
+                <!-- /wp:mrmformfield/email-field-block -->
+
+                <!-- wp:mrmformfield/mrm-button-block {"rowSpacing":8,"buttonTextColor":"#FFFFFF","buttonBgColor":"#f77f2e","buttonBorderRadius":8,"buttonText":"Register","buttonWidth":100} -->
+                <div class="mrm-form-group submit" style="margin-bottom:8px;text-align:left"><button class="mrm-submit-button mintmrm-btn" type="submit" aria-label="Submit" style="background-color:#f77f2e;color:#FFFFFF;border-radius:8px;padding:15px 20px;line-height:1;letter-spacing:0;border-style:none;font-size:15px;border-width:0;border-color:;width:100%">Register</button><div id="mint-google-recaptcha" style="padding-top:10px"></div><div class="response"></div></div>
+                <!-- /wp:mrmformfield/mrm-button-block --></div>
+                <!-- /wp:column --></div>
+                <!-- /wp:columns --></div>
+                <!-- /wp:column --></div>
+                <!-- /wp:columns -->',
 			),
 			array(
 				'id'              => '26',

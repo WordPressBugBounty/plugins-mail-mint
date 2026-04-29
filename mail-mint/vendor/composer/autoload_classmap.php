@@ -118,6 +118,7 @@ return array(
     'Mint\\MRM\\Admin\\API\\Controllers\\SettingBaseController' => $baseDir . '/app/API/Controllers/Admin/SettingBaseController.php',
     'Mint\\MRM\\Admin\\API\\Controllers\\TagController' => $baseDir . '/app/API/Controllers/Admin/TagController.php',
     'Mint\\MRM\\Admin\\API\\Controllers\\TemplateController' => $baseDir . '/app/API/Controllers/Admin/Email/TemplateController.php',
+    'Mint\\MRM\\Admin\\API\\Controllers\\TrackingSettingController' => $baseDir . '/app/API/Controllers/Admin/TrackingSettingController.php',
     'Mint\\MRM\\Admin\\API\\Controllers\\WCSettingController' => $baseDir . '/app/API/Controllers/Admin/WCSettingController.php',
     'Mint\\MRM\\Admin\\API\\Controllers\\WPController' => $baseDir . '/app/API/Controllers/Admin/WPController.php',
     'Mint\\MRM\\Admin\\API\\Controllers\\reCaptchaSettingController' => $baseDir . '/app/API/Controllers/Admin/reCaptchaSettingController.php',
@@ -264,4 +265,7 @@ return array(
     'PostHog\\PostHog' => $vendorDir . '/posthog/posthog-php/lib/PostHog.php',
     'PostHog\\QueueConsumer' => $vendorDir . '/posthog/posthog-php/lib/QueueConsumer.php',
     'TemplateAction' => $baseDir . '/app/API/Actions/Admin/Email/TemplateAction.php',
+    'cweagans\\Composer\\PatchEvent' => $vendorDir . '/cweagans/composer-patches/src/PatchEvent.php',
+    'cweagans\\Composer\\PatchEvents' => $vendorDir . '/cweagans/composer-patches/src/PatchEvents.php',
+    'cweagans\\Composer\\Patches' => $vendorDir . '/cweagans/composer-patches/src/Patches.php',
 );
