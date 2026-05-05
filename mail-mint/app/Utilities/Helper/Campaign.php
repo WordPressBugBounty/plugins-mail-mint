@@ -134,11 +134,15 @@ class Campaign {
 	 * This function parses the HTML content of an email body to extract all URLs from anchor tags.
 	 *
 	 * @param string $email_body The HTML content of the email body.
-	 * 
+	 *
 	 * @return array An array of URLs extracted from the email body.
 	 * @since 1.16.5
 	 */
 	public static function extract_urls_from_html($email_body) {
+		if ( ! is_string( $email_body ) || '' === trim( $email_body ) ) {
+			return array();
+		}
+
 		$dom = new DOMDocument();
 		libxml_use_internal_errors(true);
 		$dom->loadHTML($email_body);

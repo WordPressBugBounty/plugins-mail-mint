@@ -234,6 +234,7 @@ class FormBuilderHelper {
 	public static function get_palette_theme_color() {
 		static $color;
 		if ( ! $color ) {
+			list($color_palette) = (array) get_theme_support( 'editor-color-palette' );
 			$theme_support  = get_theme_support( 'editor-color-palette' );
 			$color_palette  = is_array( $theme_support ) ? $theme_support[0] : array();
 

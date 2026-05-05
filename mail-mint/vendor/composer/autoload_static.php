@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit85420806b40650be8132e3f7a28292e1
+class ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7
 {
     public static $files = array (
         'aed659f3655c497c30e044c41fa917c6' => __DIR__ . '/..' . '/linno/telemetry/src/helpers.php',
@@ -123,14 +123,11 @@ class ComposerStaticInit85420806b40650be8132e3f7a28292e1
         'Mint\\MRM\\API\\Actions\\FormAction' => __DIR__ . '/../..' . '/app/API/Actions/Frontend/FormAction.php',
         'Mint\\MRM\\API\\Actions\\FormActionCreator' => __DIR__ . '/../..' . '/app/API/Actions/Creators/Frontend/FormActionCreator.php',
         'Mint\\MRM\\API\\Actions\\GeneralFieldActionCreator' => __DIR__ . '/../..' . '/app/API/Actions/Creators/Admin/GeneralFieldActionCreator.php',
-        'Mint\\MRM\\API\\Actions\\ListActionCreator' => __DIR__ . '/../..' . '/app/API/Actions/Creators/Admin/ListActionCreator.php',
-        'Mint\\MRM\\API\\Actions\\ListActions' => __DIR__ . '/../..' . '/app/API/Actions/Admin/ListActions.php',
         'Mint\\MRM\\API\\Actions\\PreferenceAction' => __DIR__ . '/../..' . '/app/API/Actions/Frontend/PreferenceAction.php',
         'Mint\\MRM\\API\\Actions\\PreferenceActionCreator' => __DIR__ . '/../..' . '/app/API/Actions/Creators/Frontend/PreferenceActionCreator.php',
-        'Mint\\MRM\\API\\Actions\\TagActionCreator' => __DIR__ . '/../..' . '/app/API/Actions/Creators/Admin/TagActionCreator.php',
-        'Mint\\MRM\\API\\Actions\\TagActions' => __DIR__ . '/../..' . '/app/API/Actions/Admin/TagActions.php',
         'Mint\\MRM\\API\\Actions\\TemplateActionCreator' => __DIR__ . '/../..' . '/app/API/Actions/Creators/Admin/Email/TemplateActionCreator.php',
         'Mint\\MRM\\API\\Controllers\\BaseController' => __DIR__ . '/../..' . '/app/API/Controllers/BaseController.php',
+        'Mint\\MRM\\API\\Controllers\\Traits\\CrudControllerTrait' => __DIR__ . '/../..' . '/app/API/Controllers/Traits/CrudControllerTrait.php',
         'Mint\\MRM\\Admin\\API\\Controllers\\AdminBaseController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/AdminBaseController.php',
         'Mint\\MRM\\Admin\\API\\Controllers\\AdvancedSettingController' => __DIR__ . '/../..' . '/app/API/Controllers/Admin/AdvancedSettingController.php',
         'Mint\\MRM\\Admin\\API\\Controllers\\AutomationController' => __DIR__ . '/../..' . '/app/Internal/Automation/Core/API/Controllers/AutomationController.php',
@@ -238,6 +235,22 @@ class ComposerStaticInit85420806b40650be8132e3f7a28292e1
         'Mint\\MRM\\DataStores\\SegmentData' => __DIR__ . '/../..' . '/app/DataStores/SegmentData.php',
         'Mint\\MRM\\DataStores\\TagData' => __DIR__ . '/../..' . '/app/DataStores/TagData.php',
         'Mint\\MRM\\DataStores\\WordkflowData' => __DIR__ . '/../..' . '/app/DataStores/WordkflowData.php',
+        'Mint\\MRM\\Database\\AbstractRepository' => __DIR__ . '/../..' . '/app/Database/AbstractRepository.php',
+        'Mint\\MRM\\Database\\Enums\\AutomationJobStatus' => __DIR__ . '/../..' . '/app/Database/Enums/AutomationJobStatus.php',
+        'Mint\\MRM\\Database\\Enums\\AutomationLogStatus' => __DIR__ . '/../..' . '/app/Database/Enums/AutomationLogStatus.php',
+        'Mint\\MRM\\Database\\Enums\\AutomationStatus' => __DIR__ . '/../..' . '/app/Database/Enums/AutomationStatus.php',
+        'Mint\\MRM\\Database\\Enums\\BroadcastStatus' => __DIR__ . '/../..' . '/app/Database/Enums/BroadcastStatus.php',
+        'Mint\\MRM\\Database\\Enums\\CampaignEmailStatus' => __DIR__ . '/../..' . '/app/Database/Enums/CampaignEmailStatus.php',
+        'Mint\\MRM\\Database\\Enums\\CampaignStatus' => __DIR__ . '/../..' . '/app/Database/Enums/CampaignStatus.php',
+        'Mint\\MRM\\Database\\Enums\\CampaignType' => __DIR__ . '/../..' . '/app/Database/Enums/CampaignType.php',
+        'Mint\\MRM\\Database\\Enums\\ContactStatus' => __DIR__ . '/../..' . '/app/Database/Enums/ContactStatus.php',
+        'Mint\\MRM\\Database\\Enums\\FormStatus' => __DIR__ . '/../..' . '/app/Database/Enums/FormStatus.php',
+        'Mint\\MRM\\Database\\QueryBuilder' => __DIR__ . '/../..' . '/app/Database/QueryBuilder.php',
+        'Mint\\MRM\\Database\\Repositories\\BroadcastRepository' => __DIR__ . '/../..' . '/app/Database/Repositories/BroadcastRepository.php',
+        'Mint\\MRM\\Database\\Repositories\\CampaignRepository' => __DIR__ . '/../..' . '/app/Database/Repositories/CampaignRepository.php',
+        'Mint\\MRM\\Database\\Repositories\\ContactGroupRepository' => __DIR__ . '/../..' . '/app/Database/Repositories/ContactGroupRepository.php',
+        'Mint\\MRM\\Database\\Repositories\\ContactRepository' => __DIR__ . '/../..' . '/app/Database/Repositories/ContactRepository.php',
+        'Mint\\MRM\\Database\\Traits\\CacheableTrait' => __DIR__ . '/../..' . '/app/Database/Traits/CacheableTrait.php',
         'Mint\\MRM\\Frontend\\API\\Controllers\\BounceHandlerController' => __DIR__ . '/../..' . '/app/API/Controllers/Frontend/BounceHandlerController.php',
         'Mint\\MRM\\Frontend\\API\\Controllers\\CookieController' => __DIR__ . '/../..' . '/app/API/Controllers/Frontend/CookieController.php',
         'Mint\\MRM\\Frontend\\API\\Controllers\\FormSubmissionController' => __DIR__ . '/../..' . '/app/API/Controllers/Frontend/FormSubmissionController.php',
@@ -267,10 +280,15 @@ class ComposerStaticInit85420806b40650be8132e3f7a28292e1
         'Mint\\MRM\\Internal\\Admin\\UserAssignContact' => __DIR__ . '/../..' . '/app/Internal/Frontend/UserAssignContact.php',
         'Mint\\MRM\\Internal\\Admin\\WPUserDelete' => __DIR__ . '/../..' . '/app/Internal/Admin/WP-User/WPUserDelete.php',
         'Mint\\MRM\\Internal\\Admin\\WooCommerceOrderDetails' => __DIR__ . '/../..' . '/app/Internal/Admin/WooCommerce-Order/WooCommerceOrderDetails.php',
+        'Mint\\MRM\\Internal\\Campaign\\EmailPersonalizer' => __DIR__ . '/../..' . '/app/Internal/Campaign/EmailPersonalizer.php',
         'Mint\\MRM\\Internal\\Constants' => __DIR__ . '/../..' . '/app/Internal/Constants.php',
         'Mint\\MRM\\Internal\\Cron\\CampaignsBackgroundProcess' => __DIR__ . '/../..' . '/app/Internal/Cron/CampaignsBackgroundProcess.php',
+        'Mint\\MRM\\Internal\\Cron\\GlobalQueueCoordinator' => __DIR__ . '/../..' . '/app/Internal/Cron/GlobalQueueCoordinator.php',
+        'Mint\\MRM\\Internal\\Cron\\Traits\\ActionSchedulerTrait' => __DIR__ . '/../..' . '/app/Internal/Cron/Traits/ActionSchedulerTrait.php',
+        'Mint\\MRM\\Internal\\Cron\\Traits\\BatchProcessTrait' => __DIR__ . '/../..' . '/app/Internal/Cron/Traits/BatchProcessTrait.php',
         'Mint\\MRM\\Internal\\FormBuilder\\FormBuilderHelper' => __DIR__ . '/../..' . '/app/Internal/FormBuilder/FormBuilderHelper.php',
         'Mint\\MRM\\Internal\\Frontend\\WooCommerceCheckoutContact' => __DIR__ . '/../..' . '/app/Internal/Frontend/WooCommerceCheckoutContact.php',
+        'Mint\\MRM\\Internal\\Import\\ImportService' => __DIR__ . '/../..' . '/app/Internal/Import/ImportService.php',
         'Mint\\MRM\\Internal\\Optin\\OptinConfirmation' => __DIR__ . '/../..' . '/app/Internal/Optin/OptinConfirmation.php',
         'Mint\\MRM\\Internal\\Optin\\UnsubscribeConfirmation' => __DIR__ . '/../..' . '/app/Internal/Optin/UnsubscribeConfirmation.php',
         'Mint\\MRM\\Internal\\Parser\\MergeTagParser' => __DIR__ . '/../..' . '/app/Internal/Parser/MergeTagParser.php',
@@ -282,6 +300,7 @@ class ComposerStaticInit85420806b40650be8132e3f7a28292e1
         'Mint\\MRM\\Internal\\ShortCode\\ShortCode' => __DIR__ . '/../..' . '/app/Internal/Shortcodes/Shortcode.php',
         'Mint\\MRM\\Internal\\ShortCode\\UnsubscribeConfirmation' => __DIR__ . '/../..' . '/app/Internal/Shortcodes/UnsubscribeConfirmation.php',
         'Mint\\MRM\\Internal\\Templates\\TemplateHandler' => __DIR__ . '/../..' . '/app/Internal/Templates/TemplateHandler.php',
+        'Mint\\MRM\\Internal\\Tracking\\EventTracker' => __DIR__ . '/../..' . '/app/Internal/Tracking/EventTracker.php',
         'Mint\\MRM\\Scheduler\\AbstractActionScheduler' => __DIR__ . '/../..' . '/app/Scheduler/AbstractActionScheduler.php',
         'Mint\\MRM\\Utilites\\Helper\\AnimatedGif' => __DIR__ . '/../..' . '/app/Utilities/Helper/GIFEncoder.php',
         'Mint\\MRM\\Utilites\\Helper\\Campaign' => __DIR__ . '/../..' . '/app/Utilities/Helper/Campaign.php',
@@ -317,9 +336,9 @@ class ComposerStaticInit85420806b40650be8132e3f7a28292e1
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit85420806b40650be8132e3f7a28292e1::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit85420806b40650be8132e3f7a28292e1::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit85420806b40650be8132e3f7a28292e1::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7::$classMap;
 
         }, null, ClassLoader::class);
     }

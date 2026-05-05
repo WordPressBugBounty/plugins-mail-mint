@@ -27,6 +27,10 @@ use Mint\Utilities\Arr;
  *
  * Manage Contact Module database related operations.
  *
+ * CRUD methods (insert, update, get, get_all, destroy, destroy_all, is_contact_exist,
+ * is_contact_exist_by_id) have moved to ContactRepository. This class is preserved
+ * for non-CRUD consumers (automation, forms, WP-CLI, Pro plugin hooks).
+ *
  * @package Mint\MRM\DataBase\Models
  * @namespace Mint\MRM\DataBase\Models
  *
@@ -164,7 +168,7 @@ class ContactModel {
 	 * @since 1.0.0
 	 */
 	public static function update_meta_fields( $contact_id, $args ) {
-		if ( !$contact_id || empty( $args ) ) {
+		if ( !$contact_id || empty( $args ) || empty( $args['meta_fields'] ) ) {
 			return false;
 		}
 		global $wpdb;
@@ -417,6 +421,74 @@ class ContactModel {
 		} catch ( \Exception $e ) {
 			return false;
 		}
+	}
+
+
+	/**
+	 * Batch-load contacts and their meta in exactly 2 queries.
+	 *
+	 * Returns an associative array keyed by contact ID, where each value
+	 * matches the data shape returned by get($id) — contact fields merged
+	 * with a 'meta_fields' key. Missing IDs are silently omitted.
+	 *
+	 * @param int[] $contact_ids Array of contact IDs to load.
+	 *
+	 * @return array<int, array> Keyed by contact ID.
+	 * @since 1.20.0
+	 */
+	public static function getMany( array $contact_ids ): array {
+		if ( empty( $contact_ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+		$contacts_table      = $wpdb->prefix . ContactSchema::$table_name;
+		$contacts_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
+
+		// Sanitize IDs to integers.
+		$contact_ids  = array_map( 'absint', $contact_ids );
+		$contact_ids  = array_unique( array_filter( $contact_ids ) );
+
+		if ( empty( $contact_ids ) ) {
+			return array();
+		}
+
+		// Query 1: Fetch all contact rows.
+		$placeholders = implode( ',', array_fill( 0, count( $contact_ids ), '%d' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$contacts_sql = $wpdb->prepare( "SELECT * FROM $contacts_table WHERE id IN ($placeholders)", $contact_ids ); // db call ok. ; no-cache ok.
+		$contact_rows = $wpdb->get_results( $contacts_sql, ARRAY_A ); // db call ok. ; no-cache ok.
+
+		if ( empty( $contact_rows ) ) {
+			return array();
+		}
+
+		// Index contacts by ID.
+		$results = array();
+		foreach ( $contact_rows as $row ) {
+			$results[ (int) $row['id'] ] = $row;
+			$results[ (int) $row['id'] ]['meta_fields'] = array();
+		}
+
+		// Query 2: Fetch all meta for these contacts.
+		$found_ids         = array_keys( $results );
+		$meta_placeholders = implode( ',', array_fill( 0, count( $found_ids ), '%d' ) );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$meta_sql     = $wpdb->prepare( "SELECT contact_id, meta_key, meta_value FROM $contacts_meta_table WHERE contact_id IN ($meta_placeholders)", $found_ids ); // db call ok. ; no-cache ok.
+		$meta_results = $wpdb->get_results( $meta_sql, ARRAY_A ); // db call ok. ; no-cache ok.
+
+		// Group meta by contact_id, matching get_meta() shape.
+		if ( ! empty( $meta_results ) ) {
+			foreach ( $meta_results as $meta_row ) {
+				$cid = (int) $meta_row['contact_id'];
+				if ( isset( $results[ $cid ] ) ) {
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+					$results[ $cid ]['meta_fields'][ $meta_row['meta_key'] ] = maybe_unserialize( $meta_row['meta_value'] );
+				}
+			}
+		}
+
+		return $results;
 	}
 
 

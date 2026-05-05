@@ -32,6 +32,9 @@ use MRM\Common\MrmCommon;
  * @namespace Mint\MRM\DataBase\Models
  *
  * @version 1.0.0
+ *
+ * @deprecated 1.20.0 Use {@see \Mint\MRM\Database\Repositories\BroadcastRepository} instead.
+ * @see \Mint\MRM\Database\Repositories\BroadcastRepository
  */
 class EmailModel {
 

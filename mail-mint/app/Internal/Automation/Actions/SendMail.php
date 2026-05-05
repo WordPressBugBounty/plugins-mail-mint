@@ -11,6 +11,7 @@ namespace MintMail\App\Internal\Automation\Action;
 
 use MailMint\App\Helper;
 use MailMintPro\Internal\EmailCustomization\Render\EmailRender;
+use Mint\MRM\Internal\Campaign\EmailPersonalizer;
 use Mint\MRM\Internal\Parser\Parser;
 use Mint\MRM\DataBase\Models\CampaignEmailBuilderModel;
 use Mint\MRM\DataBase\Models\ContactModel;
@@ -181,15 +182,9 @@ class SendMail extends AbstractAutomationAction {
 					)
 				);
 				$preview   = Helper::replace_dynamic_coupon( $preview, $user_email );
-				$headers[] = 'X-PreHeader: ' . $preview;
 
-				$unsubscribe_url = Helper::get_unsubscribed_url( $rand_hash );
-
-				/** This filter is documented in app/Utilities/Helper/Email.php */
-				if ( apply_filters( 'mail_mint_enable_unsubscribe_header', true, $headers ) ) {
-					$headers[] = 'List-Unsubscribe: <' . $unsubscribe_url . '>';
-					$headers[] = 'List-Unsubscribe-Post: List-Unsubscribe=One-Click';
-				}
+				$personalizer = new EmailPersonalizer();
+				$headers      = $personalizer->buildHeaders( $preview, $rand_hash, $headers );
 
 				$email_data = array(
 					'receiver_email' => $user_email,
@@ -197,6 +192,7 @@ class SendMail extends AbstractAutomationAction {
 					'body'           => !empty( $step_data['settings']['message_data']['body'] ) ? $step_data['settings']['message_data']['body'] : '',
 					'header'         => $headers,
 					'editor_type'    => !empty( $step_data['settings']['message_data']['json_body']['editor'] ) ? $step_data['settings']['message_data']['json_body']['editor'] : 'advanced-builder',
+					'preview_text'   => $preview,
 				);
 
 				if ('plain-text-editor' === $email_data['editor_type']) {
@@ -264,7 +260,6 @@ class SendMail extends AbstractAutomationAction {
 				 * @since 1.5.0
 				 */
 				$email_data['body'] = apply_filters('mint_automation_email_body', $email_data['body'], $data);
-				$email_data['body'] = Email::inject_preview_text_on_email_body($preview, $email_data['body']);
 
 				// Call EmailRender class to dynamically render the custom blocks.
 				if ( $order_id && class_exists('MailMintPro\Internal\EmailCustomization\Render\EmailRender') ) {
@@ -284,10 +279,8 @@ class SendMail extends AbstractAutomationAction {
 				// Process URL for lead-magnet tracking if MailMint Pro is active.
 				if (MrmCommon::is_mailmint_pro_active()) {
 					$email_data['body'] = Mint_Pro_Helper::replace_automatic_latest_content($email_data['body'], get_post_type($post_id));
-					if (MrmCommon::is_mailmint_pro_version_compatible('1.15.1')) {
-						$email_data['body'] = Mint_Pro_Helper::process_lead_magnet_tracking($email_data['body'], $user_email);
-					}
 				}
+				$email_data['body'] = $personalizer->applyProProcessing( $email_data['body'], $user_email );
 
 				$is_sent = $this->send_message( $email_data, $rand_hash );
 				do_action('mailmint_after_automation_send_mail', $data['automation_id'], $data['data']['user_email'], $is_sent);
@@ -348,23 +341,21 @@ class SendMail extends AbstractAutomationAction {
 	 * @return bool
 	 * @since 1.0.0
 	 * @since 1.14.1 Add $rand_hash parameter to the function.
+	 * @since 1.20.0 Delegate post-processing to EmailPersonalizer::personalizeBody().
 	 */
 	public function send_message( $data, $rand_hash ) {
 		$to      = isset( $data['receiver_email'] ) ? $data['receiver_email'] : '';
 		$subject = isset( $data['subject'] ) ? $data['subject'] : 'Mail from Mint Email';
 		$body    = isset( $data['body'] ) ? html_entity_decode( $data['body'] ) : ''; //phpcs:ignore
 
+		$editor_type = isset( $data['editor_type'] ) ? $data['editor_type'] : 'advanced-builder';
+		$watermark   = CampaignEmailBuilderModel::get_email_footer_watermark();
+		$preview     = isset( $data['preview_text'] ) ? $data['preview_text'] : '';
 
-		$body = Email::inject_tracking_image_on_email_body($rand_hash, $body);
-
-		if ( 'advanced-builder' === $data['editor_type'] ) {
-			$body = str_replace( '</html>', CampaignEmailBuilderModel::get_email_footer_watermark() . '</html>', $body );
-		} else {
-			$body = $body . CampaignEmailBuilderModel::get_email_footer_watermark();
-		}
+		$personalizer = new EmailPersonalizer();
+		$body         = $personalizer->personalizeBody( $body, $rand_hash, $preview, $editor_type, $watermark );
 
 		$headers = isset( $data['header'] ) ? $data['header'] : '';
-		$body    = Helper::modify_email_for_rtl( $body );
 		if ( $to ) {
 			return MM()->mailer->send( $to, $subject, $body, $headers );
 		}

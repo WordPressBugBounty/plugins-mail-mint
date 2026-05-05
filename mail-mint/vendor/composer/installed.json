@@ -53,17 +53,17 @@
         },
         {
             "name": "linno/telemetry",
-            "version": "dev-update-for-onboarding",
-            "version_normalized": "dev-update-for-onboarding",
+            "version": "dev-mail-mint-deactivation",
+            "version_normalized": "dev-mail-mint-deactivation",
             "source": {
                 "type": "git",
                 "url": "https://github.com/CODEREXLTD/linno-telemetry.git",
-                "reference": "6d1017f7b02e84f5c2e9e1366e97eeab11e84ebc"
+                "reference": "ae89d371d53773785620cf78d40819ef1426aac7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/CODEREXLTD/linno-telemetry/zipball/6d1017f7b02e84f5c2e9e1366e97eeab11e84ebc",
-                "reference": "6d1017f7b02e84f5c2e9e1366e97eeab11e84ebc",
+                "url": "https://api.github.com/repos/CODEREXLTD/linno-telemetry/zipball/ae89d371d53773785620cf78d40819ef1426aac7",
+                "reference": "ae89d371d53773785620cf78d40819ef1426aac7",
                 "shasum": ""
             },
             "require": {
@@ -74,7 +74,7 @@
                 "mockery/mockery": "^1.5",
                 "phpunit/phpunit": "^9.5"
             },
-            "time": "2026-04-29T09:15:56+00:00",
+            "time": "2026-05-04T07:35:34+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -101,7 +101,7 @@
             ],
             "description": "Privacy-first telemetry SDK for Linno WordPress plugins",
             "support": {
-                "source": "https://github.com/CODEREXLTD/linno-telemetry/tree/update-for-onboarding",
+                "source": "https://github.com/CODEREXLTD/linno-telemetry/tree/mail-mint-deactivation",
                 "issues": "https://github.com/CODEREXLTD/linno-telemetry/issues"
             },
             "install-path": "../linno/telemetry"

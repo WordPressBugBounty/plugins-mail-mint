@@ -2834,6 +2834,71 @@ class HelperFunctions { //phpcs:ignore
 
 		return $is_active == 0;
 	}
+
+	/**
+	 * Check if WooCommerce Subscription is active.
+	 *
+	 * @return bool True if WooCommerce Subscription is active, false otherwise.
+	 * @since 1.22.0
+	 */
+	public static function is_woocommerce_subscription_active() {
+		if ( class_exists( 'WC_Subscriptions' ) && function_exists( 'wcs_get_subscription_statuses' ) ) {
+			return true;
+		}
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+		return in_array( 'woocommerce-subscriptions/woocommerce-subscriptions.php', $active_plugins, true ) || array_key_exists( 'woocommerce-subscriptions/woocommerce-subscriptions.php', $active_plugins );
+	}
+
+	/**
+	 * Check if WooCommerce Membership is active.
+	 *
+	 * @return bool True if WooCommerce Membership is active, false otherwise.
+	 * @since 1.22.0
+	 */
+	public static function is_woocommerce_membership_active() {
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+		return in_array( 'woocommerce-memberships/woocommerce-memberships.php', $active_plugins, true ) || array_key_exists( 'woocommerce-memberships/woocommerce-memberships.php', $active_plugins );
+	}
+
+	/**
+	 * Check if WooCommerce Wishlist is active.
+	 *
+	 * @return bool True if WooCommerce Wishlist is active, false otherwise.
+	 * @since 1.22.0
+	 */
+	public static function is_woocommerce_wishlist_active() {
+		if ( class_exists( 'WC_Wishlists_Plugin' ) ) {
+			return true;
+		}
+
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+		return in_array( 'woocommerce-wishlists/woocommerce-wishlists.php', $active_plugins, true ) || array_key_exists( 'woocommerce-wishlists/woocommerce-wishlists.php', $active_plugins );
+	}
+
+	/**
+	 * Check if Bricks is active.
+	 *
+	 * @return bool True if Bricks is active, false otherwise.
+	 * @since 1.22.0
+	 */
+	public static function is_bricks_active() {
+        return wp_get_theme()->get_template() === 'bricks';
+    }
+
+	/**
+	 * Check if WPForms is active.
+	 * 
+	 * @return bool
+	 * @since 1.22.0
+	 */
+	public static function is_wp_form_active() {
+        if ( defined( 'WPFORMS_VERSION' ) ) {
+            return true;
+        }
+
+		$active_plugins = (array) get_option( 'active_plugins', array() );
+        return in_array( 'wpforms-lite/wpforms.php', $active_plugins, true ) || array_key_exists( 'wpforms-lite/wpforms.php', $active_plugins );
+	}
 }
 
 

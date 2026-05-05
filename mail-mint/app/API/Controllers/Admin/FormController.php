@@ -112,6 +112,33 @@ class FormController extends AdminBaseController {
 
 
 	/**
+	 * Save unsaved form state to a transient so the preview page can read it.
+	 * Mirrors MailPoet's Forms::previewEditor() pattern.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 */
+	public function preview_editor( WP_REST_Request $request ) {
+		$params  = MrmCommon::get_api_params_values( $request );
+		$form_id = isset( $request['form_id'] ) ? absint( $request['form_id'] ) : 0;
+
+		if ( empty( $form_id ) ) {
+			return $this->get_error_response( __( 'Invalid form ID', 'mrm' ), 200 );
+		}
+
+		$preview_data = array(
+			'form_body'     => isset( $params['form_body'] ) ? $params['form_body'] : '',
+			'form_position' => isset( $params['form_position'] ) ? $params['form_position'] : array(),
+			'meta_fields'   => isset( $params['meta_fields'] ) ? $params['meta_fields'] : array(),
+		);
+
+		// Store for 1 day — the preview page reads this transient.
+		set_transient( 'mint_form_preview_' . $form_id, $preview_data, DAY_IN_SECONDS );
+
+		return $this->get_success_response( __( 'Preview data saved', 'mrm' ), 200 );
+	}
+
+	/**
 	 * Function used to handle paginated get and search requests
 	 *
 	 * @param WP_REST_Request $request Request object used to generate the response.

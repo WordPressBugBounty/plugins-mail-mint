@@ -38,6 +38,15 @@ class ContactGroupModel {
 	 *
 	 * @return int|bool
 	 * @since 1.0.0
+	 *
+	 * @deprecated 1.20.0 For list/tag/segment operations, use ContactGroupRepository::create() or SegmentRepository::create().
+	 * @see \Mint\MRM\Database\Repositories\ContactGroupRepository
+	 * @see \MailMintPro\Mint\Database\Repositories\SegmentRepository
+	 *
+	 * Migration Guide:
+	 * Old: ContactGroupModel::insert($group, 'segments');
+	 * New: $repository = new SegmentRepository();
+	 *      $repository->create(['title' => $title, 'data' => serialize($data)]);
 	 */
 	public static function insert( $group, $type ) {
 		global $wpdb;
@@ -69,6 +78,15 @@ class ContactGroupModel {
 	 *
 	 * @return bool
 	 * @since 1.0.0
+	 *
+	 * @deprecated 1.20.0 For list/tag/segment operations, use ContactGroupRepository::update() or SegmentRepository::update().
+	 * @see \Mint\MRM\Database\Repositories\ContactGroupRepository
+	 * @see \MailMintPro\Mint\Database\Repositories\SegmentRepository
+	 *
+	 * Migration Guide:
+	 * Old: ContactGroupModel::update($group, $id, 'segments');
+	 * New: $repository = new SegmentRepository();
+	 *      $repository->update($id, ['title' => $title, 'data' => serialize($data)]);
 	 */
 	public static function update( $group, $id, $type ) {
 		global $wpdb;
@@ -103,6 +121,15 @@ class ContactGroupModel {
 	 *
 	 * @return array
 	 * @since 1.0.0
+	 *
+	 * @deprecated 1.20.0 For list/tag/segment operations, use ContactGroupRepository::list() or SegmentRepository::list().
+	 * @see \Mint\MRM\Database\Repositories\ContactGroupRepository
+	 * @see \MailMintPro\Mint\Database\Repositories\SegmentRepository
+	 *
+	 * Migration Guide:
+	 * Old: ContactGroupModel::get_all('segments', 0, 25, 'search term');
+	 * New: $repository = new SegmentRepository();
+	 *      $repository->list(['page' => 1, 'per_page' => 25, 'search' => 'search term']);
 	 */
 	public static function get_all( $type, $offset = 0, $limit = 20, $search = '', $order_by = 'title', $order_type = 'ASC' ) {
 		global $wpdb;
@@ -173,6 +200,15 @@ class ContactGroupModel {
 	 *
 	 * @return array
 	 * @since 1.0.0
+	 *
+	 * @deprecated 1.20.0 For list/tag/segment operations, use ContactGroupRepository::allForDropdown() or SegmentRepository::allForDropdown().
+	 * @see \Mint\MRM\Database\Repositories\ContactGroupRepository
+	 * @see \MailMintPro\Mint\Database\Repositories\SegmentRepository
+	 *
+	 * Migration Guide:
+	 * Old: ContactGroupModel::get_all_to_custom_select('segments');
+	 * New: $repository = new SegmentRepository();
+	 *      $repository->allForDropdown();
 	 */
 	public static function get_all_to_custom_select( $type ) {
 		global $wpdb;
@@ -192,6 +228,15 @@ class ContactGroupModel {
 	 *
 	 * @return bool
 	 * @since 1.0.0
+	 *
+	 * @deprecated 1.20.0 For list/tag/segment operations, use ContactGroupRepository::destroy() or SegmentRepository::destroy().
+	 * @see \Mint\MRM\Database\Repositories\ContactGroupRepository
+	 * @see \MailMintPro\Mint\Database\Repositories\SegmentRepository
+	 *
+	 * Migration Guide:
+	 * Old: ContactGroupModel::destroy($segment_id);
+	 * New: $repository = new SegmentRepository();
+	 *      $repository->destroy($segment_id);
 	 */
 	public static function destroy( $id ) {
 		global $wpdb;
@@ -214,6 +259,15 @@ class ContactGroupModel {
 	 *
 	 * @return bool
 	 * @since 1.0.0
+	 *
+	 * @deprecated 1.20.0 For list/tag/segment operations, use ContactGroupRepository::destroyMany() or SegmentRepository::destroyMany().
+	 * @see \Mint\MRM\Database\Repositories\ContactGroupRepository
+	 * @see \MailMintPro\Mint\Database\Repositories\SegmentRepository
+	 *
+	 * Migration Guide:
+	 * Old: ContactGroupModel::destroy_all($segment_ids);
+	 * New: $repository = new SegmentRepository();
+	 *      $repository->destroyMany($segment_ids);
 	 */
 	public static function destroy_all( $ids ) {
 		global $wpdb;
@@ -241,6 +295,17 @@ class ContactGroupModel {
 	 *
 	 * @return array|bool
 	 * @since 1.0.0
+	 *
+	 * @deprecated 1.20.0 For list/tag/segment operations, use ContactGroupRepository::find() or SegmentRepository::find().
+	 * @see \Mint\MRM\Database\Repositories\ContactGroupRepository
+	 * @see \MailMintPro\Mint\Database\Repositories\SegmentRepository
+	 *
+	 * Migration Guide:
+	 * Old: ContactGroupModel::get($segment_id);
+	 * New: $repository = new SegmentRepository();
+	 *      $repository->find($segment_id);
+	 * Or for segments with filters:
+	 *      $repository->findWithFilters($segment_id);
 	 */
 	public static function get( $id ) {
 		global $wpdb;

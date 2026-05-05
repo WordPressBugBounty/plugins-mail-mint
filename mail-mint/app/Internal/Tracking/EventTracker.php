@@ -140,7 +140,7 @@ class EventTracker{
      */
     public function on_plugin_activated(): void
     {
-        coderex_telemetry_track(
+        linno_telemetry_track(
             MRM_FILE,
             'plugin_activation',
             array(
@@ -164,7 +164,7 @@ class EventTracker{
      */
     public function on_plugin_deactivated(): void
     {
-        coderex_telemetry_track(
+        linno_telemetry_track(
             MRM_FILE,
             'plugin_deactivation',
             array(
@@ -193,7 +193,7 @@ class EventTracker{
         if ($total_contacts > 0) {
             $has_added_contacts = get_option('mailmint_contacts_added', false);
             if (!$has_added_contacts) {
-                coderex_telemetry_track(
+                linno_telemetry_track(
                     MRM_FILE,
                     'contacts_added',
                     array(
@@ -222,7 +222,7 @@ class EventTracker{
      */
     public function on_campaign_created($campaign_id, $args): void
     {
-        coderex_telemetry_track(
+        linno_telemetry_track(
             MRM_FILE,
             'campaign_created',
             array(
@@ -249,7 +249,7 @@ class EventTracker{
     public function on_campaign_email_sending_completed($campaign_id, $email_id): void
     {
         $type = CampaignModel::get_campaign_type($campaign_id);
-        coderex_telemetry_track(
+        linno_telemetry_track(
             MRM_FILE,
             'campaign_completed',
             array(
@@ -276,7 +276,7 @@ class EventTracker{
     public function on_campaign_analytics_viewed($campaign_id): void
     {
         $type = CampaignModel::get_campaign_type($campaign_id);
-        coderex_telemetry_track(
+        linno_telemetry_track(
             MRM_FILE,
             'campaign_analytics_viewed',
             array(
@@ -333,7 +333,7 @@ class EventTracker{
 
     public function on_abandoned_cart_automation_created(): void
     {
-        coderex_telemetry_track(
+        linno_telemetry_track(
             MRM_FILE,
             'automation_created',
             array(
@@ -370,7 +370,7 @@ class EventTracker{
     {
         $has_automation_used = get_option('mailmint_automation_used', false);
         if (!$has_automation_used) {
-            coderex_telemetry_track(
+            linno_telemetry_track(
                 MRM_FILE,
                 'admin_dashboard_visited',
                 array(
@@ -384,7 +384,7 @@ class EventTracker{
 
     public function on_product_block_automation_email_sent(): void
     {
-        coderex_telemetry_track(
+        linno_telemetry_track(
             MRM_FILE,
             'product_offer_email_sent',
             array(
@@ -410,7 +410,7 @@ class EventTracker{
         $trigger_name = HelperFunctions::get_automation_trigger_name($automation_id);
         $has_automation_used = get_option('mailmint_automation_used', false);
         if (!$has_automation_used) {
-            coderex_telemetry_track(
+            linno_telemetry_track(
                 MRM_FILE,
                 'email_sent_from_automation',
                 array(
@@ -442,7 +442,7 @@ class EventTracker{
 
     public function on_automation_after_added_to_list(): void
     {
-        coderex_telemetry_track(
+        linno_telemetry_track(
             MRM_FILE,
             'contact_added_to_list',
             array(

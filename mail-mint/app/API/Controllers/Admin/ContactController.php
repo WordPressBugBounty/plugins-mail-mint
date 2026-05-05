@@ -12,6 +12,8 @@
 
 namespace Mint\MRM\Admin\API\Controllers;
 
+use Mint\MRM\API\Controllers\Traits\CrudControllerTrait;
+use Mint\MRM\Database\Repositories\ContactRepository;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\Mrm\Internal\Traits\Singleton;
 use WP_REST_Request;
@@ -25,6 +27,7 @@ use Mint\MRM\DataBase\Models\CustomFieldModel;
 use Mint\MRM\DataBase\Models\FormModel;
 use Mint\MRM\Utilites\Helper\Contact;
 use Mint\MRM\Utilites\Helper\Import;
+use Mint\MRM\Internal\Import\ImportService;
 use WP_REST_Response;
 
 /**
@@ -40,6 +43,7 @@ use WP_REST_Response;
 class ContactController extends AdminBaseController {
 
 	use Singleton;
+	use CrudControllerTrait;
 
 	/**
 	 * Contact object arguments
@@ -50,70 +54,130 @@ class ContactController extends AdminBaseController {
 	public $contact_args;
 
 	/**
-	 * Create a new contact or update a existing contact
+	 * Return the repository instance for this controller.
+	 *
+	 * @since 1.19.5
+	 *
+	 * @return \Mint\MRM\Database\AbstractRepository
+	 */
+	protected function repository(): \Mint\MRM\Database\AbstractRepository {
+		return new ContactRepository();
+	}
+
+	/**
+	 * Return the request parameter key used for the entity ID.
+	 *
+	 * @since 1.19.5
+	 *
+	 * @return string
+	 */
+	protected function idKey(): string {
+		return 'contact_id';
+	}
+
+	/**
+	 * Validate request data before create or update.
+	 *
+	 * Enforces email required, format, ZeroBounce integration, and uniqueness checks.
+	 * Extracted from the legacy create_or_update() validation logic.
+	 *
+	 * @since 1.19.5
+	 *
+	 * @param array $data Request data.
+	 *
+	 * @return true|\WP_Error True on success, WP_Error on failure.
+	 */
+	protected function validate( array $data ) {
+		if ( isset( $data['email'] ) ) {
+			$email = sanitize_text_field( $data['email'] );
+			if ( empty( $email ) ) {
+				return new \WP_Error( 200, __( 'Email address is mandatory', 'mrm' ), array( 'status' => 200 ) );
+			}
+
+			if ( ! is_email( $email ) ) {
+				return new \WP_Error( 200, __( 'Enter a valid email address', 'mrm' ), array( 'status' => 200 ) );
+			}
+
+			// ZeroBounce integration check.
+			$settings = get_option( '_mint_integration_settings', array(
+				'zero_bounce' => array(
+					'api_key'       => '',
+					'email_address' => '',
+					'is_integrated' => false,
+				),
+			) );
+
+			$zero_bounce   = isset( $settings['zero_bounce'] ) ? $settings['zero_bounce'] : array();
+			$api_key       = isset( $zero_bounce['api_key'] ) ? $zero_bounce['api_key'] : '';
+			$is_integrated = isset( $zero_bounce['is_integrated'] ) ? $zero_bounce['is_integrated'] : false;
+
+			if ( $is_integrated ) {
+				$response = Integration::handle_zero_bounce_request( $api_key, $email );
+
+				if ( 200 === $response['response'] && ( isset( $response['body']['status'] ) && 'invalid' === $response['body']['status'] ) ) {
+					return new \WP_Error( 200, __( 'The email address does not exist. Please check the spelling and try again.', 'mrm' ), array( 'status' => 200 ) );
+				}
+			}
+
+			// Email uniqueness check.
+			$contact_id = isset( $data['contact_id'] ) ? $data['contact_id'] : '';
+			if ( $contact_id ) {
+				// Update: allow same email for same contact.
+				$current_email = ContactModel::get_contact_email_by_id( $contact_id );
+				$exist         = ContactModel::is_contact_exist( $email );
+				if ( $exist && $current_email !== $email ) {
+					return new \WP_Error( 200, __( 'Email address already assigned to another contact.', 'mrm' ), array( 'status' => 200 ) );
+				}
+			} else {
+				// Create: email must not exist.
+				$exist = ContactModel::is_contact_exist( $email );
+				if ( $exist ) {
+					return new \WP_Error( 200, __( 'Email address already assigned to another contact.', 'mrm' ), array( 'status' => 200 ) );
+				}
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Create a new contact or update an existing contact.
+	 *
+	 * Overrides CrudControllerTrait::create_or_update() to preserve the legacy
+	 * response envelope and post-processing (meta fields, tag/list assignment,
+	 * double opt-in, hooks).
 	 *
 	 * @param WP_REST_Request $request Request object used to generate the response.
-	 * @return \WP_REST_Response
+	 * @return \WP_REST_Response|\WP_Error
 	 * @since 1.0.0
+	 * @since 1.19.5 Migrated to use ContactRepository via CrudControllerTrait.
 	 */
 	public function create_or_update( WP_REST_Request $request ) {
 		// Get values from API.
 		$params = MrmCommon::get_api_params_values( $request );
 
-		// Email address validation.
-		if ( isset( $params['email'] ) ) {
-			$email = sanitize_text_field( $params['email'] );
-			if ( empty( $email ) ) {
-				return $this->get_error_response( __( 'Email address is mandatory', 'mrm' ), 200 );
-			}
-
-			if ( ! is_email( $email ) ) {
-				return $this->get_error_response( __( 'Enter a valid email address', 'mrm' ), 200 );
-			}
-
-            $settings = get_option( '_mint_integration_settings', array(
-                'zero_bounce' => array(
-                    'api_key' => '',
-                    'email_address' => '',
-                    'is_integrated' => false,
-                ),
-            ) );
-    
-            $zero_bounce   = isset( $settings['zero_bounce'] ) ? $settings['zero_bounce'] : array();
-            $api_key       = isset( $zero_bounce['api_key'] ) ? $zero_bounce['api_key'] : '';
-            $is_integrated = isset( $zero_bounce['is_integrated'] ) ? $zero_bounce['is_integrated'] : false;
-    
-            if( $is_integrated ) {
-                $response = Integration::handle_zero_bounce_request( $api_key, $email );
-
-                if( 200 === $response['response'] && ( isset( $response['body']['status'] ) && 'invalid' === $response['body']['status'] ) ){
-                    return $this->get_error_response( __( 'The email address does not exist. Please check the spelling and try again.', 'mrm' ), 200 );
-                }
-            }
+		// Validate via extracted validate() method.
+		$validation = $this->validate( $params );
+		if ( is_wp_error( $validation ) ) {
+			return $this->get_error_response( $validation->get_error_message(), 200 );
 		}
 
 		// Contact object create and insert or update to database.
 		try {
 			if ( isset( $params['contact_id'] ) ) {
-				$contact_id = isset( $params['contact_id'] ) ? $params['contact_id'] : '';
+				$contact_id = (int) $params['contact_id'];
 
-                $current_email = ContactModel::get_contact_email_by_id( $contact_id );
-                $exist         = ContactModel::is_contact_exist($email);
- 
-                if ($exist && $current_email !== $email) {
-                    return $this->get_error_response(__('Email address already assigned to another contact.', 'mrm'), 200);
-                }
+				$this->repository()->update( $contact_id, $params );
 
-				// Existing contact email address check.				
-				$contact_id = ContactModel::update( $params, $contact_id );
+				// Update meta fields.
+				ContactModel::update_meta_fields( $contact_id, $params );
 			} else {
-                $exist = ContactModel::is_contact_exist($email);
-                if ($exist) {
-                    return $this->get_error_response(__('Email address already assigned to another contact.', 'mrm'), 200);
-                }
 				$params     = $this->get_contact_status( $params );
-				$contact    = new ContactData( $email, $params );
-				$contact_id = ContactModel::insert( $contact );
+				$contact_id = $this->repository()->create( $params );
+
+				// Update meta fields.
+				ContactModel::update_meta_fields( $contact_id, $params );
+
 				if ( isset( $params['status'] ) && 'pending' === $params['status'] ) {
 					MessageController::get_instance()->send_double_opt_in( $contact_id );
 				}
@@ -128,34 +192,54 @@ class ContactController extends AdminBaseController {
 			}
 
 			if ( $contact_id ) {
+				/**
+				 * Fires after a contact is successfully saved (created or updated).
+				 *
+				 * @since 1.19.5
+				 *
+				 * @param int   $contact_id Contact ID.
+				 * @param array $params     Saved data.
+				 */
+				do_action( 'mailmint_contacts_saved', $contact_id, $params );
+
 				return $this->get_success_response( __( 'Contact has been saved successfully', 'mrm' ), 201 );
 			}
 			return $this->get_error_response( __( 'Failed to save', 'mrm' ), 400 );
 		} catch ( Exception $e ) {
-				return $this->get_error_response( __( 'Contact is not valid', 'mrm' ), 400 );
+			return $this->get_error_response( __( 'Contact is not valid', 'mrm' ), 400 );
 		}
 	}
 
 
 	/**
-	 * Return a contact details
+	 * Return a contact details.
+	 *
+	 * Overrides CrudControllerTrait::get_single() to preserve the legacy response
+	 * shape with meta, tags, lists, added_by_login, and WooCommerce stats.
 	 *
 	 * @param WP_REST_Request $request Request object used to generate the response.
 	 * @return \WP_REST_Response
 	 * @since 1.0.0
+	 * @since 1.19.5 Migrated to use ContactRepository via CrudControllerTrait.
 	 */
 	public function get_single( WP_REST_Request $request ) {
 		// Get values from API.
 		$params     = MrmCommon::get_api_params_values( $request );
 		$contact_id = isset( $params['contact_id'] ) ? $params['contact_id'] : '';
-		$contact    = ContactModel::get( $contact_id );
+		$contact    = $this->repository()->find( (int) $contact_id );
 
 		// Get and merge tags and lists.
 		if ( $contact ) {
-			$contact               = ContactGroupModel::get_tags_to_contact( $contact );
-			$contact               = ContactGroupModel::get_lists_to_contact( $contact );
+			$contact = ContactGroupModel::get_tags_to_contact( $contact );
+			$contact = ContactGroupModel::get_lists_to_contact( $contact );
 		}
 		if ( $contact && isset( $contact['email'] ) ) {
+			// Load meta fields.
+			$meta = ContactModel::get_meta( $contact_id );
+			if ( ! empty( $meta['meta_fields'] ) ) {
+				$contact['meta_fields'] = $meta['meta_fields'];
+			}
+
 			if ( isset( $contact['created_at'] ) ) {
 				$contact['created_at'] = MrmCommon::date_time_format_with_core( $contact['created_at'] );
 			}
@@ -172,36 +256,33 @@ class ContactController extends AdminBaseController {
 			}
 
 			if ( ! empty( $user_meta->data->user_login ) ) {
-				$contact ['added_by_login'] = esc_html(  $user_meta->data->user_login ); //phpcs:ignore
-			} elseif ( !empty( $contact[ 'source' ] ) ) {
-				$temp_src = $contact[ 'source'];
-				$parts = explode("-", $temp_src);
-				if ( "Form" === $parts[0] ){
-					$form_id = $parts[1];
-					$get_form = FormModel::get($form_id);
-					$contact ['added_by_login'] = isset( $get_form['title'] ) ? $get_form['title'] : $form_id;
+				$contact['added_by_login'] = esc_html( $user_meta->data->user_login );
+			} elseif ( ! empty( $contact['source'] ) ) {
+				$temp_src = $contact['source'];
+				$parts    = explode( '-', $temp_src );
+				if ( 'Form' === $parts[0] ) {
+					$form_id                   = $parts[1];
+					$get_form                  = FormModel::get( $form_id );
+					$contact['added_by_login'] = isset( $get_form['title'] ) ? $get_form['title'] : $form_id;
 				} else {
-					$contact ['added_by_login'] = esc_html( $contact[ 'source' ] );
+					$contact['added_by_login'] = esc_html( $contact['source'] );
 				}
 			} elseif ( ContactModel::is_contact_meta_exist( $contact_id, '_wc_customer_id' ) ) {
-				$contact ['added_by_login'] = esc_html__( 'WooCommerce Checkout', 'mrm' );
+				$contact['added_by_login'] = esc_html__( 'WooCommerce Checkout', 'mrm' );
 			} else {
-				$contact ['added_by_login'] = esc_html__( 'External Source', 'mrm' );
+				$contact['added_by_login'] = esc_html__( 'External Source', 'mrm' );
 			}
 			$contact['meta_fields']['avatar_url'] = Contact::get_avatar_url( $contact );
-            $contact['general_fields'] = Contact::get_contact_primary_fields();
-			$is_wc_active = MrmCommon::is_wc_active();
-			if ( $is_wc_active ){
-                /**
-                 * Summary: Applies filters to enhance the contact profile statistics.
-                 *
-                 * Description: This line of code applies filters to the 'mail_mint_contact_profile_stats' hook, enhancing the contact profile statistics. 
-                 * It takes the existing contact array, usually containing customer summary information, and passes it through the specified filter hook.
-                 *
-                 * @see 'mail_mint_contact_profile_stats' hook for customizing contact profile statistics.
-                 *
-                 * @since 1.7.0
-                 */
+			$contact['general_fields']            = Contact::get_contact_primary_fields();
+			$is_wc_active                         = MrmCommon::is_wc_active();
+			if ( $is_wc_active ) {
+				/**
+				 * Applies filters to enhance the contact profile statistics.
+				 *
+				 * @see 'mail_mint_contact_profile_stats' hook for customizing contact profile statistics.
+				 *
+				 * @since 1.7.0
+				 */
 				$contact['customer_summery'] = apply_filters( 'mail_mint_contact_profile_stats', $contact );
 			}
 
@@ -211,68 +292,46 @@ class ContactController extends AdminBaseController {
 	}
 
 	/**
-	 * Return Contacts for list view
+	 * Return Contacts for list view.
+	 *
+	 * Overrides CrudControllerTrait::get_all() to preserve the legacy response
+	 * envelope with count_groups, count_status, and date formatting.
 	 *
 	 * @param WP_REST_Request $request Request object used to generate the response.
 	 * @return WP_REST_Response
 	 * @since 1.0.0
+	 * @since 1.19.5 Migrated to use ContactRepository via CrudControllerTrait.
 	 */
 	public function get_all( WP_REST_Request $request ) {
 		// Get values from API.
 		$params = MrmCommon::get_api_params_values( $request );
 
-		$page     = isset( $params['page'] ) ? $params['page'] : 1;
-		$per_page = isset( $params['per-page'] ) ? $params['per-page'] : 10;
-		$offset   = ( $page - 1 ) * $per_page;
+		// Map hyphenated query params to underscored for repository.
+		$page = isset( $params['page'] ) ? (int) $params['page'] : 1;
+		if ( isset( $params['per-page'] ) ) {
+			$params['per_page'] = $params['per-page'];
+		}
+		if ( isset( $params['order-by'] ) ) {
+			$params['order_by'] = $params['order-by'];
+		}
 
-		// Contact Search keyword.
-		$search   = isset( $params['search'] ) ? $params['search'] : '';
-		$contacts = ContactModel::get_all( $offset, $per_page, $search );
+		// Delegate to repository list() which handles search, ordering, and withStatsQuery.
+		$result = $this->repository()->list( $params );
 
-        // Track contact list view only on first page load (to avoid multiple events).
-        if ((int)$page === 1 && empty($search)) {
-            do_action('mailmint_contact_list_viewed', $contacts['total_count']);
-        }
+		$search = isset( $params['search'] ) ? $params['search'] : '';
 
-		// Merge tags and lists to contacts.
-		$contacts['data'] = array_map(
-			function( $contact ) {
-				$contact = ContactGroupModel::get_tags_to_contact( $contact );
-				$contact = ContactGroupModel::get_lists_to_contact( $contact );
-				return $contact;
-			},
-			$contacts['data']
-		);
+		// Track contact list view only on first page load (to avoid multiple events).
+		if ( 1 === $page && empty( $search ) ) {
+			do_action( 'mailmint_contact_list_viewed', $result['total'] );
+		}
 
-		// Count contacts groups.
-		$contacts['count_groups'] = array(
-			'lists'    => ContactGroupModel::get_groups_count( 'lists' ),
-			'tags'     => ContactGroupModel::get_groups_count( 'tags' ),
-			'segments' => ContactGroupModel::get_groups_count( 'segments' ),
-			'contacts' => absint( $contacts['total_count'] ),
-		);
-        $total_contact = ContactModel::get_contact_total();
-
-		$subscriber_count  = !empty($total_contact['subscribed']) ? $total_contact['subscribed'] : 0 ;
-		$unsubcriber_count = !empty($total_contact['unsubscribed']) ? $total_contact['unsubscribed'] : 0;
-		$pending_count     = !empty($total_contact['pending']) ? $total_contact['pending'] : 0 ;
-	    $total_status      = $subscriber_count + $unsubcriber_count + $pending_count;
-
-		// Count contacts based on status.
-		$contacts['count_status'] = array(
-			'subscribed'   => $subscriber_count,
-			'unsubscribed' => $unsubcriber_count,
-			'pending'      => $pending_count,
-			'total_status' => $total_status
-		);
-
-		// Prepare last activity for every single contact.
-		if ( isset( $contacts['data'] ) ) {
-			$contacts['data'] = array_map(
+		// Format dates for each contact.
+		if ( isset( $result['data'] ) ) {
+			$result['data'] = array_map(
 				function( $contact ) {
-                    if ( isset( $contact['created_at'] ) ) {
-                        $contact['created_at'] = MrmCommon::date_time_format_with_core( $contact['created_at'] );
-                    }
+					if ( isset( $contact['created_at'] ) ) {
+						$contact['created_at'] = MrmCommon::date_time_format_with_core( $contact['created_at'] );
+					}
 
 					if ( isset( $contact['updated_at'] ) ) {
 						$time                  = new \DateTimeImmutable( $contact['updated_at'], wp_timezone() );
@@ -282,32 +341,71 @@ class ContactController extends AdminBaseController {
 					}
 					return $contact;
 				},
-				$contacts['data']
+				$result['data']
 			);
 		}
 
-		$contacts['current_page'] = (int) $page;
-		if ( isset( $contacts ) ) {
-			return $this->get_success_response( __( 'Query Successfull', 'mrm' ), 200, $contacts );
-		}
-		return $this->get_error_response( __( 'Failed to get data', 'mrm' ), 400 );
+		// Count contacts groups.
+		$contacts_data['data']        = $result['data'];
+		$contacts_data['total_pages'] = $result['total_pages'];
+		$contacts_data['total_count'] = $result['total'];
+
+		$contacts_data['count_groups'] = array(
+			'lists'    => ContactGroupModel::get_groups_count( 'lists' ),
+			'tags'     => ContactGroupModel::get_groups_count( 'tags' ),
+			'segments' => ContactGroupModel::get_groups_count( 'segments' ),
+			'contacts' => absint( $result['total'] ),
+		);
+
+		$total_contact = ContactModel::get_contact_total();
+
+		$subscriber_count  = ! empty( $total_contact['subscribed'] ) ? $total_contact['subscribed'] : 0;
+		$unsubcriber_count = ! empty( $total_contact['unsubscribed'] ) ? $total_contact['unsubscribed'] : 0;
+		$pending_count     = ! empty( $total_contact['pending'] ) ? $total_contact['pending'] : 0;
+		$total_status      = $subscriber_count + $unsubcriber_count + $pending_count;
+
+		// Count contacts based on status.
+		$contacts_data['count_status'] = array(
+			'subscribed'   => $subscriber_count,
+			'unsubscribed' => $unsubcriber_count,
+			'pending'      => $pending_count,
+			'total_status' => $total_status,
+		);
+
+		$contacts_data['current_page'] = $page;
+
+		return $this->get_success_response( __( 'Query Successfull', 'mrm' ), 200, $contacts_data );
 	}
 
 
 	/**
-	 * Delete a contact
+	 * Delete a contact.
+	 *
+	 * Overrides CrudControllerTrait::delete_single() to use repository destroy
+	 * (which handles cleanup) and preserve the legacy response envelope.
 	 *
 	 * @param WP_REST_Request $request Request object used to generate the response.
 	 * @return WP_REST_Response
 	 * @since 1.0.0
+	 * @since 1.19.5 Migrated to use ContactRepository via CrudControllerTrait.
 	 */
 	public function delete_single( WP_REST_Request $request ) {
 		// Get values from API.
-		$params = MrmCommon::get_api_params_values( $request );
+		$params     = MrmCommon::get_api_params_values( $request );
+		$contact_id = isset( $params['contact_id'] ) ? (int) $params['contact_id'] : 0;
 
-		$success = ContactModel::destroy( $params['contact_id'] );
+		$success = $this->repository()->destroy( $contact_id );
 
 		if ( $success ) {
+			/**
+			 * Fires after a contact is successfully deleted.
+			 *
+			 * @since 1.19.5
+			 *
+			 * @param int $contact_id Deleted contact ID.
+			 */
+			do_action( 'mailmint_contacts_deleted', $contact_id );
+
 			return $this->get_success_response( __( 'Contact has been deleted successfully', 'mrm' ), 200 );
 		}
 		return $this->get_error_response( __( 'Failed to delete', 'mrm' ), 400 );
@@ -315,19 +413,29 @@ class ContactController extends AdminBaseController {
 
 
 	/**
-	 * Delete multiple contacts
+	 * Delete multiple contacts.
+	 *
+	 * Overrides CrudControllerTrait::delete_all() to read `contact_ids` from
+	 * request body, use repository destroyMany, and fire hook per ID.
 	 *
 	 * @param WP_REST_Request $request Request object used to generate the response.
 	 * @return WP_REST_Response
 	 * @since 1.0.0
+	 * @since 1.19.5 Migrated to use ContactRepository via CrudControllerTrait.
 	 */
 	public function delete_all( WP_REST_Request $request ) {
 		// Get values from API.
-		$params = MrmCommon::get_api_params_values( $request );
+		$params      = MrmCommon::get_api_params_values( $request );
+		$contact_ids = isset( $params['contact_ids'] ) ? array_map( 'intval', $params['contact_ids'] ) : array();
 
-		$success = ContactModel::destroy_all( $params['contact_ids'] );
+		$success = $this->repository()->destroyMany( $contact_ids );
 
 		if ( $success ) {
+			foreach ( $contact_ids as $id ) {
+				/** This action is documented in delete_single(). */
+				do_action( 'mailmint_contacts_deleted', $id );
+			}
+
 			return $this->get_success_response( __( 'Contacts has been deleted successfully', 'mrm' ), 200 );
 		}
 		return $this->get_error_response( __( 'Failed to Delete', 'mrm' ), 400 );
@@ -478,123 +586,15 @@ class ContactController extends AdminBaseController {
      * @since 1.0.0
      */
     public function import_contacts_native_wc( WP_REST_Request $request ) {
-        $imported     = 0;
-        $skipped      = 0;
-        $exists_count = 0;
-        $total_count  = 0;
-
-        // Get values from API.
         $params = MrmCommon::get_api_params_values( $request );
 
-        /**
-         * Get the import batch limit per operation.
-         *
-         * @param int $per_batch The default import batch limit per operation.
-         * @return int The modified import batch limit per operation.
-         * 
-         * @since 1.5.0
-         */
-        $per_batch = apply_filters( 'mint_import_batch_limit', 500 );
-
-        if ( isset( $params['automation_control'] ) &&  $params['automation_control'] ){
-            add_filter( 'mint_automation_trigger_control_on_import', '__return_true');
-        }
-
         try {
-            if ( isset( $params['map'] ) && empty( $params['map'] ) ) {
-                return $this->get_success_response( __( 'Please map at least one field for importing.', 'mrm' ), 400 );
+            $service = new ImportService( $this->repository() );
+            $result  = $service->importFromWooCommerce( $params );
+
+            if ( isset( $result['error'] ) ) {
+                return $this->get_success_response( $result['error'], $result['code'] );
             }
-            $mappings = isset( $params['map'] ) ? $params['map'] : array();
-
-            $wc_customers = Import::get_wc_customers($params['offset'], $per_batch);
- 
-            foreach ( $wc_customers as $wc_customer ) {
-                if ( isset( $wc_customer ) ) {
-                    $contact_email = $wc_customer['billing_email'];
-                }
-                if ( !is_email( $contact_email ) ){
-                    $skipped++;
-                    continue;
-                }
-
-                $status     = isset( $params['status'] ) ? $params['status'][0] : '';
-                $status     = !empty ( $status ) ? $status : 'pending';
-                $created_by = isset( $params['created_by'] ) ? $params['created_by'] : '';
-
-                $contact_args = array(
-                    'status'      => $status,
-                    'source'      => 'WooCommerce',
-                    'meta_fields' => array(),
-                    'created_by'  => $created_by,
-                );
-
-                foreach ( $mappings as $map ) {
-                    $target = isset( $map['target'] ) ? $map['target'] : '';
-                    $source = isset( $map['source'] ) ? $map['source'] : '';
-
-                    if ( in_array( $target, array( 'first_name', 'last_name', 'email' ), true ) ) {
-                        $contact_args[ $target ] = $wc_customer[ $source ];
-                    } else {
-                        $contact_args['meta_fields'][ $target ] = isset( $wc_customer[ $source ] ) ? $wc_customer[ $source ] : '';
-                    }
-                }
-                if ( ! array_key_exists( 'email', $contact_args ) ) {
-                    return $this->get_success_response( __( 'The email field is required.', 'mrm' ), 400 );
-                }
-                $contact_email = trim( $contact_args['email'] );
-
-                $exists = ContactModel::is_contact_exist( $contact_email );
-                if ( ! $exists ) {
-                    $contact      = new ContactData( $contact_email, $contact_args );
-                    $contact_id = ContactModel::insert( $contact );
-
-                    if ( 'pending' === $status ) {
-                        MessageController::get_instance()->send_double_opt_in( $contact_id );
-                    }
-
-                    if ( isset( $params['tags'] ) ) {
-                        ContactGroupModel::set_tags_to_contact( $params['tags'], $contact_id );
-                    }
-
-                    if ( isset( $params['lists'] ) ) {
-                        ContactGroupModel::set_lists_to_contact( $params['lists'], $contact_id );
-                    }
-                    $imported++;
-                } else {
-					if (isset( $params['skip_existing'] ) && $params['skip_existing']){
-						$skipped++;
-						$total_count++;
-						continue;
-					}
-
-                    $contact_id     = ContactModel::get_id_by_email( $contact_email );
-                    $contact_update = ContactModel::update( $contact_args, $contact_id );
-
-                    if ( 'pending' === $status && isset( $params['optin_confirmation'] ) && $params['optin_confirmation'] ) {
-                        MessageController::get_instance()->send_double_opt_in( $contact_id );
-                    }
-
-                    if ( isset( $params['tags'] ) ) {
-                        ContactGroupModel::set_tags_to_contact( $params['tags'], $contact_id );
-                    }
-
-                    if ( isset( $params['lists'] ) ) {
-                        ContactGroupModel::set_lists_to_contact( $params['lists'], $contact_id );
-                    }
-                    $skipped++;
-                }
-                $total_count ++;
-            }
-            /**
-             * Prepare data for success response.
-             */
-            $result = array(
-                'imported'          => $imported,
-                'total'             => count( $wc_customers ),
-                'skipped'           => $skipped,
-                'existing_contacts' => $exists_count,
-                'offset'            => $params['offset'] + (int) $per_batch,
-            );
 
             return $this->get_success_response( __( 'Import has been successful', 'mrm' ), 200, $result );
         } catch ( Exception $e ) {
@@ -669,153 +669,28 @@ class ContactController extends AdminBaseController {
      * @since 1.0.0
      */
     public function import_contacts_mailchimp( WP_REST_Request $request ) {
-        $imported    = 0;
-        $skipped     = 0;
-        $exists      = 0;
-        $total_count = 0;
-
-        // Get values from API.
         $params = MrmCommon::get_api_params_values( $request );
 
-		if ( isset( $params['automation_control'] ) &&  $params['automation_control'] ){
-            add_filter( 'mint_automation_trigger_control_on_import', '__return_true');
-        }
-
         try {
-            if ( isset( $params['map'] ) && empty( $params['map'] ) ) {
+            $service = new ImportService( $this->repository() );
+            $result  = $service->importFromMailchimp( $params );
+
+            if ( isset( $result['error'] ) ) {
                 return new WP_REST_Response( array(
                     'status'  => 'failed',
-                    'message' => __('Please map at least one field for importing.', 'mrm')
+                    'message' => $result['error'],
                 ) );
             }
-
-            $list_id = isset( $params['list_id'] ) ? $params[ 'list_id' ] : '';
-            // Check if list ID is empty.
-            if( empty( $list_id ) ){
-                return new WP_REST_Response( array(
-                    'status'  => 'failed',
-                    'message' => __('Your API key may be invalid, or you\'ve attempted to access the wrong datacenter.', 'mrm')
-                ) );
-            }
-
-            $key = isset( $params['key'] ) ? $params['key'] : '';
-            // Check if list ID is empty.
-            if( empty( $key ) ){
-                return new WP_REST_Response( array(
-                    'status'  => 'failed',
-                    'message' => __('Your API key may be invalid, or you\'ve attempted to access the wrong datacenter.', 'mrm')
-                ) );
-            }
-
-            $response = Import::get_mailchimp_response( $key, "lists/{$list_id}/members", $params['offset'] );
-            $members  = isset( $response['members'] ) ? $response['members'] : array();
-
-            if( empty($members) ){
-                $result = array(
-                    'total'             => 0,
-                    'skipped'           => 0,
-                    'existing_contacts' => 0,
-                    'imported'          => 0,
-                );
-
-                return new WP_REST_Response( array(
-                    'status'  => 'success',
-                    'message' => __('Import contact from mailchimp has been successful.', 'mrm')
-                ) );
-    
-            }
-
-			foreach ($members as $row){
-				$status       = isset( $params['status'] ) ? $params['status'] : '';
-                $created_by   = isset( $params['created_by'] ) ? $params['created_by'] : '';
-
-				$contact_args = array(
-                    'status'      => $status,
-                    'source'      => 'Mailchimp',
-                    'meta_fields' => array(),
-                    'created_by'  => $created_by,
-                );
-
-				foreach ( $params['map'] as $map ){
-					$target = isset( $map['target'] ) ? $map['target'] : '';
-                	$source = isset( $map['source'] ) ? $map['source'] : '';
-
-					if ( in_array( $target, array( 'email' ), true ) ) {
-                        $contact_args[ $target ] = $row[ $source ];
-                    } else if ( in_array( $target, array( 'first_name', 'last_name' ), true ) )  {
-                        $contact_args[ $target ] = $row[ 'merge_fields' ][ $source ];
-                    } else if ( in_array( $source, array( 'addr1', 'addr2', 'city', 'state', 'zip', 'country' ), true ) )  {
-						$contact_args[ 'meta_fields' ][ $target ] = isset( $row[ 'merge_fields' ][ 'ADDRESS' ][ $source ] ) ? $row[ 'merge_fields' ][ 'ADDRESS' ][ $source ] : '';
-					} else {
-						$contact_args[ 'meta_fields' ][ $target ] = $row[ 'merge_fields' ][ $source ];
-					}
-				}
-
-                if ( ! array_key_exists( 'email', $contact_args ) ) {
-                    return new WP_REST_Response( array(
-                        'status'  => 'failed',
-                        'message' => __('The email field is required.', 'mrm')
-                    ) );
-                }
-                $contact_email = trim( $contact_args['email'] );
-                if ( $contact_email && is_email( $contact_email ) ) {
-                    $is_exists = ContactModel::is_contact_exist( $contact_email );
-                    if ( ! $is_exists ) {
-                        $contact_args = $this->get_contact_status( $contact_args );
-                        $contact      = new ContactData( $contact_email, $contact_args );
-                        $contact_id   = ContactModel::insert( $contact );
-
-                        if ( isset( $contact_args['status'] ) && 'pending' === $contact_args['status'] ) {
-                            MessageController::get_instance()->send_double_opt_in( $contact_id );
-                        }
-                        if ( isset( $params['tags'] ) ) {
-                            ContactGroupModel::set_tags_to_contact( $params['tags'], $contact_id );
-                        }
-
-                        if ( isset( $params['lists'] ) ) {
-                            ContactGroupModel::set_lists_to_contact( $params['lists'], $contact_id );
-                        }
-                        $imported++;
-                    } else {
-                        $contact_args   = $this->get_contact_status( $contact_args );
-                        $contact_id     = ContactModel::get_id_by_email( $contact_email );
-                        $contact_update = ContactModel::update( $contact_args, $contact_id );
-
-                        if ( isset( $contact_args['status'] ) && 'pending' === $contact_args['status'] && isset( $params['optin_confirmation'] ) && $params['optin_confirmation'] ) {
-                            MessageController::get_instance()->send_double_opt_in( $contact_id );
-                        }
-
-                        if ( isset( $params['tags'] ) ) {
-                            ContactGroupModel::set_tags_to_contact( $params['tags'], $contact_id );
-                        }
-
-                        if ( isset( $params['lists'] ) ) {
-                            ContactGroupModel::set_lists_to_contact( $params['lists'], $contact_id );
-                        }
-                        $exists++;
-                    }
-                } else {
-                    $skipped++;
-                }
-                $total_count++;
-            }
-
-            $result = array(
-                'total'             => $total_count,
-                'skipped'           => $skipped,
-                'existing_contacts' => $exists,
-                'imported'          => $imported,
-            );
 
             return new WP_REST_Response( array(
                 'status'  => 'success',
                 'data'    => $result,
-                'message' => __('Import contact from mailchimp has been successful.', 'mrm')
+                'message' => __( 'Import contact from mailchimp has been successful.', 'mrm' ),
             ) );
         } catch ( Exception $e ) {
             return new WP_REST_Response( array(
                 'status'  => 'failed',
-                'message' => __('Import contact from mailchimp has not been successful.', 'mrm')
+                'message' => __( 'Import contact from mailchimp has not been successful.', 'mrm' ),
             ) );
         }
     }
@@ -829,123 +704,15 @@ class ContactController extends AdminBaseController {
      * @since 1.0.0
      */
     public function import_contacts_native_edd( WP_REST_Request $request ) {
-        $imported     = 0;
-        $skipped      = 0;
-        $exists_count = 0;
-        $total_count  = 0;
-
-        // Get values from API.
         $params = MrmCommon::get_api_params_values( $request );
 
-        /**
-         * Get the import batch limit per operation.
-         *
-         * @param int $per_batch The default import batch limit per operation.
-         * @return int The modified import batch limit per operation.
-         * 
-         * @since 1.4.9
-         */
-        $per_batch = apply_filters( 'mint_import_batch_limit', 30 );
-
-        if ( isset( $params['automation_control'] ) &&  $params['automation_control'] ){
-            add_filter( 'mint_automation_trigger_control_on_import', '__return_true');
-        }
-
         try {
-            if ( isset( $params['map'] ) && empty( $params['map'] ) ) {
-                return $this->get_success_response( __( 'Please map at least one field for importing.', 'mrm' ), 400 );
+            $service = new ImportService( $this->repository() );
+            $result  = $service->importFromEDD( $params );
+
+            if ( isset( $result['error'] ) ) {
+                return $this->get_success_response( $result['error'], $result['code'] );
             }
-            $mappings = isset( $params['map'] ) ? $params['map'] : array();
-
-            $customers = Import::edd_get_customers( $params['offset'], $per_batch );
-            foreach ( $customers as $customer ) {
-                if ( isset( $customer ) ) {
-                    $contact_email = $customer['email'];
-                }
-
-                if ( !is_email( $contact_email ) ){
-                    $skipped++;
-                    continue;
-                }
-
-                $status     = isset( $params['status'] ) ? $params['status'][0] : '';
-                $status     = !empty ( $status ) ? $status : 'pending';
-                $created_by = isset( $params['created_by'] ) ? $params['created_by'] : '';
-
-                $contact_args = array(
-                    'status'      => $status,
-                    'source'      => 'Easy Digital Downloads',
-                    'meta_fields' => array(),
-                    'created_by'  => $created_by,
-                );
-
-                foreach ( $mappings as $map ) {
-                    $target = isset( $map['target'] ) ? $map['target'] : '';
-                    $source = strtolower( isset( $map['source'] ) ? $map['source'] : '' );
-                    if ( in_array( $target, array( 'first_name', 'last_name', 'email' ), true ) ) {
-                        $contact_args[ $target ] = isset( $customer[ $source ] ) ? $customer[ $source ] : '';
-                    } else {
-                        $contact_args['meta_fields'][ $target ] = isset( $customer[ $source ] ) ? $customer[ $source ] : '';
-                    }
-                }
-                if ( ! array_key_exists( 'email', $contact_args ) ) {
-                    return $this->get_success_response( __( 'The email field is required.', 'mrm' ), 400 );
-                }
-                $contact_email = trim( $contact_args['email'] );
-
-                $exists = ContactModel::is_contact_exist( $contact_email );
-
-                if ( ! $exists ) {
-                    $contact      = new ContactData( $contact_email, $contact_args );
-                    $contact_id = ContactModel::insert( $contact );
-
-                    if ( 'pending' === $status ) {
-                        MessageController::get_instance()->send_double_opt_in( $contact_id );
-                    }
-
-                    if ( isset( $params['tags'] ) ) {
-                        ContactGroupModel::set_tags_to_contact( $params['tags'], $contact_id );
-                    }
-
-                    if ( isset( $params['lists'] ) ) {
-                        ContactGroupModel::set_lists_to_contact( $params['lists'], $contact_id );
-                    }
-                    $imported++;
-                } else {
-					if (isset( $params['skip_existing'] ) && $params['skip_existing']){
-						$skipped++;
-						$total_count++;
-						continue;
-					}
-                    $contact_id     = ContactModel::get_id_by_email( $contact_email );
-                    $contact_update = ContactModel::update( $contact_args, $contact_id );
-
-                    if ( 'pending' === $status && isset( $params['optin_confirmation'] ) && $params['optin_confirmation'] ) {
-                        MessageController::get_instance()->send_double_opt_in( $contact_id );
-                    }
-
-                    if ( isset( $params['tags'] ) ) {
-                        ContactGroupModel::set_tags_to_contact( $params['tags'], $contact_id );
-                    }
-
-                    if ( isset( $params['lists'] ) ) {
-                        ContactGroupModel::set_lists_to_contact( $params['lists'], $contact_id );
-                    }
-                    $exists_count ++;
-                }
-                $total_count ++;
-            }
-
-            /**
-             * Prepare data for success response.
-             */
-            $result = array(
-                'imported'          => $imported,
-                'total'             => $total_count,
-                'skipped'           => $skipped,
-                'existing_contacts' => $exists_count,
-                'offset'            => $params['offset'] + (int) $per_batch,
-            );
 
             return $this->get_success_response( __( 'Import has been successful', 'mrm' ), 200, $result );
         } catch ( Exception $e ) {

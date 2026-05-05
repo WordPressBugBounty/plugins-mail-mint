@@ -47,6 +47,9 @@ class MrmActivator {
 		add_action( 'init', array( __CLASS__, 'check_mint_version' ), 5 );
 		add_action( 'init', array( __CLASS__, 'manual_database_update' ), 20 );
 		add_action( 'mailmint_run_update_callback', array( __CLASS__, 'run_update_callback' ) );
+		add_action( 'mailmint_updated', array( __CLASS__, 'handle_dispatch_transition' ) );
+		add_action( 'upgrader_process_complete', array( __CLASS__, 'handle_upgrader_transition' ), 10, 2 );
+		add_action( 'init', array( __CLASS__, 'maybe_run_post_upgrade_transition' ), 6 );
 	}
 
 
@@ -283,5 +286,107 @@ class MrmActivator {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Set a transient flag when Mail Mint files are replaced via zip upload.
+	 *
+	 * Fires during `upgrader_process_complete` — at this point the new files are
+	 * on disk but the old plugin code is still in memory for this request.
+	 * So we only set a transient here; the actual transition runs on the next
+	 * request via `maybe_run_post_upgrade_transition()` when everything is loaded.
+	 *
+	 * @since 1.21.3
+	 *
+	 * @param WP_Upgrader $upgrader Upgrader instance.
+	 * @param array       $options  Upgrade options including type and plugins list.
+	 * @return void
+	 */
+	public static function handle_upgrader_transition( $upgrader, $options ) {
+		if (
+			'plugin' !== ( $options['type'] ?? '' ) ||
+			'install' === ( $options['action'] ?? '' )
+		) {
+			return;
+		}
+
+		$plugins = $options['plugins'] ?? array();
+
+		if ( ! in_array( MAILMINT_BASE_NAME, $plugins, true ) ) {
+			return;
+		}
+
+		set_transient( 'mailmint_dispatch_transition_pending', '1', HOUR_IN_SECONDS );
+	}
+
+	/**
+	 * Run the dispatch transition on the first request after a zip-based file replacement.
+	 *
+	 * Checks for the transient flag set by `handle_upgrader_transition()`. Runs at
+	 * `init` priority 6 — after `check_mint_version` (priority 5) so it doesn't
+	 * double-fire when both a version bump and a zip upload happen simultaneously,
+	 * but before anything else tries to schedule AS jobs.
+	 *
+	 * @since 1.21.3
+	 * @return void
+	 */
+	public static function maybe_run_post_upgrade_transition() {
+		if ( ! get_transient( 'mailmint_dispatch_transition_pending' ) ) {
+			return;
+		}
+
+		delete_transient( 'mailmint_dispatch_transition_pending' );
+		self::handle_dispatch_transition();
+	}
+
+	/**
+	 * Handle dispatch system transition on plugin update.
+	 *
+	 * Fires on `mailmint_updated` whenever the plugin version increments.
+	 * Ensures a smooth handoff from the legacy per-campaign AS job dispatch
+	 * (mailmint_send_scheduled_emails) to the GlobalQueueCoordinator:
+	 *
+	 * 1. Cancel all pending/in-progress legacy send jobs across all campaign groups.
+	 * 2. Clear any failed or in-progress coordinator actions left from a bad transition.
+	 * 3. Schedule a fresh coordinator job so active campaigns resume immediately.
+	 *
+	 * Safe to run on every update — all operations are idempotent.
+	 *
+	 * @since 1.21.3
+	 * @return void
+	 */
+	public static function handle_dispatch_transition() {
+		if ( ! function_exists( 'as_enqueue_async_action' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		// Step 1: Cancel all pending/in-progress legacy per-campaign send jobs.
+		$legacy_hook = defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) ? MAILMINT_SEND_SCHEDULED_EMAILS : 'mailmint_send_scheduled_emails';
+		$wpdb->query( // phpcs:ignore
+			$wpdb->prepare(
+				"DELETE a FROM {$wpdb->prefix}actionscheduler_actions a
+				WHERE a.hook = %s
+				AND a.status IN ('pending', 'in-progress')",
+				$legacy_hook
+			)
+		);
+
+		// Step 2: Clear failed/in-progress coordinator actions from a bad transition.
+		$coordinator_group_id = MrmCommon::get_as_group_id( \Mint\MRM\Internal\Cron\GlobalQueueCoordinator::GROUP );
+		if ( $coordinator_group_id ) {
+			$wpdb->query( // phpcs:ignore
+				$wpdb->prepare(
+					"DELETE FROM {$wpdb->prefix}actionscheduler_actions
+					WHERE group_id = %d
+					AND status IN ('failed', 'in-progress')",
+					$coordinator_group_id
+				)
+			);
+		}
+
+		// Step 3: Schedule a fresh coordinator job to resume active campaigns.
+		\Mint\MRM\Internal\Cron\GlobalQueueCoordinator::get_instance()->schedule();
 	}
 }

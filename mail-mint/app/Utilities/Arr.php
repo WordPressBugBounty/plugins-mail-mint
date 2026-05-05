@@ -152,7 +152,7 @@ class Arr
      * @param mixed $default
      * @return mixed
      */
-    public static function first($array, callable $callback = null, $default = null)
+    public static function first($array, ?callable $callback = null, $default = null)
     {
         if (is_null($callback)) {
             return empty($array) ? static::value($default) : reset($array);
@@ -175,7 +175,7 @@ class Arr
      * @param mixed $default
      * @return mixed
      */
-    public static function last($array, callable $callback = null, $default = null)
+    public static function last($array, ?callable $callback = null, $default = null)
     {
         if (is_null($callback)) {
             return empty($array) ? static::value($default) : end($array);

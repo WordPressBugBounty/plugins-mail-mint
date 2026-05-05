@@ -68,6 +68,18 @@ class ContactGroupPivotModel {
 		try {
 			if ( is_array( $pivot_ids ) && count( $pivot_ids ) ) {
 				foreach ( $pivot_ids as $id ) {
+
+					$already_exists = $wpdb->get_var( 
+						$wpdb->prepare(
+							'SELECT COUNT(*) FROM %1s WHERE contact_id = %d AND group_id = %d',
+							$table_name,
+							(int) $id['contact_id'],
+							(int) $id['group_id']
+						)
+					);
+					if ( $already_exists ) {
+						continue;
+					}
 					$wpdb->insert(
 						$table_name,
 						array(

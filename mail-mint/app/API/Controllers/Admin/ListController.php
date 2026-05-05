@@ -12,122 +12,353 @@
 
 namespace Mint\MRM\Admin\API\Controllers;
 
-use Mint\MRM\API\Actions\ListActionCreator;
-use Mint\MRM\DataBase\Models\ContactGroupModel;
-use WP_REST_Request;
+use Mint\MRM\API\Controllers\Traits\CrudControllerTrait;
+use Mint\MRM\Database\Repositories\ContactGroupRepository;
+use Mint\MRM\DataBase\Models\ContactModel;
 use MRM\Common\MrmCommon;
+use WP_Error;
+use WP_REST_Request;
 use WP_REST_Response;
 
 /**
- * This is the main class that controls the lists feature. Its responsibilities are:
+ * ListController — manages list CRUD via CrudControllerTrait.
  *
- * - Create or update a list
- * - Delete single or multiple lists
- * - Retrieve single or multiple lists
- * - Assign or removes lists from the contact
+ * Uses legacy_success_response() / legacy_error_response() from the trait
+ * to preserve the { status, message } envelope the frontend expects.
  *
  * @package Mint\MRM\Admin\API\Controllers
+ * @since   1.0.0
  */
 class ListController extends AdminBaseController {
 
+	use CrudControllerTrait;
+
 	/**
-	 * Function used to handle create  or update requests
+	 * Return the repository instance for lists.
 	 *
-	 * @param WP_REST_Request $request Request object used to generate the response.
+	 * @since 1.19.5
 	 *
-	 * @return WP_REST_RESPONSE
-	 * @since 1.0.0
+	 * @return ContactGroupRepository
+	 */
+	protected function repository(): ContactGroupRepository {
+		return new ContactGroupRepository( 'lists' );
+	}
+
+	/**
+	 * Return the request parameter key used for the list ID.
+	 *
+	 * @since 1.19.5
+	 *
+	 * @return string
+	 */
+	protected function idKey(): string {
+		return 'list_id';
+	}
+
+	/**
+	 * Validate list data before create/update.
+	 *
+	 * @since 1.19.5
+	 *
+	 * @param array $data Request data.
+	 *
+	 * @return true|WP_Error True on success, WP_Error on failure.
+	 */
+	protected function validate( array $data ) {
+		$title = isset( $data['title'] ) ? sanitize_text_field( $data['title'] ) : '';
+
+		if ( empty( $title ) ) {
+			return new WP_Error(
+				'missing_title',
+				__( 'List name is required', 'mrm' )
+			);
+		}
+
+		if ( strlen( $title ) > 60 ) {
+			return new WP_Error(
+				'title_too_long',
+				__( 'Name must be no longer than 60 characters', 'mrm' )
+			);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Override get_all to match legacy response envelope.
+	 *
+	 * Legacy shape: { status, message, data: { data, total_pages, total_count, count_groups } }
+	 *
+	 * @since 1.19.5
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_all( WP_REST_Request $request ): WP_REST_Response {
+		$params = $request->get_params();
+
+		// Map legacy hyphenated query param names to repository param names.
+		$repo_params = array(
+			'page'     => isset( $params['page'] ) ? absint( $params['page'] ) : 1,
+			'per_page' => isset( $params['per-page'] ) ? absint( $params['per-page'] ) : 10,
+			'order_by' => isset( $params['order-by'] ) ? $params['order-by'] : 'id',
+			'order'    => isset( $params['order-type'] ) ? $params['order-type'] : 'DESC',
+			'search'   => isset( $params['search'] ) ? $params['search'] : '',
+		);
+
+		$repo   = $this->repository();
+		$result = $repo->list( $repo_params );
+
+		// Format created_at to match legacy date formatting.
+		if ( ! empty( $result['data'] ) ) {
+			$result['data'] = array_map(
+				function ( $row ) {
+					if ( isset( $row['created_at'] ) ) {
+						$row['created_at'] = MrmCommon::date_time_format_with_core( $row['created_at'] );
+					}
+					return $row;
+				},
+				$result['data']
+			);
+		}
+
+		// Build count_groups to match legacy response.
+		$count_groups = array(
+			'lists'    => $repo->countByType( 'lists' ),
+			'tags'     => $repo->countByType( 'tags' ),
+			'contacts' => ContactModel::get_contacts_count(),
+			'segments' => $repo->countByType( 'segments' ),
+		);
+
+		return $this->legacy_success_response(
+			__( 'Query Successfull', 'mrm' ),
+			array(
+				'data' => array(
+					'data'         => $result['data'],
+					'total_pages'  => $result['total_pages'],
+					'total_count'  => $result['total'],
+					'count_groups' => $count_groups,
+				),
+			)
+		);
+	}
+
+	/**
+	 * Override create_or_update to match legacy response envelope.
+	 *
+	 * Legacy shape on create: { status: 'success', data: $new_id, message }
+	 * Legacy shape on update: { status: 'success', message }
+	 * Legacy shape on error:  { status: 'failed', message }
+	 *
+	 * @since 1.19.5
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return WP_REST_Response
 	 */
 	public function create_or_update( WP_REST_Request $request ) {
+		$data = $request->get_json_params();
+		if ( empty( $data ) ) {
+			$data = $request->get_params();
+		}
 
-		// Get values from the API request.
-		$params   = MrmCommon::get_api_params_values( $request );
-		$params   = filter_var_array( $params );
-		$creator  = new ListActionCreator();
-		$action   = $creator->makeAction();
-		$response = $action->create_or_update( $params );
-		return new WP_REST_Response( $response );
+		$validation = $this->validate( $data );
+		if ( is_wp_error( $validation ) ) {
+			return $this->legacy_error_response( $validation->get_error_message() );
+		}
+
+		$id_key = $this->idKey();
+		$id     = $request->get_param( $id_key );
+		$repo   = $this->repository();
+
+		if ( $id ) {
+			$id       = (int) $id;
+			$affected = $repo->update( $id, $data );
+
+			if ( is_wp_error( $affected ) ) {
+				return $this->legacy_error_response(
+					__( 'Failed to save list.', 'mrm' ),
+					500
+				);
+			}
+
+			/**
+			 * Fires after a contact group is saved (created or updated).
+			 *
+			 * @since 1.19.5
+			 *
+			 * @param int   $id   Entity ID.
+			 * @param array $data Saved data.
+			 */
+			do_action( "mailmint_{$this->entityName()}_saved", $id, $data );
+
+			return $this->legacy_success_response(
+				__( 'List has been saved successfully', 'mrm' )
+			);
+		}
+
+		$new_id = $repo->create( $data );
+
+		if ( is_wp_error( $new_id ) ) {
+			return $this->legacy_error_response(
+				__( 'Failed to save list.', 'mrm' ),
+				500
+			);
+		}
+
+		if ( ! $new_id ) {
+			return $this->legacy_error_response(
+				__( 'Failed to save list.', 'mrm' ),
+				500
+			);
+		}
+
+		/** This action is documented above. */
+		do_action( "mailmint_{$this->entityName()}_saved", $new_id, $data );
+
+		return $this->legacy_success_response(
+			__( 'List has been saved successfully', 'mrm' ),
+			array( 'data' => $new_id )
+		);
 	}
 
 	/**
-	 * Function used to handle paginated get and search requests
+	 * Override delete_single to match legacy response envelope.
 	 *
-	 * @param WP_REST_Request $request Request object used to generate the response.
-	 * @return WP_REST_Response
-	 * @since 1.0.0
-	 */
-	public function get_all( WP_REST_Request $request ) {
-
-		// Get values from API.
-		$params   = MrmCommon::get_api_params_values( $request );
-		$params   = filter_var_array( $params );
-		$creator  = new ListActionCreator();
-		$action   = $creator->makeAction();
-		$response = $action->get_all( $params );
-		return new WP_REST_Response( $response );
-	}
-
-	/**
-	 * Function used to handle a single get request
+	 * @since 1.19.5
 	 *
-	 * @param WP_REST_Request $request Request object used to generate the response.
-	 * @return WP_REST_Response
-	 * @since 1.0.0
-	 */
-	public function get_single( WP_REST_Request $request ) {
-		// Get values from API.
-		$params   = MrmCommon::get_api_params_values( $request );
-		$params   = filter_var_array( $params );
-		$creator  = new ListActionCreator();
-		$action   = $creator->makeAction();
-		$response = $action->get_single( $params );
-		return new WP_REST_Response( $response );
-	}
-
-	/**
-	 * Function used to handle delete requests
+	 * @param WP_REST_Request $request Full request object.
 	 *
-	 * @param WP_REST_Request $request Request object used to generate the response.
 	 * @return WP_REST_Response
-	 * @since 1.0.0
 	 */
 	public function delete_single( WP_REST_Request $request ) {
-		// Get values from API.
-		$params   = MrmCommon::get_api_params_values( $request );
-		$params   = filter_var_array( $params );
-		$creator  = new ListActionCreator();
-		$action   = $creator->makeAction();
-		$response = $action->delete_single( $params );
-		return new WP_REST_Response( $response );
+		$id = (int) $request->get_param( $this->idKey() );
+
+		if ( ! $id ) {
+			return $this->legacy_error_response(
+				__( 'Something went wrong. Please try again!', 'mrm' )
+			);
+		}
+
+		$deleted = $this->repository()->destroy( $id );
+
+		if ( is_wp_error( $deleted ) ) {
+			return $this->legacy_error_response(
+				__( 'Failed to delete list.', 'mrm' ),
+				500
+			);
+		}
+
+		if ( ! $deleted ) {
+			return $this->legacy_error_response(
+				__( 'List not found.', 'mrm' ),
+				404
+			);
+		}
+
+		/**
+		 * Fires after a contact group is deleted.
+		 *
+		 * @since 1.19.5
+		 *
+		 * @param int $id Deleted entity ID.
+		 */
+		do_action( "mailmint_{$this->entityName()}_deleted", $id );
+
+		return $this->legacy_success_response(
+			__( 'Lists has been deleted successfully', 'mrm' )
+		);
 	}
 
 	/**
-	 * Function used to handle delete requests
+	 * Override delete_all to match legacy response envelope.
 	 *
-	 * @param WP_REST_Request $request Request object used to generate the response.
+	 * Legacy expects 'list_ids' param in the request body.
+	 *
+	 * @since 1.19.5
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
 	 * @return WP_REST_Response
-	 * @since 1.0.0
 	 */
 	public function delete_all( WP_REST_Request $request ) {
-		// Get values from API.
-		$params   = MrmCommon::get_api_params_values( $request );
-		$params   = filter_var_array( $params );
-		$creator  = new ListActionCreator();
-		$action   = $creator->makeAction();
-		$response = $action->delete_all( $params );
-		return new WP_REST_Response( $response );
+		$ids = $request->get_param( 'list_ids' );
+		if ( empty( $ids ) || ! is_array( $ids ) ) {
+			return $this->legacy_error_response(
+				__( 'Something went wrong. Please try again!', 'mrm' )
+			);
+		}
+
+		$ids = array_map( 'intval', $ids );
+
+		$deleted = $this->repository()->destroyMany( $ids );
+
+		if ( is_wp_error( $deleted ) ) {
+			return $this->legacy_error_response(
+				__( 'Failed to delete lists.', 'mrm' ),
+				500
+			);
+		}
+
+		$entity_name = $this->entityName();
+		foreach ( $ids as $id ) {
+			/** This action is documented in delete_single(). */
+			do_action( "mailmint_{$entity_name}_deleted", $id );
+		}
+
+		return $this->legacy_success_response(
+			__( 'Lists has been deleted successfully', 'mrm' )
+		);
 	}
 
 	/**
-	 * Function used to return all list to custom select dropdown
+	 * Get a single list — matches legacy response envelope.
+	 *
+	 * @since 1.19.5
+	 *
+	 * @param WP_REST_Request $request Full request object.
 	 *
 	 * @return WP_REST_Response
+	 */
+	public function get_single( WP_REST_Request $request ) {
+		$id    = (int) $request->get_param( $this->idKey() );
+		$group = $this->repository()->find( $id );
+
+		if ( null === $group ) {
+			return $this->legacy_error_response(
+				__( 'List not found.', 'mrm' ),
+				404
+			);
+		}
+
+		return $this->legacy_success_response(
+			__( 'Query Successfull', 'mrm' ),
+			array( 'data' => $group )
+		);
+	}
+
+	/**
+	 * Non-CRUD: dropdown data for list selectors.
+	 *
+	 * Preserved from legacy — not part of CrudControllerTrait.
+	 *
 	 * @since 1.0.0
+	 *
+	 * @return WP_REST_Response
 	 */
 	public function get_lists_for_dropdown() {
-		$creator  = new ListActionCreator();
-		$action   = $creator->makeAction();
-		$response = $action->get_lists_for_dropdown();
-		return new WP_REST_Response( $response );
+		try {
+			$groups = $this->repository()->allForDropdown();
+
+			return $this->legacy_success_response(
+				__( 'All lists have been fetched successfully!', 'mrm' ),
+				array( 'data' => array( 'data' => $groups ) )
+			);
+		} catch ( \Exception $e ) {
+			return $this->legacy_error_response(
+				__( 'Error while fetching the lists', 'mrm' )
+			);
+		}
 	}
 }

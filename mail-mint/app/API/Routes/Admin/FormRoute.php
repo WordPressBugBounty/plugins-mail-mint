@@ -416,6 +416,26 @@ class FormRoute {
 		);
 
 		/**
+		 * Route to save unsaved form state for preview (transient-based, like MailPoet).
+		 *
+		 * @return void
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/preview-editor/(?P<form_id>[\d]+)',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array(
+						$this->controller,
+						'preview_editor',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms'),
+				),
+			)
+		);
+
+		/**
 		 * Route to get all form templates
 		 *
 		 * @return void

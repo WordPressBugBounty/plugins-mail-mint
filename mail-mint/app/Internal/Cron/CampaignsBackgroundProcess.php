@@ -15,6 +15,13 @@ use MailMint\App\Helper;
 use Mint\App\Internal\Cron\BackgroundProcessHelper;
 use Mint\MRM\DataBase\Models\CampaignEmailBuilderModel;
 use Mint\MRM\DataBase\Models\CampaignModel;
+use Mint\MRM\Database\Enums\BroadcastStatus;
+use Mint\MRM\Database\Enums\CampaignType;
+use Mint\MRM\Database\Repositories\CampaignRepository;
+use Mint\MRM\Internal\Campaign\EmailPersonalizer;
+use Mint\MRM\Internal\Cron\GlobalQueueCoordinator;
+use Mint\MRM\Internal\Cron\Traits\ActionSchedulerTrait;
+use Mint\MRM\Internal\Cron\Traits\BatchProcessTrait;
 use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Admin\API\Controllers\CampaignController;
 use Mint\MRM\DataBase\Models\ContactModel;
@@ -34,6 +41,18 @@ use MRM\Common\MrmCommon;
 class CampaignsBackgroundProcess {
 
 	use Singleton;
+	use ActionSchedulerTrait;
+	use BatchProcessTrait;
+
+	/**
+	 * Initialize constructor-level hooks.
+	 *
+	 * @return void
+	 * @since 1.20.0
+	 */
+	private function __construct() {
+		add_action( 'action_scheduler_completed_action', array( $this, 'delete_completed_mailmint_action' ) );
+	}
 
 	/**
 	 * Initialize cron functionalities
@@ -48,6 +67,8 @@ class CampaignsBackgroundProcess {
 		if ( defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) ) {
 			add_action( MAILMINT_SEND_SCHEDULED_EMAILS, array( $this, 'send_recipient_emails' ) );
 		}
+		add_action( GlobalQueueCoordinator::HOOK, array( GlobalQueueCoordinator::get_instance(), 'run' ) );
+		add_action( 'init', array( GlobalQueueCoordinator::get_instance(), 'selfHeal' ), 99 );
 
 		add_action( 'mailmint_campaign_emails_scheduling_completed', array( $this, 'delete_actions' ) );
 		add_action( 'mailmint_single_email_scheduling_processed', array( $this, 'schedule_async_send_email_action' ), 10, 2 );
@@ -70,6 +91,21 @@ class CampaignsBackgroundProcess {
 	public function process_campaign_emails_scheduling( $args ) {
 		do_action( 'mailmint_after_campaign_start', $args );
 
+		$campaign_id = ! empty( $args[ 'campaign_id' ] ) ? $args[ 'campaign_id' ] : null;
+
+		// ── PAUSE CHECK: Stop if campaign is paused ──
+		$repo     = new CampaignRepository();
+		$campaign = $repo->find( (int) $campaign_id );
+		if ( ! empty( $campaign['status'] ) && 'paused' === $campaign['status'] ) {
+			// Campaign is paused, do not schedule any more emails.
+			return;
+		}
+
+		$frequency       = Helper::get_email_frequency_setting();
+		$frequency_limit = ! empty( $frequency['emails'] ) ? (int) $frequency['emails'] : 25;
+		$frequency_time  = ! empty( $frequency['time'] ) ? (int) $frequency['time'] : 5;
+		$slot_duration   = (float) ( $frequency_time * 60 ) / max( 1, $frequency_limit );
+
 		global $wpdb;
 		$email_broadcast_table = $wpdb->prefix . EmailSchema::$table_name;
 		$email_settings        = get_option( '_mrm_email_settings', Email::default_email_settings() );
@@ -84,34 +120,40 @@ class CampaignsBackgroundProcess {
 		$sender_name           = ! empty( $email_settings[ 'sender_name' ] ) ? $email_settings[ 'sender_name' ] : '';
 		$recipients_emails     = CampaignModel::get_campaign_recipients_email( $campaign_id, $offset, $per_batch );
 
-		$start_time = time();
+		$start_time      = time();
 		$processed_count = 0;
 
 		if ( is_array( $recipients_emails ) && ! empty( $recipients_emails ) ) {
-			$sender_name   = ! empty( $campaign_email[ 'sender_name' ] ) ? $campaign_email[ 'sender_name' ] : $sender_name;
-			$sender_email  = ! empty( $campaign_email[ 'sender_email' ] ) ? $campaign_email[ 'sender_email' ] : $sender_email;
-			$reply_name    = ! empty( $campaign_email[ 'reply_name' ] ) ? $campaign_email[ 'reply_name' ] : $reply_name;
-			$reply_email   = ! empty( $campaign_email[ 'reply_email' ] ) ? $campaign_email[ 'reply_email' ] : $reply_email;
-			$headers       = $this->prepare_email_headers( $sender_name, $sender_email, $reply_name, $reply_email );
-			$headers_json  = wp_json_encode( $headers );
-			$now           = current_time( 'mysql' );
-
-
+			$sender_name  = ! empty( $campaign_email[ 'sender_name' ] ) ? $campaign_email[ 'sender_name' ] : $sender_name;
+			$sender_email = ! empty( $campaign_email[ 'sender_email' ] ) ? $campaign_email[ 'sender_email' ] : $sender_email;
+			$reply_name   = ! empty( $campaign_email[ 'reply_name' ] ) ? $campaign_email[ 'reply_name' ] : $reply_name;
+			$reply_email  = ! empty( $campaign_email[ 'reply_email' ] ) ? $campaign_email[ 'reply_email' ] : $reply_email;
+			$headers      = $this->prepare_email_headers( $sender_name, $sender_email, $reply_name, $reply_email );
+			$headers_json = wp_json_encode( $headers );
+			$now          = current_time( 'mysql' );
 
 			// ── PR-6 FIX: Batch duplicate check — 1 query instead of N ──
-			$existing_emails = $wpdb->get_col( $wpdb->prepare(
-				"SELECT email_address FROM {$email_broadcast_table} WHERE campaign_id = %d AND email_id = %d",
-				$campaign_id,
-				$campaign_email_id
-			) );
-			$existing_set = array_flip( $existing_emails );
+			$existing_emails = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT email_address FROM {$email_broadcast_table} WHERE campaign_id = %d AND email_id = %d",
+					$campaign_id,
+					$campaign_email_id
+				)
+			);
+			$existing_set    = array_flip( $existing_emails );
 
 			// ── PR-5 FIX: Collect rows for batch INSERT ──
 			$rows_to_insert = array();
 
+			// The AS job was already scheduled with the email's delay, so by the time
+			// this function runs the delay has been consumed. Starting from time() means
+			// broadcast rows are due immediately and the coordinator sends them right away.
+			$base_unix = time();
+
+			$next_slot_unix = (float) max( $base_unix, ( new CampaignRepository() )->getSchedulingFrontier( $base_unix ) );
+
 			foreach ( $recipients_emails as $email ) {
 				if ( BackgroundProcessHelper::memory_exceeded() || BackgroundProcessHelper::time_exceeded( $start_time, 0.5 ) ) {
-
 
 					// Flush any pending rows before rescheduling.
 					if ( ! empty( $rows_to_insert ) ) {
@@ -121,7 +163,7 @@ class CampaignsBackgroundProcess {
 
 					// Reschedule the task.
 					$new_offset = $offset + $processed_count;
-					$args = array(
+					$args       = array(
 						array(
 							'campaign_id'     => $campaign_id,
 							'campaign_status' => 'active',
@@ -130,7 +172,7 @@ class CampaignsBackgroundProcess {
 							'per_batch'       => $per_batch,
 						),
 					);
-					$group = 'mailmint-campaign-schedule-' . $campaign_id;
+					$group      = 'mailmint-campaign-schedule-' . $campaign_id;
 					as_schedule_single_action( time() + 60, MAILMINT_SCHEDULE_EMAILS, $args, $group );
 					return;
 				}
@@ -138,6 +180,9 @@ class CampaignsBackgroundProcess {
 				if ( isset( $email['id'], $email['email'] ) && $email['id'] && $email['email'] ) {
 					// In-memory dedup — O(1) instead of 1 DB query per recipient.
 					if ( ! isset( $existing_set[ $email['email'] ] ) ) {
+						$next_slot_unix  += $slot_duration;
+						$scheduled_at_row = get_date_from_gmt( gmdate( 'Y-m-d H:i:s', (int) $next_slot_unix ) );
+
 						$rows_to_insert[] = $wpdb->prepare(
 							'(%d, %d, %d, %s, %s, %s, %s, %s, %s, %s)',
 							$campaign_id,
@@ -148,7 +193,7 @@ class CampaignsBackgroundProcess {
 							'scheduled',
 							'campaign',
 							MrmCommon::get_rand_email_hash( $email['email'], $campaign_id ),
-							$now,
+							$scheduled_at_row,
 							$now
 						);
 						// Mark as existing to prevent duplicates within the same batch.
@@ -162,8 +207,6 @@ class CampaignsBackgroundProcess {
 			if ( ! empty( $rows_to_insert ) ) {
 				$this->batch_insert_broadcast_rows( $wpdb, $email_broadcast_table, $rows_to_insert );
 			}
-
-
 
 			$campaign_email[ 'delay_value' ] = '';
 			CampaignModel::schedule_campaign_action( $campaign_id, $campaign_email, 'active', '', ( $offset + $per_batch ) );
@@ -214,153 +257,227 @@ class CampaignsBackgroundProcess {
 	 * @since 1.0.0
 	 */
 	public function send_recipient_emails( $args = array() ) {
-		$campaign_id     = ! empty( $args[ 'campaign_id' ] ) ? $args[ 'campaign_id' ] : 0;
-		$email_id        = ! empty( $args[ 'email_id' ] ) ? $args[ 'email_id' ] : 0;
-		$batch           = ! empty( $args[ 'batch' ] ) ? $args[ 'batch' ] : 1;
-		$frequency       = Helper::get_email_frequency_setting();
-		$frequency_type  = !empty( $frequency['type'] ) ? $frequency['type'] : 'Recommended';
-		$frequency_time  = !empty( $frequency['time'] ) ? $frequency['time'] : 5;
-		$frequency_limit = !empty( $frequency['emails'] ) ? $frequency['emails'] : 25;
+		if ( $this->isGlobalQueueCoordinatorEnabled() ) {
+			GlobalQueueCoordinator::get_instance()->schedule();
+			return;
+		}
+
+		$campaign_id            = ! empty( $args['campaign_id'] ) ? $args['campaign_id'] : 0;
+		$email_id               = ! empty( $args['email_id'] ) ? $args['email_id'] : 0;
+		$batch                  = ! empty( $args['batch'] ) ? $args['batch'] : 1;
+
+		// ── PAUSE CHECK: Stop if campaign is paused ──
+		$repo     = new CampaignRepository();
+		$campaign = $repo->find( (int) $campaign_id );
+		if ( ! empty( $campaign['status'] ) && 'paused' === $campaign['status'] ) {
+			// Campaign is paused, do not send any emails.
+			return;
+		}
+
+		$frequency              = Helper::get_email_frequency_setting();
+		$frequency_type         = ! empty( $frequency['type'] ) ? $frequency['type'] : 'Recommended';
+		$frequency_time         = ! empty( $frequency['time'] ) ? (int) $frequency['time'] : 5;
+		$frequency_time_seconds = $frequency_time * 60; // Convert minutes to seconds.
+		$frequency_limit        = ! empty( $frequency['emails'] ) ? $frequency['emails'] : 25;
+
 		/**
-		 * Retrieves the batch limit for sending emails from a filter.on.
-		 *
-		 * This function retrieves the batch limit for sending emails from the
-		 * 'mailmint_send_email_batch_limit' filter. If the filter is not applied or
-		 * returns an invalid value, the default value of 20 is used.
+		 * Retrieves the batch limit for sending emails from a filter.
 		 *
 		 * @return int The batch limit for sending emails.
-		 *
 		 * @since 1.5.2
 		 */
 		$per_batch = apply_filters( 'mailmint_send_email_batch_limit', 20 );
 		if ( 'Manual' === $frequency_type ) {
 			$per_batch = $frequency_limit;
 		}
-		$recipient_emails     = $campaign_id ? $this->get_recipient_emails( $campaign_id, $email_id, $per_batch ) : array();
 
-		// Fix: claim these emails in an atomic, status-aware way to avoid race conditions.
-		if ( is_array( $recipient_emails ) && ! empty( $recipient_emails ) ) {
-			global $wpdb;
-
-			$claimed_ids = array_column( $recipient_emails, 'id' );
-			$claimed_ids = array_filter( array_map( 'intval', $claimed_ids ) );
-
-			if ( ! empty( $claimed_ids ) ) {
-				$table_name   = $wpdb->prefix . EmailSchema::$table_name;
-				$placeholders = implode( ',', array_fill( 0, count( $claimed_ids ), '%d' ) );
-
-				// Only claim rows that are still in 'scheduled' status to avoid duplicates.
-				$params = array_merge(
-					array( 'sending', 'scheduled' ),
-					$claimed_ids
-				);
-
-				$sql = "UPDATE {$table_name} SET status = %s WHERE status = %s AND id IN ({$placeholders})";
-
-				$wpdb->query( $wpdb->prepare( $sql, $params ) );
-
-				// If we could not claim all rows we selected, another worker may have claimed some.
-				// In that case, do not send any from this batch to prevent duplicates.
-				if ( (int) $wpdb->rows_affected !== count( $claimed_ids ) ) {
-					$recipient_emails = array();
-				}
-			}
+		if ( ! $campaign_id ) {
+			return;
 		}
 
-		$email_attributes     = CampaignModel::get_campaign_email_attributes_to_sent( $campaign_id, $email_id );
-		$global_email_subject = ! empty( $email_attributes['email_subject'] ) ? $email_attributes['email_subject'] : '';
-		$global_preview_text  = ! empty( $email_attributes['email_preview_text'] ) ? $email_attributes['email_preview_text'] : '';
-		$global_email_body    = ! empty( $email_attributes[ 'email_body' ] ) ? $email_attributes[ 'email_body' ] : '';
-		$editor_type          = ! empty($email_attributes['editor_type']) ? $email_attributes['editor_type'] : 'advanced-builder';
-
-		if( MrmCommon::is_mailmint_pro_active() ){
-			$global_email_body = Mint_Pro_Helper::replace_automatic_latest_content( $global_email_body );
+		// Resolve email attributes: read from transient cache or fetch once from DB.
+		$cache_key = 'mailmint_email_cache_' . $campaign_id . '_' . $email_id;
+		$cached    = get_transient( $cache_key );
+		if ( empty( $cached ) || ! is_array( $cached ) ) {
+			$cached = $this->buildEmailCache( $campaign_id, $email_id );
+			set_transient( $cache_key, $cached, HOUR_IN_SECONDS );
 		}
 
-		if( 'plain-text-editor' === $editor_type ){
-			$global_email_body = nl2br( html_entity_decode( $global_email_body ) );
-		}
+		$personalizer   = new EmailPersonalizer();
+		$batches_in_job = 0;
 
-		if ( is_array( $recipient_emails ) && ! empty( $recipient_emails ) ) {
-			$sent_email_ids   = array();
-			$failed_email_ids = array();
-			$start_time       = time();
+		// Shared state for per-batch processing (reset each batch via claim callback).
+		$claimed_ids      = array();
+		$sent_email_ids   = array();
+		$failed_email_ids = array();
+		$contacts_cache   = array();
+		$email_body       = '';
+		$next_gate_retry_at = 0;
 
-			foreach ( $recipient_emails as $recipient ) {
-				$recipient_email    = ! empty( $recipient[ 'email_address' ] ) ? sanitize_email( $recipient[ 'email_address' ] ) : '';
-				$broadcast_email_id = ! empty( $recipient[ 'id' ] ) ? (int) $recipient[ 'id' ] : '';
-				$contact_id         = ! empty( $recipient[ 'contact_id' ] ) ? (int) $recipient[ 'contact_id' ] : '';
-				$email_hash         = ! empty( $recipient[ 'email_hash' ] ) ? $recipient[ 'email_hash' ] : '';
-				$email_headers      = ! empty( $recipient[ 'email_headers' ] ) ? json_decode( $recipient[ 'email_headers' ] ) : '';
-				$unsubscribe_url    = Helper::get_unsubscribed_url( $email_hash );
+		$result = $this->runBatchLoop(
+			array(
+				// Fetch the next batch of scheduled broadcast rows.
+				'fetch_batch'        => function () use ( $repo, $campaign_id, $email_id, $per_batch, &$next_gate_retry_at ) {
+					$next_gate_retry_at = 0;
+					return $this->getDispatchableRecipients( $repo, $campaign_id, $email_id, $per_batch, $next_gate_retry_at );
+				},
 
-				/** This filter is documented in app/Utilities/Helper/Email.php */
-				if ( apply_filters( 'mail_mint_enable_unsubscribe_header', true, $email_headers ) ) {
-					$email_headers[] = 'List-Unsubscribe: <' . $unsubscribe_url . '>';
-					$email_headers[] = 'List-Unsubscribe-Post: List-Unsubscribe=One-Click';
-				}
+				// Atomically claim broadcast rows: UPDATE status scheduled → sending.
+				 'claim_batch'       => function ( $rows ) use ( &$claimed_ids, &$sent_email_ids, &$failed_email_ids, &$contacts_cache, &$email_body, $campaign_id, $email_id, $cached ) {
+					 global $wpdb;
 
-				// Get contact and merge meta fields with contact fields.
-				$contact = ContactModel::get( $contact_id );
-				if (isset($contact['meta_fields']) && is_array($contact['meta_fields'])) {
-					$contact = array_merge($contact, $contact['meta_fields']);
-					unset($contact['meta_fields']);
-				}
+					 // Reset per-batch tracking state.
+					 $sent_email_ids   = array();
+					 $failed_email_ids = array();
 
-				// Parse email subject, preview text and email body.
-				$email_subject   = Parser::parse( $global_email_subject, $contact );
-				$preview_text    = Parser::parse( $global_preview_text, $contact );
-				$email_headers[] = 'X-PreHeader: ' . $preview_text;
-				$email_body_html = Parser::parse( $global_email_body, $contact );
-				$email_body_html = Helper::replace_url( $email_body_html, $email_hash );
-				$email_body_html = Email::inject_tracking_image_on_email_body($email_hash, $email_body_html);
+					 $ids = array_column( $rows, 'id' );
+					 $ids = array_filter( array_map( 'intval', $ids ) );
 
-				// Add preview text on the email body.
-				$email_body_html = Email::inject_preview_text_on_email_body( $preview_text, $email_body_html );
+					if ( empty( $ids ) ) {
+						return false;
+					}
 
-				if ( 'advanced-builder' === $editor_type ) {
-					$email_body_html = str_replace( '</html>', CampaignEmailBuilderModel::get_email_footer_watermark() . '</html>', $email_body_html );
-				} else {
-					$email_body_html = $email_body_html . CampaignEmailBuilderModel::get_email_footer_watermark();
-				}
+					 $claimed_ids  = $ids;
+					 $table_name   = $wpdb->prefix . EmailSchema::$table_name;
+					 $placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+					$params       = array_merge(
+						array( BroadcastStatus::SENDING, BroadcastStatus::SCHEDULED ),
+						$ids
+					);
 
-				$email_body_html = Helper::modify_email_for_rtl( $email_body_html );
+					 $sql = "UPDATE {$table_name} SET status = %s WHERE status = %s AND id IN ({$placeholders})";
+					 $wpdb->query( $wpdb->prepare( $sql, $params ) ); // phpcs:ignore
 
-				if ( MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.1') ) {
-					$email_body_html = Mint_Pro_Helper::process_lead_magnet_tracking( $email_body_html, $recipient_email );
-				}
+					 // If we could not claim all rows, another worker may have claimed some.
+					if ( (int) $wpdb->rows_affected !== count( $ids ) ) {
+						return false;
+					}
 
-				if ( BackgroundProcessHelper::memory_exceeded() || BackgroundProcessHelper::time_exceeded($start_time, 0.5) ) {
-					break;
-				}
+					 // Batch-load contacts for this batch (2 queries instead of 2 per recipient).
+					 $contact_ids    = array_filter( array_map( 'intval', array_column( $rows, 'contact_id' ) ) );
+					 $contacts_cache = ! empty( $contact_ids ) ? ContactModel::getMany( $contact_ids ) : array();
 
-				$email_sent = MM()->mailer->send( $recipient_email, $email_subject, $email_body_html, $email_headers );
+					 // Fetch email body fresh from DB per batch — not cached in transient
+					 // to avoid storing large base64-encoded HTML in wp_options.
+					 $email_body = $this->getEmailBody( $campaign_id, $email_id, $cached['editor_type'] );
 
-				if ( $email_sent ) {
-					$sent_email_ids[] = $broadcast_email_id;
-				} else {
-					$failed_email_ids[] = $broadcast_email_id;
-				}
-			}
+					 return true;
+				 },
 
-			// Batch update statuses for processed emails.
-			self::update_scheduled_emails_status( $sent_email_ids, 'sent' );
-			self::update_scheduled_emails_status( $failed_email_ids, 'failed' );
+				// Process a single recipient: personalize, send, collect result.
+				 'process_item'      => function ( $recipient ) use ( $cached, $personalizer, &$sent_email_ids, &$failed_email_ids, &$contacts_cache, &$email_body ) {
+					 $recipient_email    = ! empty( $recipient['email_address'] ) ? sanitize_email( $recipient['email_address'] ) : '';
+					 $broadcast_email_id = ! empty( $recipient['id'] ) ? (int) $recipient['id'] : 0;
+					 $contact_id         = ! empty( $recipient['contact_id'] ) ? (int) $recipient['contact_id'] : 0;
+					 $email_hash         = ! empty( $recipient['email_hash'] ) ? $recipient['email_hash'] : '';
+					 $email_headers      = ! empty( $recipient['email_headers'] ) ? json_decode( $recipient['email_headers'] ) : array();
 
-			// Reset any claimed-but-unprocessed emails back to 'scheduled'.
-			// This handles the case where the loop broke early due to memory/time limits.
-			$processed_ids   = array_merge( $sent_email_ids, $failed_email_ids );
-			$unprocessed_ids = array_diff( $claimed_ids, $processed_ids );
-			if ( ! empty( $unprocessed_ids ) ) {
-				self::update_scheduled_emails_status( array_values( $unprocessed_ids ), 'scheduled' );
-			}
+					if ( ! is_array( $email_headers ) ) {
+						$email_headers = array();
+					}
 
-			// Schedule next batch
-			CampaignModel::schedule_single_send_email_action_delay( (int) $campaign_id, $email_id, (int) $batch + 1, $frequency_time );
-			do_action( 'mailmint_batch_email_sent', 'mailmint-campaign-email-sending-' . $campaign_id );
-		} else {
-			do_action( 'mailmint_campaign_email_sent', $campaign_id, $email_id );
-		}
+					 // Build headers with unsubscribe via EmailPersonalizer.
+					 $preview_text  = '';
+					 $email_headers = $personalizer->buildHeaders( $preview_text, $email_hash, $email_headers );
+
+					 // Get contact from batch-loaded cache, fall back to individual load.
+					 $contact = isset( $contacts_cache[ $contact_id ] ) ? $contacts_cache[ $contact_id ] : ContactModel::get( $contact_id );
+					if ( isset( $contact['meta_fields'] ) && is_array( $contact['meta_fields'] ) ) {
+						$contact = array_merge( $contact, $contact['meta_fields'] );
+						unset( $contact['meta_fields'] );
+					}
+
+					 // Parse merge tags in subject, preview text, and body.
+					 $email_subject      = Parser::parse( $cached['email_subject'], $contact );
+					 $preview_text       = Parser::parse( $cached['email_preview_text'], $contact );
+					 $parsed_email_body  = Parser::parse( $email_body, $contact );
+					 $parsed_email_body  = Helper::replace_url( $parsed_email_body, $email_hash );
+
+					 // Update X-PreHeader with the parsed (per-contact) preview text.
+					 // Remove the placeholder added by buildHeaders and re-add with parsed value.
+					$email_headers = array_filter(
+						$email_headers,
+						function ( $h ) {
+							return 0 !== strpos( $h, 'X-PreHeader: ' );
+						}
+					);
+					 $email_headers[] = 'X-PreHeader: ' . $preview_text;
+
+					 // Apply post-processing via EmailPersonalizer (tracking pixel, preview text, watermark, RTL).
+					$parsed_email_body = $personalizer->personalizeBody(
+						$parsed_email_body,
+						$email_hash,
+						$preview_text,
+						$cached['editor_type'],
+						$cached['watermark']
+					);
+
+					 // Apply Pro-specific post-processing (lead magnet tracking).
+					 $parsed_email_body = $personalizer->applyProProcessing( $parsed_email_body, $recipient_email );
+
+					 // Send the email.
+					 $email_sent = MM()->mailer->send( $recipient_email, $email_subject, $parsed_email_body, $email_headers );
+
+					if ( $email_sent ) {
+						$sent_email_ids[] = $broadcast_email_id;
+					} else {
+						$failed_email_ids[] = $broadcast_email_id;
+					}
+				 },
+
+				// After each batch: update statuses, reset unclaimed, fire hook.
+				 'on_batch_complete' => function () use ( &$sent_email_ids, &$failed_email_ids, &$claimed_ids, &$batches_in_job, $campaign_id ) {
+					 // Batch update statuses for processed emails.
+					 self::update_scheduled_emails_status( $sent_email_ids, BroadcastStatus::SENT );
+					 self::update_scheduled_emails_status( $failed_email_ids, BroadcastStatus::FAILED );
+
+					 // Reset any claimed-but-unprocessed emails back to 'scheduled'.
+					 $processed_ids   = array_merge( $sent_email_ids, $failed_email_ids );
+					 $unprocessed_ids = array_diff( $claimed_ids, $processed_ids );
+					if ( ! empty( $unprocessed_ids ) ) {
+						self::update_scheduled_emails_status( array_values( $unprocessed_ids ), BroadcastStatus::SCHEDULED );
+					}
+
+					 ++$batches_in_job;
+
+					 do_action( 'mailmint_batch_email_sent', 'mailmint-campaign-email-sending-' . $campaign_id );
+				 },
+
+				// All broadcast rows processed — campaign email step complete.
+				'on_all_complete'    => function () use ( $repo, $campaign_id, $email_id, $batch, &$batches_in_job, $frequency_time_seconds, &$next_gate_retry_at ) {
+					if ( $repo->hasPendingBroadcastRecipientsForCampaignEmail( (int) $campaign_id, (string) $email_id ) ) {
+						$delay_seconds = $frequency_time_seconds;
+
+						if ( $next_gate_retry_at > time() ) {
+							$delay_seconds = max( 1, $next_gate_retry_at - time() );
+						}
+
+						$repo->scheduleDelayedSendAction(
+							(int) $campaign_id,
+							$email_id,
+							(int) $batch + max( 1, $batches_in_job ),
+							$delay_seconds
+						);
+						return;
+					}
+
+					do_action( 'mailmint_campaign_email_sent', $campaign_id, $email_id );
+				},
+
+				// Schedule a continuation AS job for remaining rows.
+				'schedule_next'      => function () use ( $repo, $campaign_id, $email_id, $batch, &$batches_in_job, $frequency_time_seconds ) {
+					$repo->scheduleDelayedSendAction(
+						(int) $campaign_id,
+						$email_id,
+						(int) $batch + $batches_in_job,
+						$frequency_time_seconds
+					);
+				},
+
+				'max_wall_time'      => 240,
+				'memory_threshold'   => 0.8,
+			)
+		);
 	}
 
 	/**
@@ -401,7 +518,7 @@ class CampaignsBackgroundProcess {
 		global $wpdb;
 		$broadcast_email_table = $wpdb->prefix . EmailSchema::$table_name;
 
-		$sql_query  = "SELECT `id`, `email_id`, `email_address`, `email_headers`, `contact_id`, `email_hash` FROM {$broadcast_email_table} ";
+		$sql_query  = "SELECT `id`, `campaign_id`, `email_id`, `email_address`, `email_headers`, `contact_id`, `email_hash`, `scheduled_at` FROM {$broadcast_email_table} ";
 		$sql_query .= 'WHERE `status` = %s ';
 		$sql_query .= 'AND `email_type` = %s ';
 		$sql_query .= 'AND `campaign_id` = %s ';
@@ -410,6 +527,75 @@ class CampaignsBackgroundProcess {
 		$sql_query = $wpdb->prepare( $sql_query, 'scheduled', 'campaign', $campaign_id, $email_id, $per_batch ); //phpcs:ignore
 
 		return $wpdb->get_results( $sql_query, ARRAY_A ); //phpcs:ignore
+	}
+
+	/**
+	 * Filter the next recipient batch through deterministic sequence parent gates.
+	 *
+	 * Parent failures are terminal for the child row and are marked failed with a
+	 * structured event. Pending parents or unmet relative delays remain scheduled.
+	 *
+	 * @param CampaignRepository $repository     Repository instance.
+	 * @param int                $campaign_id    Campaign ID.
+	 * @param int                $email_id       Campaign email step ID.
+	 * @param int                $per_batch      Maximum rows to inspect.
+	 * @param int                $next_retry_at  Earliest retry timestamp, by reference.
+	 * @return array<int,array<string,mixed>>
+	 * @since 1.20.0
+	 */
+	private function getDispatchableRecipients( CampaignRepository $repository, int $campaign_id, int $email_id, int $per_batch, int &$next_retry_at ): array {
+		$rows = $this->get_recipient_emails( $campaign_id, $email_id, $per_batch );
+
+		if ( empty( $rows ) ) {
+			return array();
+		}
+
+		$decisions  = $repository->prefetchSequenceParentGateDecisions( $rows, time() );
+		$eligible   = array();
+
+		foreach ( $rows as $row ) {
+			$candidate_id = ! empty( $row['id'] ) ? (int) $row['id'] : 0;
+			$decision     = $candidate_id > 0 ? ( $decisions[ $candidate_id ] ?? array() ) : array();
+
+			if ( empty( $decision ) || ! empty( $decision['eligible'] ) ) {
+				$eligible[] = $row;
+				continue;
+			}
+
+			$retry_at = ! empty( $decision['retry_at'] ) ? (int) $decision['retry_at'] : 0;
+			if ( $retry_at > 0 && ( 0 === $next_retry_at || $retry_at < $next_retry_at ) ) {
+				$next_retry_at = $retry_at;
+			}
+
+			if ( ! empty( $decision['terminal_status'] ) && $candidate_id && $repository->claimGlobalDispatchCandidate( $candidate_id ) ) {
+				$repository->updateGlobalDispatchCandidateStatus( $candidate_id, (string) $decision['terminal_status'] );
+				$this->logSequenceGateDecision( $row, $decision );
+			}
+		}
+
+		return $eligible;
+	}
+
+	/**
+	 * Emit a structured gate event for blocked sequence child rows.
+	 *
+	 * @param array $candidate Candidate row.
+	 * @param array $decision  Gate decision.
+	 * @return void
+	 * @since 1.20.0
+	 */
+	private function logSequenceGateDecision( array $candidate, array $decision ): void {
+		do_action(
+			'mailmint_sequence_parent_gate_event',
+			array(
+				'broadcast_id' => ! empty( $candidate['id'] ) ? (int) $candidate['id'] : 0,
+				'campaign_id'  => ! empty( $candidate['campaign_id'] ) ? (int) $candidate['campaign_id'] : 0,
+				'email_id'     => ! empty( $candidate['email_id'] ) ? (int) $candidate['email_id'] : 0,
+				'contact_id'   => ! empty( $candidate['contact_id'] ) ? (int) $candidate['contact_id'] : 0,
+				'reason'       => $decision['reason'] ?? '',
+				'status'       => $decision['terminal_status'] ?? '',
+			)
+		);
 	}
 
 	/**
@@ -442,6 +628,79 @@ class CampaignsBackgroundProcess {
 	}
 
 	/**
+	 * Build the email attribute cache for a campaign email step.
+	 *
+	 * Fetches email attributes via CampaignRepository, applies Pro
+	 * latest-content replacement, plain-text-editor conversion, and
+	 * fetches the watermark. The result is stored in a transient
+	 * keyed by campaign_id + email_id to avoid redundant DB queries.
+	 *
+	 * @param int $campaign_id Campaign ID.
+	 * @param int $email_id    Campaign email step ID.
+	 *
+	 * @return array {
+	 *     @type string $email_subject      Parsed email subject template.
+	 *     @type string $email_preview_text  Preview/preheader text template.
+	 *     @type string $email_body          Pre-processed email body HTML.
+	 *     @type string $editor_type         Editor type identifier.
+	 *     @type string $watermark           Watermark HTML (already filtered).
+	 * }
+	 *
+	 * @since 1.20.0
+	 */
+	private function buildEmailCache( int $campaign_id, int $email_id ): array {
+		$repo             = new CampaignRepository();
+		$email_attributes = $repo->getEmailAttributes( $campaign_id, $email_id );
+
+		$email_subject      = ! empty( $email_attributes['email_subject'] ) ? $email_attributes['email_subject'] : '';
+		$email_preview_text = ! empty( $email_attributes['email_preview_text'] ) ? $email_attributes['email_preview_text'] : '';
+		$editor_type        = ! empty( $email_attributes['editor_type'] ) ? $email_attributes['editor_type'] : 'advanced-builder';
+
+		// Fetch watermark (preserves mail_mint_remove_email_footer_watermark filter).
+		$watermark = CampaignEmailBuilderModel::get_email_footer_watermark();
+
+		// NOTE: email_body is intentionally excluded from the cache.
+		// It can contain large base64-encoded images (26KB+) which would bloat
+		// the wp_options transient and slow down every coordinator run.
+		// The body is fetched fresh from DB per send via getEmailBody().
+		return array(
+			'email_subject'      => $email_subject,
+			'email_preview_text' => $email_preview_text,
+			'editor_type'        => $editor_type,
+			'watermark'          => $watermark,
+		);
+	}
+
+	/**
+	 * Fetch and prepare the email body for a campaign email step.
+	 *
+	 * Called once per batch — not cached — to avoid storing large HTML bodies
+	 * (which may contain base64 images) in the wp_options transient.
+	 *
+	 * @param int    $campaign_id Campaign ID.
+	 * @param int    $email_id    Campaign email step ID.
+	 * @param string $editor_type Editor type from the cache.
+	 *
+	 * @return string Prepared email body HTML.
+	 * @since 1.21.3
+	 */
+	private function getEmailBody( int $campaign_id, int $email_id, string $editor_type ): string {
+		$repo             = new CampaignRepository();
+		$email_attributes = $repo->getEmailAttributes( $campaign_id, $email_id );
+		$email_body       = ! empty( $email_attributes['email_body'] ) ? $email_attributes['email_body'] : '';
+
+		if ( MrmCommon::is_mailmint_pro_active() ) {
+			$email_body = Mint_Pro_Helper::replace_automatic_latest_content( $email_body );
+		}
+
+		if ( 'plain-text-editor' === $editor_type ) {
+			$email_body = nl2br( html_entity_decode( $email_body ) );
+		}
+
+		return $email_body;
+	}
+
+	/**
 	 * Delete completed actions [from Mail Mint] by action schedulers
 	 *
 	 * @param string $slug Action group slug.
@@ -449,9 +708,44 @@ class CampaignsBackgroundProcess {
 	 * @return void
 	 *
 	 * @since 1.0.0
+	 * @since 1.20.0 Delegates to ActionSchedulerTrait::unscheduleGroup().
 	 */
 	public function delete_actions( string $slug ) {
-		MrmCommon::delete_as_actions( $slug, 'complete' );
+		$this->unscheduleGroup( $slug, 'complete' );
+	}
+
+	/**
+	 * Delete completed Mail Mint Action Scheduler records after completion.
+	 *
+	 * Hooked to 'action_scheduler_completed_action' which fires AFTER mark_complete(),
+	 * ensuring the action is fully processed before deletion. This prevents race conditions
+	 * where the action might be deleted before error handling can mark it as failed.
+	 *
+	 * @param int $action_id Action ID.
+	 *
+	 * @return void
+	 * @since 1.20.0
+	 */
+	public function delete_completed_mailmint_action( int $action_id ): void {
+		$store  = \ActionScheduler_Store::instance();
+		$action = $store->fetch_action( $action_id );
+
+		if ( ! $action instanceof \ActionScheduler_Action ) {
+			return;
+		}
+
+		$hooks = apply_filters(
+			'mailmint_immediate_cleanup_hooks',
+			array(
+				MAILMINT_SEND_SCHEDULED_EMAILS,
+				MAILMINT_SCHEDULE_EMAILS,
+				GlobalQueueCoordinator::HOOK,
+			)
+		);
+
+		if ( in_array( $action->get_hook(), $hooks, true ) ) {
+			$store->delete_action( $action_id );
+		}
 	}
 
 	/**
@@ -463,13 +757,17 @@ class CampaignsBackgroundProcess {
 	 * @return void
 	 *
 	 * @since 1.0.0
+	 * @since 1.20.0 Delegates to CampaignRepository::scheduleAsyncSendEmailAction().
 	 */
 	public function schedule_async_send_email_action( $campaign_id, $campaign_email_id ) {
-		// Rely on CampaignModel::schedule_async_send_email_action() to handle
-		// de-duplication using hook + args + group, instead of performing a
-		// coarse global pre-check by hook only.
+		if ( $this->isGlobalQueueCoordinatorEnabled() ) {
+			GlobalQueueCoordinator::get_instance()->schedule();
+			return;
+		}
+
 		if ( defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) ) {
-			CampaignModel::schedule_async_send_email_action( $campaign_id, $campaign_email_id );
+			$repo = new CampaignRepository();
+			$repo->scheduleAsyncSendEmailAction( (int) $campaign_id, (int) $campaign_email_id );
 		}
 	}
 
@@ -482,13 +780,19 @@ class CampaignsBackgroundProcess {
 	 * @return void
 	 *
 	 * @since 1.0.0
+	 * @since 1.20.0 Uses CampaignRepository and CampaignType enum.
 	 */
 	public function update_campaign_status( $campaign_id, $email_id ) {
-		$last_email_id = CampaignModel::get_last_campaign_email_id( $campaign_id );
-		$type          = CampaignModel::get_campaign_type( $campaign_id );
-		$status        = 'recurring' === $type ? 'active' : 'archived';
+		$repo     = new CampaignRepository();
+		$progress = $repo->getProgress( (int) $campaign_id );
+		$campaign = $repo->find( (int) $campaign_id );
+
+		$last_email_id = ! empty( $progress['last_email_id'] ) ? $progress['last_email_id'] : 0;
+		$type          = ! empty( $campaign['type'] ) ? $campaign['type'] : '';
+		$status        = CampaignType::RECURRING === $type ? 'active' : 'archived';
+
 		if ( (int) $last_email_id === (int) $email_id ) {
-			CampaignModel::update_campaign_status( $campaign_id, $status );
+			$repo->updateStatus( (int) $campaign_id, $status );
 		}
 	}
 
@@ -500,10 +804,85 @@ class CampaignsBackgroundProcess {
 	 * @return void
 	 *
 	 * @since 1.0.0
+	 * @since 1.20.0 Uses CampaignRepository::updateStatus().
 	 */
 	public function activate_scheduled_campaign( $args ) {
 		if ( !empty( $args[ 'campaign_id' ] ) && !empty( $args[ 'campaign_status' ] ) && 'schedule' === $args[ 'campaign_status' ] ) {
-			CampaignModel::update_campaign_status( $args[ 'campaign_id' ], 'active' );
+			$repo = new CampaignRepository();
+			$repo->updateStatus( (int) $args[ 'campaign_id' ], 'active' );
 		}
+	}
+
+	/**
+	 * Recover emails stuck in 'sending' status.
+	 *
+	 * When an Action Scheduler action times out (e.g., after 300 seconds),
+	 * emails that were claimed as 'sending' never get updated to 'sent' or 'failed'.
+	 * This method resets any 'sending' emails older than 10 minutes back to 'scheduled'
+	 * and reschedules the send action so the campaign continues.
+	 *
+	 * @return void
+	 *
+	 * @since 1.x.x
+	 */
+	public function recover_stuck_sending_emails() {
+		global $wpdb;
+		$broadcast_email_table = $wpdb->prefix . EmailSchema::$table_name;
+
+		// Find distinct campaign/email combos with emails stuck in 'sending' for over 10 minutes.
+		$stuck_timeout = gmdate( 'Y-m-d H:i:s', time() - 600 ); // 10 minutes ago.
+
+		$stuck_campaigns = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT DISTINCT `campaign_id`, `email_id` FROM {$broadcast_email_table} WHERE `status` = %s AND `email_type` = %s AND `updated_at` < %s",
+				'sending',
+				'campaign',
+				$stuck_timeout
+		), ARRAY_A ); //phpcs:ignore
+
+		if ( empty( $stuck_campaigns ) ) {
+			return;
+		}
+
+		// Reset all stuck 'sending' emails back to 'scheduled'.
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$broadcast_email_table} SET `status` = 'scheduled', `updated_at` = %s WHERE `status` = %s AND `email_type` = %s AND `updated_at` < %s",
+				current_time( 'mysql', true ),
+				'sending',
+				'campaign',
+				$stuck_timeout
+		) ); //phpcs:ignore
+
+		if ( $this->isGlobalQueueCoordinatorEnabled() ) {
+			GlobalQueueCoordinator::get_instance()->schedule( time() + 1 );
+			return;
+		}
+
+		// Reschedule send actions for affected campaigns (if not already scheduled).
+		foreach ( $stuck_campaigns as $stuck ) {
+			$campaign_id = (int) $stuck['campaign_id'];
+			$email_id    = (int) $stuck['email_id'];
+
+			// Only skip scheduling if this specific campaign/email already has a pending/in-progress action.
+			$action_args = array(
+				'campaign_id' => $campaign_id,
+				'email_id'    => $email_id,
+			);
+
+			if ( defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) && ! MrmCommon::mailmint_as_has_scheduled_action( MAILMINT_SEND_SCHEDULED_EMAILS, $action_args, array( 'pending', 'in-progress' ) ) ) {
+				CampaignModel::schedule_async_send_email_action( $campaign_id, $email_id );
+			}
+		}
+	}
+
+	/**
+	 * Check whether the global coordinator rollout flag is enabled.
+	 *
+	 * @return bool
+	 * @since 1.20.0
+	 */
+	private function isGlobalQueueCoordinatorEnabled(): bool {
+		return (bool) apply_filters( 'mailmint_enable_global_queue_coordinator', true );
 	}
 }

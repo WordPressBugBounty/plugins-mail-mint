@@ -31,6 +31,9 @@ use Mint\MRM\Utilites\Helper\Campaign;
  * @namespace Mint\MRM\DataBase\Models
  *
  * @version 1.0.0
+ *
+ * @deprecated 1.20.0 Use {@see \Mint\MRM\Database\Repositories\CampaignRepository} instead.
+ * @see \Mint\MRM\Database\Repositories\CampaignRepository
  */
 class CampaignModel {
 
@@ -1188,7 +1191,23 @@ class CampaignModel {
 			);
 			$group = 'mailmint-campaign-schedule-' . $campaign_id;
 
-			if ( defined( 'MAILMINT_SCHEDULE_EMAILS' ) && ! as_has_scheduled_action( MAILMINT_SCHEDULE_EMAILS, $args, $group ) ) {
+			// Check if a PENDING (not in-progress) scheduling action exists for this campaign.
+			// We only check pending status to allow the currently running action to schedule
+			// the next batch without being blocked by itself.
+			$has_pending = false;
+			if ( function_exists( 'as_get_scheduled_actions' ) ) {
+				$pending_actions = as_get_scheduled_actions(
+					array(
+						'hook'   => MAILMINT_SCHEDULE_EMAILS,
+						'group'  => $group,
+						'status' => 'pending', // Only pending, not in-progress
+					),
+					'ids'
+				);
+				$has_pending = ! empty( $pending_actions );
+			}
+
+			if ( defined( 'MAILMINT_SCHEDULE_EMAILS' ) && ! $has_pending ) {
 				if ( empty( $email[ 'delay_count' ] ) && empty( $schedule ) ) {
 					as_enqueue_async_action( MAILMINT_SCHEDULE_EMAILS, $args, $group );
 				} else {
