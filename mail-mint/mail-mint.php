@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.21.4
+ * Version:           1.21.5
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -36,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.21.4' );
+define( 'MRM_VERSION', '1.21.5' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.16.0' );
 define( 'MINT_DEV_MODE', false );
@@ -245,6 +245,37 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 						'hook'     => 'mailmint_after_form_submit',
 						'callback' => function ( $form_id ) {
 							return array( 'form_id' => (int) $form_id );
+						},
+					),
+					// Fires while user import contacts
+					'contacts_imported' => array(
+						'hook'     => 'mailmint_contacts_imported',
+						'callback' => function ( $count, $source ) {
+							return array( 'source' => $source, 'count' => (int) $count );
+						},
+					),
+					// Fires while user import added or updated
+					'contacts_added' => array(
+						'hook'     => 'mailmint_contacts_saved',
+						'callback' => function ( $contact_id, $params ) {
+							return array( 'contact_id' => $contact_id );
+						},
+					),
+					// Fires each time an automation is triggered.
+					'automation_triggered' => array(
+						'hook'     => MINT_TRIGGER_AUTOMATION,
+						'callback' => function ( $data ) {
+							return array(
+								'trigger_name'   => isset( $data['trigger_name'] ) ? $data['trigger_name'] : '',
+								'connector_name' => isset( $data['connector_name'] ) ? $data['connector_name'] : '',
+							);
+						},
+					),
+					// Fires when a WooCommerce cart is marked as abandoned.
+					'cart_abandoned' => array(
+						'hook'     => 'mailmint_after_cart_abandoned',
+						'callback' => function ( $abandoned_id ) {
+							return array( 'abandoned_id' => (int) $abandoned_id );
 						},
 					),
 				),

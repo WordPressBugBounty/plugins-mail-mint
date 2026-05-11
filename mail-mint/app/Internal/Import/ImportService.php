@@ -177,6 +177,10 @@ class ImportService {
 			$total_count++;
 		}
 
+		if ( $imported > 0 ) {
+			do_action( 'mailmint_contacts_imported', $imported, 'WooCommerce' );
+		}
+
 		return array(
 			'imported'          => $imported,
 			'total'             => count( $wc_customers ),
@@ -317,6 +321,10 @@ class ImportService {
 			$total_count++;
 		}
 
+		if ( $imported > 0 ) {
+			do_action( 'mailmint_contacts_imported', $imported, 'Mailchimp' );
+		}
+
 		return array(
 			'total'             => $total_count,
 			'skipped'           => $skipped,
@@ -455,6 +463,10 @@ class ImportService {
 				$exists_count++;
 			}
 			$total_count++;
+		}
+
+		if ( $imported > 0 ) {
+			do_action( 'mailmint_contacts_imported', $imported, 'Easy Digital Downloads' );
 		}
 
 		return array(

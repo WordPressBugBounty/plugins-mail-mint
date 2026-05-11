@@ -1560,13 +1560,21 @@ class CampaignRepository extends AbstractRepository {
 
 		$due_local       = get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $due_unix ) );
 		$broadcast_table = $wpdb->prefix . EmailSchema::$table_name;
+		$campaigns_table = $this->prefixedTable();
 
-		return QueryBuilder::table( $broadcast_table )
-			->where( 'status', '=', BroadcastStatus::SCHEDULED )
-			->where( 'campaign_id', '>', 0 )
-			->whereIn( 'email_type', array( 'campaign', 'regular', 'automation' ) )
-			->where( 'scheduled_at', '<=', $due_local )
-			->count();
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(b.id)
+				 FROM {$broadcast_table} AS b
+				 INNER JOIN {$campaigns_table} AS c ON c.id = b.campaign_id
+				 WHERE b.status = 'scheduled'
+				   AND b.campaign_id > 0
+				   AND b.email_type IN ('campaign', 'regular', 'automation')
+				   AND b.scheduled_at <= %s
+				   AND c.status NOT IN ('paused', 'suspended')",
+				$due_local
+			)
+		);
 	}
 
 	/**
@@ -2201,13 +2209,26 @@ class CampaignRepository extends AbstractRepository {
 	public function getSchedulingFrontier( int $from_unix ): int {
 		global $wpdb;
 
-		$from_mysql = get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $from_unix ) );
+		$from_mysql      = get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $from_unix ) );
+		$broadcast_table = $wpdb->prefix . EmailSchema::$table_name;
+		$campaigns_table = $this->prefixedTable();
 
-		$row = QueryBuilder::table( $wpdb->prefix . EmailSchema::$table_name )
-			->select( 'MAX(scheduled_at) as frontier' )
-			->whereIn( 'status', array( BroadcastStatus::SCHEDULED, BroadcastStatus::SENDING ) )
-			->where( 'scheduled_at', '>=', $from_mysql )
-			->first();
+		// Exclude rows from paused/suspended campaigns so a paused campaign's
+		// future-scheduled rows do not push new campaign rows far into the future.
+		// Rows with campaign_id = 0 (e.g. automation previews) are kept via the
+		// LEFT JOIN NULL check.
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT MAX(b.scheduled_at) AS frontier
+				 FROM {$broadcast_table} AS b
+				 LEFT JOIN {$campaigns_table} AS c ON c.id = b.campaign_id
+				 WHERE b.status IN ('scheduled', 'sending')
+				   AND b.scheduled_at >= %s
+				   AND (b.campaign_id = 0 OR c.id IS NULL OR c.status NOT IN ('paused', 'suspended'))",
+				$from_mysql
+			),
+			ARRAY_A
+		);
 
 		// Convert local-time string back to UTC Unix — UNIX_TIMESTAMP() is avoided
 		// because MySQL interprets the local-time value as server time (UTC), producing
@@ -2342,14 +2363,22 @@ class CampaignRepository extends AbstractRepository {
 
 		$after_mysql     = get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $after_unix ) );
 		$broadcast_table = $wpdb->prefix . EmailSchema::$table_name;
+		$campaigns_table = $this->prefixedTable();
 
-		$row = QueryBuilder::table( $broadcast_table )
-			->select( 'MIN(scheduled_at) as earliest' )
-			->where( 'status', '=', BroadcastStatus::SCHEDULED )
-			->where( 'campaign_id', '>', 0 )
-			->whereIn( 'email_type', array( 'campaign', 'regular' ) )
-			->where( 'scheduled_at', '>', $after_mysql )
-			->first();
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT MIN(b.scheduled_at) AS earliest
+				 FROM {$broadcast_table} AS b
+				 INNER JOIN {$campaigns_table} AS c ON c.id = b.campaign_id
+				 WHERE b.status = 'scheduled'
+				   AND b.campaign_id > 0
+				   AND b.email_type IN ('campaign', 'regular')
+				   AND b.scheduled_at > %s
+				   AND c.status NOT IN ('paused', 'suspended')",
+				$after_mysql
+			),
+			ARRAY_A
+		);
 
 		$earliest_local = ! empty( $row['earliest'] ) ? (string) $row['earliest'] : '';
 		if ( empty( $earliest_local ) ) {

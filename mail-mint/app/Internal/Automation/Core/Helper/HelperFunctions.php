@@ -2899,6 +2899,16 @@ class HelperFunctions { //phpcs:ignore
 		$active_plugins = (array) get_option( 'active_plugins', array() );
         return in_array( 'wpforms-lite/wpforms.php', $active_plugins, true ) || array_key_exists( 'wpforms-lite/wpforms.php', $active_plugins );
 	}
+
+	/**
+	 * Check if Elementor Pro is active.
+	 *
+	 * @return bool
+	 * @since 1.22.0
+	 */
+	public static function is_elementor_pro_active() {
+		return class_exists( '\ElementorPro\Plugin' );
+	}
 }
 
 

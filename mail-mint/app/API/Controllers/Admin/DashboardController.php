@@ -49,14 +49,16 @@ class DashboardController {
 	 */
 	public function get_dashboard_stats( WP_REST_Request $request ) {
 		// Get query params from the API.
-		$params = MrmCommon::get_api_params_values( $request );
-		$filter = isset( $params[ 'filter' ] ) ? $params[ 'filter' ] : 'all';
+		$params     = MrmCommon::get_api_params_values( $request );
+		$filter     = isset( $params['filter'] )     ? sanitize_text_field( $params['filter'] )     : 'last_30_days';
+		$start_date = isset( $params['start_date'] ) ? sanitize_text_field( $params['start_date'] ) : '';
+		$end_date   = isset( $params['end_date'] )   ? sanitize_text_field( $params['end_date'] )   : '';
 
 		// Prepare the response data.
 		$response = [
 			'success' => true,
 			'data'    => [
-				'stats' => DashboardModel::get_top_cards_data($filter),
+				'stats' => DashboardModel::get_top_cards_data( $filter, $start_date, $end_date ),
 			]
 		];
 
@@ -76,18 +78,23 @@ class DashboardController {
      * @return \WP_Error|\WP_REST_Response
      * @since 1.18.0
      */
-	public function get_dashboard_performance() {
+	public function get_dashboard_performance( $request ) {
 	    $campaigns   = DashboardModel::get_recent_campaign_performance();
 		$automations = DashboardModel::get_recent_automation_performance();
+		$forms       = DashboardModel::get_recent_form_performance();
 		$onboarding  = DashboardModel::get_onboarding_stats();
+
+		$show_metrics = ( isset( $onboarding['completed'] ) && $onboarding['completed'] > 0 ) || ( isset( $onboarding['show'] ) && ! $onboarding['show'] );
 
 		$response = [
 			'success' => true,
 			'data'    => [
 				'campaigns'    => $campaigns,
 				'automations'  => $automations,
+				'forms'        => $forms,
 				'onboarding'   => $onboarding,
 				'smtp_warning' => MrmCommon::find_active_smtp_plugin(),
+				'show_metrics' => $show_metrics,
 			]
 		];
 
@@ -123,6 +130,34 @@ class DashboardController {
 		];
 
 		return rest_ensure_response( $response );
+	}
+
+	/**
+	 * Get Email Performance Section (EPS) data.
+	 *
+	 * Returns deliverability summary + daily chart series and (when WooCommerce
+	 * is active) WooCommerce revenue/order metrics + daily chart series.
+	 * Respects the same filter / date-range parameters as the cards endpoint.
+	 *
+	 * @param WP_REST_Request $request
+	 * @return \WP_Error|\WP_REST_Response
+	 *
+	 * @since 1.19.0
+	 */
+	public function get_dashboard_eps( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$filter      = isset( $params['filter'] )      ? sanitize_text_field( $params['filter'] )      : 'last_30_days';
+		$start_date  = isset( $params['start_date'] )  ? sanitize_text_field( $params['start_date'] )  : '';
+		$end_date    = isset( $params['end_date'] )    ? sanitize_text_field( $params['end_date'] )    : '';
+		$granularity = isset( $params['granularity'] ) ? sanitize_text_field( $params['granularity'] ) : 'daily';
+		$granularity = in_array( $granularity, array( 'daily', 'weekly' ), true ) ? $granularity : 'daily';
+
+		$data = DashboardModel::get_eps_data( $filter, $start_date, $end_date, $granularity );
+
+		return rest_ensure_response( array(
+			'success' => true,
+			'data'    => $data,
+		) );
 	}
 
 	public function hide_checklist() {

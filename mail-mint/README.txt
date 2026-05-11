@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 6.9.4
 Requires PHP: 7.4
-Stable tag:  1.21.4
+Stable tag:  1.21.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -527,6 +527,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.21.5 (2026-05-11) =
+* New: Revamp the Dashboard Analytics
+* New: Form Submission Automation Trigger for Elementor Form
+* New: Rule-based Automation Triggers for all Supported Form Builders
+* Compatibility: Mail Mint Custom Fields with Latest Elementor Pro
+* Bugfix: PHP Warnings for Coupon Generation
 
 = 1.21.4 (2026-05-05) =
 * Improvement: Campaign Performance on Email Scheduling and Sending

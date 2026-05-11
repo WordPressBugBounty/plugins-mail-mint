@@ -1094,8 +1094,6 @@ class CampaignController extends AdminBaseController {
 		}
 
 		if ( ! empty( $segment_ids ) ) {
-			$contact_ids = [];
-
 			// Use SOLID pattern: SegmentRepository + SegmentFilterService (replaces deprecated FilterSegmentContacts).
 			if ( class_exists( 'MailMintPro\Mint\Database\Repositories\SegmentRepository' )
 				&& class_exists( 'MailMintPro\Mint\Internal\Admin\Segmentation\SegmentFilterService' ) ) {
@@ -1109,18 +1107,13 @@ class CampaignController extends AdminBaseController {
 						$where_clause = $filter_service->buildWhereClause( $segment['filters'] );
 
 						if ( $where_clause ) {
-							$segment_data  = $filter_service->getContacts( $where_clause );
-							$contact_ids[] = ! empty( $segment_data['data'] ) ? array_column(
-								array_filter( $segment_data['data'], function ( $contact ) {
-									return $contact['status'] === 'subscribed';
-								} ),
-								'id'
-							) : [];
+							$subscribed_where = $where_clause . " AND c1.status = 'subscribed'";
+							$count            = $filter_service->getContacts( $subscribed_where, array( 'count_only' => true ) );
+							$subscribers     += (int) $count;
 						}
 					}
 				}
 			}
-			$subscribers = sizeof( array_unique( array_merge( ...array_values( $contact_ids ) ) ) );
 		} elseif ( ! empty( $list_ids ) || ! empty( $tag_ids ) ) {
 			$subscribers = (int) ContactGroupPivotModel::get_contacts_to_group( array_merge( $list_ids, $tag_ids ), 0, 0, true );
 		}

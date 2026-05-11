@@ -818,13 +818,17 @@ class ContactImportAction implements Action {
             'offset'            => $params['offset'] + (int) $per_batch,
         );
 
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, 'WordPress' );
+        }
+
         return array(
             'status'  => 'success',
             'data'    => $result,
             'message' => __('Import contact has been successful.', 'mrm')
         );
     }
-    
+
 
     /**
      * Process an individual WordPress user for insertion into contacts.
@@ -1019,6 +1023,10 @@ class ContactImportAction implements Action {
             'offset'            => $params['offset'] + (int) $per_batch,
         );
 
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, 'LearnDash' );
+        }
+
         return array(
             'status'  => 'success',
             'data'    => $result,
@@ -1119,6 +1127,10 @@ class ContactImportAction implements Action {
             'existing_contacts' => $exists,
             'offset'            => $params['offset'] + (int) $per_batch,
         );
+
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, 'Tutor LMS' );
+        }
 
         return array(
             'status'  => 'success',
@@ -1221,6 +1233,10 @@ class ContactImportAction implements Action {
             'offset'            => $params['offset'] + (int) $per_batch,
         );
 
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, 'MemberPress' );
+        }
+
         return array(
             'status'  => 'success',
             'data'    => $result,
@@ -1322,6 +1338,10 @@ class ContactImportAction implements Action {
             'offset'            => $params['offset'] + (int) $per_batch,
         );
 
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, 'LifterLMS' );
+        }
+
         return array(
             'status'  => 'success',
             'data'    => $result,
@@ -1395,6 +1415,10 @@ class ContactImportAction implements Action {
             'existing_contacts' => $exists,
             'offset'            => $params['offset'] + (int) $per_batch,
         );
+
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, 'Fluent Booking' );
+        }
 
         return array(
             'status'  => 'success',
@@ -1524,6 +1548,10 @@ class ContactImportAction implements Action {
                 $skipped++;
                 $exists_counts++;
             }
+        }
+
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, 'MailPoet' );
         }
 
         return [

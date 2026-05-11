@@ -82,6 +82,11 @@ class DashboardRoute {
 						'get_dashboard_stats',
 					),
 					'permission_callback' => PermissionManager::current_user_can( 'mint_view_dashboard' ),
+					'args'                => array(
+						'filter'     => array( 'type' => 'string', 'default' => 'last_30_days' ),
+						'start_date' => array( 'type' => 'string', 'default' => '' ),
+						'end_date'   => array( 'type' => 'string', 'default' => '' ),
+					),
 				),
 			)
 		);
@@ -118,13 +123,30 @@ class DashboardRoute {
 
 		register_rest_route(
 			$this->namespace,
+			'/' . $this->rest_base . '/dashboard/eps',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_dashboard_eps' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_view_dashboard' ),
+					'args'                => array(
+						'filter'     => array( 'type' => 'string', 'default' => 'last_30_days' ),
+						'start_date' => array( 'type' => 'string', 'default' => '' ),
+						'end_date'   => array( 'type' => 'string', 'default' => '' ),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
 			'/' . $this->rest_base . '/hide-checklist',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => array($this->controller, 'hide_checklist'),
 					'permission_callback' => function () {
-						return current_user_can('manage_options');
+						return \is_user_logged_in();
 					},
 				),
 			)
