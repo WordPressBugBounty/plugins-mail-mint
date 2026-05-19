@@ -106,7 +106,7 @@ class AddList extends AbstractAutomationAction {
 							'phone_number' => isset( $data['data']['phone_number'] ) ? $data['data']['phone_number'] : '',
 						),
 						'status'      => MrmCommon::is_double_optin_enable() ? 'pending' : 'subscribed',
-						'source'      => 'Automation',
+						'source'      => !empty( $data['connector_name'] ) ? $data['connector_name'] : 'Automation',
 					);
 					$contact     = new ContactData( $email, $user_data );
 					$exist_email = ContactModel::is_contact_exist( $email );

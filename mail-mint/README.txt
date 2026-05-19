@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 6.9.4
 Requires PHP: 7.4
-Stable tag:  1.21.5
+Stable tag:  1.22.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -527,6 +527,15 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.22.0 (2026-05-19) =
+* New: Track Contacts, Email Performance, and WooCommerce data with Advanced Analytics.
+* New: View a Full Log of all Email Activity in one Place.
+* New: Get Weekly or Monthly Usage Report Notification
+* New: Customize Subject and Preview text for WooCommerce Emails.
+* Compatibility: Mail Mint now fully Supports WordPress Multisite.
+* Improvement: Revamp the WooCommerce Email Customization
+* Improvement: Better Control over User Roles and Access on Multisite.
 
 = 1.21.5 (2026-05-11) =
 * New: Revamp the Dashboard Analytics

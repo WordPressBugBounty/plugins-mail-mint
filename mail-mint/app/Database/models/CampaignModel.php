@@ -166,6 +166,7 @@ class CampaignModel {
 		unset( $email['email_address'] );
 		unset( $email['contact_id'] );
 		unset( $email['email_hash'] );
+		unset( $email['email_type'] );
 		unset( $email['delay_option'] );
 		unset( $email['scheduleDate'] );
 

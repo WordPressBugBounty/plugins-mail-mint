@@ -15,6 +15,7 @@ use Mint\MRM\Admin\API\Controllers\AdvancedSettingController;
 use Mint\MRM\Admin\API\Controllers\ComplianceSettingController;
 use Mint\MRM\Admin\API\Controllers\GeneralSettingController;
 use Mint\MRM\Admin\API\Controllers\TrackingSettingController;
+use Mint\MRM\Admin\API\Controllers\UsageReportSettingController;
 use Mint\MRM\Admin\API\Controllers\WCSettingController;
 use Mint\MRM\Admin\API\Controllers\BusinessBasicSettingController;
 use Mint\MRM\Admin\API\Controllers\BusinessSocialSettingController;
@@ -499,6 +500,39 @@ class SettingRoute {
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->tracking_controller, 'create_or_update' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_manage_settings' ),
+				),
+			)
+		);
+
+		// Usage report digest settings.
+		$usage_report_controller = UsageReportSettingController::get_instance();
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/usage-report',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $usage_report_controller, 'get' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_manage_settings' ),
+				),
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $usage_report_controller, 'create_or_update' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_manage_settings' ),
+				),
+			)
+		);
+
+		// Send a one-off test digest email.
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/usage-report/send-test',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $usage_report_controller, 'send_test' ),
 					'permission_callback' => PermissionManager::current_user_can( 'mint_manage_settings' ),
 				),
 			)

@@ -312,8 +312,59 @@ class TemplateAction implements Action {
         $query = $wpdb->prepare($query, $type);
         // Execute the query.
         $results = $wpdb->get_results($query, ARRAY_A);
-        
+
         $templates = array();
+
+        // Mail Mint merge-tag defaults per WooCommerce email type.
+        $mint_defaults = array(
+            'new_order'                         => array(
+                'subject'      => '[{{site.title}}] New customer order from {{customer.first_name}}',
+                'preview_text' => 'Order #{{order_details.order_number}} has been placed.',
+            ),
+            'customer_processing_order'         => array(
+                'subject'      => '[{{site.title}}] Your order #{{order_details.order_number}} is being processed',
+                'preview_text' => 'Thank you for your order. We are now processing it.',
+            ),
+            'customer_completed_order'          => array(
+                'subject'      => '[{{site.title}}] Your order #{{order_details.order_number}} is complete',
+                'preview_text' => 'Your order has been completed. Thank you for shopping with us.',
+            ),
+            'customer_on_hold_order'            => array(
+                'subject'      => '[{{site.title}}] Your order #{{order_details.order_number}} is on hold',
+                'preview_text' => 'Your order is on hold and awaiting payment confirmation.',
+            ),
+            'customer_cancelled_order'          => array(
+                'subject'      => '[{{site.title}}] Your order #{{order_details.order_number}} has been cancelled',
+                'preview_text' => 'Your order has been cancelled.',
+            ),
+            'customer_refunded_order'           => array(
+                'subject'      => '[{{site.title}}] Your order #{{order_details.order_number}} has been refunded',
+                'preview_text' => 'A full refund has been issued for your order.',
+            ),
+            'customer_partially_refunded_order' => array(
+                'subject'      => '[{{site.title}}] Your order #{{order_details.order_number}} has been partially refunded',
+                'preview_text' => 'A partial refund has been issued for your order.',
+            ),
+            'customer_invoice'                  => array(
+                'subject'      => '[{{site.title}}] Invoice for order #{{order_details.order_number}}',
+                'preview_text' => 'Your invoice is attached. Total: {{order_details.order_total}}.',
+            ),
+            'customer_note'                     => array(
+                'subject'      => '[{{site.title}}] Note added to your order #{{order_details.order_number}}',
+                'preview_text' => 'A new note has been added to your order.',
+            ),
+            'customer_reset_password'           => array(
+                'subject'      => '[{{site.title}}] Password reset request',
+                'preview_text' => 'Click the link to reset your password.',
+            ),
+            'customer_new_account'              => array(
+                'subject'      => 'Welcome to {{site.title}}! Your account has been created',
+                'preview_text' => 'Thank you for creating an account with us.',
+            ),
+        );
+
+        $default_subject      = isset( $mint_defaults[ $type ] ) ? $mint_defaults[ $type ]['subject']      : '';
+        $default_preview_text = isset( $mint_defaults[ $type ] ) ? $mint_defaults[ $type ]['preview_text'] : '';
 
         if ( ! empty( $results ) ) {
             foreach ( $results as $result ) {
@@ -321,13 +372,29 @@ class TemplateAction implements Action {
                     continue;
                 }
 
+                $json_content = maybe_unserialize( $result['json_content'] );
+
+                // Use user-saved keys; fall back to Mail Mint merge-tag defaults.
+                $subject      = ! empty( $json_content['mint_subject'] )      ? $json_content['mint_subject']      : $default_subject;
+                $preview_text = ! empty( $json_content['mint_preview_text'] ) ? $json_content['mint_preview_text'] : $default_preview_text;
+
                 $templates['templates'] = array(
                     'id'                       => $result['id'],
                     'title'                    => $result['title'],
-                    'json_content'             => maybe_unserialize($result['json_content']),
+                    'json_content'             => $json_content,
                     'wc_email_type'            => $result['email_type'],
                     'wooCommerce_email_enable' => (int) $result['customizable'],
-                    'thumbnail_image'          => maybe_unserialize($result['thumbnail']),
+                    'thumbnail_image'          => maybe_unserialize( $result['thumbnail'] ),
+                    'subject'                  => $subject,
+                    'preview_text'             => $preview_text,
+                );
+            }
+        } else {
+            // No saved template — return Mail Mint merge-tag defaults.
+            if ( ! empty( $default_subject ) ) {
+                $templates['wc_defaults'] = array(
+                    'subject'      => $default_subject,
+                    'preview_text' => $default_preview_text,
                 );
             }
         }

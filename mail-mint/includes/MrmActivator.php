@@ -32,7 +32,7 @@ class MrmActivator {
 	 */
 	public static $db_version = array(
 		'1.0.0' => array(
-			'mail_mint_db_version',
+			'mailmint_update_100_db_version',
 		),
 	);
 
@@ -93,18 +93,19 @@ class MrmActivator {
 	 * @since 1.0.0
 	 */
 	public static function update() {
-		$db_version = get_option( 'current_db_version' );
+		$db_version = get_option( 'mail_mint_db_version' );
 
 		foreach ( self::$db_version as $version => $callbacks ) {
 			if ( version_compare( $db_version, $version, '<' ) ) {
 				foreach ( $callbacks as $callback ) {
-					as_enqueue_async_action(
-						'mailmint_run_update_callback',
-						array(
-							'update_callback' => $callback,
-						),
-						'mailmint_db_update'
-					);
+					$args = array( 'update_callback' => $callback );
+					if ( ! as_has_scheduled_action( 'mailmint_run_update_callback', $args, 'mailmint_db_update' ) ) {
+						as_enqueue_async_action(
+							'mailmint_run_update_callback',
+							$args,
+							'mailmint_db_update'
+						);
+					}
 				}
 			}
 		}
@@ -112,13 +113,34 @@ class MrmActivator {
 
 
 	/**
-	 * TODO
+	 * Execute a queued DB update callback dispatched by Action Scheduler.
 	 *
+	 * @param string $update_callback Callable name to invoke.
 	 * @since 1.0.0
 	 */
-	public static function mailmint_run_update_callback() {
+	public static function run_update_callback( $update_callback ) {
+		if ( is_callable( $update_callback ) ) {
+			call_user_func( $update_callback );
+		}
 	}
 
+
+
+	/**
+	 * Activate the plugin for a specific blog in a multisite network.
+	 *
+	 * Switches to the given blog, runs the full activation routine, then
+	 * restores the current blog. Safe to call during network activation or
+	 * from the wp_initialize_site hook when a new subsite is created.
+	 *
+	 * @param int $blog_id The blog to activate for.
+	 * @since 1.22.0
+	 */
+	public static function activate_for_blog( $blog_id ) {
+		switch_to_blog( $blog_id );
+		self::activate();
+		restore_current_blog();
+	}
 
 
 	/**
@@ -389,4 +411,18 @@ class MrmActivator {
 		// Step 3: Schedule a fresh coordinator job to resume active campaigns.
 		\Mint\MRM\Internal\Cron\GlobalQueueCoordinator::get_instance()->schedule();
 	}
+}
+
+
+/**
+ * Mark the database as compatible with version 1.0.0.
+ *
+ * Called asynchronously via Action Scheduler when mail_mint_db_version
+ * is below '1.0.0'. In practice this only fires on sites that somehow
+ * never had the option set (e.g. a very old pre-1.0.0 install).
+ *
+ * @since 1.0.0
+ */
+function mailmint_update_100_db_version() {
+	update_option( 'mail_mint_db_version', '1.0.0', false );
 }

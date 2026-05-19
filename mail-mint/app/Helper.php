@@ -93,22 +93,73 @@ class Helper {
 	public static function get_user_agent() {
 		// Senitize GLOBAL Variable request.
 		$sanitize_server = MrmCommon::get_sanitized_get_post();
-		$sanitize_server = !empty( $sanitize_server[ 'server' ] ) ? $sanitize_server[ 'server' ] : array();
+		$sanitize_server = !empty($sanitize_server['server']) ? $sanitize_server['server'] : array();
 
-		$ua      = isset( $sanitize_server['HTTP_USER_AGENT'] ) ? strtolower( $sanitize_server['HTTP_USER_AGENT'] ) : '';
-		$is_mob  = is_numeric( strpos( $ua, 'mobile' ) );
-		$is_tab  = is_numeric( strpos( $ua, 'tablet' ) );
-		$is_desk = !$is_mob && !$is_tab;
+		$ua = isset($sanitize_server['HTTP_USER_AGENT']) 
+			? strtolower($sanitize_server['HTTP_USER_AGENT']) 
+			: '';
 
-		if ( $is_mob ) {
-			return 'mobile';
-		} elseif ( $is_tab ) {
-			return 'tab';
-		} elseif ( $is_desk ) {
-			return 'desktop';
-		} else {
+		if (empty($ua)) {
 			return 'unidentified';
 		}
+
+		// Check tablet before mobile — some tablet UAs contain both
+		if (str_contains($ua, 'tablet') || str_contains($ua, 'ipad')) {
+			return 'tablet';
+		}
+
+		if (str_contains($ua, 'mobile') || str_contains($ua, 'android') || str_contains($ua, 'iphone')) {
+			return 'mobile';
+		}
+
+		return 'desktop';
+	}
+
+	public static function get_email_client() {
+		$sanitize_server = MrmCommon::get_sanitized_get_post();
+		$sanitize_server = !empty($sanitize_server['server']) ? $sanitize_server['server'] : array();
+
+		$ua = isset($sanitize_server['HTTP_USER_AGENT']) 
+			? strtolower($sanitize_server['HTTP_USER_AGENT']) 
+			: '';
+
+		if (empty($ua)) {
+			return 'unknown';
+		}
+
+		if (str_contains($ua, 'apple mail') || str_contains($ua, 'applemail')) {
+			return 'apple_mail';
+		}
+
+		if (str_contains($ua, 'microsoft outlook') || str_contains($ua, 'msoffice')) {
+			return 'outlook';
+		}
+
+		if (str_contains($ua, 'gmail')) {
+			return 'gmail';
+		}
+
+		if (str_contains($ua, 'yahoo mail') || str_contains($ua, 'yahoomailproxy')) {
+			return 'yahoo';
+		}
+
+		if (str_contains($ua, 'thunderbird')) {
+			return 'thunderbird';
+		}
+
+		if (str_contains($ua, 'samsung mail') || str_contains($ua, 'samsungmail')) {
+			return 'samsung_mail';
+		}
+
+		if (str_contains($ua, 'sparkmailapp') || str_contains($ua, 'spark')) {
+			return 'spark';
+		}
+
+		if (str_contains($ua, 'hey')) {
+			return 'hey';
+		}
+
+		return 'unknown';
 	}
 
 

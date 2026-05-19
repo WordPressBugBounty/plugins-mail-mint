@@ -12,12 +12,10 @@
 
 namespace Mint\MRM\DataBase\Models;
 
-use Mint\MRM\DataBase\Tables\AutomationMetaSchema;
 use Mint\MRM\DataBase\Tables\AutomationSchema;
 use Mint\MRM\DataBase\Tables\FormSchema;
 use Mint\MRM\DataBase\Tables\FormMetaSchema;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
-use Mint\MRM\DataBase\Tables\CampaignEmailBuilderSchema;
 use Mint\MRM\DataBase\Tables\ContactSchema;
 use MRM\Common\MrmCommon;
 use Mint\MRM\DataBase\Models\CampaignModel as ModelsCampaign;
@@ -258,8 +256,9 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_last_90_days() {
 		return array(
-			'conditions_1' => 'created_at >= CURDATE() - INTERVAL 89 DAY',
-			'conditions_2' => 'created_at >= CURDATE() - INTERVAL 179 DAY AND created_at < CURDATE() - INTERVAL 89 DAY',
+			// Last 90 days ending yesterday
+			'conditions_1' => 'created_at >= CURDATE() - INTERVAL 90 DAY AND created_at < CURDATE()',
+			'conditions_2' => 'created_at >= CURDATE() - INTERVAL 180 DAY AND created_at < CURDATE() - INTERVAL 90 DAY',
 		);
 	}
 
@@ -305,11 +304,11 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_last_7_days() {
 		return array(
-			// Current 7 days (including today)
-			'conditions_1' => "created_at >= CURDATE() - INTERVAL 6 DAY",
+			// Last 7 days ending yesterday
+			'conditions_1' => "created_at >= CURDATE() - INTERVAL 7 DAY AND created_at < CURDATE()",
 
 			// Previous 7 days
-			'conditions_2' => "created_at >= CURDATE() - INTERVAL 13 DAY AND created_at < CURDATE() - INTERVAL 6 DAY"
+			'conditions_2' => "created_at >= CURDATE() - INTERVAL 14 DAY AND created_at < CURDATE() - INTERVAL 7 DAY"
 		);
 	}
 
@@ -336,11 +335,11 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_last_30_days() {
 		return array(
-			// Current 30 days (including today)
-			'conditions_1' => "created_at >= CURDATE() - INTERVAL 29 DAY",
+			// Last 30 days ending yesterday
+			'conditions_1' => "created_at >= CURDATE() - INTERVAL 30 DAY AND created_at < CURDATE()",
 
 			// Previous 30 days
-			'conditions_2' => "created_at >= CURDATE() - INTERVAL 59 DAY AND created_at < CURDATE() - INTERVAL 29 DAY"
+			'conditions_2' => "created_at >= CURDATE() - INTERVAL 60 DAY AND created_at < CURDATE() - INTERVAL 30 DAY"
 		);
 	}
 
@@ -353,11 +352,11 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_last_60_days() {
 		return array(
-			// Current 60 days (including today)
-			'conditions_1' => "created_at >= CURDATE() - INTERVAL 59 DAY",
+			// Last 60 days ending yesterday
+			'conditions_1' => "created_at >= CURDATE() - INTERVAL 60 DAY AND created_at < CURDATE()",
 
 			// Previous 60 days
-			'conditions_2' => "created_at >= CURDATE() - INTERVAL 119 DAY AND created_at < CURDATE() - INTERVAL 59 DAY"
+			'conditions_2' => "created_at >= CURDATE() - INTERVAL 120 DAY AND created_at < CURDATE() - INTERVAL 60 DAY"
 		);
 	}
 
@@ -964,23 +963,23 @@ class DashboardModel {
 	 * @since 1.19.0
 	 */
 	private static function resolve_date_window( $filter, $start_date = '', $end_date = '' ) {
-		$today = date( 'Y-m-d' );
+		$yesterday = date( 'Y-m-d', strtotime( '-1 day' ) );
 
 		switch ( $filter ) {
 			case 'last_7_days':
 				return array(
-					'start' => date( 'Y-m-d', strtotime( '-6 days' ) ),
-					'end'   => $today,
+					'start' => date( 'Y-m-d', strtotime( '-7 days' ) ),
+					'end'   => $yesterday,
 				);
 			case 'last_90_days':
 				return array(
-					'start' => date( 'Y-m-d', strtotime( '-89 days' ) ),
-					'end'   => $today,
+					'start' => date( 'Y-m-d', strtotime( '-90 days' ) ),
+					'end'   => $yesterday,
 				);
 			case 'last_60_days':
 				return array(
-					'start' => date( 'Y-m-d', strtotime( '-59 days' ) ),
-					'end'   => $today,
+					'start' => date( 'Y-m-d', strtotime( '-60 days' ) ),
+					'end'   => $yesterday,
 				);
 			case 'custom':
 				if ( ! empty( $start_date ) && ! empty( $end_date ) ) {
@@ -993,8 +992,8 @@ class DashboardModel {
 			case 'last_30_days':
 			default:
 				return array(
-					'start' => date( 'Y-m-d', strtotime( '-29 days' ) ),
-					'end'   => $today,
+					'start' => date( 'Y-m-d', strtotime( '-30 days' ) ),
+					'end'   => $yesterday,
 				);
 		}
 	}
@@ -1152,10 +1151,10 @@ class DashboardModel {
 			$start_dt, $end_dt
 		) );
 
-		$delivered_rate = $total_sent > 0 ? round( ( $total_delivered / $total_sent ) * 100, 1 ) : 0.0;
-		$bounce_rate    = $total_sent > 0 ? round( ( $total_bounced  / $total_sent ) * 100, 1 ) : 0.0;
-		$spam_rate      = $total_sent > 0 ? round( ( $total_spam     / $total_sent ) * 100, 2 ) : 0.0;
-		$open_rate      = $total_sent > 0 ? round( ( $total_opened   / $total_sent ) * 100, 1 ) : 0.0;
+		$delivered_rate = $total_sent > 0 ? round( ( $total_delivered / $total_sent ) * 100, 2 ) : 0.0;
+		$bounce_rate    = $total_sent > 0 ? round( ( $total_bounced  / $total_sent ) * 100, 4 ) : 0.0;
+		$spam_rate      = $total_sent > 0 ? round( ( $total_spam     / $total_sent ) * 100, 4 ) : 0.0;
+		$open_rate      = $total_sent > 0 ? round( ( $total_opened   / $total_sent ) * 100, 2 ) : 0.0;
 
 		// Best send time: hour-of-day with most opens.
 		$best_hour_row = $wpdb->get_row( $wpdb->prepare(

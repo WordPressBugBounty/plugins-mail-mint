@@ -362,13 +362,19 @@ class ContactController extends AdminBaseController {
 		$subscriber_count  = ! empty( $total_contact['subscribed'] ) ? $total_contact['subscribed'] : 0;
 		$unsubcriber_count = ! empty( $total_contact['unsubscribed'] ) ? $total_contact['unsubscribed'] : 0;
 		$pending_count     = ! empty( $total_contact['pending'] ) ? $total_contact['pending'] : 0;
-		$total_status      = $subscriber_count + $unsubcriber_count + $pending_count;
+		$bounced_count     = ! empty( $total_contact['bounced'] ) ? $total_contact['bounced'] : 0;
+		$complained_count  = ! empty( $total_contact['complained'] ) ? $total_contact['complained'] : 0;
+		$inactive_count    = ! empty( $total_contact['inactive'] ) ? $total_contact['inactive'] : 0;
+		$total_status      = $subscriber_count + $unsubcriber_count + $pending_count + $bounced_count + $complained_count + $inactive_count;
 
 		// Count contacts based on status.
 		$contacts_data['count_status'] = array(
 			'subscribed'   => $subscriber_count,
 			'unsubscribed' => $unsubcriber_count,
 			'pending'      => $pending_count,
+			'bounced'      => $bounced_count,
+			'complained'   => $complained_count,
+			'inactive'     => $inactive_count,
 			'total_status' => $total_status,
 		);
 
@@ -765,17 +771,23 @@ class ContactController extends AdminBaseController {
 
         $total_contact = ContactModel::get_contact_total();
 
-        $subscriber_count  = !empty($total_contact['subscribed']) ? $total_contact['subscribed'] : 0 ;
-        $unsubcriber_count = !empty($total_contact['unsubscribed']) ? $total_contact['unsubscribed'] : 0;
-        $pending_count     = !empty($total_contact['pending']) ? $total_contact['pending'] : 0 ;
-	    $total_status      = $subscriber_count + $unsubcriber_count + $pending_count;
+        $subscriber_count  = ! empty( $total_contact['subscribed'] ) ? $total_contact['subscribed'] : 0;
+        $unsubcriber_count = ! empty( $total_contact['unsubscribed'] ) ? $total_contact['unsubscribed'] : 0;
+        $pending_count     = ! empty( $total_contact['pending'] ) ? $total_contact['pending'] : 0;
+        $bounced_count     = ! empty( $total_contact['bounced'] ) ? $total_contact['bounced'] : 0;
+        $complained_count  = ! empty( $total_contact['complained'] ) ? $total_contact['complained'] : 0;
+        $inactive_count    = ! empty( $total_contact['inactive'] ) ? $total_contact['inactive'] : 0;
+        $total_status      = $subscriber_count + $unsubcriber_count + $pending_count + $bounced_count + $complained_count + $inactive_count;
 
 		// Count contacts based on status.
 		$contacts['count_status'] = array(
 			'subscribed'   => $subscriber_count,
 			'unsubscribed' => $unsubcriber_count,
 			'pending'      => $pending_count,
-			'total_status' => $total_status
+			'bounced'      => $bounced_count,
+			'complained'   => $complained_count,
+			'inactive'     => $inactive_count,
+			'total_status' => $total_status,
 		);
 
 		// Count contacts groups.

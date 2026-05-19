@@ -57,7 +57,7 @@ class Template {
 
 		$result = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT html_content, customizable FROM {$table_name} 
+				"SELECT html_content, json_content, customizable FROM {$table_name}
             	WHERE email_type = %s
             	ORDER BY ID DESC
             	LIMIT 1",
@@ -69,6 +69,9 @@ class Template {
 		if ( !empty( $result ) ) {
 			$email['template']         = ( !empty( $result['html_content'] ) ) ? $result['html_content'] : '';
 			$email['customize_enable'] = isset( $result['customizable'] ) ? $result['customizable'] : false;
+			$json_content              = ! empty( $result['json_content'] ) ? maybe_unserialize( $result['json_content'] ) : array();
+			$email['mint_subject']      = ! empty( $json_content['mint_subject'] )      ? $json_content['mint_subject']      : '';
+			$email['mint_preview_text'] = ! empty( $json_content['mint_preview_text'] ) ? $json_content['mint_preview_text'] : '';
 		}
 
 		return $email;

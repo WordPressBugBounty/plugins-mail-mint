@@ -64,6 +64,22 @@ class EmailTrigger {
 	 */
 	private $email_repository;
 
+	/**
+	 * Custom subject from json_content (mint_subject key).
+	 *
+	 * @var string
+	 * @since 1.14.0
+	 */
+	private $mint_subject = '';
+
+	/**
+	 * Custom preview text from json_content (mint_preview_text key).
+	 *
+	 * @var string
+	 * @since 1.14.0
+	 */
+	private $mint_preview_text = '';
+
 	public function __construct() {
 		$this->email_repository = new Template();
 		add_action( 'woocommerce_email', array( $this, 'register_email_hooks' ), PHP_INT_MAX );
@@ -84,7 +100,7 @@ class EmailTrigger {
 		if ( is_array( $email_object->emails ) ) {
 			foreach ( $email_object->emails as $email ) {
 				add_filter( 'woocommerce_email_recipient_' . $email->id, array( $this, 'set_email_template_for_recipient' ), 20, 3 );
-				add_filter( 'woocommerce_email_subject_' . $email->id, array( $this, 'set_email_subject' ) );
+				add_filter( 'woocommerce_email_subject_' . $email->id, array( $this, 'set_email_subject' ), PHP_INT_MAX, 3 );
 			}
 		}
 		add_filter( 'woocommerce_email_recipient_customer_partially_refunded_order', array( $this, 'set_email_template_for_recipient' ), 20, 3 );
@@ -107,10 +123,12 @@ class EmailTrigger {
 		$email_template = $this->email_repository->get_custom_wc_email_template( $email->id );
 
 		if ( !empty( $email_template ) ) {
-			$this->email_id    = $email->id;
-			$this->template    = $email_template;
-			$this->object      = $object;
-			$this->object_type = ( $object instanceof \WP_User ) ? 'user' : 'order';
+			$this->email_id          = $email->id;
+			$this->template          = $email_template;
+			$this->object            = $object;
+			$this->object_type       = ( $object instanceof \WP_User ) ? 'user' : 'order';
+			$this->mint_subject      = $email_template['mint_subject']      ?? '';
+			$this->mint_preview_text = $email_template['mint_preview_text'] ?? '';
 		}
 
 		return $recipient;
@@ -127,23 +145,18 @@ class EmailTrigger {
 	 *
 	 * @since 1.10.0
 	 */
-	public function set_email_subject( $subject ) {
-		$email_object_data = array();
-
-		if ( $this->object instanceof \WC_Order ) {
-			$email_object_data = array(
-				'order_object' => $this->object,
-				'user_object'  => $this->object->get_user(),
-			);
+	public function set_email_subject( $subject, $_object = null, $email_obj = null ) {
+		if ( empty( $this->mint_subject ) ) {
+			return $subject;
 		}
 
-		if ( $this->object instanceof \WP_User ) {
-			$email_object_data = array(
-				'user_object' => $this->object,
-			);
+		// Use WooCommerce's own format_string() so placeholders like {order_number},
+		// {blogname}, {order_date} are resolved correctly against the current email context.
+		if ( ! is_null( $email_obj ) && method_exists( $email_obj, 'format_string' ) ) {
+			return $email_obj->format_string( $this->mint_subject );
 		}
 
-		return $subject;
+		return $this->mint_subject;
 	}
 
 	/**
@@ -178,6 +191,12 @@ class EmailTrigger {
 
 			$rendered = $email_render->render();
 			if ( !empty( $rendered ) ) {
+				if ( ! empty( $this->mint_preview_text ) ) {
+					$preheader = '<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">'
+						. esc_html( $this->mint_preview_text )
+						. '</div>';
+					$rendered = preg_replace( '/(<body[^>]*>)/i', '$1' . $preheader, $rendered, 1 );
+				}
 				$message = $rendered;
 			}
 		}

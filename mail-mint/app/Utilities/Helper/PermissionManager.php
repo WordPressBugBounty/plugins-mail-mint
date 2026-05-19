@@ -452,17 +452,15 @@ class PermissionManager{
      * @since 1.16.0
      */
     public static function current_user_can($permission){
-        $capability = is_multisite() ? 'delete_sites' : $permission;
-
         // If the user is an administrator, return true
         if (current_user_can('manage_options')) {
-            return function () use ($capability) {
-                return apply_filters('mailmint_current_admin_can', true, $capability);
+            return function () use ($permission) {
+                return apply_filters('mailmint_current_admin_can', true, $permission);
             };
         }
 
-        return function () use ($capability) {
-            if ( !current_user_can( $capability ) ) {
+        return function () use ($permission) {
+            if ( !current_user_can( $permission ) ) {
                 return new \WP_Error(rest_authorization_required_code(), __('Sorry, you are not authorized to perform this action.', 'mrm'), ['status' => 'mail_mint_access_denied']);
             }
             return true;

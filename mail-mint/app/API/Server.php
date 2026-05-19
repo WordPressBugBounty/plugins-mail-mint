@@ -101,8 +101,10 @@ class Server {
 			'contact-import'  => 'ContactImportRoute',
 			'contact-profile' => 'ContactProfileRoute',
 			'email-template'  => 'TemplateRoute',
+			'email-history'   => 'EmailHistoryRoute',
 			'connector' 	  => 'ConnectorRoute',
 			'onboarding'      => 'OnboardingRoute',
+			'data-cleanup'    => 'DataCleanupRoute',
 		);
 		$frontend_routes = array(
 			'form'       => 'FormRoute',

@@ -386,10 +386,25 @@ class CampaignEmailController extends AdminBaseController {
 			$wp_user    = get_user_by( 'email', $receiver );
 			$wp_user_id = isset($wp_user->ID) ? $wp_user->ID : 0;
 
+			// If no order_id was supplied (e.g. WC email test), resolve the latest order for this receiver.
+			$resolved_order_id = $order_id;
+			if ( empty( $resolved_order_id ) && function_exists( 'wc_get_orders' ) ) {
+				$orders = wc_get_orders( array(
+					'billing_email' => $receiver,
+					'limit'         => 1,
+					'orderby'       => 'date',
+					'order'         => 'DESC',
+					'status'        => 'any',
+				) );
+				if ( ! empty( $orders ) ) {
+					$resolved_order_id = $orders[0]->get_id();
+				}
+			}
+
 			// Reset subject, content, and preview for each receiver
-			$parsed_subject = Parser::parse($subject, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
-			$parsed_content = Parser::parse($content, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
-			$parsed_preview = Parser::parse($preview, $contact, $post_id, $order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
+			$parsed_subject = Parser::parse($subject, $contact, $post_id, $resolved_order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
+			$parsed_content = Parser::parse($content, $contact, $post_id, $resolved_order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
+			$parsed_preview = Parser::parse($preview, $contact, $post_id, $resolved_order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
 			$final_content  = Email::inject_preview_text_on_email_body($parsed_preview, $parsed_content);
 
 			MM()->mailer->send($receiver, $parsed_subject, $final_content, $headers);

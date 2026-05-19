@@ -140,6 +140,7 @@ class Hooks {
 			if ($hash && $email_id) {
 				EmailModel::insert_or_update_email_meta('is_open', 1, $email_id);
 				EmailModel::insert_or_update_email_meta('user_open_agent', Helper::get_user_agent(), $email_id);
+				EmailModel::insert_or_update_email_meta('user_open_client', Helper::get_email_client(), $email_id);
 				$is_ip_store                = get_option('_mint_compliance');
 				$is_ip_store                = ! empty($is_ip_store['anonymize_ip']) ? $is_ip_store['anonymize_ip'] : 'no';
 				if ('no' === $is_ip_store) {

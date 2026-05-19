@@ -11,7 +11,6 @@
 namespace Mint\MRM\DataBase\Migration;
 
 use MailMint\App\Helper;
-use Mint\MRM\DataBase\Tables\AutomationJobSchema;
 use Mint\MRM\DataBase\Tables\CampaignEmailBuilderSchema;
 use Mint\MRM\DataBase\Tables\EmailSchema;
 use Mint\MRM\DataBase\Tables\FormSchema;

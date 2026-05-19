@@ -81,7 +81,8 @@ class MessageController extends AdminBaseController {
 			'email_subject' => isset( $params['email_subject'] ) ? sanitize_text_field( $params['email_subject'] ) : null,
 			'email_body'    => $email_body,
 			'contact_id'	=> $contact_id,
-			'email_hash'	=> $email_hash
+			'email_hash'	=> $email_hash,
+			'email_type'    => 'regular',
 		);
 
 		// Email address valiation.

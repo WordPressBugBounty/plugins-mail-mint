@@ -137,8 +137,8 @@ class HomeScreen {
 
 		add_submenu_page(
 			self::MENU_SLUG,
-			__( 'Email Templates', 'mrm' ),
-			__( 'Email Templates', 'mrm' ),
+			__( 'Emails', 'mrm' ),
+			__( 'Emails', 'mrm' ),
 			($is_admin) ? $dashboard_permission : 'mint_manage_email_templates',
 			'mrm-admin#/email-templates/',
 			array(
@@ -153,6 +153,18 @@ class HomeScreen {
 			__( 'Tools', 'mrm' ),
 			($is_admin) ? $dashboard_permission : 'mint_read_tools',
 			'mrm-admin#/tools/link-triggers/',
+			array(
+				$this,
+				'load_wrapper',
+			)
+		);
+
+		add_submenu_page(
+			self::MENU_SLUG,
+			__( 'Analytics', 'mrm' ),
+			__( 'Analytics', 'mrm' ),
+			$dashboard_permission,
+			'mrm-admin#/analytics/',
 			array(
 				$this,
 				'load_wrapper',

@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.21.5
+ * Version:           1.22.0
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -36,7 +36,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.21.5' );
+define( 'MRM_VERSION', '1.22.0' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.16.0' );
 define( 'MINT_DEV_MODE', false );
@@ -103,9 +103,17 @@ if ( !defined( 'MINT_AUTOMATION_AFTER_EMAIL_CLICK' ) ) {
  * The code that runs during plugin activation.
  * This action is documented in includes/MrmActivator.php
  */
-function activate_mrm() {
+function activate_mrm( $network_wide ) {
 	require_once plugin_dir_path( __FILE__ ) . 'includes/MrmActivator.php';
-	MrmActivator::activate();
+
+	if ( is_multisite() && $network_wide ) {
+		$sites = get_sites( array( 'number' => 0 ) );
+		foreach ( $sites as $site ) {
+			MrmActivator::activate_for_blog( $site->blog_id );
+		}
+	} else {
+		MrmActivator::activate();
+	}
 }
 
 /**
@@ -119,6 +127,22 @@ function deactivate_mrm() {
 
 register_activation_hook( __FILE__, 'activate_mrm' );
 register_deactivation_hook( __FILE__, 'deactivate_mrm' );
+
+/**
+ * Create Mail Mint tables and settings when a new subsite is added to the network.
+ * Only runs when the plugin is network-activated.
+ */
+function mailmint_setup_new_site( $new_site ) {
+	if ( ! function_exists( 'is_plugin_active_for_network' ) ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+	}
+	if ( ! is_plugin_active_for_network( MAILMINT_BASE_NAME ) ) {
+		return;
+	}
+	require_once plugin_dir_path( MRM_FILE ) . 'includes/MrmActivator.php';
+	MrmActivator::activate_for_blog( $new_site->blog_id );
+}
+add_action( 'wp_initialize_site', 'mailmint_setup_new_site' );
 
 /**
  * The core plugin class that is used to define internationalization,
@@ -140,6 +164,18 @@ function MM() {
 	return MailMint::instance();
 }
 MM();
+
+/**
+ * Wire up the version-check and self-healing hooks so that:
+ * - On a subsite that never got tables (multisite), they are created on the
+ *   next request without any manual re-activation.
+ * - Plugin updates trigger the DB migration path automatically.
+ *
+ * MrmActivator::init() was always designed for this purpose but was never
+ * called from the bootstrap.
+ */
+require_once plugin_dir_path( __FILE__ ) . 'includes/MrmActivator.php';
+MrmActivator::init();
 
 if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 	/**
@@ -261,16 +297,6 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 							return array( 'contact_id' => $contact_id );
 						},
 					),
-					// Fires each time an automation is triggered.
-					'automation_triggered' => array(
-						'hook'     => MINT_TRIGGER_AUTOMATION,
-						'callback' => function ( $data ) {
-							return array(
-								'trigger_name'   => isset( $data['trigger_name'] ) ? $data['trigger_name'] : '',
-								'connector_name' => isset( $data['connector_name'] ) ? $data['connector_name'] : '',
-							);
-						},
-					),
 					// Fires when a WooCommerce cart is marked as abandoned.
 					'cart_abandoned' => array(
 						'hook'     => 'mailmint_after_cart_abandoned',
@@ -280,6 +306,36 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 					),
 				),
 			)
+		);
+
+		/**
+		 * Track automation_triggered at most once per week.
+		 *
+		 * The hook fires on every automation execution (potentially thousands/day),
+		 * so we gate it behind a weekly timestamp stored in a WP option.
+		 */
+		add_action(
+			MINT_TRIGGER_AUTOMATION,
+			function ( $data ) use ( $client ) {
+				$option_key = 'mail-mint_telemetry_automation_triggered_last_sent';
+				$last_sent  = (int) get_option( $option_key, 0 );
+
+				if ( ( time() - $last_sent ) < WEEK_IN_SECONDS ) {
+					return;
+				}
+
+				$client->track_feature_used(
+					'automation_triggered',
+					array(
+						'trigger_name'   => isset( $data['trigger_name'] ) ? $data['trigger_name'] : '',
+						'connector_name' => isset( $data['connector_name'] ) ? $data['connector_name'] : '',
+					)
+				);
+
+				update_option( $option_key, time() );
+			},
+			10,
+			1
 		);
 
 		/**

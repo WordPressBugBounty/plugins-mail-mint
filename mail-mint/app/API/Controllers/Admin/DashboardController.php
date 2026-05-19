@@ -54,11 +54,37 @@ class DashboardController {
 		$start_date = isset( $params['start_date'] ) ? sanitize_text_field( $params['start_date'] ) : '';
 		$end_date   = isset( $params['end_date'] )   ? sanitize_text_field( $params['end_date'] )   : '';
 
+		$basic_stats = DashboardModel::get_top_cards_data( $filter, $start_date, $end_date );
+
+		/**
+		 * Allow pro plugin to inject advanced analytics data into the stats payload.
+		 *
+		 * Returns null when pro is not active; returns an array of advanced stats when active.
+		 *
+		 * @param null|array $advanced    Advanced analytics data, or null.
+		 * @param string     $filter      Date filter key.
+		 * @param string     $start_date  Custom start date.
+		 * @param string     $end_date    Custom end date.
+		 *
+		 * @since 1.12.0
+		 */
+		$advanced = apply_filters( 'mint_advanced_analytics_data', null, $filter, $start_date, $end_date );
+
+		$stats = is_array( $advanced ) ? array_merge( $basic_stats, $advanced ) : $basic_stats;
+
+		/**
+		 * Filter: whether the pro plugin is active.
+		 *
+		 * @since 1.12.0
+		 */
+		$is_pro = (bool) apply_filters( 'mint_is_pro_active', false );
+
 		// Prepare the response data.
 		$response = [
 			'success' => true,
 			'data'    => [
-				'stats' => DashboardModel::get_top_cards_data( $filter, $start_date, $end_date ),
+				'stats'  => $stats,
+				'is_pro' => $is_pro,
 			]
 		];
 

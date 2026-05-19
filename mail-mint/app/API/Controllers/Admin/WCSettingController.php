@@ -32,7 +32,6 @@ class WCSettingController extends SettingBaseController {
 	 * @param WP_REST_Request $request Request object used to generate the response.
 	 * @return WP_REST_Response|WP_Error
 	 * @since 1.0.0
-	 * @since 1.20.0 - Add 'enable_email_customize' to the default settings.
 	 */
 	public function create_or_update( WP_REST_Request $request ) {
 		$params = MrmCommon::get_api_params_values( $request );
@@ -41,7 +40,6 @@ class WCSettingController extends SettingBaseController {
 			'checkbox_label'              => 'I would like to receive exclusive emails with discounts and product information.',
 			'lists'                       => array(),
 			'tags'                        => array(),
-			'enable_email_customize'      => false,
 			'auto_coupon_cleanup_enabled' => false,
 			'auto_coupon_cleanup_number'  => 7,
 			'auto_coupon_cleanup_unit'    => 'day',
@@ -90,7 +88,6 @@ class WCSettingController extends SettingBaseController {
 	 * @param WP_REST_Request $request Request object used to generate the response.
 	 * @return WP_REST_Response
 	 * @since 1.0.0
-	 * @since 1.20.0 - Add 'enable_email_customize' to the default settings.
 	 */
 	public function get( WP_REST_Request $request ) {
 		$default  = array(
@@ -98,7 +95,6 @@ class WCSettingController extends SettingBaseController {
 			'checkbox_label' 		        => 'I would like to receive exclusive emails with discounts and product information.',
 			'lists'          		        => array(),
 			'tags'           		        => array(),
-			'enable_email_customize'        => false,
 			'auto_coupon_cleanup_enabled'   => false,
 			'auto_coupon_cleanup_number'    => 7,
 			'auto_coupon_cleanup_unit'      => 'day',

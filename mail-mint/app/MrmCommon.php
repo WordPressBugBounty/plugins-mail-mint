@@ -1682,20 +1682,6 @@ class MrmCommon {
 		}
 	}
 
-	/**
-	 * Checks if email customization is active.
-	 *
-	 * This function retrieves the '_mrm_woocommerce_settings' option from the WordPress database
-	 * and checks if the 'enable_email_customize' key is set and its value.
-	 *
-	 * @return bool Returns true if 'enable_email_customize' is set and its value is truthy, false otherwise.
-	 * @since 1.10.0
-	 */
-	public static function is_email_customization_active() {
-		$settings = get_option( '_mrm_woocommerce_settings' );
-		return isset( $settings['enable_email_customize'] ) ? $settings['enable_email_customize'] : false;
-	}
-
 	public static function get_total_batches() {
 		$batch_size = 500;
 		$contacts   = ContactModel::get_contacts_count();

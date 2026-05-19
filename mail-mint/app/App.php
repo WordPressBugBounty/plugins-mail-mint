@@ -29,8 +29,11 @@ use Mint\MRM\Internal\Optin\OptinConfirmation;
 use Mint\MRM\Internal\ShortCode\ShortCode;
 use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Internal\Cron\CampaignsBackgroundProcess;
+use Mint\MRM\Internal\UsageReport\UsageReportScheduler;
 use Mint\MRM\Internal\Optin\UnsubscribeConfirmation;
 use Mint\MRM\Internal\Admin\WooCommerceOrderDetails;
+use Mint\MRM\Internal\DataCleanup\DataCleanupScheduler;
+use Mint\MRM\Internal\DataCleanup\DatabaseIndexes;
 use Mint\MRM\Internal\Templates\TemplateHandler;
 use MintMail\App\Internal\Automation;
 use MRM\Common\MrmCommon;
@@ -82,6 +85,8 @@ class App {
 
 		CampaignsBackgroundProcess::get_instance()->init();
 
+		UsageReportScheduler::init();
+
 		WooCommerceOrderDetails::get_instance()->init();
 
 		TemplateHandler::get_instance()->init();
@@ -111,12 +116,15 @@ class App {
 
 		DatabaseMigrator::get_instance()->init();
 
+		// Register Data Cleanup Action Scheduler hooks.
+		( new DataCleanupScheduler() )->register_hooks();
+
+		// Add performance indexes for Data Cleanup queries (idempotent — skips existing indexes).
+		DatabaseIndexes::create_indexes();
+
 		new \MailMint\App\Actions\Hooks();
 
-		// If the method returns true, indicating that email customization is active, it creates a new instance of the `EmailTrigger` class.
-		if ( MrmCommon::is_email_customization_active() ) {
-			new EmailTrigger();
-		}
+		new EmailTrigger();
 	}
 
 

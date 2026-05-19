@@ -810,8 +810,11 @@ class ContactModel {
 				'SELECT
             COUNT(CASE WHEN status = %s THEN 1 END) AS subscribed,
             COUNT(CASE WHEN status = %s THEN 1 END) AS pending,
-            COUNT(CASE WHEN status = %s THEN 1 END) AS unsubscribed
-        FROM %1s', array( 'subscribed', 'pending', 'unsubscribed', $table_name )), ARRAY_A);  //phpcs:ignore
+            COUNT(CASE WHEN status = %s THEN 1 END) AS unsubscribed,
+            COUNT(CASE WHEN status = %s THEN 1 END) AS bounced,
+            COUNT(CASE WHEN status = %s THEN 1 END) AS complained,
+            COUNT(CASE WHEN status = %s THEN 1 END) AS inactive
+        FROM %1s', array( 'subscribed', 'pending', 'unsubscribed', 'bounced', 'complained', 'inactive', $table_name )), ARRAY_A);  //phpcs:ignore
 		if ( !empty( $get_total ) ) {
 			return $get_total;
 		}
