@@ -80,14 +80,22 @@ class DeletePluginData {
 	public static function delete_all_option_values() {
 		global $wpdb;
 
-		$option_ids_sql      = "SELECT `option_id` FROM {$wpdb->options} WHERE `option_name` LIKE '%mrm%' OR `option_name` LIKE '%mailmint%' OR `option_name` LIKE '%mintmail%' OR `option_name` LIKE '%mail_mint%' OR `option_name` LIKE '%_mint_compliance%'";
-		$mailmint_option_ids = $wpdb->get_results( $option_ids_sql, ARRAY_A ); //phpcs:ignore
+		$option_ids = $wpdb->get_col( //phpcs:ignore
+			$wpdb->prepare(
+				"SELECT option_id FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s OR option_name LIKE %s",
+				'%mrm%',
+				'%mailmint%',
+				'%mintmail%',
+				'%mail_mint%',
+				'%_mint_compliance%',
+				'%mint%'
+			)
+		);
 
-		$mailmint_option_ids = array_column( $mailmint_option_ids, 'option_id' );
-		$mailmint_option_ids = implode( ', ', $mailmint_option_ids );
-		$option_sql          = "DELETE FROM {$wpdb->options} WHERE `option_id` IN ({$mailmint_option_ids})";
-
-		$wpdb->query( $option_sql ); //phpcs:ignore
+		if ( ! empty( $option_ids ) ) {
+			$placeholders = implode( ',', array_fill( 0, count( $option_ids ), '%d' ) );
+			$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_id IN ($placeholders)", $option_ids ) ); //phpcs:ignore
+		}
 	}
 
 	/**

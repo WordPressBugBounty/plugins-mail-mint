@@ -441,6 +441,38 @@ class PermissionManager{
     }
 
     /**
+     * Returns a permission callback that passes any logged-in Mail Mint user.
+     *
+     * Blocks unauthenticated requests and users with no Mail Mint capabilities,
+     * while allowing non-admin users who hold at least one plugin capability.
+     * Use this for endpoints that serve data to both the form builder and the
+     * automation builder (e.g. WP pages, posts, products, categories, tags).
+     *
+     * @return callable REST API permission_callback closure.
+     *
+     * @since 1.22.1
+     */
+    public static function current_user_is_mint_user() {
+        return function () {
+            if ( ! is_user_logged_in() ) {
+                return new \WP_Error( 'rest_not_logged_in', __( 'You must be logged in.', 'mrm' ), array( 'status' => 401 ) );
+            }
+
+            if ( current_user_can( 'manage_options' ) ) {
+                return true;
+            }
+
+            foreach ( self::plugin_permissions() as $cap ) {
+                if ( current_user_can( $cap ) ) {
+                    return true;
+                }
+            }
+
+            return new \WP_Error( rest_authorization_required_code(), __( 'Sorry, you are not authorized to perform this action.', 'mrm' ), array( 'status' => 'mail_mint_access_denied' ) );
+        };
+    }
+
+    /**
      * Checks if the current user has a permission.
      *
      * This function checks if the current user has a specified permission. If the current user
@@ -448,7 +480,7 @@ class PermissionManager{
      *
      * @param string $permission The permission to check.
      * @return bool Whether the current user has the permission.
-     * 
+     *
      * @since 1.16.0
      */
     public static function current_user_can($permission){

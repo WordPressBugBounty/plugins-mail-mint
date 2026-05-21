@@ -12,6 +12,7 @@
 namespace Mint\MRM\Internal\Admin;
 
 use Mint\Mrm\Internal\Traits\Singleton;
+use Mint\MRM\DataBase\Models\FormModel;
 use MRM\Common\MrmCommon;
 
 /**
@@ -44,6 +45,10 @@ class FrontendAssets {
 	 * @since 1.0.0
 	 */
 	public function enqueue_scripts( $hook ) {
+		if ( ! $this->current_page_has_form() ) {
+			return;
+		}
+
 		$recaptcha_default    = MrmCommon::recaptcha_default_configuration();
 		$recaptcha_raw        = get_option( '_mint_recaptcha_settings', $recaptcha_default );
 		$recaptcha_public     = array(
@@ -98,12 +103,216 @@ class FrontendAssets {
 	 * @since 1.0.0
 	 */
 	public function enqueue_styles( $hook ) {
+		if ( ! $this->current_page_has_form() ) {
+			return;
+		}
+
 		wp_enqueue_style(
 			MRM_PLUGIN_NAME . '-select2',
 			MRM_DIR_URL . 'assets/frontend/css/frontend.css',
 			array(),
 			MRM_VERSION
 		);
+	}
+
+
+	/**
+	 * Returns true if the current page will render any Mail Mint form — whether
+	 * placed via shortcode, Gutenberg block, or the global form-position settings.
+	 * Result is cached in a static variable so the DB query runs at most once per request.
+	 *
+	 * @return bool
+	 * @since 1.0.0
+	 */
+	private function current_page_has_form() {
+		static $result = null;
+		if ( null !== $result ) {
+			return $result;
+		}
+
+		global $post;
+
+		// 1. Shortcodes or block embedded directly in this page's content.
+		if ( is_a( $post, 'WP_Post' ) ) {
+			$content = $post->post_content;
+			if (
+				has_shortcode( $content, 'mintmrm' )
+				|| has_shortcode( $content, 'optin_confirmation' )
+				|| has_shortcode( $content, 'preference_page' )
+				|| has_shortcode( $content, 'unsubscribe_confirmation' )
+				|| has_block( 'mint/mintform', $post )
+			) {
+				return $result = true;
+			}
+		}
+
+		// 2. Globally-placed forms — only relevant on page types the form builder supports.
+		if (
+			! is_singular( array( 'post', 'page', 'product' ) )
+			&& ! is_home()
+			&& ! is_front_page()
+			&& ! is_archive()
+		) {
+			return $result = false;
+		}
+
+		$forms = FormModel::get_all_form_position();
+		if ( empty( $forms['data'] ) ) {
+			return $result = false;
+		}
+
+		foreach ( $forms['data'] as $data ) {
+			if ( empty( $data['form_position'] ) ) {
+				continue;
+			}
+
+			$placement = json_decode( maybe_unserialize( $data['form_position'] ) );
+			if ( ! $placement ) {
+				continue;
+			}
+
+			// Front page.
+			if ( is_front_page() && ! empty( $placement->pages->homepage ) ) {
+				return $result = true;
+			}
+
+			// Home / blog listing.
+			if ( is_home() ) {
+				if ( ! empty( $placement->pages->all ) ) {
+					return $result = true;
+				}
+				$selected = ! empty( $placement->pages->selected ) ? array_column( $placement->pages->selected, 'value' ) : array();
+				if ( in_array( (string) get_queried_object_id(), $selected ) ) { // phpcs:ignore WordPress.PHP.StrictInArray
+					return $result = true;
+				}
+			}
+
+			// Archive pages.
+			if ( is_archive() && $post ) {
+				if ( $this->placement_targets_category_archive( $placement, $post->ID )
+					|| $this->placement_targets_tag_archive( $placement, $post->ID ) ) {
+					return $result = true;
+				}
+			}
+
+			// Singular pages, posts, products.
+			if ( is_singular() && $post ) {
+				if ( is_page() && $this->placement_targets_post( $placement, 'pages', $post->ID ) ) {
+					return $result = true;
+				}
+				if ( is_singular( 'post' ) && (
+					$this->placement_targets_post( $placement, 'post', $post->ID )
+					|| $this->placement_targets_category( $placement, $post->ID )
+					|| $this->placement_targets_tag( $placement, $post->ID )
+				) ) {
+					return $result = true;
+				}
+				if ( is_singular( 'product' ) && (
+					$this->placement_targets_post( $placement, 'product', $post->ID )
+					|| $this->placement_targets_category( $placement, $post->ID )
+					|| $this->placement_targets_tag( $placement, $post->ID )
+				) ) {
+					return $result = true;
+				}
+			}
+		}
+
+		return $result = false;
+	}
+
+
+	/**
+	 * Whether a form placement targets a specific post/page/product type and ID.
+	 *
+	 * @param object $placement Form position object.
+	 * @param string $key       Property key: 'pages', 'post', or 'product'.
+	 * @param int    $post_id   Current post ID.
+	 *
+	 * @return bool
+	 */
+	private function placement_targets_post( $placement, $key, $post_id ) {
+		if ( ! isset( $placement->$key ) ) {
+			return false;
+		}
+		if ( ! empty( $placement->$key->all ) ) {
+			return true;
+		}
+		$selected = ! empty( $placement->$key->selected ) ? array_column( $placement->$key->selected, 'value' ) : array();
+		return in_array( $post_id, $selected ); // phpcs:ignore WordPress.PHP.StrictInArray
+	}
+
+
+	/**
+	 * Whether a form placement targets the post's category or product category.
+	 *
+	 * @param object $placement Form position object.
+	 * @param int    $post_id   Current post ID.
+	 *
+	 * @return bool
+	 */
+	private function placement_targets_category( $placement, $post_id ) {
+		if ( empty( $placement->categories ) ) {
+			return false;
+		}
+		$cats = array_column( $placement->categories, 'value' );
+		return has_category( $cats, $post_id ) || has_term( $cats, 'product_cat', $post_id );
+	}
+
+
+	/**
+	 * Whether a form placement targets the post's tag or product tag.
+	 *
+	 * @param object $placement Form position object.
+	 * @param int    $post_id   Current post ID.
+	 *
+	 * @return bool
+	 */
+	private function placement_targets_tag( $placement, $post_id ) {
+		if ( empty( $placement->tags ) ) {
+			return false;
+		}
+		$tags = array_column( $placement->tags, 'value' );
+		return has_tag( $tags, $post_id ) || has_term( $tags, 'product_tag', $post_id );
+	}
+
+
+	/**
+	 * Whether a form placement targets the current category archive.
+	 *
+	 * @param object $placement Form position object.
+	 * @param int    $post_id   Current post ID.
+	 *
+	 * @return bool
+	 */
+	private function placement_targets_category_archive( $placement, $post_id ) {
+		if ( ! isset( $placement->category_archives ) ) {
+			return false;
+		}
+		if ( ! empty( $placement->category_archives->all ) ) {
+			return true;
+		}
+		$selected = ! empty( $placement->category_archives->selected ) ? array_column( $placement->category_archives->selected, 'value' ) : array();
+		return ! empty( $selected ) && ( has_category( $selected, $post_id ) || has_term( $selected, 'product_cat', $post_id ) );
+	}
+
+
+	/**
+	 * Whether a form placement targets the current tag archive.
+	 *
+	 * @param object $placement Form position object.
+	 * @param int    $post_id   Current post ID.
+	 *
+	 * @return bool
+	 */
+	private function placement_targets_tag_archive( $placement, $post_id ) {
+		if ( ! isset( $placement->tag_archives ) ) {
+			return false;
+		}
+		if ( ! empty( $placement->tag_archives->all ) ) {
+			return true;
+		}
+		$selected = ! empty( $placement->tag_archives->selected ) ? array_column( $placement->tag_archives->selected, 'value' ) : array();
+		return ! empty( $selected ) && ( has_tag( $selected, $post_id ) || has_term( $selected, 'product_tag', $post_id ) );
 	}
 
 

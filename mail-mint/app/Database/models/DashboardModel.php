@@ -82,11 +82,8 @@ class DashboardModel {
 			return array( 'current' => 0, 'previous' => 0, 'change' => '0.00%', 'trend' => 'equal' );
 		}
 
-		$where_current  = $conditions['conditions_1'];
-		$where_previous = $conditions['conditions_2'];
-
-		$current_count  = (float) $wpdb->get_var( "SELECT COUNT(`id`) FROM `{$contact_table}` WHERE status = 'unsubscribed' AND {$where_current}" ); //phpcs:ignore
-		$previous_count = (float) $wpdb->get_var( "SELECT COUNT(`id`) FROM `{$contact_table}` WHERE status = 'unsubscribed' AND {$where_previous}" ); //phpcs:ignore
+		$current_count  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(`id`) FROM `{$contact_table}` WHERE status = 'unsubscribed' AND ", $conditions['conditions_1'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$previous_count = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(`id`) FROM `{$contact_table}` WHERE status = 'unsubscribed' AND ", $conditions['conditions_2'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		return self::format_email_metric( $current_count, $previous_count );
 	}
@@ -114,28 +111,34 @@ class DashboardModel {
 			return $empty;
 		}
 
-		$where_current  = $conditions['conditions_1'];
-		$where_previous = $conditions['conditions_2'];
+		$cond_current  = $conditions['conditions_1'];
+		$cond_previous = $conditions['conditions_2'];
 
 		$emails_table = esc_sql( $wpdb->prefix . 'mint_broadcast_emails' );
 		$meta_table   = esc_sql( $wpdb->prefix . 'mint_broadcast_email_meta' );
 
-		$current_sent  = (float) $wpdb->get_var( "SELECT COUNT(*) FROM `{$emails_table}` WHERE {$where_current}" ); //phpcs:ignore
-		$previous_sent = (float) $wpdb->get_var( "SELECT COUNT(*) FROM `{$emails_table}` WHERE {$where_previous}" ); //phpcs:ignore
+		$current_sent  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(*) FROM `{$emails_table}` WHERE ", $cond_current ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$previous_sent = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(*) FROM `{$emails_table}` WHERE ", $cond_previous ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		$current_delivered  = (float) $wpdb->get_var( "SELECT COUNT(*) FROM `{$emails_table}` WHERE status = 'sent' AND {$where_current}" ); //phpcs:ignore
-		$previous_delivered = (float) $wpdb->get_var( "SELECT COUNT(*) FROM `{$emails_table}` WHERE status = 'sent' AND {$where_previous}" ); //phpcs:ignore
+		$current_delivered  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(*) FROM `{$emails_table}` WHERE status = 'sent' AND ", $cond_current ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$previous_delivered = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(*) FROM `{$emails_table}` WHERE status = 'sent' AND ", $cond_previous ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		$delivered_rate = $current_sent > 0 ? round( ( $current_delivered / $current_sent ) * 100, 1 ) : 0.0;
 
-		$bm_current  = str_replace( array( 'created_at', 'updated_at' ), array( 'bm.created_at', 'bm.updated_at' ), $where_current );
-		$bm_previous = str_replace( array( 'created_at', 'updated_at' ), array( 'bm.created_at', 'bm.updated_at' ), $where_previous );
+		$bm_current = array(
+			'clause' => str_replace( array( 'created_at', 'updated_at' ), array( 'bm.created_at', 'bm.updated_at' ), $cond_current['clause'] ),
+			'values' => $cond_current['values'],
+		);
+		$bm_previous = array(
+			'clause' => str_replace( array( 'created_at', 'updated_at' ), array( 'bm.created_at', 'bm.updated_at' ), $cond_previous['clause'] ),
+			'values' => $cond_previous['values'],
+		);
 
-		$current_open  = (float) $wpdb->get_var( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1' AND {$bm_current}" ); //phpcs:ignore
-		$previous_open = (float) $wpdb->get_var( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1' AND {$bm_previous}" ); //phpcs:ignore
+		$current_open  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1' AND ", $bm_current ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$previous_open = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1' AND ", $bm_previous ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		$current_click  = (float) $wpdb->get_var( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_click' AND bm.meta_value = '1' AND {$bm_current}" ); //phpcs:ignore
-		$previous_click = (float) $wpdb->get_var( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_click' AND bm.meta_value = '1' AND {$bm_previous}" ); //phpcs:ignore
+		$current_click  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_click' AND bm.meta_value = '1' AND ", $bm_current ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$previous_click = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_click' AND bm.meta_value = '1' AND ", $bm_previous ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		$sent_data = self::format_email_metric( $current_sent, $previous_sent );
 		$sent_data['delivered_rate'] = $delivered_rate . '%';
@@ -186,11 +189,8 @@ class DashboardModel {
 			return $empty;
 		}
 
-		$where_current  = $conditions['conditions_1'];
-		$where_previous = $conditions['conditions_2'];
-
-		$current_data  = (float) $wpdb->get_var( "SELECT COUNT(`id`) FROM `{$table_name}` WHERE {$where_current}" );  //phpcs:ignore
-		$previous_data = (float) $wpdb->get_var( "SELECT COUNT(`id`) FROM `{$table_name}` WHERE {$where_previous}" ); //phpcs:ignore
+		$current_data  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(`id`) FROM `{$table_name}` WHERE ", $conditions['conditions_1'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$previous_data = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(`id`) FROM `{$table_name}` WHERE ", $conditions['conditions_2'] ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		$diff_rate      = $previous_data > 0 ? ( ( $current_data - $previous_data ) / $previous_data ) * 100 : ( $current_data > 0 ? 100.0 : 0.0 );
 		$formatted_diff = number_format( $diff_rate, 2 ) . '%';
@@ -240,11 +240,28 @@ class DashboardModel {
 		}
 
 		$conditions = call_user_func( array( __CLASS__, $callback ) );
-		if ( empty( $conditions['conditions_1'] ) || empty( $conditions['conditions_2'] ) ) {
+		if ( empty( $conditions['conditions_1']['clause'] ) || empty( $conditions['conditions_2']['clause'] ) ) {
 			return array();
 		}
 
 		return $conditions;
+	}
+
+	/**
+	 * Build a query string, calling $wpdb->prepare() when the condition carries bound values.
+	 *
+	 * @param string $sql_prefix  SQL up to (not including) the WHERE condition clause.
+	 * @param array  $condition   Array with 'clause' (string) and 'values' (array) keys.
+	 *
+	 * @return string Ready-to-run SQL string.
+	 */
+	private static function build_query( $sql_prefix, array $condition ) {
+		global $wpdb;
+		$sql = $sql_prefix . $condition['clause'];
+		if ( ! empty( $condition['values'] ) ) {
+			return $wpdb->prepare( $sql, $condition['values'] ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		}
+		return $sql;
 	}
 
 	/**
@@ -256,9 +273,8 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_last_90_days() {
 		return array(
-			// Last 90 days ending yesterday
-			'conditions_1' => 'created_at >= CURDATE() - INTERVAL 90 DAY AND created_at < CURDATE()',
-			'conditions_2' => 'created_at >= CURDATE() - INTERVAL 180 DAY AND created_at < CURDATE() - INTERVAL 90 DAY',
+			'conditions_1' => array( 'clause' => 'created_at >= CURDATE() - INTERVAL 90 DAY AND created_at < CURDATE()', 'values' => array() ),
+			'conditions_2' => array( 'clause' => 'created_at >= CURDATE() - INTERVAL 180 DAY AND created_at < CURDATE() - INTERVAL 90 DAY', 'values' => array() ),
 		);
 	}
 
@@ -271,8 +287,6 @@ class DashboardModel {
 	 * @return array
 	 */
 	private static function get_where_query_for_custom( $start_date, $end_date ) {
-		global $wpdb;
-
 		$start_date = date_format( date_create( $start_date ), 'Y-m-d H:i:s' );
 		$end_date   = date_format( date_create( $end_date ), 'Y-m-d' ) . ' 23:59:59';
 		$range      = strtotime( $end_date ) - strtotime( $start_date );
@@ -286,12 +300,15 @@ class DashboardModel {
 		date_sub( $prev_end_date, date_interval_create_from_date_string( $time_span . ' days' ) );
 		$prev_end_date = date_format( $prev_end_date, 'Y-m-d' );
 
-		$conditions1 = $wpdb->prepare( '((created_at BETWEEN %s AND %s) OR (updated_at BETWEEN %s AND %s))', $start_date, $end_date, $start_date, $end_date ); //phpcs:ignore
-		$conditions2 = $wpdb->prepare( '((created_at BETWEEN %s AND %s) OR (updated_at BETWEEN %s AND %s))', $prev_start_date, $prev_end_date, $prev_start_date, $prev_end_date ); //phpcs:ignore
-
 		return array(
-			'conditions_1' => $conditions1,
-			'conditions_2' => $conditions2,
+			'conditions_1' => array(
+				'clause' => '((created_at BETWEEN %s AND %s) OR (updated_at BETWEEN %s AND %s))',
+				'values' => array( $start_date, $end_date, $start_date, $end_date ),
+			),
+			'conditions_2' => array(
+				'clause' => '((created_at BETWEEN %s AND %s) OR (updated_at BETWEEN %s AND %s))',
+				'values' => array( $prev_start_date, $prev_end_date, $prev_start_date, $prev_end_date ),
+			),
 		);
 	}
 
@@ -304,11 +321,8 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_last_7_days() {
 		return array(
-			// Last 7 days ending yesterday
-			'conditions_1' => "created_at >= CURDATE() - INTERVAL 7 DAY AND created_at < CURDATE()",
-
-			// Previous 7 days
-			'conditions_2' => "created_at >= CURDATE() - INTERVAL 14 DAY AND created_at < CURDATE() - INTERVAL 7 DAY"
+			'conditions_1' => array( 'clause' => 'created_at >= CURDATE() - INTERVAL 7 DAY AND created_at < CURDATE()', 'values' => array() ),
+			'conditions_2' => array( 'clause' => 'created_at >= CURDATE() - INTERVAL 14 DAY AND created_at < CURDATE() - INTERVAL 7 DAY', 'values' => array() ),
 		);
 	}
 
@@ -321,8 +335,8 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_all() {
 		return array(
-			'conditions_1' => '1=1',
-			'conditions_2' => '1=1',
+			'conditions_1' => array( 'clause' => '1=1', 'values' => array() ),
+			'conditions_2' => array( 'clause' => '1=1', 'values' => array() ),
 		);
 	}
 
@@ -335,11 +349,8 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_last_30_days() {
 		return array(
-			// Last 30 days ending yesterday
-			'conditions_1' => "created_at >= CURDATE() - INTERVAL 30 DAY AND created_at < CURDATE()",
-
-			// Previous 30 days
-			'conditions_2' => "created_at >= CURDATE() - INTERVAL 60 DAY AND created_at < CURDATE() - INTERVAL 30 DAY"
+			'conditions_1' => array( 'clause' => 'created_at >= CURDATE() - INTERVAL 30 DAY AND created_at < CURDATE()', 'values' => array() ),
+			'conditions_2' => array( 'clause' => 'created_at >= CURDATE() - INTERVAL 60 DAY AND created_at < CURDATE() - INTERVAL 30 DAY', 'values' => array() ),
 		);
 	}
 
@@ -352,11 +363,8 @@ class DashboardModel {
 	 */
 	private static function get_where_query_for_last_60_days() {
 		return array(
-			// Last 60 days ending yesterday
-			'conditions_1' => "created_at >= CURDATE() - INTERVAL 60 DAY AND created_at < CURDATE()",
-
-			// Previous 60 days
-			'conditions_2' => "created_at >= CURDATE() - INTERVAL 120 DAY AND created_at < CURDATE() - INTERVAL 60 DAY"
+			'conditions_1' => array( 'clause' => 'created_at >= CURDATE() - INTERVAL 60 DAY AND created_at < CURDATE()', 'values' => array() ),
+			'conditions_2' => array( 'clause' => 'created_at >= CURDATE() - INTERVAL 120 DAY AND created_at < CURDATE() - INTERVAL 60 DAY', 'values' => array() ),
 		);
 	}
 
@@ -563,7 +571,7 @@ class DashboardModel {
 			],
 			[
 				'label'     => __('Create your first email', 'mrm'),
-				'completed' => (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$email_builder_table}" ) > 0,
+				'completed' => (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(*) FROM %1s', $email_builder_table ) ) > 0, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				'link'      => 'campaigns/regular/create',
 			],
 			[
@@ -690,50 +698,56 @@ class DashboardModel {
 		}
 
 		// Date filter is provided → Calculate with trend and percentage
-		$start_date      = esc_sql($start_date);
-		$end_date        = esc_sql($end_date);
-		$interval_days   = (strtotime($end_date) - strtotime($start_date)) / (60 * 60 * 24);
-
-		$previous_start  = date('Y-m-d', strtotime($start_date . " -{$interval_days} days"));
-		$previous_end    = date('Y-m-d', strtotime($start_date . " -1 day"));
+		$interval_days  = ( strtotime( $end_date ) - strtotime( $start_date ) ) / ( 60 * 60 * 24 );
+		$previous_start = date( 'Y-m-d', strtotime( $start_date . " -{$interval_days} days" ) );
+		$previous_end   = date( 'Y-m-d', strtotime( $start_date . ' -1 day' ) );
 
 		// Sent Emails Count
-		$current_sent  = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$emails_table} WHERE status = 'sent' AND created_at BETWEEN '{$start_date}' AND '{$end_date}'");
-		$previous_sent = (int) $wpdb->get_var("SELECT COUNT(*) FROM {$emails_table} WHERE status = 'sent' AND created_at BETWEEN '{$previous_start}' AND '{$previous_end}'");
+		$current_sent  = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM `{$emails_table}` WHERE status = 'sent' AND created_at BETWEEN %s AND %s",
+			$start_date, $end_date
+		) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$previous_sent = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM `{$emails_table}` WHERE status = 'sent' AND created_at BETWEEN %s AND %s",
+			$previous_start, $previous_end
+		) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		// Open Emails Count
-		$current_open  = (int) $wpdb->get_var("
-			SELECT COUNT(DISTINCT bm.mint_email_id)
-			FROM {$meta_table} bm
-			INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+		$current_open  = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(DISTINCT bm.mint_email_id)
+			FROM `{$meta_table}` bm
+			INNER JOIN `{$emails_table}` be ON be.id = bm.mint_email_id
 			WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1'
-			AND be.created_at BETWEEN '{$start_date}' AND '{$end_date}'
-		");
+			AND be.created_at BETWEEN %s AND %s",
+			$start_date, $end_date
+		) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-		$previous_open = (int) $wpdb->get_var("
-			SELECT COUNT(DISTINCT bm.mint_email_id)
-			FROM {$meta_table} bm
-			INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+		$previous_open = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(DISTINCT bm.mint_email_id)
+			FROM `{$meta_table}` bm
+			INNER JOIN `{$emails_table}` be ON be.id = bm.mint_email_id
 			WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1'
-			AND be.created_at BETWEEN '{$previous_start}' AND '{$previous_end}'
-		");
+			AND be.created_at BETWEEN %s AND %s",
+			$previous_start, $previous_end
+		) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-		// Unsubscribe Count → If you have this meta key, otherwise skip/remove this
-		$current_unsub  = (int) $wpdb->get_var("
-			SELECT COUNT(DISTINCT bm.mint_email_id)
-			FROM {$meta_table} bm
-			INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+		$current_unsub  = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(DISTINCT bm.mint_email_id)
+			FROM `{$meta_table}` bm
+			INNER JOIN `{$emails_table}` be ON be.id = bm.mint_email_id
 			WHERE bm.meta_key = 'is_unsubscribe' AND bm.meta_value = '1'
-			AND be.created_at BETWEEN '{$start_date}' AND '{$end_date}'
-		");
+			AND be.created_at BETWEEN %s AND %s",
+			$start_date, $end_date
+		) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
-		$previous_unsub = (int) $wpdb->get_var("
-			SELECT COUNT(DISTINCT bm.mint_email_id)
-			FROM {$meta_table} bm
-			INNER JOIN {$emails_table} be ON be.id = bm.mint_email_id
+		$previous_unsub = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(DISTINCT bm.mint_email_id)
+			FROM `{$meta_table}` bm
+			INNER JOIN `{$emails_table}` be ON be.id = bm.mint_email_id
 			WHERE bm.meta_key = 'is_unsubscribe' AND bm.meta_value = '1'
-			AND be.created_at BETWEEN '{$previous_start}' AND '{$previous_end}'
-		");
+			AND be.created_at BETWEEN %s AND %s",
+			$previous_start, $previous_end
+		) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 		return array(
 			'sent'        => self::format_email_metric($current_sent, $previous_sent),

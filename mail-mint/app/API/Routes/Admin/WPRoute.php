@@ -68,7 +68,7 @@ class WPRoute {
 						$this->controller,
 						'get_pages',
 					),
-					'permission_callback' => '__return_true',
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
 				),
 			)
 		);
@@ -84,7 +84,7 @@ class WPRoute {
 						$this->controller,
 						'get_posts',
 					),
-					'permission_callback' => '__return_true',
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
 				),
 			)
 		);
@@ -100,7 +100,7 @@ class WPRoute {
 						$this->controller,
 						'get_products',
 					),
-					'permission_callback' => '__return_true',
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
 				),
 			)
 		);
@@ -117,7 +117,7 @@ class WPRoute {
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_categories' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
 				),
 			)
 		);
@@ -134,7 +134,7 @@ class WPRoute {
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'callback'            => array( $this->controller, 'get_tags' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
 				),
 			)
 		);

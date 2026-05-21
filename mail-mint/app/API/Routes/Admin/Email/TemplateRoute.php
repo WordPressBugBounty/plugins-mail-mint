@@ -106,7 +106,7 @@ class TemplateRoute extends AdminRoute {
             array(
                 'methods'             => WP_REST_Server::READABLE,
                 'callback'            => array( $this->controller, 'get_woocommerce_email_template' ),
-                'permission_callback' => '__return_true',
+                'permission_callback' => PermissionManager::current_user_can('mint_manage_email_templates'),
             ),
         ) );
     }

@@ -51,8 +51,13 @@ class BounceHandlerController extends FrontendBaseController{
         $provider   = isset($params['provider']) ? $params['provider'] : '';
         $token      = isset($params['token']) ? $params['token'] : '';
 
+        // Validate the token for all requests before dispatching to any handler.
+        if ( $token != $this->get_security_code() ) {
+            return $this->get_error();
+        }
+
         if ( !in_array( $provider, $this->valid_services ) ) {
-            // This is a custom bounce handler.
+            // This is a custom bounce handler — token already validated above.
             return apply_filters('mint_handle_bounce_' . $provider, [
                 'success' => 0,
                 'message' => '',
@@ -60,10 +65,6 @@ class BounceHandlerController extends FrontendBaseController{
                 'result'  => '',
                 'time'    => time()
             ], $request, $token);
-        }
-
-        if ( $token != $this->get_security_code()) {
-            return $this->get_error();
         }
 
         $result = (new EmailBounce())->handle($provider, $request);

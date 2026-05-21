@@ -421,21 +421,6 @@ class SettingRoute {
 			)
 		);
 
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/create-contact',
-			array(
-				array(
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'callback'            => array(
-						$this->email_controller,
-						'handle_contact_creation',
-					),
-					'permission_callback' => '__return_true',
-				)
-			)
-		);
-
 		// API routes for advanced settings.
 		$this->advanced_settings_controller = new AdvancedSettingController();
         register_rest_route(

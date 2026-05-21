@@ -460,7 +460,7 @@ class FormRoute {
 		);
 
 
-				/**
+		/**
 		 * Route for get id and body
 		 *
 		 * @return void
@@ -476,7 +476,7 @@ class FormRoute {
 						$this->controller,
 						'get_form_list_by_search',
 					),
-					'permission_callback' => '__return_true',
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
 				),
 			)
 		);

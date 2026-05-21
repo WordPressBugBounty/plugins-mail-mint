@@ -287,9 +287,10 @@ class EmailHistoryController extends AdminBaseController {
 			return $this->get_error_response( __( 'Email record not found.', 'mrm' ), 404 );
 		}
 
-		$subject = $row->campaign_subject;
+		$subject    = $row->campaign_subject;
+		$email_body = $row->email_body;
 
-		if ( 'automation' === $row->email_type && ! empty( $row->step_id ) && empty( $subject ) ) {
+		if ( 'automation' === $row->email_type && ! empty( $row->step_id ) ) {
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$step = $wpdb->get_row(
 				$wpdb->prepare( "SELECT settings FROM {$automation_steps} WHERE step_id = %s LIMIT 1", $row->step_id )
@@ -300,7 +301,12 @@ class EmailHistoryController extends AdminBaseController {
 				if ( is_string( $settings ) ) {
 					$settings = json_decode( $settings, true );
 				}
-				$subject = isset( $settings['message_data']['subject'] ) ? $settings['message_data']['subject'] : '';
+				if ( empty( $subject ) ) {
+					$subject = isset( $settings['message_data']['subject'] ) ? $settings['message_data']['subject'] : '';
+				}
+				if ( empty( $email_body ) ) {
+					$email_body = isset( $settings['message_data']['body'] ) ? $settings['message_data']['body'] : '';
+				}
 			}
 		}
 
@@ -323,7 +329,7 @@ class EmailHistoryController extends AdminBaseController {
 				'first_name'    => $row->first_name ?: '',
 				'last_name'     => $row->last_name ?: '',
 				'subject'       => $subject ?: __( '(No Subject)', 'mrm' ),
-				'body'          => $row->email_body ?: '',
+				'body'          => $email_body ?: '',
 				'status'        => $row->status,
 				'sending_time'  => $row->created_at,
 				'sender_email'  => $from_email,
@@ -390,7 +396,7 @@ class EmailHistoryController extends AdminBaseController {
 					$subject = isset( $settings['message_data']['subject'] ) ? $settings['message_data']['subject'] : '';
 				}
 				if ( empty( $body ) ) {
-					$body = isset( $settings['message_data']['email_body'] ) ? $settings['message_data']['email_body'] : '';
+					$body = isset( $settings['message_data']['body'] ) ? $settings['message_data']['body'] : '';
 				}
 				if ( empty( $preview_text ) ) {
 					$preview_text = isset( $settings['message_data']['email_preview_text'] ) ? $settings['message_data']['email_preview_text'] : '';
@@ -430,7 +436,8 @@ class EmailHistoryController extends AdminBaseController {
 		}
 
 		// Generate a new hash for this resend (tracking pixel, click tracking, unsubscribe).
-		$new_hash = MrmCommon::get_rand_email_hash( $row->email_address, (int) $row->campaign_id );
+		$hash_id  = (int) $row->campaign_id ?: ( (int) $row->automation_id ?: $id );
+		$new_hash = MrmCommon::get_rand_email_hash( $row->email_address, $hash_id );
 
 		// Wrap all links with click-tracking URLs.
 		$body = Helper::replace_url( $body, $new_hash );

@@ -50,6 +50,9 @@ class WooCommerceCheckoutContact {
 			add_action( 'woocommerce_checkout_before_terms_and_conditions', array( $this, 'add_consent_checkbox' ) );
 			add_action( 'woocommerce_checkout_create_order', array( $this, 'add_consent_to_order_meta' ) );
 			add_action( 'woocommerce_new_order', array( $this, 'register_user_as_contact' ), 10, 2 );
+
+			add_action( 'woocommerce_blocks_checkout_enqueue_data', array( $this, 'register_block_consent_checkbox' ), 1 );
+			add_action( 'woocommerce_store_api_checkout_update_order_from_request', array( $this, 'save_block_consent_to_order_meta' ), 10, 2 );
 		}
 	}
 
@@ -66,15 +69,78 @@ class WooCommerceCheckoutContact {
 		if ( $user_email && ! ContactModel::is_contact_exist( $user_email ) || ! is_user_logged_in() ) {
 			woocommerce_form_field(
 				'mintmail_woocommerce_optin_consent',
-				array(
+				[
 					'type'        => 'checkbox',
 					'label'       => esc_html( $label ),
-					'input_class' => array( 'mintmrm_add_contact_consent_checkbox' ),
-					'label_class' => array( 'woocommerce-form__label', 'woocommerce-form__label-for-checkbox', 'checkbox' ),
-				),
+					'input_class' => [ 'mintmrm_add_contact_consent_checkbox' ],
+					'label_class' => [ 'woocommerce-form__label', 'woocommerce-form__label-for-checkbox', 'checkbox' ],
+				],
 				0
 			);
 		}
+	}
+
+	/**
+	 * Register the opt-in consent checkbox for the WooCommerce block checkout.
+	 * Classic checkout uses add_consent_checkbox() via the shortcode hook instead.
+	 *
+	 * @return void
+	 * @since 1.0.0
+	 */
+	public function register_block_consent_checkbox() {
+		if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
+			return;
+		}
+
+		$label = $this->setting_options['checkbox_label'] ?? __( 'I would like to receive exclusive emails with discounts and product information.', 'mrm' );
+
+		woocommerce_register_additional_checkout_field(
+			[
+				'id'                => 'mailmint/optin-consent',
+				'label'             => wp_strip_all_tags( $label ),
+				'location'          => 'order',
+				'type'              => 'checkbox',
+				'required'          => false,
+				'sanitize_callback' => array( $this, 'sanitize_block_consent_checkbox' ),
+			]
+		);
+	}
+
+	/**
+	 * Normalize the block checkout consent checkbox value to '1' or '0'.
+	 *
+	 * @param mixed $value Raw value from Store API request.
+	 * @return string
+	 */
+	public function sanitize_block_consent_checkbox( $value ) {
+		return ( true === $value || '1' === $value || 1 === $value || 'true' === $value ) ? '1' : '0';
+	}
+
+	/**
+	 * Map block checkout consent to the same order meta key used by classic checkout,
+	 * so register_user_as_contact() works identically for both checkout types.
+	 *
+	 * @param \WC_Order       $order   Order being processed.
+	 * @param \WP_REST_Request $request Store API request.
+	 * @return void
+	 */
+	public function save_block_consent_to_order_meta( $order, $request ) {
+		if ( ! $order instanceof \WC_Order || ! $request instanceof \WP_REST_Request ) {
+			return;
+		}
+
+		$additional = (array) ( $request->get_param( 'additional_fields' ) ?? [] );
+
+		if ( ! array_key_exists( 'mailmint/optin-consent', $additional ) && $request->get_body() ) {
+			$body = json_decode( $request->get_body(), true );
+			if ( is_array( $body ) && ! empty( $body['additional_fields'] ) ) {
+				$additional = array_merge( $additional, (array) $body['additional_fields'] );
+			}
+		}
+
+		$value    = $additional['mailmint/optin-consent'] ?? null;
+		$accepted = ( true === $value || '1' === $value || 1 === $value || 'true' === $value );
+		$order->update_meta_data( '_mrm_newsletter_subscription', $accepted ? 'Yes' : 'No' );
 	}
 
 	/**
@@ -87,7 +153,7 @@ class WooCommerceCheckoutContact {
 	 * @since 1.0.0
 	 */
 	public function register_user_as_contact( $order_id, $order ) {
-		$consent_accepted    = 'Yes' === $order->get_meta( '_mrm_newsletter_subscription' );
+		$consent_accepted = 'Yes' === $order->get_meta( '_mrm_newsletter_subscription' );
 		$logged_in_user_data = is_user_logged_in() ? wp_get_current_user() : array();
 
 		if ( $consent_accepted ) {

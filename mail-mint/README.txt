@@ -3,9 +3,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
-Tested up to: 6.9.4
+Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.22.0
+Stable tag:  1.22.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,6 +528,15 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
+= 1.22.1 (2026-05-21) =
+* Improvement: Faster loading of Frontend Assets for better Plugin performance.
+* Improvement: Multiple Security and Compatibility improvements.
+* Improvement: Search for Lists or Tags directly on the Analytics page.
+* Improvement: Better UI and UX for Automation Triggers and Actions.
+* Improvement: Custom Bounce Providers can now bypass all Token Validation.
+* Bugfix: Fixed Lists or Tags selection issue on the Campaign.
+* Bugfix: Fixed Automation Email Preview not showing in Email History.
+
 = 1.22.0 (2026-05-19) =
 * New: Track Contacts, Email Performance, and WooCommerce data with Advanced Analytics.
 * New: View a Full Log of all Email Activity in one Place.
@@ -933,59 +942,5 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 = 1.12.0 (2024-05-23) =
 * New: Import Contacts from the LifterLMS
 * Bugfix: Broken Link on the Opt-in Email 
-
-= 1.11.1 (2024-05-14) =
-* Improvement: Compatibility with WP HTML Mail
-* Bugfix: URL Handling Issue on the Classic Editor 
-
-= 1.11.0 (2024-05-09) =
-* New: Customize WooCommerce Transactional Emails through Classic Editor
-* Improvement: Raleway Custom Font Support on Visual Editor
-* Bugfix: EDD Customers Import not Works
-
-= 1.10.7 (2024-05-06) =
-* Bugfix: WordPress Database Error on the Campaign Click Performance
-* Bugfix: Contact Import does not Working for EDD Pro
-
-= 1.10.6 (2024-05-03) =
-* Improvement: Enhance Translation Support
-
-= 1.10.5 (2024-04-30) =
-* Improvement: CSS Conflict with ElementsKit
-
-= 1.10.4 (2024-04-23) =
-* New: Design Double Opt-in Email Through Visual Editor
-* New: Introduced New Email Templates for Double Opt-in
-* Improvement: Font Families in the Visual Editor
-* Improvement: Classic Editor Toolbar and Layout
-* Improvement: Editor Layouts on the Email Templates Hub
-* Improvement: Enhance Merge Tags on the Visual Editor
-* Improvement: Enhance UI on the Automation Action Popup
-* Bugfix: Subscriber Growth and Revenue Rate on the Dashboard
-* Bugfix: Form CSS Conflict with Elessi Theme and ElementsKit
-* Bugfix: Selected Value cannot be removed in the Form Settings
-* Bugfix: Unordered List is not Working on the Email Preview
-
-= 1.10.3 (2024-04-16) =
-* Bugfix: Draft Forms are Triggered on the Automation
-
-= 1.10.2 (2024-04-05) =
-* Bugfix: Imported Contacts are being Skipped
-
-= 1.10.1 (2024-04-04) =
-* Bugfix: UI Conflict Issues on the Integrations Page
-
-= 1.10.0 (2024-04-04) =
-* New: Introduced New Email Templates
-* New: Introduced New Menu for Email Templates
-* Improvement: Compatibility with WordPress 6.5
-* Improvement: Compatibility with PHP 8.3
-* Improvement: Revamped Email Templates Thumbnail Images
-* Improvement: Enhance Visual Editor UI
-* Improvement: Enhance Merge Tags on the Visual Editor
-* Improvement: Close Popup Modal Using ‘Escape’ Key
-* Bugfix: Emails are Sending Multiple Times from the Automation
-* Bugfix: Font Color is not Working on the Email Editor
-* Bugfix: Hyperlink is not Working on the Visual Editor for Mozilla Firefox
 
 The full changelog is available [here](https://getwpfunnels.com/changelog/).

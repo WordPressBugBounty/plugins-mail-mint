@@ -48,7 +48,7 @@ class FormSubmissionController extends FrontendBaseController {
 			}
 		}
 
-		if ( ! $logged_in && ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
 			return new WP_Error(
 				'mailmint_unauthorized_submission',
 				__( 'Seems like you are a bot! Try again later', 'mrm' )

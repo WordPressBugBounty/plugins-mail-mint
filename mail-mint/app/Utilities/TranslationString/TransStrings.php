@@ -847,7 +847,7 @@ class TransStrings
 
 			// Create Webhook
 			'NameIsMandatory'        => __('Name is mandatory', 'mrm'),
-			'PleaseSelectATagOrList' => __('Please select a tag or list', 'mrm'),
+			'PleaseSelectATagOrList' => __('Please select a list or tag.', 'mrm'),
 			'CopyURL'                => __('Copy URL', 'mrm'),
 			'CopyURLToolTip'         => __('You can copy to share or embed this URL to trigger the specified action.', 'mrm'),
 			'ContactField'           => __('Contact Field', 'mrm'),

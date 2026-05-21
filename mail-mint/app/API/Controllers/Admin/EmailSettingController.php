@@ -125,34 +125,4 @@ class EmailSettingController extends SettingBaseController {
 
 		return $this->get_success_response_data( $settings );
 	}
-
-	/**
-	 * Handles the creation of a new contact via the Mail Mint API.
-	 *
-	 * This function retrieves the necessary data from the API request, creates a new contact using
-	 * the CreateContact class, and sends the contact information to Appsero.
-	 *
-	 * @param WP_REST_Request $request The API request object containing the contact details.
-	 *
-	 * @return WP_REST_Response The response object with the status and message of the contact creation.
-	 * @since 1.13.0
-	 */
-	public function handle_contact_creation( WP_REST_Request $request ) {
-		// Get values from API.
-		$params = MrmCommon::get_api_params_values( $request );
-		
-		$email = isset( $params['email'] ) ? $params['email'] : '';
-		$name  = isset( $params['name'] ) ? $params['name'] : '';
-
-		$instance = new CreateContact( $email, $name );
-		$response = $instance->create_contact_via_webhook();
-		$instance->send_contact_to_appsero();
-		return rest_ensure_response(
-			array(
-				'status'  => 'success',
-				'message' => __( 'Contact has been added successfully.', 'mrm' ),
-				'results' => $response,
-			)
-		);
-	}
 }
