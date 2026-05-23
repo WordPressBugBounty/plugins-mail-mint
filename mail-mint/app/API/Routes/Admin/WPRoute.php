@@ -141,6 +141,49 @@ class WPRoute {
 
 		register_rest_route(
 			$this->namespace,
+			'/' . $this->rest_base . '/countries',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_countries' ),
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/states',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_states' ),
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
+					'args'                => array(
+						'country' => array(
+							'type'              => 'string',
+							'required'          => true,
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/timezones',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_timezones' ),
+					'permission_callback' => PermissionManager::current_user_is_mint_user(),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
 			'/' . $this->rest_base . '/admins',
 			array(
 				array(

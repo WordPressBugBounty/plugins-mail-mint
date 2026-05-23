@@ -90,9 +90,26 @@ class GlobalQueueCoordinator {
 			return;
 		}
 
-		// Skip if we recently confirmed no orphans exist.
+		// Skip if we recently confirmed no orphans exist — unless a coordinator
+		// action has since failed (e.g. PHP timeout), in which case the transient
+		// is stale and we must restart regardless.
 		if ( get_transient( 'mailmint_coordinator_healthy' ) ) {
-			return;
+			global $wpdb;
+			$failed_coordinator = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT ag.action_id
+					FROM {$wpdb->prefix}actionscheduler_actions ag
+					INNER JOIN {$wpdb->prefix}actionscheduler_groups ag_grp ON ag.group_id = ag_grp.group_id
+					WHERE ag.hook = %s AND ag_grp.slug = %s AND ag.status = 'failed'
+					LIMIT 1",
+					self::HOOK,
+					self::GROUP
+				)
+			);
+			if ( ! $failed_coordinator ) {
+				return;
+			}
+			delete_transient( 'mailmint_coordinator_healthy' );
 		}
 
 		global $wpdb;

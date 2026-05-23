@@ -151,5 +151,17 @@ class DashboardRoute {
 				),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/dashboard/sync',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'sync_cache' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_view_dashboard' ),
+				),
+			)
+		);
 	}
 }

@@ -663,6 +663,38 @@ class FormModel {
 		return $wpdb->get_var($form_query);
 	}
 
+	/**
+	 * Batch-fetch titles for multiple forms in a single query.
+	 *
+	 * @param array $ids Array of form IDs.
+	 * @return array Keyed by form ID; values are title strings.
+	 * @since 1.0.0
+	 */
+	public static function get_form_titles_by_ids( array $ids ) {
+		if ( empty( $ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+		$form_table = $wpdb->prefix . FormSchema::$table_name;
+
+		$ids          = array_unique( array_filter( array_map( 'absint', $ids ) ) );
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$rows = $wpdb->get_results(
+			$wpdb->prepare( "SELECT id, title FROM $form_table WHERE id IN ($placeholders)", $ids ), // db call ok. ; no-cache ok.
+			ARRAY_A
+		);
+
+		$map = array();
+		foreach ( $rows as $row ) {
+			$map[ (int) $row['id'] ] = $row['title'];
+		}
+
+		return $map;
+	}
+
 	public static function get_form_count(){
 		global $wpdb;
 		$table_name = $wpdb->prefix . FormSchema::$table_name;

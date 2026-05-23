@@ -31,8 +31,10 @@ class ComplianceAction {
 			'one_click_unsubscribe' => 'no',
 			'enable_gravatar'       => 'no',
 			'gravatar_fallback'     => 'no',
+			'personal_data_export'  => 'yes',
+			'personal_data_erase'   => 'yes',
 		);
-		$settings = get_option( '_mint_compliance', $default );
-		return $settings;
+		$settings = get_option( '_mint_compliance', [] );
+		return wp_parse_args( $settings, $default );
 	}
 }

@@ -579,10 +579,9 @@ class Email {
 	 */
 	public static function inject_preview_text_on_email_body( $preview_text, $email_body ) {
 		$pre_header = '<div class="preheader" style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">' . $preview_text . '</div>';
-		if ( strpos( $email_body, '</body>' ) ) {
-			$pattern     = '/<body(.*?)>(.*?)<\/body>/is';
-			$replacement = '<body$1>' . $pre_header . '$2</body>';
-			$email_body  = preg_replace( $pattern, $replacement, $email_body );
+		if ( preg_match( '/<body[^>]*>/i', $email_body, $m, PREG_OFFSET_CAPTURE ) ) {
+			$insert_at  = $m[0][1] + strlen( $m[0][0] );
+			$email_body = substr( $email_body, 0, $insert_at ) . $pre_header . substr( $email_body, $insert_at );
 		} else {
 			$email_body = $pre_header . ' ' . $email_body;
 		}

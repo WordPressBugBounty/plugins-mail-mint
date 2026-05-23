@@ -20,6 +20,8 @@ use Mint\MRM\DataBase\Tables\ContactSchema;
 use MRM\Common\MrmCommon;
 use Mint\MRM\DataBase\Models\CampaignModel as ModelsCampaign;
 use Mint\MRM\DataBase\Tables\EmailTemplatesSchema;
+use Mint\MRM\DataBase\Tables\EmailSchema;
+use Mint\MRM\DataBase\Tables\EmailMetaSchema;
 use MintMail\App\Internal\Automation\AutomationModel;
 use MintMail\App\Internal\Automation\HelperFunctions;
 
@@ -35,6 +37,25 @@ use MintMail\App\Internal\Automation\HelperFunctions;
  */
 class DashboardModel {
 
+	const CACHE_VERSION_KEY = 'mint_dashboard_cache_version';
+	const CACHE_TTL         = 300; // 5 minutes
+
+	/**
+	 * Bump the cache version, effectively invalidating all cached dashboard data.
+	 */
+	public static function flush_cache() {
+		update_option( self::CACHE_VERSION_KEY, self::get_cache_version() + 1, false );
+	}
+
+	private static function get_cache_version() {
+		return (int) get_option( self::CACHE_VERSION_KEY, 1 );
+	}
+
+	private static function make_cache_key( $id, ...$params ) {
+		$v = self::get_cache_version();
+		return 'mint_dash_' . $v . '_' . $id . ( $params ? '_' . md5( implode( '|', array_map( 'strval', $params ) ) ) : '' );
+	}
+
 	/**
 	 * Get top card data for the dashboard based on a filter.
 	 *
@@ -49,17 +70,25 @@ class DashboardModel {
 	 * @since 1.18.0
 	 */
 	public static function get_top_cards_data( $filter = 'last_30_days', $start_date = '', $end_date = '' ) {
+		$cache_key = self::make_cache_key( 'top_cards', $filter, $start_date, $end_date );
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		global $wpdb;
 		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
 		$email_stats   = self::fetch_email_stats_for_filter( $filter, $start_date, $end_date );
 
-		return array(
+		$result = array(
 			'contacts'     => self::fetch_data( $contact_table, $filter, $start_date, $end_date ),
 			'unsubscribed' => self::fetch_unsubscribed_contacts_for_filter( $contact_table, $filter, $start_date, $end_date ),
 			'emails_sent'  => $email_stats['sent'],
 			'open_rate'    => $email_stats['open_rate'],
 			'click_rate'   => $email_stats['click_rate'],
 		);
+		set_transient( $cache_key, $result, self::CACHE_TTL );
+		return $result;
 	}
 
 	/**
@@ -428,6 +457,12 @@ class DashboardModel {
 	 * @since 1.0.0
 	 */
 	public static function get_recent_campaign_performance() {
+		$cache_key = self::make_cache_key( 'campaigns' );
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		global $wpdb;
 		$campaigns_table = $wpdb->prefix . CampaignSchema::$campaign_table;
 
@@ -436,35 +471,66 @@ class DashboardModel {
 
 		if ( empty( $results ) ) {
 			$draft_count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(`id`) FROM %1s WHERE `status` = %s', $campaigns_table, 'draft' ) ); //phpcs:ignore
-			return array(
-				'items'       => array(),
-				'draft_count' => $draft_count,
-			);
+			$result = array( 'items' => array(), 'draft_count' => $draft_count );
+		} else {
+			$campaign_ids    = array_map( 'intval', array_column( $results, 'id' ) );
+			$ids_placeholder = implode( ',', $campaign_ids );
+
+			$broadcast_emails_table = $wpdb->prefix . EmailSchema::$table_name;
+			$broadcast_meta_table   = $wpdb->prefix . EmailMetaSchema::$table_name;
+			$campaign_meta_table    = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
+			$campaign_emails_table  = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
+
+			// Batch 1: failed (bounced) count per campaign.
+			$bounced_rows = $wpdb->get_results( "SELECT campaign_id, COUNT(*) AS cnt FROM {$broadcast_emails_table} WHERE status = 'failed' AND campaign_id IN ({$ids_placeholder}) GROUP BY campaign_id", ARRAY_A ); //phpcs:ignore
+			$bounced_map  = array_column( $bounced_rows, 'cnt', 'campaign_id' );
+
+			// Batch 2: total_recipients meta per campaign.
+			$recipients_rows = $wpdb->get_results( $wpdb->prepare( "SELECT campaign_id, meta_value FROM {$campaign_meta_table} WHERE meta_key = %s AND campaign_id IN ({$ids_placeholder})", 'total_recipients' ), ARRAY_A ); //phpcs:ignore
+			$recipients_map  = array_column( $recipients_rows, 'meta_value', 'campaign_id' );
+
+			// Batch 3: campaign email count per campaign (used in open/click rate denominator).
+			$email_count_rows = $wpdb->get_results( "SELECT campaign_id, COUNT(id) AS cnt FROM {$campaign_emails_table} WHERE campaign_id IN ({$ids_placeholder}) GROUP BY campaign_id", ARRAY_A ); //phpcs:ignore
+			$email_count_map  = array_column( $email_count_rows, 'cnt', 'campaign_id' );
+
+			// Batch 4: open count per campaign.
+			$open_rows = $wpdb->get_results( "SELECT be.campaign_id, COUNT(bem.mint_email_id) AS cnt FROM {$broadcast_meta_table} bem INNER JOIN {$broadcast_emails_table} be ON bem.mint_email_id = be.id WHERE bem.meta_key = 'is_open' AND bem.meta_value = 1 AND be.campaign_id IN ({$ids_placeholder}) GROUP BY be.campaign_id", ARRAY_A ); //phpcs:ignore
+			$open_map  = array_column( $open_rows, 'cnt', 'campaign_id' );
+
+			// Batch 5: click count per campaign.
+			$click_rows = $wpdb->get_results( "SELECT be.campaign_id, COUNT(bem.mint_email_id) AS cnt FROM {$broadcast_meta_table} bem INNER JOIN {$broadcast_emails_table} be ON bem.mint_email_id = be.id WHERE bem.meta_key = 'is_click' AND bem.meta_value = 1 AND be.campaign_id IN ({$ids_placeholder}) GROUP BY be.campaign_id", ARRAY_A ); //phpcs:ignore
+			$click_map  = array_column( $click_rows, 'cnt', 'campaign_id' );
+
+			// Batch 6: unsubscribe count per campaign.
+			$unsub_rows = $wpdb->get_results( "SELECT be.campaign_id, COUNT(bem.mint_email_id) AS cnt FROM {$broadcast_meta_table} bem INNER JOIN {$broadcast_emails_table} be ON bem.mint_email_id = be.id WHERE bem.meta_key = 'is_unsubscribe' AND bem.meta_value = 1 AND be.campaign_id IN ({$ids_placeholder}) GROUP BY be.campaign_id", ARRAY_A ); //phpcs:ignore
+			$unsub_map  = array_column( $unsub_rows, 'cnt', 'campaign_id' );
+
+			$campaigns = array();
+			foreach ( $results as $campaign ) {
+				$campaign_id      = isset( $campaign['id'] ) ? (int) $campaign['id'] : 0;
+				$total_bounced    = isset( $bounced_map[ $campaign_id ] ) ? (int) $bounced_map[ $campaign_id ] : 0;
+				$total_recipients = isset( $recipients_map[ $campaign_id ] ) ? (int) $recipients_map[ $campaign_id ] : 0;
+				$email_count      = isset( $email_count_map[ $campaign_id ] ) ? (int) $email_count_map[ $campaign_id ] : 0;
+				$total_opened     = isset( $open_map[ $campaign_id ] ) ? (int) $open_map[ $campaign_id ] : 0;
+				$total_clicked    = isset( $click_map[ $campaign_id ] ) ? (int) $click_map[ $campaign_id ] : 0;
+				$divide_by        = ( $total_recipients * $email_count ) - $total_bounced;
+				$divide_by        = 0 === $divide_by ? 1 : $divide_by;
+				$campaigns[]      = array(
+					'id'               => $campaign_id,
+					'title'            => isset( $campaign['title'] ) ? $campaign['title'] : '',
+					'status'           => isset( $campaign['status'] ) ? $campaign['status'] : '',
+					'type'             => isset( $campaign['type'] ) ? $campaign['type'] : '',
+					'total_recipients' => $total_recipients,
+					'open_rate'        => number_format( (float) ( $total_opened / $divide_by ) * 100, 2, '.', '' ) . '%',
+					'click_rate'       => number_format( (float) ( $total_clicked / $divide_by ) * 100, 2, '.', '' ) . '%',
+					'unsubscribe'      => isset( $unsub_map[ $campaign_id ] ) ? (int) $unsub_map[ $campaign_id ] : 0,
+				);
+			}
+			$result = array( 'items' => $campaigns, 'draft_count' => 0 );
 		}
 
-		// Prepare campaigns data.
-		$campaigns = array();
-		foreach ( $results as $campaign ) {
-			$campaign_id      = isset( $campaign['id'] ) ? (int) $campaign['id'] : 0;
-			$title            = isset( $campaign['title'] ) ? $campaign['title'] : '';
-			$status           = isset( $campaign['status'] ) ? $campaign['status'] : '';
-			$total_bounced    = EmailModel::count_delivered_status_on_campaign( $campaign_id, 'failed' );
-			$total_recipients = ModelsCampaign::get_campaign_meta_value( $campaign_id, 'total_recipients' );
-			$campaigns[]      = array(
-				'id'               => $campaign_id,
-				'title'            => $title,
-				'status'           => $status,
-				'type'             => isset( $campaign['type'] ) ? $campaign['type'] : '',
-				'total_recipients' => $total_recipients,
-				'open_rate'        => ModelsCampaign::prepare_campaign_open_rate( $campaign_id, $total_recipients, $total_bounced ) . '%',
-				'click_rate'       => ModelsCampaign::prepare_campaign_click_rate( $campaign_id, $total_recipients, $total_bounced ) . '%',
-				'unsubscribe'      => EmailModel::count_unsubscribe_on_campaign( $campaign_id ),
-			);
-		}
-		return array(
-			'items'       => $campaigns,
-			'draft_count' => 0,
-		);
+		set_transient( $cache_key, $result, self::CACHE_TTL );
+		return $result;
 	}
 
 	/**
@@ -478,38 +544,40 @@ class DashboardModel {
 	 * @since 1.18.0
 	 */
 	public static function get_recent_automation_performance() {
+		$cache_key = self::make_cache_key( 'automations' );
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		global $wpdb;
 		$automation_table = $wpdb->prefix . AutomationSchema::$table_name;
 
 		$results = AutomationModel::get_all('id', 'desc', 0, 5, '', 'active');
 		if ( ! isset( $results['data'] ) || empty( $results['data'] ) ) {
 			$draft_count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(`id`) FROM %1s WHERE `status` = %s', $automation_table, 'draft' ) ); //phpcs:ignore
-			return array(
-				'items'       => array(),
-				'draft_count' => $draft_count,
+			$result = array( 'items' => array(), 'draft_count' => $draft_count );
+		} else {
+			$automations = array_map(
+				function( $automation ) {
+					if ( is_array( $automation ) && !empty( $automation ) ) {
+						$created_at    = isset( $automation['created_at'] ) ? $automation['created_at'] : '';
+						$automation_id = isset( $automation['id'] ) ? $automation['id'] : '';
+
+						$automation['created_ago'] = human_time_diff( strtotime( $created_at ), current_time( 'timestamp' ) );
+						$automation['entered']     = HelperFunctions::count_total_enterance( $automation_id );
+						$automation['completed']   = HelperFunctions::count_completed_automation( $automation_id );
+						$automation['processing']  = $automation['entered'] - $automation['completed'];
+					}
+					return $automation;
+				},
+				$results['data']
 			);
+			$result = array( 'items' => $automations, 'draft_count' => 0 );
 		}
 
-		$automations = array_map(
-			function( $automation ) {
-				if ( is_array( $automation ) && !empty( $automation ) ) {
-					$created_at    = isset( $automation['created_at'] ) ? $automation['created_at'] : '';
-					$automation_id = isset( $automation['id'] ) ? $automation['id'] : '';
-
-					$automation['created_ago'] = human_time_diff( strtotime( $created_at ), current_time( 'timestamp' ) );
-					$automation['entered']     = HelperFunctions::count_total_enterance( $automation_id );
-					$automation['completed']   = HelperFunctions::count_completed_automation( $automation_id );
-					$automation['processing']  = $automation['entered'] - $automation['completed'];
-				}
-				return $automation;
-			},
-			$results['data']
-		);
-
-		return array(
-			'items'       => $automations,
-			'draft_count' => 0,
-		);
+		set_transient( $cache_key, $result, self::CACHE_TTL );
+		return $result;
 	}
 
 	/**
@@ -520,6 +588,12 @@ class DashboardModel {
 	 * @since 1.18.0
 	 */
 	public static function get_recent_form_performance() {
+		$cache_key = self::make_cache_key( 'forms' );
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		global $wpdb;
 		$form_table      = $wpdb->prefix . FormSchema::$table_name;
 		$form_meta_table = $wpdb->prefix . FormMetaSchema::$table_name;
@@ -537,16 +611,13 @@ class DashboardModel {
 
 		if ( empty( $results ) ) {
 			$draft_count = (int) $wpdb->get_var( $wpdb->prepare( 'SELECT COUNT(`id`) FROM %1s WHERE `status` = %s', $form_table, 'draft' ) ); //phpcs:ignore
-			return array(
-				'items'       => array(),
-				'draft_count' => $draft_count,
-			);
+			$result = array( 'items' => array(), 'draft_count' => $draft_count );
+		} else {
+			$result = array( 'items' => $results, 'draft_count' => 0 );
 		}
 
-		return array(
-			'items'       => $results,
-			'draft_count' => 0,
-		);
+		set_transient( $cache_key, $result, self::CACHE_TTL );
+		return $result;
 	}
 
 	/**
@@ -625,13 +696,22 @@ class DashboardModel {
 	 * @since 1.18.0
 	 */
 	public static function prepare_dashboard_metrics( $metric, $start_date = '', $end_date = '' ) {
+		$cache_key = self::make_cache_key( 'metrics', $metric, $start_date, $end_date );
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		if ( 'emails' === $metric ) {
-			return self::get_emails_data( $start_date, $end_date );
+			$result = self::get_emails_data( $start_date, $end_date );
 		} elseif ( 'revenue' === $metric ) {
-			return self::get_revenue_data( $start_date, $end_date );
+			$result = self::get_revenue_data( $start_date, $end_date );
 		} else {
 			return [];
 		}
+
+		set_transient( $cache_key, $result, self::CACHE_TTL );
+		return $result;
 	}
 
 	/**
@@ -1071,6 +1151,12 @@ class DashboardModel {
 	 * @since 1.19.0
 	 */
 	public static function get_eps_data( $filter = 'last_30_days', $start_date = '', $end_date = '', $granularity = 'daily' ) {
+		$cache_key = self::make_cache_key( 'eps', $filter, $start_date, $end_date, $granularity );
+		$cached    = get_transient( $cache_key );
+		if ( false !== $cached ) {
+			return $cached;
+		}
+
 		global $wpdb;
 
 		$window = self::resolve_date_window( $filter, $start_date, $end_date );
@@ -1100,10 +1186,12 @@ class DashboardModel {
 		 */
 		$woocommerce = apply_filters( 'mint_eps_woocommerce_data', null, $start, $end, $labels, $use_weekly );
 
-		return array(
+		$result = array(
 			'deliverability' => $deliverability,
 			'woocommerce'    => $woocommerce,
 		);
+		set_transient( $cache_key, $result, self::CACHE_TTL );
+		return $result;
 	}
 
 	/**

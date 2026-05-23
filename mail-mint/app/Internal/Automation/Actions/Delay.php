@@ -80,8 +80,10 @@ class Delay extends AbstractAutomationAction {
 				if ( isset( $data['delay_time'] ) || !empty( $data['delay_time'] ) ) {
 					$time = $data['delay_time'];
 				}
-				if ( !$this->validate_delay( $time ) ) {
+				if ( $time <= 0 ) {
 					$time = 0;
+				} elseif ( $time > 2 * YEAR_IN_SECONDS ) {
+					$time = 2 * YEAR_IN_SECONDS;
 				}
 				$payload = array(
 					'automation_id' => $data['automation_id'],
@@ -146,24 +148,6 @@ class Delay extends AbstractAutomationAction {
 			default:
 				return 0;
 		}
-	}
-
-
-	/**
-	 * Validate delay time
-	 *
-	 * @param array $seconds Set in seconds.
-	 *
-	 * @return bool
-	 */
-	private function validate_delay( $seconds ) {
-		if ( $seconds <= 0 ) {
-			return false;
-		}
-		if ( $seconds > 2 * YEAR_IN_SECONDS ) {
-			return false;
-		}
-		return true;
 	}
 
 }

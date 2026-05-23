@@ -65,6 +65,11 @@ class DeletePluginData {
 			$wpdb->prefix . 'mint_automation_steps',
 			$wpdb->prefix . 'mint_automations',
 			$wpdb->prefix . 'mint_automation_log',
+			$wpdb->prefix . 'mint_form_submissions',
+			$wpdb->prefix . 'mint_abandoned_carts',
+			$wpdb->prefix . 'mint_abandoned_carts_meta',
+			$wpdb->prefix . 'mint_lead_magnets',
+			$wpdb->prefix . 'mint_lead_magnet_download_tracking',
 		);
 		$mailmint_tables = implode( ', ', $mailmint_tables );
 

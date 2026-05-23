@@ -97,6 +97,9 @@ class DatabaseMigrator {
 			'1.16.0' => array(
 				'mm_update_1160_migrate_form_submissions_tables',
 			),
+			'1.16.1' => array(
+				'add_unique_key_to_automation_log',
+			),
 		);
 
 		$this->current_db_version = get_option( 'mail_mint_db_version', null );
@@ -722,6 +725,37 @@ class DatabaseMigrator {
 
 		// Execute the SQL query.
         $wpdb->query( $query ); //phpcs:ignore
+	}
+
+	/**
+	 * Add a UNIQUE KEY on (email, step_id, identifier) to the automation log table.
+	 *
+	 * Guards against duplicate rows created by the previous check-then-insert race
+	 * condition in update_log(). The ALTER is skipped if the key already exists so
+	 * the migration is safe to run multiple times.
+	 *
+	 * @return void
+	 * @since 1.16.1
+	 */
+	private function add_unique_key_to_automation_log() {
+		global $wpdb;
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\AutomationLogSchema::$table_name;
+
+		$key_exists = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				 FROM information_schema.statistics
+				 WHERE table_schema = %s
+				   AND table_name   = %s
+				   AND index_name   = 'unique_email_step_identifier'",
+				DB_NAME,
+				$table
+			)
+		);
+
+		if ( ! $key_exists ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD UNIQUE KEY `unique_email_step_identifier` (`email`, `step_id`, `identifier`)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
 	}
 
 	/**

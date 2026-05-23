@@ -16,11 +16,11 @@ use Mint\MRM\DataBase\Tables\ContactGroupPivotSchema;
 use Mint\MRM\DataBase\Tables\ContactMetaSchema;
 use Mint\MRM\DataBase\Tables\ContactNoteSchema;
 use Mint\MRM\DataBase\Tables\ContactSchema;
+use Mint\MRM\DataBase\Tables\EmailSchema;
 use Mint\MRM\DataStores\ContactData;
 use Mint\MRM\Utilites\Helper\Contact;
 use MRM\Common\MrmCommon;
 use Mint\Mrm\Internal\Traits\Singleton;
-use Mint\Utilities\Arr;
 
 /**
  * ContactModel class
@@ -317,6 +317,7 @@ class ContactModel {
 		$contact_meta_table        = $wpdb->prefix . ContactMetaSchema::$table_name;
 		$contact_note_table        = $wpdb->prefix . ContactNoteSchema::$table_name;
 		$contact_group_pivot_table = $wpdb->prefix . ContactGroupPivotSchema::$table_name;
+		$broadcast_emails_table    = $wpdb->prefix . EmailSchema::$table_name;
 
 		try {
 			if ( !empty( $contact_ids ) ) {
@@ -325,12 +326,15 @@ class ContactModel {
 					self::remove_form_entries_for_deleted_contact( $id );
 				}
 			}
-			$contact_ids = implode( ',', array_map( 'intval', $contact_ids ) );
+			$contact_ids      = implode( ',', array_map( 'intval', $contact_ids ) );
+			$ids_placeholder  = implode( ',', array_fill( 0, substr_count( $contact_ids, ',' ) + 1, '%d' ) );
+			$ids_array        = array_map( 'intval', explode( ',', $contact_ids ) );
 
 			$wpdb->query( "DELETE FROM $contacts_table WHERE id IN($contact_ids)" ); // db call ok. ; no-cache ok.
 			$wpdb->query( "DELETE FROM $contact_meta_table WHERE contact_id IN($contact_ids)" ); // db call ok. ; no-cache ok.
 			$wpdb->query( "DELETE FROM $contact_note_table WHERE contact_id IN($contact_ids)" ); // db call ok. ; no-cache ok.
 			$wpdb->query( "DELETE FROM $contact_group_pivot_table WHERE contact_id IN($contact_ids)" ); // db call ok. ; no-cache ok.
+			$wpdb->query( $wpdb->prepare( "UPDATE $broadcast_emails_table SET contact_id = NULL WHERE contact_id IN($ids_placeholder)", ...$ids_array ) ); // db call ok. ; no-cache ok.
 			return true;
 		} catch ( \Exception $e ) {
 			return false;
@@ -373,18 +377,29 @@ class ContactModel {
 		$query_results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $contact_table $search_terms $export_terms ORDER BY id DESC  LIMIT %d, %d", array( $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
 		$results       = array();
 
-		foreach ( $query_results as $query_result ) {
-			$q_id      = isset( $query_result['id'] ) ? $query_result['id'] : '';
-			$new_meta  = self::get_meta( $q_id );
+		if ( ! empty( $query_results ) ) {
+			$ids      = wp_list_pluck( $query_results, 'id' );
+			$meta_map = self::get_meta_for_contacts( $ids );
 
-			if (isset($query_result['source']) && preg_match('/Form-(\d+)/', $query_result['source'], $matches)) {
-				$form_id = $matches[1];
-				// Assuming you have a method to get the form title by ID
-				$form_title = FormModel::get_form_title( $form_id );
-				$query_result['source'] =  'Mail Mint Form - ' . $form_title;
+			$form_ids = array();
+			foreach ( $query_results as $row ) {
+				if ( isset( $row['source'] ) && preg_match( '/Form-(\d+)/', $row['source'], $m ) ) {
+					$form_ids[] = (int) $m[1];
+				}
 			}
+			$form_titles = ! empty( $form_ids ) ? FormModel::get_form_titles_by_ids( array_unique( $form_ids ) ) : array();
 
-			$results[] = array_merge( $query_result, $new_meta );
+			foreach ( $query_results as $query_result ) {
+				$q_id     = isset( $query_result['id'] ) ? (int) $query_result['id'] : 0;
+				$new_meta = isset( $meta_map[ $q_id ] ) ? $meta_map[ $q_id ] : array( 'meta_fields' => array() );
+
+				if ( isset( $query_result['source'] ) && preg_match( '/Form-(\d+)/', $query_result['source'], $matches ) ) {
+					$form_id                = (int) $matches[1];
+					$query_result['source'] = 'Mail Mint Form - ' . ( isset( $form_titles[ $form_id ] ) ? $form_titles[ $form_id ] : '' );
+				}
+
+				$results[] = array_merge( $query_result, $new_meta );
+			}
 		}
 
 		$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) as total FROM $contact_table $search_terms" ) ); // db call ok. ; no-cache ok.
@@ -537,6 +552,45 @@ class ContactModel {
 
 
 	/**
+	 * Batch-fetch meta for multiple contacts in a single query.
+	 *
+	 * @param array $contact_ids Array of contact IDs.
+	 * @return array Keyed by contact_id; each value matches the shape returned by get_meta().
+	 * @since 1.0.0
+	 */
+	public static function get_meta_for_contacts( array $contact_ids ) {
+		if ( empty( $contact_ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+		$contacts_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
+
+		$contact_ids  = array_unique( array_filter( array_map( 'absint', $contact_ids ) ) );
+		$placeholders = implode( ',', array_fill( 0, count( $contact_ids ), '%d' ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$meta_results = $wpdb->get_results(
+			$wpdb->prepare( "SELECT contact_id, meta_key, meta_value FROM $contacts_meta_table WHERE contact_id IN ($placeholders)", $contact_ids ), // db call ok. ; no-cache ok.
+			ARRAY_A
+		);
+
+		$meta_map = array();
+		foreach ( $meta_results as $row ) {
+			$cid = (int) $row['contact_id'];
+			if ( ! isset( $meta_map[ $cid ] ) ) {
+				$meta_map[ $cid ] = array( 'meta_fields' => array() );
+			}
+			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			$meta_map[ $cid ]['meta_fields'][ $row['meta_key'] ] = maybe_unserialize( $row['meta_value'] );
+			// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+		}
+
+		return $meta_map;
+	}
+
+
+	/**
 	 * Check existing contact through an email address
 	 *
 	 * @param string $contact_id contact id.
@@ -651,18 +705,29 @@ class ContactModel {
 			$query_results = $wpdb->get_results( $select_query, ARRAY_A ); // db call ok. ; no-cache ok.
 			$results       = array();
 
-			foreach ( $query_results as $query_result ) {
-				$q_id      = isset( $query_result['id'] ) ? $query_result['id'] : '';
-				$new_meta  = self::get_meta( $q_id );
+			if ( ! empty( $query_results ) ) {
+				$ids      = wp_list_pluck( $query_results, 'id' );
+				$meta_map = self::get_meta_for_contacts( $ids );
 
-				if (isset($query_result['source']) && preg_match('/Form-(\d+)/', $query_result['source'], $matches)) {
-					$form_id = $matches[1];
-					// Assuming you have a method to get the form title by ID
-					$form_title = FormModel::get_form_title( $form_id );
-					$query_result['source'] =  'Mail Mint Form - ' . $form_title;
+				$form_ids = array();
+				foreach ( $query_results as $row ) {
+					if ( isset( $row['source'] ) && preg_match( '/Form-(\d+)/', $row['source'], $m ) ) {
+						$form_ids[] = (int) $m[1];
+					}
 				}
+				$form_titles = ! empty( $form_ids ) ? FormModel::get_form_titles_by_ids( array_unique( $form_ids ) ) : array();
 
-				$results[] = array_merge( $query_result, $new_meta );
+				foreach ( $query_results as $query_result ) {
+					$q_id     = isset( $query_result['id'] ) ? (int) $query_result['id'] : 0;
+					$new_meta = isset( $meta_map[ $q_id ] ) ? $meta_map[ $q_id ] : array( 'meta_fields' => array() );
+
+					if ( isset( $query_result['source'] ) && preg_match( '/Form-(\d+)/', $query_result['source'], $matches ) ) {
+						$form_id                = (int) $matches[1];
+						$query_result['source'] = 'Mail Mint Form - ' . ( isset( $form_titles[ $form_id ] ) ? $form_titles[ $form_id ] : '' );
+					}
+
+					$results[] = array_merge( $query_result, $new_meta );
+				}
 			}
 
 			$count_query = $wpdb->prepare(

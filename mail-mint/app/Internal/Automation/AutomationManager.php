@@ -342,8 +342,10 @@ class AutomationManager {
 								$step_data      = HelperFunctions::get_step_data( $prev_step['automation_id'], $prev_step['step_id'] );
 								$delay_settings = isset( $step_data['settings']['delay_settings'] ) ? $step_data['settings']['delay_settings'] : array();
 								$time           = $this->calculate_seconds( $delay_settings );
-								if ( !$this->validate_delay( $time ) ) {
+								if ( $time <= 0 ) {
 									$time = 0;
+								} elseif ( $time > 2 * YEAR_IN_SECONDS ) {
+									$time = 2 * YEAR_IN_SECONDS;
 								}
 								$delay_time         = $delay_time + $time;
 								$data['delay_time'] = $delay_time;
@@ -526,21 +528,4 @@ class AutomationManager {
 		}
 	}
 
-
-	/**
-	 * Validate delay time
-	 *
-	 * @param array $seconds Set in seconds.
-	 *
-	 * @return bool
-	 */
-	private function validate_delay( $seconds ) {
-		if ( $seconds <= 0 ) {
-			return false;
-		}
-		if ( $seconds > 2 * YEAR_IN_SECONDS ) {
-			return false;
-		}
-		return true;
-	}
 }

@@ -57,7 +57,8 @@ class AutomationLogSchema implements Schema {
             `updated_at` TIMESTAMP NULL,
 			INDEX `automation_id` (`automation_id` ASC),
             INDEX `step_id` (`step_id` ASC),
-            INDEX `email` (`email` ASC)
+            INDEX `email` (`email` ASC),
+			UNIQUE KEY `unique_email_step_identifier` (`email`, `step_id`, `identifier`)
          ) ";
 	}
 }

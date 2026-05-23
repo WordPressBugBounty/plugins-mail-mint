@@ -408,7 +408,10 @@ class MrmActivator {
 			);
 		}
 
-		// Step 3: Schedule a fresh coordinator job to resume active campaigns.
+		// Step 3: Clear the healthy transient so selfHeal re-evaluates immediately.
+		delete_transient( 'mailmint_coordinator_healthy' );
+
+		// Step 4: Schedule a fresh coordinator job to resume active campaigns.
 		\Mint\MRM\Internal\Cron\GlobalQueueCoordinator::get_instance()->schedule();
 	}
 }

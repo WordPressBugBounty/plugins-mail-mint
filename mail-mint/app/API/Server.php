@@ -105,6 +105,7 @@ class Server {
 			'connector' 	  => 'ConnectorRoute',
 			'onboarding'      => 'OnboardingRoute',
 			'data-cleanup'    => 'DataCleanupRoute',
+			'integration-data' => 'IntegrationDataRoute',
 		);
 		$frontend_routes = array(
 			'form'       => 'FormRoute',

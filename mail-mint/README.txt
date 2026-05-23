@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.22.1
+Stable tag:  1.23.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -527,6 +527,26 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.23.0 (2026-05-23) =
+* New: Support for WordPress privacy tools to export and erase contact data for GDPR compliance.
+* Improvement: Number of database queries on admin pages for faster load times.
+* Improvement: Dashboard loading speed with smarter data caching.
+* Improvement: Plugin uninstall process to properly clean up all stored data.
+* Improvement: Cleaned up unused code to improve overall plugin stability.
+* Improvement: Browser compatibility for copy-to-clipboard functionality.
+* Improvement: Form submission and user preference security with proper request verification.
+* Security: Strengthened access control on several admin API endpoints to prevent unauthorized access.
+* Security: Multiple SQL injection vulnerabilities to better protect site's data.
+* Security: Unvalidated entry point in the bounce handler that could be exploited.
+* Bugfix: Same email could be sent twice to a contact under certain conditions.
+* Bugfix: Automation running multiple times for the same contact unexpectedly.
+* Bugfix: Campaigns getting stuck when background email processing encountered errors.
+* Bugfix: Automation steps sometimes executing immediately instead of waiting as configured.
+* Bugfix: Contacts being unable to re-enter an automation after completing it.
+* Bugfix: Contact export feature crashing and not working.
+* Bugfix: Dropdowns and modals sometimes not closing properly.
+* Bugfix: User preferences like contacts per page not being saved correctly.
 
 = 1.22.1 (2026-05-21) =
 * Improvement: Faster loading of Frontend Assets for better Plugin performance.

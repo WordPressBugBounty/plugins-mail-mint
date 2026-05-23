@@ -84,49 +84,6 @@ class EventTracker{
     }
 
     /**
-     * Registers WordPress hooks for tracking events.
-     *
-     * This method iterates over an array of events and registers WordPress
-     * hooks for each event.
-     * 
-     * @access private
-     *
-     * @return void
-     *
-     * @since 1.17.10
-     */
-    private function register_hooks(): void
-    {
-        $events = [
-            // 'mailmint_wc_abandoned_cart_lost_automation_created' => ['abandoned_cart_automation_created', 'on_abandoned_cart_automation_created'],
-            // 'mailmint_wc_abandoned_cart_recovered_automation_created' => ['abandoned_cart_automation_created', 'on_abandoned_cart_automation_created'],
-            // 'mailmint_after_abandoned_cart_recovered' => ['abandoned_cart_recovered', 'on_abandoned_cart_recovered'],
-            // 'mailmint_abandoned_cart_get_recoverable_carts' => ['admin_dashboard_visited', 'on_admin_dashboard_visited'],
-            // 'mailmint_wc_order_completed_automation_created' => ['automation_created', 'on_order_completed_automation_created'],
-            // 'mailmint_wc_all_order_created_automation_created' => ['automation_created', 'on_new_order_placed_automation_created'],
-            // 'mailmint_wc_first_order_automation_created' => ['automation_created', 'on_wc_first_order_automation_created'],
-            // 'mailmint_automation_log_overall_analytics' => ['admin_dashboard_visited', 'get_automation_overall_analytics'],
-            // 'mailmint_product_block_automation_email' => ['product_offer_email_sent', 'on_product_block_automation_email_sent'],
-            // 'mailmint_wp_user_registration_automation_created' => ['automation_created', 'on_wp_user_registration_automation_created'],
-            // 'mailmint_after_automation_send_mail' => ['email_sent_from_automation', 'on_automation_email_sent'],
-            // 'mailmint_wc_order_completed_automation_updated' => ['automation_created', 'on_segment_customer_for_personalized_campaigns'],
-            // 'mailmint_wc_all_order_created_automation_updated' => ['automation_created', 'on_segment_customer_for_personalized_campaigns'],
-            // 'mailmint_wc_first_order_automation_updated' => ['automation_created', 'on_segment_customer_for_personalized_campaigns'],
-            // 'mailmint_wc_order_created_automation_updated' => ['automation_created', 'on_segment_customer_for_personalized_campaigns'],
-            // 'mailmint_wc_order_status_changed_automation_updated' => ['automation_created', 'on_segment_customer_for_personalized_campaigns'],
-            // 'mailmint_wc_order_failed_automation_updated' => ['automation_created', 'on_segment_customer_for_personalized_campaigns'],
-            // 'mailmint_automation_after_added_to_list' => ['contact_added_to_list', 'on_automation_after_added_to_list'],
-            // 'mailmint_learndash_complete_lesson_automation_updated' => ['automation_created', 'on_email_automation_for_lesson_completion_engagement'],
-            // 'mailmint_tutor_complete_lesson_automation_updated' => ['automation_created', 'on_email_automation_for_lesson_completion_engagement'],
-            // Add more here easily
-        ];
-
-        foreach ($events as $hook => [$event_name, $callback]) {
-            add_action($hook, [$this, $callback], 10, 10);
-        }
-    }
-
-    /**
      * Sends a plugin activation event to OpenPanel.
      *
      * This method sends a plugin activation event to OpenPanel, including
@@ -310,27 +267,6 @@ class EventTracker{
         return $days_since_install >= 0 ? $days_since_install : null;
     }
 
-    // === Event handlers ===
-
-    // public function on_abandoned_cart_recovered(): void
-    // {
-    //     $this->send_event('abandoned_cart_recovered', [
-    //         'journey_type' => 'abandoned_cart_recovery',
-    //     ]);
-    // }
-
-    // public function on_admin_dashboard_visited($params): void
-    // {
-    //     if (isset($params['page']) && $params['page'] == 1) {
-    //         $days_since_install = $this->get_days_since_install();
-    //         $this->send_event('admin_dashboard_visited', [
-    //             'page' => 'abandoned_cart',
-    //             'journey_type' => 'abandoned_cart_recovery',
-    //             'days_since_install' => $days_since_install,
-    //         ]);
-    //     }
-    // }
-
     public function on_abandoned_cart_automation_created(): void
     {
         linno_telemetry_track(
@@ -341,30 +277,6 @@ class EventTracker{
             )
         );
     }
-
-    // public function on_order_completed_automation_created(): void
-    // {
-    //     $this->send_event('automation_created', [
-    //         'trigger_name' => 'wc_order_completed',
-    //         'journey_type' => 'post_purchase',
-    //     ]);
-    // }
-
-    // public function on_new_order_placed_automation_created(): void
-    // {
-    //     $this->send_event('automation_created', [
-    //         'trigger_name' => 'wc_new_order_placed',
-    //         'journey_type' => 'post_purchase',
-    //     ]);
-    // }
-
-    // public function on_wc_first_order_automation_created(): void
-    // {
-    //     $this->send_event('automation_created', [
-    //         'trigger_name' => 'wc_first_order',
-    //         'journey_type' => 'post_purchase',
-    //     ]);
-    // }
 
     public function get_automation_overall_analytics($params): void
     {
@@ -393,14 +305,6 @@ class EventTracker{
         );
     }
 
-    // public function on_wp_user_registration_automation_created(): void
-    // {
-    //     $this->send_event('automation_created', [
-    //         'trigger_name' => 'wp_user_registration',
-    //         'journey_type' => 'onboarding_new_customers',
-    //     ]);
-    // }
-
     public function on_automation_email_sent($automation_id, $user_email, $is_sent): void
     {
         if (!$automation_id) {
@@ -420,25 +324,6 @@ class EventTracker{
             update_option('mailmint_automation_used', true);
         }
     }
-
-    // public function on_segment_customer_for_personalized_campaigns($automation_id): void
-    // {
-    //     $steps = HelperFunctions::get_automation_steps_by_id($automation_id);
-    //     // Find if a specific key exists in any sub-array.
-    //     $matched = array_filter($steps, function ($step) {
-    //         return isset($step['key']) && $step['key'] === 'addList';
-    //     });
-
-    //     $trigger_name = HelperFunctions::get_automation_trigger_name($automation_id);
-
-    //     if ($matched) {
-    //         $this->send_event('automation_created', [
-    //             'trigger_name' => $trigger_name,
-    //             'journey_type' => 'segment_customer_for_personalized_campaigns',
-    //             'has_add_to_list_action' => true,
-    //         ]);
-    //     }
-    // }
 
     public function on_automation_after_added_to_list(): void
     {

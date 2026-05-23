@@ -22,6 +22,8 @@ use Mint\MRM\Internal\Admin\Page\PageController;
 use Mint\MRM\Internal\Admin\SetupWizard;
 use Mint\MRM\Internal\Admin\UserAssignContact;
 use Mint\MRM\Internal\Admin\WPUserDelete;
+use Mint\MRM\Internal\Admin\MrmPrivacyExporter;
+use Mint\MRM\Internal\Admin\MrmPrivacyEraser;
 use Mint\MRM\Internal\FormBuilder\FormBuilderHelper;
 use Mint\MRM\Internal\Frontend\FrontendAction;
 use Mint\MRM\Internal\Frontend\WooCommerceCheckoutContact;
@@ -92,6 +94,9 @@ class App {
 		TemplateHandler::get_instance()->init();
 
 		WPUserDelete::get_instance()->init();
+
+		add_filter( 'wp_privacy_personal_data_exporters', array( MrmPrivacyExporter::class, 'register' ) );
+		add_filter( 'wp_privacy_personal_data_erasers',   array( MrmPrivacyEraser::class,   'register' ) );
 
 		DefaultListsCreator::get_instance();
 

@@ -132,6 +132,11 @@ class FrontendAssets {
 
 		global $post;
 
+		// Preview pages always need form assets so popup/fly-in JS initialises correctly.
+		if ( is_a( $post, 'WP_Post' ) && 'mint_preview_page' === $post->post_type ) {
+			return $result = true;
+		}
+
 		// 1. Shortcodes or block embedded directly in this page's content.
 		if ( is_a( $post, 'WP_Post' ) ) {
 			$content = $post->post_content;

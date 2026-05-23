@@ -560,36 +560,27 @@ class HelperFunctions { //phpcs:ignore
 		if ( isset( $payload['automation_id'], $payload['step_id'], $payload['email'], $payload['status'], $payload['identifier'] ) ) {
 			global $wpdb;
 			$table_name = $wpdb->prefix . AutomationLogSchema::$table_name;
-			$results    = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table_name} as log WHERE log.email = %s AND log.step_id = %s AND log.identifier = %s", $payload['email'], $payload['step_id'],$payload['identifier'] ), ARRAY_A ); // phpcs:ignore.
-			if ( count( $results ) ) {
-				if ( isset( $payload['created_at'] ) ) {
-					unset( $payload['created_at'] );
-				}
-				$payload['id']         = !empty( $results[0]['id'] ) ? $results[0]['id'] : '';
-				$payload['count']      = 1;
-				$payload['updated_at'] = current_time( 'mysql' );
+			$now        = current_time( 'mysql' );
 
-				$wpdb->update(
-					$table_name,
-					$payload,
-					array( 'ID' => $payload['id'] )
-				); // db call ok. ; no-cache ok.
-
-			} else {
-				$wpdb->insert(
-					$table_name,
-					array(
-						'automation_id' => $payload['automation_id'],
-						'step_id'       => $payload['step_id'],
-						'email'         => $payload['email'],
-						'count'         => 1,
-						'status'        => $payload['status'],
-						'identifier'    => isset( $payload['identifier'] ) ? $payload['identifier'] : null,
-						'created_at'    => current_time( 'mysql' ),
-						'updated_at'    => current_time( 'mysql' ),
-					)
-				); // db call ok.
-			}
+			$wpdb->query(
+				$wpdb->prepare(
+					"INSERT INTO {$table_name}
+						(automation_id, step_id, email, count, status, identifier, created_at, updated_at)
+					VALUES
+						(%d, %s, %s, 1, %s, %s, %s, %s)
+					ON DUPLICATE KEY UPDATE
+						status     = VALUES(status),
+						count      = 1,
+						updated_at = VALUES(updated_at)",
+					$payload['automation_id'],
+					$payload['step_id'],
+					$payload['email'],
+					$payload['status'],
+					$payload['identifier'],
+					$now,
+					$now
+				)
+			); // db call ok. ; no-cache ok.
 		}
 	}
 

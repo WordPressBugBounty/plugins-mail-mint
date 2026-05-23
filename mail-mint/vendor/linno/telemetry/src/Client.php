@@ -495,13 +495,13 @@ class Client {
         $transient_key = $this->get_slug() . '_deactivation_event_sent';
         if ( 'yes' !== get_transient( $transient_key ) ) {
             // Send a generic deactivation event if the feedback form didn't send one
-            $this->track_lifecycle_event(
-                'activation/plugin_deactivated',
-                [
-                    'site_url' => get_site_url(),
-                    'reason'   => 'none',
-                ]
-            );
+            // $this->track_lifecycle_event(
+            //     'activation/plugin_deactivated',
+            //     [
+            //         'site_url' => get_site_url(),
+            //         'reason'   => 'none',
+            //     ]
+            // );
         }
         // Clean up the transient regardless
         delete_transient( $transient_key );
@@ -610,11 +610,11 @@ class Client {
                 'profileId' => Utils::getSiteProfileId(),
             ),
         );
-
-        if ( 'activation/plugin_deactivated' === $event ) {
-            $minimal_properties['reason']         = sanitize_text_field( (string) ( $properties['reason'] ?? 'none' ) );
-            $minimal_properties['plugin_version'] = sanitize_text_field( (string) ( $properties['plugin_version'] ?? $this->config['version'] ?? '' ) );
-        }
+        error_log(print_r($event, true));
+        // if ( 'activation/plugin_deactivated' === $event ) {
+        //     $minimal_properties['reason']         = sanitize_text_field( (string) ( $properties['reason'] ?? 'none' ) );
+        //     $minimal_properties['plugin_version'] = sanitize_text_field( (string) ( $properties['plugin_version'] ?? $this->config['version'] ?? '' ) );
+        // }
 
         $result = $this->handlers['dispatcher']->dispatch_minimal( $event, $minimal_properties );
 

@@ -227,6 +227,42 @@ class WPController {
      * @return WP_REST_Response The REST API response containing matching admin users.
      * @since 1.17.1
      */
+    /**
+     * Retrieves the list of countries.
+     *
+     * @return \WP_REST_Response
+     * @since 1.0.0
+     */
+    public function get_countries() {
+        $countries = \Mint\MRM\Internal\Constants::get_country_name();
+        return rest_ensure_response( [ 'data' => $countries, 'status' => 200 ] );
+    }
+
+    /**
+     * Retrieves the states for a given country code.
+     *
+     * @param WP_REST_Request $request
+     * @return \WP_REST_Response
+     * @since 1.0.0
+     */
+    public function get_states( WP_REST_Request $request ) {
+        $country = sanitize_text_field( $request->get_param( 'country' ) );
+        $all_states = \Mint\MRM\Internal\Constants::get_country_state();
+        $states = isset( $all_states[ $country ] ) ? $all_states[ $country ] : array();
+        return rest_ensure_response( [ 'data' => $states, 'status' => 200 ] );
+    }
+
+    /**
+     * Retrieves the list of timezones.
+     *
+     * @return \WP_REST_Response
+     * @since 1.0.0
+     */
+    public function get_timezones() {
+        $timezones = \Mint\MRM\Internal\Constants::get_timezone_list();
+        return rest_ensure_response( [ 'data' => $timezones, 'status' => 200 ] );
+    }
+
     public function get_admins( WP_REST_Request $request ) {
         $params = MrmCommon::get_api_params_values( $request );
         $term   = isset( $params['term'] ) ? $params['term'] : '';

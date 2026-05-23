@@ -187,10 +187,19 @@ class DashboardController {
 	}
 
 	public function hide_checklist() {
-		// Set a transient to hide the checklist.
-		set_transient('mint_hide_checklist', true, 0);
-		return rest_ensure_response([
-			'success' => true
-		]);
+		set_transient( 'mint_hide_checklist', true, 0 );
+		DashboardModel::flush_cache();
+		return rest_ensure_response( array( 'success' => true ) );
+	}
+
+	/**
+	 * Flush all dashboard transient caches and return success.
+	 * Called by the sync button on the dashboard page.
+	 *
+	 * @return \WP_REST_Response
+	 */
+	public function sync_cache() {
+		DashboardModel::flush_cache();
+		return rest_ensure_response( array( 'success' => true ) );
 	}
 }
