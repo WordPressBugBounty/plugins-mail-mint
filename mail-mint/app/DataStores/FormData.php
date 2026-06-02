@@ -150,16 +150,28 @@ class FormData {
 	}
 
 	/**
-	 * Return form group ids
+	 * Return form group ids as a JSON-encoded string for database storage.
 	 *
-	 * @return string
+	 * Accepts an array, a JSON string, or a legacy PHP-serialized string.
+	 * Always writes JSON so new rows are never stored as serialized PHP.
+	 *
+	 * @return string JSON-encoded group IDs.
 	 * @since 1.0.0
 	 */
 	public function get_group_ids() {
-		if ( ! is_serialized( $this->group_ids ) ) {
-			return maybe_serialize( $this->group_ids );
+		$ids = $this->group_ids;
+
+		if ( is_string( $ids ) && ! empty( $ids ) ) {
+			$json_decoded = json_decode( $ids, true );
+			if ( JSON_ERROR_NONE === json_last_error() && is_array( $json_decoded ) ) {
+				return $ids; // Already valid JSON — pass through unchanged.
+			}
+			// Legacy PHP-serialized string — decode to array then re-encode as JSON.
+			$legacy = maybe_unserialize( $ids );
+			$ids    = is_array( $legacy ) ? $legacy : array();
 		}
-		return $this->group_ids;
+
+		return wp_json_encode( is_array( $ids ) ? $ids : array() );
 	}
 
 

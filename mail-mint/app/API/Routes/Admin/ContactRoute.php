@@ -417,26 +417,6 @@ class ContactRoute {
 			)
 		);
 
-		/**
-		 * Total Contact Result for of contact index page
-		 *
-		 * @return void
-		 * @since 1.0.0
-		*/
-		register_rest_route(
-			$this->namespace,
-			'/' . $this->rest_base . '/total-count',
-			array(
-				array(
-					'methods'             => \WP_REST_Server::READABLE,
-					'callback'            => array(
-						$this->controller,
-						'get_total_count',
-					),
-					'permission_callback' => PermissionManager::current_user_can('mint_read_contacts'),
-				),
-			)
-		);
 
 		/**
 		 * Contact import endpoint

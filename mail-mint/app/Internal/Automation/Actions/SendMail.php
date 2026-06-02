@@ -23,6 +23,7 @@ use MintMail\App\Internal\Automation\HelperFunctions;
 use MintMail\App\Internal\Automation\ActionScheduler;
 use MintMailPro\Mint_Pro_Helper;
 use MRM\Common\MrmCommon;
+use Mint\MRM\API\Actions\ComplianceAction;
 
 /**
  * SendMail action
@@ -222,7 +223,10 @@ class SendMail extends AbstractAutomationAction {
 					) 
 				);
 				$email_data['subject'] = Helper::replace_dynamic_coupon( $email_data['subject'], $email_data['receiver_email'] );
-				$email_data['body']    = Helper::replace_url( $email_data['body'], $rand_hash );
+				$click_tracking_mode = ComplianceAction::get_click_tracking_mode();
+				if ( 'no' !== $click_tracking_mode ) {
+					$email_data['body'] = Helper::replace_url( $email_data['body'], $rand_hash, $click_tracking_mode );
+				}
 				$email_data['body']    = Parser::parse( 
 					$email_data['body'],
 					$contact,

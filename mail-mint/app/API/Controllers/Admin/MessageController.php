@@ -23,6 +23,7 @@ use Mint\MRM\DataBase\Models\CampaignModel;
 use Mint\MRM\DataBase\Models\CampaignEmailBuilderModel;
 use MailMint\App\Helper;
 use Mint\MRM\Internal\Parser\Parser;
+use Mint\MRM\API\Actions\ComplianceAction;
 
 /**
  * This is the main class that controls the messages feature. Its responsibilities are:
@@ -171,7 +172,10 @@ class MessageController extends AdminBaseController {
         $body = str_replace( '{{preference_link}}', $preference_link, $body );
         $body = str_replace( '{{unsubscribe_link}}', $unsubscribe_link, $body );
         $body = Email::get_mail_template( $body, $domain_link, $hash );
-		$body = Email::inject_tracking_image_on_email_body($email_hash, $body);
+		$open_tracking_mode = ComplianceAction::get_open_tracking_mode();
+		if ( 'no' !== $open_tracking_mode ) {
+			$body = Email::inject_tracking_image_on_email_body( $email_hash, $body, $open_tracking_mode );
+		}
 		$body = Helper::modify_email_for_rtl( $body );
 
 		$email_settings = get_option( '_mrm_email_settings', Email::default_email_settings() );

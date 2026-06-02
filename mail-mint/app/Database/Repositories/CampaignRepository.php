@@ -226,16 +226,38 @@ class CampaignRepository extends AbstractRepository {
 			return array();
 		}
 
-		// Cast numeric fields to int for consistency.
+		// Fetch anonymous open/click counts from mint_campaigns_meta and merge in.
+		$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
+		$anon_rows           = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT campaign_id, meta_key, meta_value FROM {$campaign_meta_table} WHERE meta_key IN ('_anon_open_count', '_anon_click_count') AND campaign_id IN ({$placeholders})",
+				array_map( 'intval', $ids )
+			),
+			ARRAY_A
+		); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$anon_open  = array();
+		$anon_click = array();
+		foreach ( $anon_rows as $row ) {
+			$cid = (int) $row['campaign_id'];
+			if ( '_anon_open_count' === $row['meta_key'] ) {
+				$anon_open[ $cid ] = (int) $row['meta_value'];
+			} elseif ( '_anon_click_count' === $row['meta_key'] ) {
+				$anon_click[ $cid ] = (int) $row['meta_value'];
+			}
+		}
+
+		// Cast numeric fields to int and add anonymous counts.
 		return array_map(
-			function ( $row ) {
+			function ( $row ) use ( $anon_open, $anon_click ) {
+				$cid = (int) $row['id'];
 				return array(
-					'id'                => (int) $row['id'],
+					'id'                => $cid,
 					'total_sent'        => (int) $row['total_sent'],
 					'total_delivered'   => (int) $row['total_delivered'],
 					'total_bounced'     => (int) $row['total_bounced'],
-					'open_rate'         => (int) $row['open_rate'],
-					'click_rate'        => (int) $row['click_rate'],
+					'open_rate'         => (int) $row['open_rate'] + ( isset( $anon_open[ $cid ] ) ? $anon_open[ $cid ] : 0 ),
+					'click_rate'        => (int) $row['click_rate'] + ( isset( $anon_click[ $cid ] ) ? $anon_click[ $cid ] : 0 ),
 					'unsubscribe_count' => (int) $row['unsubscribe_count'],
 				);
 			},

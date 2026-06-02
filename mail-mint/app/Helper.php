@@ -32,7 +32,7 @@ class Helper {
 	 * @since 1.0.0
 	 * @return array
 	 */
-	public static function replace_url( $string, $email_hash ) {
+	public static function replace_url( $string, $email_hash, $tracking_mode = 'yes' ) {
 		preg_match_all( '/<a[^>]+(href\=["|\'](http.*?)["|\'])/m', $string, $urls );
 		$replaces = $urls[1];
 		$urls     = $urls[2];
@@ -55,14 +55,21 @@ class Helper {
 			if ( !empty( $url_parts['query'] ) ) {
 				$reconstructed_url .= '?' . $url_parts['query'];
 			}
-			$generated_url = add_query_arg(
-				array(
-					'action' => 'mint_action',
-					'target' => $reconstructed_url,
-					'hash'   => $email_hash,
-				),
-				site_url()
+
+			// Generate HMAC signature to prevent forged tracking requests.
+			$signature = self::generate_tracking_signature( $email_hash, $reconstructed_url );
+
+			// Always bake the mode — including 'yes' — so changing the global setting later
+			// cannot retroactively affect emails already in recipients' inboxes.
+			$args = array(
+				'action' => 'mint_action',
+				'target' => $reconstructed_url,
+				'hash'   => $email_hash,
+				'mts'    => $signature,
+				'tmode'  => $tracking_mode,
 			);
+
+			$generated_url = add_query_arg( $args, site_url() );
 
 			// Append the extracted hash to the 'hash' query parameter.
 			if ( !empty( $hash ) ) {
@@ -74,6 +81,44 @@ class Helper {
 		}
 
 		return $string;
+	}
+
+	/**
+	 * Generates an HMAC signature for a tracking URL to prevent forged click requests.
+	 *
+	 * Uses WordPress AUTH_KEY as the secret. The signature covers the email_hash and
+	 * target URL so an attacker cannot substitute a different target or reuse a hash
+	 * from another email.
+	 *
+	 * @param string $email_hash The unique hash for this sent email.
+	 * @param string $target_url The destination URL being tracked.
+	 * @return string First 16 hex characters of the HMAC-SHA256 signature.
+	 * @since 1.14.0
+	 */
+	public static function generate_tracking_signature( $email_hash, $target_url ) {
+		$secret = defined( 'AUTH_KEY' ) ? AUTH_KEY : wp_salt( 'auth' );
+		return substr( hash_hmac( 'sha256', $email_hash . '|' . $target_url, $secret ), 0, 16 );
+	}
+
+	/**
+	 * Verifies an HMAC tracking signature.
+	 *
+	 * Returns true when the signature matches OR when no signature is present
+	 * (backward-compatible grace period for existing inbox links that were
+	 * generated before this security improvement was added).
+	 *
+	 * @param string $email_hash The unique hash for this sent email.
+	 * @param string $target_url The destination URL being tracked.
+	 * @param string $signature  The signature from the request (may be empty for old links).
+	 * @return bool
+	 * @since 1.14.0
+	 */
+	public static function verify_tracking_signature( $email_hash, $target_url, $signature ) {
+		if ( empty( $signature ) ) {
+			return true;
+		}
+		$expected = self::generate_tracking_signature( $email_hash, $target_url );
+		return hash_equals( $expected, $signature );
 	}
 
 
@@ -182,6 +227,52 @@ class Helper {
 			$ip = $sanitize_server['REMOTE_ADDR'];
 		}
 		return $ip;
+	}
+
+	/**
+	 * Returns the current visitor's IP address with the last octet zeroed out (IPv4)
+	 * or the last 80 bits zeroed out (IPv6) for GDPR-compliant pseudonymization.
+	 *
+	 * Unlike get_user_ip() which omits the IP entirely when anonymize_ip is on,
+	 * this method retains geographic precision while removing individual identifiability.
+	 *
+	 * @return string Masked IP address, or empty string if IP cannot be determined.
+	 * @since 1.14.1
+	 */
+	public static function get_anonymized_ip() {
+		$ip = self::get_user_ip();
+		if ( empty( $ip ) ) {
+			return '';
+		}
+
+		// Handle comma-separated forwarded IPs — take the first (client) address.
+		if ( strpos( $ip, ',' ) !== false ) {
+			$ip = trim( explode( ',', $ip )[0] );
+		}
+
+		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ) {
+			// IPv4: zero out the last octet. e.g. 192.168.1.100 → 192.168.1.0
+			$parts    = explode( '.', $ip );
+			$parts[3] = '0';
+			return implode( '.', $parts );
+		}
+
+		if ( filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 ) ) {
+			// IPv6: zero out the last 80 bits (last 5 groups of the 8-group address).
+			$parts = explode( ':', inet_pton( $ip ) === false ? '' : implode( ':', array_map( function ( $b ) {
+				return str_pad( dechex( ord( $b ) ), 2, '0', STR_PAD_LEFT );
+			}, str_split( inet_pton( $ip ) ) ) ) );
+			// Use PHP's built-in to expand and mask safely.
+			$binary = inet_pton( $ip );
+			if ( false === $binary ) {
+				return '';
+			}
+			// Zero the last 10 bytes (80 bits) of the 16-byte binary.
+			$masked = substr( $binary, 0, 6 ) . str_repeat( "\x00", 10 );
+			return inet_ntop( $masked );
+		}
+
+		return '';
 	}
 
 	/**

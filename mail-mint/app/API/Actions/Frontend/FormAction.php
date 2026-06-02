@@ -56,7 +56,12 @@ class FormAction implements Action {
 				} elseif ( 'form_id' === $key ) {
 					$form_data['form_id'] = intval( $value );
 				} else {
-					$form_data['meta_fields'][ $key ] = $value;
+					$sanitized_key = sanitize_key( $key );
+					if ( ! empty( $sanitized_key ) ) {
+						$form_data['meta_fields'][ $sanitized_key ] = is_array( $value )
+							? array_map( 'sanitize_textarea_field', $value )
+							: sanitize_textarea_field( $value );
+					}
 				}
 			}
 		}
@@ -129,7 +134,7 @@ class FormAction implements Action {
 		);
 
 		$get_group_id = FormModel::get( $form_id );
-		$group_ids    = isset( $get_group_id['group_ids'] ) ? unserialize( $get_group_id['group_ids'] ) : array(); //phpcs:ignore
+		$group_ids    = self::decode_group_ids( isset( $get_group_id['group_ids'] ) ? $get_group_id['group_ids'] : '' );
 		$group_tag    = isset( $group_ids['tags'] ) ? $group_ids['tags'] : array();
 		$group_list   = isset( $group_ids['lists'] ) ? $group_ids['lists'] : array();
 		$group_data   = array_merge( $group_tag, $group_list );
@@ -510,5 +515,30 @@ class FormAction implements Action {
 			'From: ' . $email,
 			'Reply-To: ' . $email,
 		);
+	}
+
+	/**
+	 * Safely decode a group_ids value from the database.
+	 *
+	 * Accepts JSON (new storage format) or legacy PHP-serialized strings.
+	 * Only returns arrays — PHP objects are rejected to prevent object injection.
+	 *
+	 * @param string $raw Raw value from the group_ids column.
+	 * @return array
+	 * @since 1.24.0
+	 */
+	private static function decode_group_ids( $raw ) {
+		if ( empty( $raw ) ) {
+			return array();
+		}
+
+		$decoded = json_decode( $raw, true );
+		if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+			return $decoded;
+		}
+
+		// Legacy: PHP-serialized data stored before the JSON migration.
+		$decoded = maybe_unserialize( $raw );
+		return is_array( $decoded ) ? $decoded : array();
 	}
 }

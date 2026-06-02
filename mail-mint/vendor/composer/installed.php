@@ -3,7 +3,7 @@
         'name' => 'coderex/code-rex-crm',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'c7b8bebf040217714c13908260983b7b69c12e8e',
+        'reference' => '046ee13b78eaa0045d9806a2c5422e8d565376c3',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'coderex/code-rex-crm' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'c7b8bebf040217714c13908260983b7b69c12e8e',
+            'reference' => '046ee13b78eaa0045d9806a2c5422e8d565376c3',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -31,7 +31,7 @@
         'linno/telemetry' => array(
             'pretty_version' => 'dev-mail-mint-deactivation',
             'version' => 'dev-mail-mint-deactivation',
-            'reference' => 'ae89d371d53773785620cf78d40819ef1426aac7',
+            'reference' => 'e3da026703ec124a57eeb28ae7413a6170f3f24d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../linno/telemetry',
             'aliases' => array(),

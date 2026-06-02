@@ -146,28 +146,45 @@ class DashboardModel {
 		$emails_table = esc_sql( $wpdb->prefix . 'mint_broadcast_emails' );
 		$meta_table   = esc_sql( $wpdb->prefix . 'mint_broadcast_email_meta' );
 
-		$current_sent  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(*) FROM `{$emails_table}` WHERE ", $cond_current ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$previous_sent = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(*) FROM `{$emails_table}` WHERE ", $cond_previous ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// One query replaces 4 separate sent/delivered counts.
+		$sent_sql    = "SELECT
+			SUM(CASE WHEN {$cond_current['clause']} THEN 1 ELSE 0 END)                       AS current_sent,
+			SUM(CASE WHEN {$cond_previous['clause']} THEN 1 ELSE 0 END)                      AS previous_sent,
+			SUM(CASE WHEN status = 'sent' AND {$cond_current['clause']} THEN 1 ELSE 0 END)   AS current_delivered,
+			SUM(CASE WHEN status = 'sent' AND {$cond_previous['clause']} THEN 1 ELSE 0 END)  AS previous_delivered
+		FROM `{$emails_table}`"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$sent_values = array_merge( $cond_current['values'], $cond_previous['values'], $cond_current['values'], $cond_previous['values'] );
+		$sent_row    = $wpdb->get_row( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			empty( $sent_values ) ? $sent_sql : $wpdb->prepare( $sent_sql, $sent_values ) // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		);
 
-		$current_delivered  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(*) FROM `{$emails_table}` WHERE status = 'sent' AND ", $cond_current ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$previous_delivered = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(*) FROM `{$emails_table}` WHERE status = 'sent' AND ", $cond_previous ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$current_sent       = (float) ( $sent_row->current_sent ?? 0 );
+		$previous_sent      = (float) ( $sent_row->previous_sent ?? 0 );
+		$current_delivered  = (float) ( $sent_row->current_delivered ?? 0 );
+		$previous_delivered = (float) ( $sent_row->previous_delivered ?? 0 );
 
 		$delivered_rate = $current_sent > 0 ? round( ( $current_delivered / $current_sent ) * 100, 1 ) : 0.0;
 
-		$bm_current = array(
-			'clause' => str_replace( array( 'created_at', 'updated_at' ), array( 'bm.created_at', 'bm.updated_at' ), $cond_current['clause'] ),
-			'values' => $cond_current['values'],
-		);
-		$bm_previous = array(
-			'clause' => str_replace( array( 'created_at', 'updated_at' ), array( 'bm.created_at', 'bm.updated_at' ), $cond_previous['clause'] ),
-			'values' => $cond_previous['values'],
+		$bm_clause_current  = str_replace( array( 'created_at', 'updated_at' ), array( 'bm.created_at', 'bm.updated_at' ), $cond_current['clause'] );
+		$bm_clause_previous = str_replace( array( 'created_at', 'updated_at' ), array( 'bm.created_at', 'bm.updated_at' ), $cond_previous['clause'] );
+
+		// One query replaces 4 separate open/click counts.
+		$meta_sql    = "SELECT
+			COUNT(DISTINCT CASE WHEN bm.meta_key = 'is_open'  AND {$bm_clause_current}  THEN bm.mint_email_id END) AS current_open,
+			COUNT(DISTINCT CASE WHEN bm.meta_key = 'is_open'  AND {$bm_clause_previous} THEN bm.mint_email_id END) AS previous_open,
+			COUNT(DISTINCT CASE WHEN bm.meta_key = 'is_click' AND {$bm_clause_current}  THEN bm.mint_email_id END) AS current_click,
+			COUNT(DISTINCT CASE WHEN bm.meta_key = 'is_click' AND {$bm_clause_previous} THEN bm.mint_email_id END) AS previous_click
+		FROM `{$meta_table}` bm
+		WHERE bm.meta_key IN ('is_open', 'is_click') AND bm.meta_value = '1'"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$meta_values = array_merge( $cond_current['values'], $cond_previous['values'], $cond_current['values'], $cond_previous['values'] );
+		$meta_row    = $wpdb->get_row( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			empty( $meta_values ) ? $meta_sql : $wpdb->prepare( $meta_sql, $meta_values ) // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		);
 
-		$current_open  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1' AND ", $bm_current ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$previous_open = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_open' AND bm.meta_value = '1' AND ", $bm_previous ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-
-		$current_click  = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_click' AND bm.meta_value = '1' AND ", $bm_current ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$previous_click = (float) $wpdb->get_var( self::build_query( "SELECT COUNT(DISTINCT bm.mint_email_id) FROM `{$meta_table}` bm WHERE bm.meta_key = 'is_click' AND bm.meta_value = '1' AND ", $bm_previous ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$current_open   = (float) ( $meta_row->current_open ?? 0 );
+		$previous_open  = (float) ( $meta_row->previous_open ?? 0 );
+		$current_click  = (float) ( $meta_row->current_click ?? 0 );
+		$previous_click = (float) ( $meta_row->previous_click ?? 0 );
 
 		$sent_data = self::format_email_metric( $current_sent, $previous_sent );
 		$sent_data['delivered_rate'] = $delivered_rate . '%';
@@ -493,11 +510,11 @@ class DashboardModel {
 			$email_count_rows = $wpdb->get_results( "SELECT campaign_id, COUNT(id) AS cnt FROM {$campaign_emails_table} WHERE campaign_id IN ({$ids_placeholder}) GROUP BY campaign_id", ARRAY_A ); //phpcs:ignore
 			$email_count_map  = array_column( $email_count_rows, 'cnt', 'campaign_id' );
 
-			// Batch 4: open count per campaign.
+			// Batch 4: open count per campaign (tracked contacts).
 			$open_rows = $wpdb->get_results( "SELECT be.campaign_id, COUNT(bem.mint_email_id) AS cnt FROM {$broadcast_meta_table} bem INNER JOIN {$broadcast_emails_table} be ON bem.mint_email_id = be.id WHERE bem.meta_key = 'is_open' AND bem.meta_value = 1 AND be.campaign_id IN ({$ids_placeholder}) GROUP BY be.campaign_id", ARRAY_A ); //phpcs:ignore
 			$open_map  = array_column( $open_rows, 'cnt', 'campaign_id' );
 
-			// Batch 5: click count per campaign.
+			// Batch 5: click count per campaign (tracked contacts).
 			$click_rows = $wpdb->get_results( "SELECT be.campaign_id, COUNT(bem.mint_email_id) AS cnt FROM {$broadcast_meta_table} bem INNER JOIN {$broadcast_emails_table} be ON bem.mint_email_id = be.id WHERE bem.meta_key = 'is_click' AND bem.meta_value = 1 AND be.campaign_id IN ({$ids_placeholder}) GROUP BY be.campaign_id", ARRAY_A ); //phpcs:ignore
 			$click_map  = array_column( $click_rows, 'cnt', 'campaign_id' );
 
@@ -505,14 +522,27 @@ class DashboardModel {
 			$unsub_rows = $wpdb->get_results( "SELECT be.campaign_id, COUNT(bem.mint_email_id) AS cnt FROM {$broadcast_meta_table} bem INNER JOIN {$broadcast_emails_table} be ON bem.mint_email_id = be.id WHERE bem.meta_key = 'is_unsubscribe' AND bem.meta_value = 1 AND be.campaign_id IN ({$ids_placeholder}) GROUP BY be.campaign_id", ARRAY_A ); //phpcs:ignore
 			$unsub_map  = array_column( $unsub_rows, 'cnt', 'campaign_id' );
 
+			// Batch 7: anonymous open/click aggregate counts (no contact reference).
+			// $ids_placeholder is safe: built from array_map( 'intval', ... ) above.
+			$anon_rows     = $wpdb->get_results( "SELECT campaign_id, meta_key, meta_value FROM {$campaign_meta_table} WHERE meta_key IN ('_anon_open_count', '_anon_click_count') AND campaign_id IN ({$ids_placeholder})", ARRAY_A ); //phpcs:ignore
+			$anon_open_map  = array();
+			$anon_click_map = array();
+			foreach ( $anon_rows as $row ) {
+				if ( '_anon_open_count' === $row['meta_key'] ) {
+					$anon_open_map[ $row['campaign_id'] ] = (int) $row['meta_value'];
+				} elseif ( '_anon_click_count' === $row['meta_key'] ) {
+					$anon_click_map[ $row['campaign_id'] ] = (int) $row['meta_value'];
+				}
+			}
+
 			$campaigns = array();
 			foreach ( $results as $campaign ) {
 				$campaign_id      = isset( $campaign['id'] ) ? (int) $campaign['id'] : 0;
 				$total_bounced    = isset( $bounced_map[ $campaign_id ] ) ? (int) $bounced_map[ $campaign_id ] : 0;
 				$total_recipients = isset( $recipients_map[ $campaign_id ] ) ? (int) $recipients_map[ $campaign_id ] : 0;
 				$email_count      = isset( $email_count_map[ $campaign_id ] ) ? (int) $email_count_map[ $campaign_id ] : 0;
-				$total_opened     = isset( $open_map[ $campaign_id ] ) ? (int) $open_map[ $campaign_id ] : 0;
-				$total_clicked    = isset( $click_map[ $campaign_id ] ) ? (int) $click_map[ $campaign_id ] : 0;
+				$total_opened     = ( isset( $open_map[ $campaign_id ] ) ? (int) $open_map[ $campaign_id ] : 0 ) + ( isset( $anon_open_map[ $campaign_id ] ) ? $anon_open_map[ $campaign_id ] : 0 );
+				$total_clicked    = ( isset( $click_map[ $campaign_id ] ) ? (int) $click_map[ $campaign_id ] : 0 ) + ( isset( $anon_click_map[ $campaign_id ] ) ? $anon_click_map[ $campaign_id ] : 0 );
 				$divide_by        = ( $total_recipients * $email_count ) - $total_bounced;
 				$divide_by        = 0 === $divide_by ? 1 : $divide_by;
 				$campaigns[]      = array(

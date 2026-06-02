@@ -397,7 +397,7 @@ class Deactivation {
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( 'You are not allowed for this task' );
         }
-        error_log(print_r($_POST, true));
+
         $reason_id      = isset( $_POST['reason_id'] )      ? sanitize_text_field( wp_unslash( $_POST['reason_id'] ) )      : 'none';
         $reason_details = isset( $_POST['reason_details'] ) ? sanitize_text_field( wp_unslash( $_POST['reason_details'] ) ) : '';
 
@@ -416,14 +416,14 @@ class Deactivation {
     private function track_deactivation( string $reason_id, string $reason_details ): void {
         $identify = Utils::get_current_user_identify();
 
-        // $this->client->track_lifecycle_event(
-        //     'activation/plugin_deactivated',
-        //     [
-        //         'site_url'       => get_site_url(),
-        //         'reason'         => $reason_id,
-        //         'reason_details' => $reason_details,
-        //     ]
-        // );
+        $this->client->track_lifecycle_event(
+            'activation/plugin_deactivated',
+            [
+                'site_url'       => get_site_url(),
+                'reason'         => $reason_id,
+                'reason_details' => $reason_details,
+            ]
+        );
 
         $this->send_deactivation_webhook( $reason_id, $reason_details, $identify );
 

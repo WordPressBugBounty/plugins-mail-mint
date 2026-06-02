@@ -39,7 +39,22 @@ class ComplianceSettingController extends SettingBaseController {
     public function create_or_update( WP_REST_Request $request ) {
         $params = MrmCommon::get_api_params_values( $request );
         if ( is_array( $params ) && ! empty( $params ) ) {
-            update_option( '_mint_compliance',$params);
+            $yes_no_fields            = array( 'anonymize_ip', 'user_id_delete', 'one_click_unsubscribe', 'enable_gravatar', 'gravatar_fallback', 'personal_data_export', 'personal_data_erase' );
+            $tracking_fields          = array( 'email_open_tracking', 'email_click_tracking' );
+            $allowed_tracking_values  = array( 'yes', 'anonymous', 'no' );
+
+            foreach ( $yes_no_fields as $field ) {
+                if ( isset( $params[ $field ] ) && ! in_array( $params[ $field ], array( 'yes', 'no' ), true ) ) {
+                    $params[ $field ] = 'no';
+                }
+            }
+            foreach ( $tracking_fields as $field ) {
+                if ( isset( $params[ $field ] ) && ! in_array( $params[ $field ], $allowed_tracking_values, true ) ) {
+                    $params[ $field ] = 'yes';
+                }
+            }
+
+            update_option( '_mint_compliance', $params );
             return $this->get_success_response( __( 'compliance settings have been successfully saved.', 'mrm' ) );
         }
         return $this->get_error_response( __( 'No changes have been made.', 'mrm' ) );

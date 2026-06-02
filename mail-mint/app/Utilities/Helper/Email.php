@@ -602,21 +602,23 @@ class Email {
 	 * @return string The email body with the tracking image injected.
 	 * @since 1.5.14
 	 */
-	public static function inject_tracking_image_on_email_body( $rand_hash, $email_body ) {
+	public static function inject_tracking_image_on_email_body( $rand_hash, $email_body, $tracking_mode = 'yes' ) {
 		// Get the site's domain URL.
 		$domain_link = get_site_url();
 
-		// Generate the tracking URL with the random hash.
-		$track_url = add_query_arg(
-			array(
-				'mint'  => 1,
-				'route' => 'open',
-				'hash'  => $rand_hash,
-			),
-			$domain_link
+		// Build tracking URL args — bake the mode in so the handler uses send-time consent,
+		// not whatever the global setting happens to be when the pixel fires later.
+		$args = array(
+			'mint'  => 1,
+			'route' => 'open',
+			'hash'  => $rand_hash,
 		);
-		// Create an invisible tracking image and inject it into the email body.
-		$image_url  = "<img width='1' height='1' src= $track_url />";
+		// Always bake the mode — including 'yes' — so changing the global setting later
+		// cannot retroactively affect emails already in recipients' inboxes.
+		$args['tmode'] = $tracking_mode;
+
+		$track_url  = add_query_arg( $args, $domain_link );
+		$image_url  = '<img width="1" height="1" src="' . esc_url( $track_url ) . '" alt="" style="display:none;border:0;outline:none;text-decoration:none" />';
 		$email_body = $email_body . $image_url;
 		return $email_body;
 	}

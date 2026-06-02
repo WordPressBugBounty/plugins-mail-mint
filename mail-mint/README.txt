@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.23.0
+Stable tag:  1.23.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -527,6 +527,18 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.23.1 (2026-06-01) =
+* New: Enable or disable or anonymous email open and click tracking for privacy compliance.
+* Improvement: Dashboard loading speed by collapsing eight statistic queries into two.
+* Improvement: Contact overview loading speed by combining five queries into one.
+* Improvement: Bulk contact import performance with optimized batch database writes.
+* Improvement: Bulk contact deletion speed by batching form-entry updates.
+* Improvement: Contact list query efficiency by loading only the columns shown in the table.
+* Improvement: Database structure for contact meta with a new unique key for more reliable data storage.
+* Improvement: Cleaned up unused code to improve overall plugin stability.
+* Security: PHP Object Injection vulnerability on the unauthenticated form submission.
+* Bugfix: Custom field columns now correctly appear in the contact list table.
 
 = 1.23.0 (2026-05-23) =
 * New: Support for WordPress privacy tools to export and erase contact data for GDPR compliance.

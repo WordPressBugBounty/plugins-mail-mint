@@ -100,6 +100,9 @@ class DatabaseMigrator {
 			'1.16.1' => array(
 				'add_unique_key_to_automation_log',
 			),
+			'1.16.2' => array(
+				'add_unique_key_to_contact_meta',
+			),
 		);
 
 		$this->current_db_version = get_option( 'mail_mint_db_version', null );
@@ -755,6 +758,38 @@ class DatabaseMigrator {
 
 		if ( ! $key_exists ) {
 			$wpdb->query( "ALTER TABLE {$table} ADD UNIQUE KEY `unique_email_step_identifier` (`email`, `step_id`, `identifier`)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+	}
+
+	/**
+	 * Add a UNIQUE KEY on (contact_id, meta_key) to the contact meta table.
+	 *
+	 * Required so that INSERT ... ON DUPLICATE KEY UPDATE can be used in
+	 * update_meta_fields() to collapse N·F queries down to N queries.
+	 * The ALTER is skipped if the key already exists so the migration is
+	 * safe to run multiple times.
+	 *
+	 * @return void
+	 * @since 1.16.2
+	 */
+	private function add_unique_key_to_contact_meta() {
+		global $wpdb;
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\ContactMetaSchema::$table_name;
+
+		$key_exists = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				 FROM information_schema.statistics
+				 WHERE table_schema = %s
+				   AND table_name   = %s
+				   AND index_name   = 'unique_contact_meta'",
+				DB_NAME,
+				$table
+			)
+		);
+
+		if ( ! $key_exists ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD UNIQUE KEY `unique_contact_meta` (`contact_id`, `meta_key`(191))" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 	}
 

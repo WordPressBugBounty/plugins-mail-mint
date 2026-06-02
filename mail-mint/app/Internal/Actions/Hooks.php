@@ -13,6 +13,7 @@
 namespace MailMint\App\Actions;
 
 use Mint\MRM\DataBase\Models\EmailModel;
+use Mint\MRM\DataBase\Models\CampaignModel;
 use MailMint\App\Helper;
 use MailMint\App\Actions\Handlers\FormSubmissionHandler;
 use Mint\MRM\DataBase\Models\ContactModel;
@@ -134,26 +135,74 @@ class Hooks {
 		$sanitize_server = MrmCommon::get_sanitized_get_post();
 		$get = isset($sanitize_server['get']) ? $sanitize_server['get'] : array();
 		if (isset($get['mint']) && isset($get['route']) && 'open' === $get['route']) {
-			$hash     = ! empty($get['hash']) ? $get['hash'] : '';
-			$email_id = EmailModel::get_broadcast_email_by_hash($hash);
+			// tmode is baked into the pixel URL at send time — use it so global setting
+			// changes don't retroactively affect emails already in inboxes.
+			// Emails without tmode were sent before this feature existed, meaning they
+			// were sent with no compliance setting in place — treat them as 'yes' (full
+			// tracking) regardless of what the current global setting is.
+			if ( isset( $get['tmode'] ) && in_array( $get['tmode'], array( 'yes', 'anonymous' ), true ) ) {
+				$open_tracking_mode = $get['tmode'];
+			} else {
+				$open_tracking_mode = 'yes';
+			}
 
-			if ($hash && $email_id) {
-				EmailModel::insert_or_update_email_meta('is_open', 1, $email_id);
-				EmailModel::insert_or_update_email_meta('user_open_agent', Helper::get_user_agent(), $email_id);
-				EmailModel::insert_or_update_email_meta('user_open_client', Helper::get_email_client(), $email_id);
-				$is_ip_store                = get_option('_mint_compliance');
-				$is_ip_store                = ! empty($is_ip_store['anonymize_ip']) ? $is_ip_store['anonymize_ip'] : 'no';
-				if ('no' === $is_ip_store) {
-					EmailModel::insert_or_update_email_meta('user_open_ip', Helper::get_user_ip(), $email_id);
+			if ('no' !== $open_tracking_mode) {
+				$hash     = ! empty($get['hash']) ? $get['hash'] : '';
+				$email_id = EmailModel::get_broadcast_email_by_hash($hash);
+
+				if ($hash && $email_id) {
+					// Deduplicate: skip if this email was already tracked as opened in the last 5 minutes.
+					// This prevents Apple Mail Privacy Protection and email preview services from
+					// registering false opens on every send.
+					$dedup_key = 'mint_open_' . (int) $email_id;
+					if ( get_transient( $dedup_key ) ) {
+						MrmCommon::generate_gif();
+						return;
+					}
+					set_transient( $dedup_key, 1, 5 * MINUTE_IN_SECONDS );
+
+					if ('anonymous' === $open_tracking_mode) {
+						/*
+						 * In anonymous mode we increment an aggregate counter on mint_campaigns_meta
+						 * (keyed by campaign_id) instead of writing to mint_broadcast_email_meta.
+						 * mint_broadcast_email_meta.mint_email_id is a FK to mint_broadcast_emails
+						 * which carries contact_id — any row there lets a JOIN identify the contact.
+						 * mint_campaigns_meta only references campaign_id, so no contact is traceable.
+						 */
+						$campaign_id = (int) EmailModel::get_campaign_id_by_email_id( $email_id );
+						if ( $campaign_id ) {
+							$current = (int) CampaignModel::get_campaign_meta_value( $campaign_id, '_anon_open_count' );
+							CampaignModel::insert_or_update_campaign_meta( $campaign_id, '_anon_open_count', $current + 1 );
+						}
+
+						/**
+						 * Fires when an email is opened in anonymous tracking mode.
+						 *
+						 * @param int $email_id The ID of the email that was opened.
+						 * @since 1.14.1
+						 */
+						do_action('mailmint_after_email_open_anonymous', $email_id);
+					} else {
+						$should_anonymize_ip = ! empty($compliance['anonymize_ip']) && 'yes' === $compliance['anonymize_ip'];
+						EmailModel::bulk_insert_or_update_email_meta(
+							array(
+								'is_open'          => 1,
+								'user_open_agent'  => Helper::get_user_agent(),
+								'user_open_client' => Helper::get_email_client(),
+								'user_open_ip'     => $should_anonymize_ip ? Helper::get_anonymized_ip() : Helper::get_user_ip(),
+							),
+							$email_id
+						);
+
+						/*
+						 * Fires after an email is opened.
+						 *
+						 * @param int $email_id The ID of the email that was opened.
+						 * @since 1.14.1
+						 */
+						do_action('mailmint_after_email_open', $email_id);
+					}
 				}
-
-				/*
-				 * Fires after an email is opened.
-				 *
-				 * @param int $email_id The ID of the email that was opened.
-				 * @since 1.14.1
-				 */
-				do_action('mailmint_after_email_open', $email_id);
 			}
 
 			MrmCommon::generate_gif();

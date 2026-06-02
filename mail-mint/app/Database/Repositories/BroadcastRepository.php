@@ -229,14 +229,20 @@ class BroadcastRepository extends AbstractRepository {
 	 * @return int Count of broadcast emails with `is_open = 1` meta.
 	 */
 	public function calculateOpenRateOnCampaign( int $campaign_id ): int {
-		$broadcast = $this->prefixedTable();
+		global $wpdb;
 
-		return QueryBuilder::table( $broadcast )
+		$broadcast = $this->prefixedTable();
+		$tracked   = QueryBuilder::table( $broadcast )
 			->leftJoin( $this->metaTable() . ' AS meta', 'meta.mint_email_id', '=', $broadcast . '.id' )
 			->where( $broadcast . '.campaign_id', '=', $campaign_id )
 			->where( 'meta.meta_key', '=', 'is_open' )
 			->where( 'meta.meta_value', '=', '1' )
 			->count();
+
+		$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
+		$anon = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_open_count'", $campaign_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		return $tracked + $anon;
 	}
 
 	/**
@@ -250,14 +256,20 @@ class BroadcastRepository extends AbstractRepository {
 	 * @return int Count of broadcast emails with `is_click = 1` meta.
 	 */
 	public function calculateClickRateOnCampaign( int $campaign_id ): int {
-		$broadcast = $this->prefixedTable();
+		global $wpdb;
 
-		return QueryBuilder::table( $broadcast )
+		$broadcast = $this->prefixedTable();
+		$tracked   = QueryBuilder::table( $broadcast )
 			->leftJoin( $this->metaTable() . ' AS meta', 'meta.mint_email_id', '=', $broadcast . '.id' )
 			->where( $broadcast . '.campaign_id', '=', $campaign_id )
 			->where( 'meta.meta_key', '=', 'is_click' )
 			->where( 'meta.meta_value', '=', '1' )
 			->count();
+
+		$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
+		$anon = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_click_count'", $campaign_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		return $tracked + $anon;
 	}
 
 	/**
@@ -905,6 +917,62 @@ class BroadcastRepository extends AbstractRepository {
 		return QueryBuilder::table( $this->prefixedTable() )
 			->where( 'campaign_id', '=', $campaign_id )
 			->count();
+	}
+
+	/**
+	 * Retrieve all five contact-overview email stats in a single query.
+	 *
+	 * Collapses the five separate COUNT/MAX calls previously used by
+	 * ContactProfileAction::get_contact_overview() into one round-trip:
+	 * delivered, bounced, opened, clicked, and last-opened timestamp.
+	 *
+	 * @since 1.20.0
+	 *
+	 * @param int    $contact_id Contact ID.
+	 * @param string $filter     Time filter: 'lifetime', 'month', or 'year'. Default 'lifetime'.
+	 * @return array{delivered: int, bounced: int, opened: int, clicked: int, last_opened: string|null}
+	 */
+	public function getContactEmailStats( int $contact_id, string $filter = 'lifetime' ): array {
+		global $wpdb;
+
+		$email_table = $this->prefixedTable();
+		$meta_table  = $this->metaTable();
+		$where_clause = '';
+
+		if ( 'month' === $filter ) {
+			$last_month   = date( 'Y-m-d', strtotime( '-30 days' ) );
+			$where_clause = $wpdb->prepare( ' AND be.created_at >= %s', $last_month );
+		} elseif ( 'year' === $filter ) {
+			$last_year    = date( 'Y-m-d', strtotime( '-1 year' ) );
+			$where_clause = $wpdb->prepare( ' AND be.created_at >= %s', $last_year );
+		}
+
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT
+					SUM(CASE WHEN be.status = 'sent'                          THEN 1 ELSE 0 END) AS delivered,
+					SUM(CASE WHEN be.status = 'failed'                        THEN 1 ELSE 0 END) AS bounced,
+					SUM(CASE WHEN bm_open.mint_email_id  IS NOT NULL          THEN 1 ELSE 0 END) AS opened,
+					SUM(CASE WHEN bm_click.mint_email_id IS NOT NULL          THEN 1 ELSE 0 END) AS clicked,
+					MAX(COALESCE(bm_open.updated_at, bm_open.created_at))                        AS last_opened
+				FROM {$email_table} be
+				LEFT JOIN {$meta_table} bm_open
+					ON bm_open.mint_email_id = be.id AND bm_open.meta_key = 'is_open'  AND bm_open.meta_value = '1'
+				LEFT JOIN {$meta_table} bm_click
+					ON bm_click.mint_email_id = be.id AND bm_click.meta_key = 'is_click' AND bm_click.meta_value = '1'
+				WHERE be.contact_id = %d {$where_clause}", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$contact_id
+			),
+			ARRAY_A
+		);
+
+		return array(
+			'delivered'   => isset( $row['delivered'] )   ? (int) $row['delivered']   : 0,
+			'bounced'     => isset( $row['bounced'] )     ? (int) $row['bounced']     : 0,
+			'opened'      => isset( $row['opened'] )      ? (int) $row['opened']      : 0,
+			'clicked'     => isset( $row['clicked'] )     ? (int) $row['clicked']     : 0,
+			'last_opened' => ! empty( $row['last_opened'] ) ? $row['last_opened']     : null,
+		);
 	}
 
 	/**

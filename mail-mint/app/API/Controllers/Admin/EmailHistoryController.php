@@ -23,6 +23,7 @@ use MailMint\App\Helper;
 use Mint\MRM\DataBase\Models\CampaignEmailBuilderModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\Internal\Campaign\EmailPersonalizer;
+use Mint\MRM\API\Actions\ComplianceAction;
 use Mint\MRM\Internal\Parser\Parser;
 use MintMailPro\Mint_Pro_Helper;
 use MRM\Common\MrmCommon;
@@ -439,8 +440,11 @@ class EmailHistoryController extends AdminBaseController {
 		$hash_id  = (int) $row->campaign_id ?: ( (int) $row->automation_id ?: $id );
 		$new_hash = MrmCommon::get_rand_email_hash( $row->email_address, $hash_id );
 
-		// Wrap all links with click-tracking URLs.
-		$body = Helper::replace_url( $body, $new_hash );
+		// Wrap all links with click-tracking URLs — bake mode at resend time.
+		$click_tracking_mode = ComplianceAction::get_click_tracking_mode();
+		if ( 'no' !== $click_tracking_mode ) {
+			$body = Helper::replace_url( $body, $new_hash, $click_tracking_mode );
+		}
 
 		// Restore original From/Reply-To headers; fall back to email settings.
 		$email_headers = ! empty( $row->email_headers ) ? json_decode( $row->email_headers, true ) : array();

@@ -85,7 +85,7 @@ class FormController extends AdminBaseController {
 			'form_body'     => isset( $params['form_body'] ) ? htmlspecialchars_decode( $params['form_body'] ) : '',
 			'form_position' => isset( $params['form_position'] ) ? serialize($params['form_position']) : [],
 			'status'        => isset( $params['status'] ) ? $params['status'] : '',
-			'group_ids'     => isset( $params['group_ids'] ) ? $params['group_ids'] : array(),
+			'group_ids'     => isset( $params['group_ids'] ) ? $this->sanitize_group_ids( $params['group_ids'] ) : array(),
 			'meta_fields'   => isset( $params['meta_fields'] ) ? $params['meta_fields'] : array(),
 		);
 		$this->args['meta_fields']['settings'] = htmlspecialchars_decode( $this->args['meta_fields']['settings'] );
@@ -169,7 +169,7 @@ class FormController extends AdminBaseController {
 					if ( isset( $form['created_at'] ) ) {
 						$form['created_ago'] = human_time_diff( strtotime( $form['created_at'] ), current_time( 'timestamp' ) );
 					}
-					$form['group_ids'] = isset( $form['group_ids'] ) ? maybe_unserialize( $form['group_ids'] ) : array();
+					$form['group_ids'] = isset( $form['group_ids'] ) ? $this->decode_group_ids( $form['group_ids'] ) : array();
 					return $form;
 				},
 				$forms['data']
@@ -240,7 +240,7 @@ class FormController extends AdminBaseController {
 			return $this->get_error_response(__('Failed to retrieve form data.', 'mrm'), 400);
 		}
 
-		$form['group_ids']     = isset( $form['group_ids'] ) ? maybe_unserialize( $form['group_ids'] ) : array();
+		$form['group_ids']     = isset( $form['group_ids'] ) ? $this->decode_group_ids( $form['group_ids'] ) : array();
 		$form['form_position'] = isset( $form['form_position'] ) ? maybe_unserialize( $form['form_position'] ) : '';
 
 		return $this->get_success_response( __( 'Form data has been retrieved successfully.', 'mrm' ), 200, $form );
@@ -351,7 +351,7 @@ class FormController extends AdminBaseController {
 
 		$form = FormModel::get_title_group( $params['form_id'] );
 
-		$form[0]['group_ids'] = isset( $form[0]['group_ids'] ) ? maybe_unserialize( $form[0]['group_ids'] ) : array();
+		$form[0]['group_ids']     = isset( $form[0]['group_ids'] ) ? $this->decode_group_ids( $form[0]['group_ids'] ) : array();
 		$form[0]['form_position'] = isset( $form[0]['form_position'] ) ? maybe_unserialize( $form[0]['form_position'] ) : array();
 		if ( isset( $form ) ) {
 			return $this->get_success_response( __( 'Query Successful.', 'mrm' ), 200, $form );
@@ -761,5 +761,66 @@ class FormController extends AdminBaseController {
 		}
 
 		return $this->get_success_response( __( 'Entries deleted successfully.', 'mrm' ), 200 );
+	}
+
+	/**
+	 * Sanitize a group_ids value received from the API.
+	 *
+	 * Enforces an allowlist of top-level keys ('tags', 'lists') and ensures
+	 * every item contains only integer IDs and text titles — no arbitrary
+	 * PHP-serialized content can pass through.
+	 *
+	 * @param mixed $raw Raw group_ids from the request.
+	 * @return array
+	 * @since 1.24.0
+	 */
+	private function sanitize_group_ids( $raw ) {
+		if ( ! is_array( $raw ) ) {
+			return array();
+		}
+
+		$sanitized = array();
+		foreach ( array( 'tags', 'lists' ) as $type ) {
+			if ( empty( $raw[ $type ] ) || ! is_array( $raw[ $type ] ) ) {
+				continue;
+			}
+			$sanitized[ $type ] = array();
+			foreach ( $raw[ $type ] as $item ) {
+				if ( ! is_array( $item ) || empty( $item['id'] ) ) {
+					continue;
+				}
+				$sanitized[ $type ][] = array(
+					'id'    => absint( $item['id'] ),
+					'title' => isset( $item['title'] ) ? sanitize_text_field( $item['title'] ) : '',
+				);
+			}
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Decode a group_ids value read from the database.
+	 *
+	 * Accepts JSON (current format) or legacy PHP-serialized strings.
+	 * Always returns an array; PHP objects are discarded to prevent
+	 * object injection when data flows into the frontend read path.
+	 *
+	 * @param string $raw Raw value from the group_ids column.
+	 * @return array
+	 * @since 1.24.0
+	 */
+	private function decode_group_ids( $raw ) {
+		if ( empty( $raw ) ) {
+			return array();
+		}
+
+		$decoded = json_decode( $raw, true );
+		if ( JSON_ERROR_NONE === json_last_error() && is_array( $decoded ) ) {
+			return $decoded;
+		}
+
+		$decoded = maybe_unserialize( $raw );
+		return is_array( $decoded ) ? $decoded : array();
 	}
 }

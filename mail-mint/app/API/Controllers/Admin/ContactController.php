@@ -815,18 +815,6 @@ class ContactController extends AdminBaseController {
         return $this->get_error_response( __( 'Failed to get data', 'mrm' ), 400 );
     }
 
-
-    /**
-     * Get total Contact
-     *
-     * @param mixed $request POST request after form submission on frontend.
-     * @return mixed
-     * @since 1.0.0
-     */
-    public function get_total_count( $request ) {
-        return ContactModel::get_instance()->get_total_count( $request );
-    }
-
     /**
      * Retrieves the columns for the contact details page.
      * 

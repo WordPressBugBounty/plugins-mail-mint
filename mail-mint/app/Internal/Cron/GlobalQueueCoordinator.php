@@ -23,6 +23,7 @@ use Mint\MRM\Utilites\Helper\Email;
 use Mint\Mrm\Internal\Traits\Singleton;
 use MintMailPro\Mint_Pro_Helper;
 use MRM\Common\MrmCommon;
+use Mint\MRM\API\Actions\ComplianceAction;
 
 /**
  * Class GlobalQueueCoordinator
@@ -438,7 +439,10 @@ class GlobalQueueCoordinator {
 		$email_subject = Parser::parse( $cached['email_subject'], $contact );
 		$preview_text  = Parser::parse( $cached['email_preview_text'], $contact );
 		$email_body    = Parser::parse( $email_body_raw, $contact );
-		$email_body    = Helper::replace_url( $email_body, $email_hash );
+		$click_tracking_mode = ComplianceAction::get_click_tracking_mode();
+		if ( 'no' !== $click_tracking_mode ) {
+			$email_body = Helper::replace_url( $email_body, $email_hash, $click_tracking_mode );
+		}
 
 		$headers = array_filter(
 			$headers,

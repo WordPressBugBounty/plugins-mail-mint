@@ -378,7 +378,7 @@ class ContactRepository extends AbstractRepository {
 
 		// Fetch paginated data.
 		$offset   = ( $page - 1 ) * $per_page;
-		$data_sql = "SELECT * FROM {$table} {$where_sql} ORDER BY `{$order_by}` {$order} LIMIT %d, %d";
+		$data_sql = "SELECT id, email, first_name, last_name, status, stage, source, scores, created_at, updated_at FROM {$table} {$where_sql} ORDER BY `{$order_by}` {$order} LIMIT %d, %d";
 
 		$data_bindings   = array_merge( $bindings, array( $offset, $per_page ) );
 		$data_sql        = $wpdb->prepare( $data_sql, $data_bindings ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -394,7 +394,10 @@ class ContactRepository extends AbstractRepository {
 		// Call withStatsQuery exactly once with all page IDs.
 		$stats = ! empty( $ids ) ? $this->withStatsQuery( $ids ) : array();
 
-		// Merge tags and lists into each contact row.
+		// Batch-load meta for all contacts on this page.
+		$meta_map = ! empty( $ids ) ? ContactModel::get_meta_for_contacts( $ids ) : array();
+
+		// Merge tags, lists, and meta into each contact row.
 		foreach ( $data as &$row ) {
 			$row_id = (int) $row['id'];
 			if ( isset( $stats[ $row_id ] ) ) {
@@ -404,6 +407,7 @@ class ContactRepository extends AbstractRepository {
 				$row['tags']  = array();
 				$row['lists'] = array();
 			}
+			$row['meta_fields'] = isset( $meta_map[ $row_id ] ) ? $meta_map[ $row_id ]['meta_fields'] : array();
 		}
 		unset( $row );
 

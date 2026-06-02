@@ -19,6 +19,7 @@ use MailMint\App\Helper;
 use Mint\MRM\Utilites\Helper\Email;
 use MintMailPro\Mint_Pro_Helper;
 use MRM\Common\MrmCommon;
+use Mint\MRM\API\Actions\ComplianceAction;
 
 /**
  * Class EmailPersonalizer
@@ -43,8 +44,11 @@ class EmailPersonalizer {
 	 * @since 1.20.0
 	 */
 	public function personalizeBody( string $body, string $email_hash, string $preview_text, string $editor_type, string $watermark ): string {
-		// (a) Inject tracking pixel.
-		$body = Email::inject_tracking_image_on_email_body( $email_hash, $body );
+		// (a) Inject tracking pixel — bake mode into URL so it's frozen to send-time consent.
+		$open_tracking_mode = ComplianceAction::get_open_tracking_mode();
+		if ( 'no' !== $open_tracking_mode ) {
+			$body = Email::inject_tracking_image_on_email_body( $email_hash, $body, $open_tracking_mode );
+		}
 
 		// (b) Inject preview text.
 		$body = Email::inject_preview_text_on_email_body( $preview_text, $body );

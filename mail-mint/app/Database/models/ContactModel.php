@@ -17,6 +17,7 @@ use Mint\MRM\DataBase\Tables\ContactMetaSchema;
 use Mint\MRM\DataBase\Tables\ContactNoteSchema;
 use Mint\MRM\DataBase\Tables\ContactSchema;
 use Mint\MRM\DataBase\Tables\EmailSchema;
+use Mint\MRM\DataBase\Tables\FormMetaSchema;
 use Mint\MRM\DataStores\ContactData;
 use Mint\MRM\Utilites\Helper\Contact;
 use MRM\Common\MrmCommon;
@@ -173,34 +174,59 @@ class ContactModel {
 		}
 		global $wpdb;
 		$contacts_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
-		foreach ( $args['meta_fields'] as $key => $value ) {
-			$value = CustomFieldModel::prepare_custom_select_field_data( $key, $value );
+		$now                 = current_time( 'mysql' );
 
-			if ( self::is_contact_meta_exist( $contact_id, $key ) ) {
-				// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+		// Prepare values (may serialize checkbox fields) — still O(F) but no DB writes yet.
+		$prepared = array();
+		foreach ( $args['meta_fields'] as $key => $value ) {
+			$prepared[ $key ] = CustomFieldModel::prepare_custom_select_field_data( $key, $value );
+		}
+
+		$keys        = array_keys( $prepared );
+		$key_count   = count( $keys );
+		$placeholders = implode( ', ', array_fill( 0, $key_count, '%s' ) );
+
+		// One SELECT to find which keys already exist for this contact.
+		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+		$existing_keys = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT meta_key FROM {$contacts_meta_table} WHERE contact_id = %d AND meta_key IN ({$placeholders})",
+				array_merge( array( $contact_id ), $keys )
+			)
+		); // db call ok. ; no-cache ok.
+		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+
+		$existing_keys = array_flip( $existing_keys );
+		$insert_rows   = array();
+
+		foreach ( $prepared as $key => $value ) {
+			if ( isset( $existing_keys[ $key ] ) ) {
+				// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_value, WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 				$wpdb->update(
 					$contacts_meta_table,
 					array(
 						'meta_value' => $value,
-						'updated_at' => current_time( 'mysql' ),
+						'updated_at' => $now,
 					),
 					array(
-						'meta_key'   => $key,
 						'contact_id' => $contact_id,
+						'meta_key'   => $key,
 					)
 				); // db call ok. ; no-cache ok.
+				// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_value, WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			} else {
-				$wpdb->insert(
-					$contacts_meta_table,
-					array(
-						'contact_id' => $contact_id,
-						'meta_key'   => $key,
-						'meta_value' => $value,
-						'created_at' => current_time( 'mysql' ),
-					)
-				); // db call ok. ; no-cache ok.
+				$insert_rows[] = $wpdb->prepare( '(%d, %s, %s, %s, %s)', $contact_id, $key, $value, $now, $now );
 			}
+		}
+
+		// Bulk-insert all new keys in one query.
+		if ( ! empty( $insert_rows ) ) {
+			$values_sql = implode( ', ', $insert_rows );
+			// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+			$wpdb->query(
+				"INSERT INTO {$contacts_meta_table} (contact_id, meta_key, meta_value, created_at, updated_at) VALUES {$values_sql}"
+			); // db call ok. ; no-cache ok.
+			// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 		}
 	}
 
@@ -265,7 +291,7 @@ class ContactModel {
 		global $wpdb;
 		$contacts_table = $wpdb->prefix . ContactSchema::$table_name;
 
-		$select_query = $wpdb->prepare( "SELECT * FROM $contacts_table WHERE email = %s AND id = %d", array( $email, $contact_id ) );
+		$select_query = $wpdb->prepare( "SELECT id FROM $contacts_table WHERE email = %s AND id = %d", array( $email, $contact_id ) );
 		$results      = $wpdb->get_results( $select_query ); // db call ok. ; no-cache ok.
 		if ( $results ) {
 			return true;
@@ -321,9 +347,9 @@ class ContactModel {
 
 		try {
 			if ( !empty( $contact_ids ) ) {
+				self::batch_decrement_form_entries( $contact_ids );
 				foreach ( $contact_ids as $id ) {
 					do_action('mailmint_after_delete_contact', $id);
-					self::remove_form_entries_for_deleted_contact( $id );
 				}
 			}
 			$contact_ids      = implode( ',', array_map( 'intval', $contact_ids ) );
@@ -374,7 +400,7 @@ class ContactModel {
 		}
 
 		// Prepare sql results for list view.
-		$query_results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $contact_table $search_terms $export_terms ORDER BY id DESC  LIMIT %d, %d", array( $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
+		$query_results = $wpdb->get_results( $wpdb->prepare( "SELECT id, email, first_name, last_name, status, stage, source, scores, created_at, updated_at FROM $contact_table $search_terms $export_terms ORDER BY id DESC  LIMIT %d, %d", array( $offset, $limit ) ), ARRAY_A ); // db call ok. ; no-cache ok.
 		$results       = array();
 
 		if ( ! empty( $query_results ) ) {
@@ -498,7 +524,7 @@ class ContactModel {
 				$cid = (int) $meta_row['contact_id'];
 				if ( isset( $results[ $cid ] ) ) {
 					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-					$results[ $cid ]['meta_fields'][ $meta_row['meta_key'] ] = maybe_unserialize( $meta_row['meta_value'] );
+					$results[ $cid ]['meta_fields'][ $meta_row['meta_key'] ] = self::safe_unserialize_meta( $meta_row['meta_value'] );
 				}
 			}
 		}
@@ -544,7 +570,7 @@ class ContactModel {
 		$new_meta['meta_fields'] = array();
 		foreach ( $meta_results as $result ) {
 			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			$new_meta['meta_fields'][ $result['meta_key'] ] = maybe_unserialize( $result['meta_value'] );
+			$new_meta['meta_fields'][ $result['meta_key'] ] = self::safe_unserialize_meta( $result['meta_value'] );
 		}
 
 		return $new_meta;
@@ -582,7 +608,7 @@ class ContactModel {
 				$meta_map[ $cid ] = array( 'meta_fields' => array() );
 			}
 			// phpcs:disable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			$meta_map[ $cid ]['meta_fields'][ $row['meta_key'] ] = maybe_unserialize( $row['meta_value'] );
+			$meta_map[ $cid ]['meta_fields'][ $row['meta_key'] ] = self::safe_unserialize_meta( $row['meta_value'] );
 			// phpcs:enable WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 		}
 
@@ -604,7 +630,7 @@ class ContactModel {
 		$table_name = $wpdb->prefix . ContactMetaSchema::$table_name;
 
 		try {
-			$select_query = $wpdb->prepare( "SELECT * FROM $table_name WHERE contact_id = %d AND meta_key=%s", array( $contact_id, $key ) );
+			$select_query = $wpdb->prepare( "SELECT id FROM $table_name WHERE contact_id = %d AND meta_key=%s", array( $contact_id, $key ) );
 			$results      = $wpdb->get_results( $select_query ); // db call ok. ; no-cache ok.
 			if ( ! empty( $results ) ) {
 				return true;
@@ -629,7 +655,7 @@ class ContactModel {
 		$table_name = $wpdb->prefix . ContactMetaSchema::$table_name;
 
 		try {
-			$select_query = $wpdb->prepare( "SELECT * FROM $table_name WHERE contact_id = %d AND meta_key=%s", array( $contact_id, $meta_key ) );
+			$select_query = $wpdb->prepare( "SELECT id FROM $table_name WHERE contact_id = %d AND meta_key=%s", array( $contact_id, $meta_key ) );
 			$results      = $wpdb->get_results( $select_query ); // db call ok. ; no-cache ok.
 			if ( ! empty( $results ) ) {
 				return true;
@@ -691,8 +717,8 @@ class ContactModel {
 			$search = $wpdb->esc_like( $search );
 			// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery
 			$select_query = $wpdb->prepare(
-				"SELECT * , $contact_table.id FROM $contact_table 
-            LEFT JOIN $pivot_table ON ($contact_table.id = $pivot_table.contact_id)  
+				"SELECT $contact_table.id, $contact_table.email, $contact_table.first_name, $contact_table.last_name, $contact_table.status, $contact_table.stage, $contact_table.source, $contact_table.scores, $contact_table.created_at, $contact_table.updated_at FROM $contact_table
+            LEFT JOIN $pivot_table ON ($contact_table.id = $pivot_table.contact_id)
             LEFT JOIN $pivot_table AS tt1 ON ($contact_table.id = tt1.contact_id)
             WHERE (`hash` LIKE '%%$search%%' OR `email` LIKE '%%$search%%' OR
                  `first_name` LIKE '%%$search%%' OR `last_name` LIKE '%%$search%%' OR concat(`first_name`, ' ', `last_name`) LIKE '%%$search%%'
@@ -762,77 +788,6 @@ class ContactModel {
 		}
 	}
 
-
-	/**
-	 * Return custiom fields for mapping
-	 *
-	 * @return array
-	 * @since 1.0.0
-	 */
-	public static function mrm_contact_custom_attributes() {
-		global $wpdb;
-		$contacts_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
-
-		$select_query = $wpdb->prepare(
-			"SELECT DISTINCT meta_key FROM $contacts_meta_table WHERE meta_key NOT IN ('first_name', 
-                                                                                                                    'last_name',
-                                                                                                                    'email',
-                                                                                                                    'date_of_birth',
-                                                                                                                    'company_name',
-                                                                                                                    'address_line_1',	
-                                                                                                                    'address_line_2',
-                                                                                                                    'postal_code',
-                                                                                                                    'city',	
-                                                                                                                    'state',
-                                                                                                                    'country',
-                                                                                                                    'phone',
-                                                                                                                    'timezone'
-                                                                                                                    )"
-		);
-		$results      = json_decode( wp_json_encode( $wpdb->get_results( $select_query ) ), true ); // db call ok. ; no-cache ok.
-
-		$custom_fields = array_map(
-			function( $result ) {
-				return $result['meta_key'];
-			},
-			$results
-		);
-		return $custom_fields;
-	}
-
-	/**
-	 * Get Total Number of contacts
-	 *
-	 * @param int $contact_id contact id.
-	 * @return bool
-	 * @since 1.0.0
-	 */
-	public static function get_total_count( $contact_id ) {
-		global $wpdb;
-		$table_name = $wpdb->prefix . ContactSchema::$table_name;
-
-		$select_query       = $wpdb->prepare( "SELECT COUNT(*) as total FROM $table_name" );
-		$total_subscribed   = $wpdb->prepare( "SELECT COUNT(*) as subscribed FROM $table_name WHERE status='subscribed'" );
-		$total_unsubscribed = $wpdb->prepare( "SELECT COUNT(*) as unsubscribed FROM $table_name WHERE status='unsubscribed'" );
-		$total_pending      = $wpdb->prepare( "SELECT COUNT(*) as pending FROM $table_name WHERE status='pending'" );
-
-		$contacts     = json_decode( wp_json_encode( $wpdb->get_results( $select_query ) ), true ); // db call ok. ; no-cache ok.
-		$subscribed   = json_decode( wp_json_encode( $wpdb->get_results( $total_subscribed ) ), true ); // db call ok. ; no-cache ok.
-		$unsubscribed = json_decode( wp_json_encode( $wpdb->get_results( $total_unsubscribed ) ), true ); // db call ok. ; no-cache ok.
-		$pending      = json_decode( wp_json_encode( $wpdb->get_results( $total_pending ) ), true ); // db call ok. ; no-cache ok.
-
-		$results = array(
-			'total_contacts'     => $contacts[0]['total'],
-			'total_subscribed'   => $subscribed[0]['subscribed'],
-			'total_unsubscribed' => $unsubscribed[0]['unsubscribed'],
-			'total_pending'      => $pending[0]['pending'],
-		);
-
-		if ( ! empty( $results ) ) {
-			return $results;
-		}
-		return false;
-	}
 
 
 	/**
@@ -1124,6 +1079,65 @@ class ContactModel {
 	}
 
 	/**
+	 * Batch-decrement form entry counts for a set of contacts being deleted.
+	 * Replaces per-contact remove_form_entries_for_deleted_contact() calls in destroy_all()
+	 * to reduce O(N·4) queries down to O(F·2) where F = number of distinct form sources.
+	 *
+	 * @param array $contact_ids Contact IDs being deleted.
+	 * @return void
+	 */
+	private static function batch_decrement_form_entries( array $contact_ids ) {
+		global $wpdb;
+
+		$contacts_table   = $wpdb->prefix . ContactSchema::$table_name;
+		$form_meta_table  = $wpdb->prefix . FormMetaSchema::$table_name;
+
+		$ids_placeholder = implode( ',', array_fill( 0, count( $contact_ids ), '%d' ) );
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT source FROM $contacts_table WHERE id IN ($ids_placeholder) AND source IS NOT NULL AND source != ''", // db call ok. ; no-cache ok.
+				...$contact_ids
+			),
+			ARRAY_A
+		);
+
+		if ( empty( $rows ) ) {
+			return;
+		}
+
+		// Count deletions per form_id parsed from source strings like "form-123".
+		$decrements = array();
+		foreach ( $rows as $row ) {
+			if ( ! preg_match( '/form/i', $row['source'] ) ) {
+				continue;
+			}
+			$parts   = explode( '-', $row['source'] );
+			$form_id = isset( $parts[1] ) ? (int) $parts[1] : 0;
+			if ( $form_id > 0 ) {
+				$decrements[ $form_id ] = ( $decrements[ $form_id ] ?? 0 ) + 1;
+			}
+		}
+
+		foreach ( $decrements as $form_id => $count ) {
+			$current = $wpdb->get_var(
+				$wpdb->prepare(
+					"SELECT meta_value FROM $form_meta_table WHERE form_id = %d AND meta_key = 'entries'", // db call ok. ; no-cache ok.
+					$form_id
+				)
+			);
+			if ( null === $current ) {
+				continue;
+			}
+			$new_value = max( 0, (int) $current - $count );
+			$wpdb->update(
+				$form_meta_table,
+				array( 'meta_value' => $new_value ),
+				array( 'form_id' => $form_id, 'meta_key' => 'entries' )
+			); // db call ok. ; no-cache ok.
+		}
+	}
+
+	/**
 	 * Updates the status of multiple contacts.
 	 *
 	 * This function updates the status of the specified contacts with the provided status.
@@ -1347,9 +1361,30 @@ class ContactModel {
 	public static function get_contacts_to_verify( $offset = 0, $batch_size = 100 ) {
 		global $wpdb;
 		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
-		
+
 		// Prepare sql results for list view.
 		$query_results = $wpdb->get_results( $wpdb->prepare( "SELECT id, email FROM $contact_table LIMIT %d, %d", array( $offset, $batch_size ) ), ARRAY_A ); // db call ok. ; no-cache ok.
 		return $query_results;
+	}
+
+	/**
+	 * Safely deserialize a contact meta value.
+	 *
+	 * Scalar values and plain strings are returned as-is. For serialized
+	 * strings, only arrays are accepted as the result — this preserves
+	 * legitimate checkbox/multi-select data while preventing PHP Object
+	 * Injection: any deserialized object is discarded and the raw string
+	 * returned instead.
+	 *
+	 * @param mixed $value Raw meta_value from the database.
+	 * @return mixed
+	 * @since 1.24.0
+	 */
+	private static function safe_unserialize_meta( $value ) {
+		if ( ! is_serialized( $value ) ) {
+			return $value;
+		}
+		$unserialized = maybe_unserialize( $value );
+		return is_array( $unserialized ) ? $unserialized : $value;
 	}
 }

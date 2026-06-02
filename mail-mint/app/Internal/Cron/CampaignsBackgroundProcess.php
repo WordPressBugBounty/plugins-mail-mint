@@ -24,6 +24,7 @@ use Mint\MRM\Internal\Cron\Traits\ActionSchedulerTrait;
 use Mint\MRM\Internal\Cron\Traits\BatchProcessTrait;
 use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Admin\API\Controllers\CampaignController;
+use Mint\MRM\API\Actions\ComplianceAction;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Tables\EmailSchema;
 use Mint\MRM\Internal\Parser\Parser;
@@ -402,7 +403,10 @@ class CampaignsBackgroundProcess {
 					 $email_subject      = Parser::parse( $cached['email_subject'], $contact );
 					 $preview_text       = Parser::parse( $cached['email_preview_text'], $contact );
 					 $parsed_email_body  = Parser::parse( $email_body, $contact );
-					 $parsed_email_body  = Helper::replace_url( $parsed_email_body, $email_hash );
+					 $click_tracking_mode = ComplianceAction::get_click_tracking_mode();
+					 if ( 'no' !== $click_tracking_mode ) {
+						 $parsed_email_body = Helper::replace_url( $parsed_email_body, $email_hash, $click_tracking_mode );
+					 }
 
 					 // Update X-PreHeader with the parsed (per-contact) preview text.
 					 // Remove the placeholder added by buildHeaders and re-add with parsed value.

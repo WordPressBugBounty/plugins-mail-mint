@@ -16,9 +16,11 @@ namespace Mint\App\Internal\Actions\Handlers;
 use MailMint\App\Helper;
 use MailMintPro\Internal\LeadMagnet\LeadMagnetDownloader;
 use Mint\MRM\DataBase\Models\EmailModel;
+use Mint\MRM\DataBase\Models\CampaignModel;
 use Mint\MRM\Internal\Optin\UnsubscribeConfirmation;
 use Mint\MRM\Utilites\Helper\Campaign;
 use MRM\Common\MrmCommon;
+use Mint\MRM\API\Actions\ComplianceAction;
 
 /**
  * Class RedirectionHandler
@@ -68,9 +70,44 @@ class RedirectionHandler {
             case 'link-trigger':
                 $this->handle_link_triggers( $data, $hash, $email_id );
             default:
-                $this->handle_default( $hash, $target_url, $email_id );
+                if ( ! $this->is_safe_redirect_url( $target_url ) ) {
+                    exit( wp_redirect( home_url() ) );
+                }
+                // Verify HMAC signature when present (old inbox links without mts are allowed through).
+                $signature = isset( $data['mts'] ) ? $data['mts'] : '';
+                if ( ! \MailMint\App\Helper::verify_tracking_signature( $hash, $target_url, $signature ) ) {
+                    exit( wp_redirect( $target_url, 302 ) );
+                }
+                // tmode is baked into the URL at send time — pass it through so old emails
+                // are not retroactively affected by later compliance setting changes.
+                $tmode = isset( $data['tmode'] ) && in_array( $data['tmode'], array( 'yes', 'anonymous' ), true )
+                    ? $data['tmode']
+                    : null;
+                $this->handle_default( $hash, $target_url, $email_id, $tmode );
                 break;
         }
+    }
+
+    /**
+     * Validates that a redirect target URL is safe (http/https only, has a valid host).
+     *
+     * Prevents open-redirect abuse where an attacker supplies a javascript:,
+     * data:, or other dangerous URI as the target parameter.
+     *
+     * @param string $url The URL to validate.
+     * @return bool True when the URL is safe to redirect to.
+     * @since 1.14.0
+     */
+    private function is_safe_redirect_url( $url ) {
+        if ( empty( $url ) || '#' === $url ) {
+            return false;
+        }
+        $parsed = wp_parse_url( $url );
+        if ( empty( $parsed['host'] ) ) {
+            return false;
+        }
+        $allowed_schemes = array( 'http', 'https' );
+        return isset( $parsed['scheme'] ) && in_array( strtolower( $parsed['scheme'] ), $allowed_schemes, true );
     }
 
     /**
@@ -128,30 +165,77 @@ class RedirectionHandler {
      * @return void
      * @since 1.14.0
      */
-    private function handle_default($hash, $target_url, $email_id){
-        // WooCommerce active check.
-        $is_wc_active = MrmCommon::is_wc_active();
+    private function handle_default($hash, $target_url, $email_id, $tmode = null){
+        // Use send-time mode baked in the URL; old links without tmode were sent
+        // before this feature existed (no compliance setting in place) — treat as
+        // 'yes' (full tracking) regardless of what the current global setting is.
+        $click_tracking_mode = ( null !== $tmode ) ? $tmode : 'yes';
 
-        if ($is_wc_active) {
-            // Set cookie to track product buying from the link.
-            $cookie = MrmCommon::get_sanitized_get_post();
-            $cookie = !empty($cookie['cookie']) ? $cookie['cookie'] : array();
-            if (isset($cookie['mail_mint_link_trigger'])) {
-                setcookie('mail_mint_link_trigger', '', time() - 3600);
-                unset($cookie['mail_mint_link_trigger']);
+        // Rate-limit: allow at most one tracked click per email per URL per minute
+        // to guard against bot crawlers inflating click counts.
+        $dedup_key = 'mint_click_' . (int) $email_id . '_' . substr( md5( $target_url ), 0, 8 );
+        $already_counted = get_transient( $dedup_key );
+        if ( ! $already_counted ) {
+            set_transient( $dedup_key, 1, MINUTE_IN_SECONDS );
+        }
+
+        if ( 'anonymous' === $click_tracking_mode ) {
+            /*
+             * In anonymous mode we increment an aggregate counter on mint_campaigns_meta
+             * (keyed by campaign_id) instead of writing to mint_broadcast_email_meta.
+             * mint_broadcast_email_meta.mint_email_id is a FK to mint_broadcast_emails
+             * which carries contact_id — any row there lets a JOIN identify the contact.
+             * mint_campaigns_meta only references campaign_id, so no contact is traceable.
+             */
+            if ( ! $already_counted ) {
+                $campaign_id = (int) EmailModel::get_campaign_id_by_email_id( $email_id );
+                if ( $campaign_id ) {
+                    $current = (int) CampaignModel::get_campaign_meta_value( $campaign_id, '_anon_click_count' );
+                    CampaignModel::insert_or_update_campaign_meta( $campaign_id, '_anon_click_count', $current + 1 );
+                }
             }
-            MrmCommon::set_cookie('mail_mint_link_trigger', $hash, time() + HOUR_IN_SECONDS);
+
+            /**
+             * Fires when a tracked link is clicked in anonymous mode.
+             *
+             * @param int    $email_id   The ID of the email.
+             * @param string $target_url The destination URL.
+             * @since 1.14.0
+             */
+            do_action( 'mailmint_after_email_click_anonymous', $email_id, $target_url );
+        } elseif ( 'yes' === $click_tracking_mode ) {
+            // WooCommerce active check.
+            $is_wc_active = MrmCommon::is_wc_active();
+
+            if ($is_wc_active) {
+                // Set cookie to track product buying from the link.
+                $cookie = MrmCommon::get_sanitized_get_post();
+                $cookie = !empty($cookie['cookie']) ? $cookie['cookie'] : array();
+                if (isset($cookie['mail_mint_link_trigger'])) {
+                    setcookie('mail_mint_link_trigger', '', time() - 3600);
+                    unset($cookie['mail_mint_link_trigger']);
+                }
+                MrmCommon::set_cookie('mail_mint_link_trigger', $hash, time() + HOUR_IN_SECONDS);
+            }
+
+            $compliance          = get_option('_mint_compliance', array());
+            $should_anonymize_ip = ! empty($compliance['anonymize_ip']) && 'yes' === $compliance['anonymize_ip'];
+
+            if ( ! $already_counted ) {
+                Campaign::track_email_link_click_performance($email_id, $target_url);
+                EmailModel::bulk_insert_or_update_email_meta(
+                    array(
+                        'is_click'        => 1,
+                        'user_click_agent' => Helper::get_user_agent(),
+                        'user_click_ip'    => $should_anonymize_ip ? Helper::get_anonymized_ip() : Helper::get_user_ip(),
+                    ),
+                    $email_id
+                );
+            }
+
+            do_action('mailmint_after_email_click', $email_id, $target_url);
         }
 
-        Campaign::track_email_link_click_performance($email_id, $target_url);
-        EmailModel::insert_or_update_email_meta('is_click', 1, $email_id);
-        EmailModel::insert_or_update_email_meta('user_click_agent', Helper::get_user_agent(), $email_id);
-        $is_ip_store = get_option('_mint_compliance');
-        $is_ip_store = isset($is_ip_store['anonymize_ip']) ? $is_ip_store['anonymize_ip'] : 'no';
-        if ('no' === $is_ip_store) {
-            EmailModel::insert_or_update_email_meta('user_click_ip', Helper::get_user_ip(), $email_id);
-        }
-        do_action('mailmint_after_email_click', $email_id, $target_url);
         wp_redirect($target_url, 307);
         exit;
     }
@@ -207,13 +291,23 @@ class RedirectionHandler {
         $target = substr( $params[ $target_index ], 7 );
         $target = rawurldecode( $target );
 
+        // These are Mail Mint's own tracking params — strip them so they are never
+        // forwarded to the destination URL as query params.
+        $mint_params  = array( 'hash=', 'mts=', 'tmode=', 'action=', 'mint=' );
         $extra_params = array();
         $count        = count( $params );
         for ( $i = $target_index + 1; $i < $count; $i++ ) {
             if ( empty( $params[ $i ] ) ) {
                 continue;
             }
-            if ( strpos( $params[ $i ], 'hash=' ) === 0 ) {
+            $is_mint_param = false;
+            foreach ( $mint_params as $mint_param ) {
+                if ( strpos( $params[ $i ], $mint_param ) === 0 ) {
+                    $is_mint_param = true;
+                    break;
+                }
+            }
+            if ( $is_mint_param ) {
                 continue;
             }
             $extra_params[] = $params[ $i ];

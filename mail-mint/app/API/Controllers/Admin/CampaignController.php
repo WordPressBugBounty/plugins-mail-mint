@@ -1387,6 +1387,24 @@ class CampaignController extends AdminBaseController {
 				$stats['click'][ (int) $row['campaign_id'] ] = (int) $row['total'];
 			}
 
+			// Anonymous open/click counts from mint_campaigns_meta (no contact reference).
+			$campaign_meta_table = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
+			$anon_rows           = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT campaign_id, meta_key, meta_value FROM {$campaign_meta_table} WHERE meta_key IN ('_anon_open_count', '_anon_click_count') AND campaign_id IN ({$ph})",
+					$id_groups['broadcast']
+				),
+				ARRAY_A
+			); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			foreach ( $anon_rows as $row ) {
+				$cid = (int) $row['campaign_id'];
+				if ( '_anon_open_count' === $row['meta_key'] ) {
+					$stats['open'][ $cid ] = ( isset( $stats['open'][ $cid ] ) ? $stats['open'][ $cid ] : 0 ) + (int) $row['meta_value'];
+				} elseif ( '_anon_click_count' === $row['meta_key'] ) {
+					$stats['click'][ $cid ] = ( isset( $stats['click'][ $cid ] ) ? $stats['click'][ $cid ] : 0 ) + (int) $row['meta_value'];
+				}
+			}
+
 			// Unsubscribe counts.
 			$rows = $wpdb->get_results(
 				$wpdb->prepare(

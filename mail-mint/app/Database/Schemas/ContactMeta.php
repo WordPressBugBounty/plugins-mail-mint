@@ -53,7 +53,8 @@ class ContactMetaSchema implements Schema {
             `created_at` TIMESTAMP NULL,
             `updated_at` TIMESTAMP NULL,
 			KEY contact_id (contact_id),
-	        KEY meta_key (meta_key($max_index_length))
+	        KEY meta_key (meta_key($max_index_length)),
+	        UNIQUE KEY unique_contact_meta (contact_id, meta_key($max_index_length))
          ) ";
 	}
 }

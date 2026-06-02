@@ -216,6 +216,51 @@ class EmailModel {
 		return self::insert_broadcast_email_meta( $meta_args );
 	}
 
+	/**
+	 * Insert or update multiple meta keys for a single email in one batched operation.
+	 *
+	 * Replaces 3-4 sequential insert_or_update_email_meta() calls with a single
+	 * INSERT ... ON DUPLICATE KEY UPDATE statement, reducing DB round-trips from N to 1.
+	 * Requires a UNIQUE KEY on (mint_email_id, meta_key) — falls back to individual
+	 * calls when that key is absent for safety.
+	 *
+	 * @param array $meta_map  Associative array of [ meta_key => meta_value ].
+	 * @param int   $email_id  The broadcast email ID.
+	 * @return void
+	 * @since 1.14.1
+	 */
+	public static function bulk_insert_or_update_email_meta( array $meta_map, $email_id ) {
+		if ( empty( $meta_map ) || empty( $email_id ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$table = $wpdb->prefix . 'mint_broadcast_email_meta';
+		$now   = current_time( 'mysql' );
+
+		$placeholders = array();
+		$values       = array();
+
+		foreach ( $meta_map as $key => $value ) {
+			$placeholders[] = '(%d, %s, %s, %s)';
+			$values[]       = (int) $email_id;
+			$values[]       = $key;
+			$values[]       = (string) $value;
+			$values[]       = $now;
+		}
+
+		$sql = "INSERT INTO {$table} (mint_email_id, meta_key, meta_value, created_at)
+		        VALUES " . implode( ', ', $placeholders ) . "
+		        ON DUPLICATE KEY UPDATE
+		            meta_value = VALUES(meta_value),
+		            updated_at = %s";
+
+		$values[] = $now;
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$wpdb->query( $wpdb->prepare( $sql, $values ) );
+	}
+
 
 	/**
 	 * SQL query to get broadcast email meta
@@ -498,8 +543,16 @@ class EmailModel {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+		$campaign_emails_table      = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
+		$campaign_meta_table        = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
 
-		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_open FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_open' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", array( $email_id )  ) ); //phpcs:ignore
+		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_open FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_open' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", array( $email_id ) ) ); //phpcs:ignore
+
+		// Add anonymous aggregate count stored in mint_campaigns_meta (no contact reference).
+		$campaign_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT campaign_id FROM {$campaign_emails_table} WHERE id = %d", $email_id ) ); //phpcs:ignore
+		$anon        = $campaign_id ? (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_open_count'", $campaign_id ) ) : 0; //phpcs:ignore
+
+		return $tracked + $anon;
 	}
 
 
@@ -515,8 +568,11 @@ class EmailModel {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+		$campaign_meta_table        = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
 
-		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_open FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_open' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE campaign_id = %d)", array( $campaign_id )  ) ); //phpcs:ignore
+		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_open FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_open' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE campaign_id = %d)", array( $campaign_id ) ) ); //phpcs:ignore
+		$anon    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_open_count'", $campaign_id ) ); //phpcs:ignore
+		return $tracked + $anon;
 	}
 
 
@@ -532,8 +588,11 @@ class EmailModel {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+		$campaign_meta_table        = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
 
-		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_click FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_click' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE campaign_id = %d)", array( $campaign_id )  ) ); //phpcs:ignore
+		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_click FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_click' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE campaign_id = %d)", array( $campaign_id ) ) ); //phpcs:ignore
+		$anon    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_click_count'", $campaign_id ) ); //phpcs:ignore
+		return $tracked + $anon;
 	}
 
 	/**
@@ -688,8 +747,16 @@ class EmailModel {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+		$campaign_emails_table      = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
+		$campaign_meta_table        = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
 
-		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_click FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_click' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", array( $email_id )  ) ); //phpcs:ignore
+		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_click FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_click' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", array( $email_id ) ) ); //phpcs:ignore
+
+		// Add anonymous aggregate count stored in mint_campaigns_meta (no contact reference).
+		$campaign_id = (int) $wpdb->get_var( $wpdb->prepare( "SELECT campaign_id FROM {$campaign_emails_table} WHERE id = %d", $email_id ) ); //phpcs:ignore
+		$anon        = $campaign_id ? (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_click_count'", $campaign_id ) ) : 0; //phpcs:ignore
+
+		return $tracked + $anon;
 	}
 
 
@@ -707,6 +774,19 @@ class EmailModel {
 		$email_table  = $wpdb->prefix . EmailSchema::$table_name;
 		$select_query = $wpdb->prepare( "SELECT `id` FROM {$email_table} WHERE email_hash=%s", $hash ); //phpcs:ignore
 		return $wpdb->get_var( $select_query ); // db call ok. ; no-cache ok.
+	}
+
+	/**
+	 * Get the campaign_id for a given broadcast email id.
+	 *
+	 * @param int $email_id The broadcast email id.
+	 * @return int|null The campaign_id, or null if not found.
+	 * @since 1.14.1
+	 */
+	public static function get_campaign_id_by_email_id( $email_id ) {
+		global $wpdb;
+		$email_table = $wpdb->prefix . EmailSchema::$table_name;
+		return $wpdb->get_var( $wpdb->prepare( "SELECT campaign_id FROM {$email_table} WHERE id = %d", $email_id ) ); // db call ok. ; no-cache ok.
 	}
 
 
