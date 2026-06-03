@@ -17,6 +17,15 @@ use MintMail\App\Internal\Automation\Action\AutomationAction;
  */
 class AutomationManager {
 	use Singleton;
+
+	/**
+	 * Upper bound on stuck (processing/hold) automation log rows per contact to
+	 * re-process inside an open/click/double-optin handler. Above this threshold
+	 * the row set is treated as corrupted data and the handler bails to protect
+	 * site performance. Normal flow has a handful of rows.
+	 */
+	public const MAX_STUCK_AUTOMATION_LOGS = 50;
+
 	/**
 	 * Initialization
 	 */
@@ -316,7 +325,17 @@ class AutomationManager {
 				'processing',
 				'hold',
 			);
-			$automation_log = HelperFunctions::get_automaiton_log_data_by_email( $contact_email, $status );
+			$step_keys      = array( 'sendMail', 'sequence', 'SendMailNotification' );
+			$automation_log = HelperFunctions::get_automaiton_log_data_by_email( $contact_email, $status, $step_keys );
+
+			// Safety guard: an unusually high count signals stuck/orphaned automation log rows.
+			// Re-processing tens of thousands of them per double-opt-in confirmation is at best
+			// wasted work and at worst takes the site down. Skip and surface the contact for
+			// investigation. Normal flow has 1-3 rows.
+			if ( is_array( $automation_log ) && count( $automation_log ) > self::MAX_STUCK_AUTOMATION_LOGS ) {
+				return;
+			}
+
 			if ( is_array( $automation_log ) && !empty( $automation_log ) ) {
 				foreach ( $automation_log as $log ) {
 					$delay_time = 0;
@@ -375,7 +394,12 @@ class AutomationManager {
 			'hold',
 		);
 
-		$automation_log = HelperFunctions::get_automaiton_log_data_by_email( $email_address, $status );
+		$step_keys      = array( 'condition' );
+		$automation_log = HelperFunctions::get_automaiton_log_data_by_email( $email_address, $status, $step_keys );
+
+		if ( is_array( $automation_log ) && count( $automation_log ) > self::MAX_STUCK_AUTOMATION_LOGS ) {
+			return;
+		}
 
 		if ( is_array( $automation_log ) && !empty( $automation_log ) ) {
 			foreach ( $automation_log as $log ) {
@@ -473,7 +497,12 @@ class AutomationManager {
 			'hold',
 		);
 
-		$automation_log = HelperFunctions::get_automaiton_log_data_by_email( $email_address, $status );
+		$step_keys      = array( 'condition' );
+		$automation_log = HelperFunctions::get_automaiton_log_data_by_email( $email_address, $status, $step_keys );
+
+		if ( is_array( $automation_log ) && count( $automation_log ) > self::MAX_STUCK_AUTOMATION_LOGS ) {
+			return;
+		}
 
 		if ( is_array( $automation_log ) && !empty( $automation_log ) ) {
 			foreach ( $automation_log as $log ) {

@@ -1107,7 +1107,7 @@ class CampaignController extends AdminBaseController {
 						$where_clause = $filter_service->buildWhereClause( $segment['filters'] );
 
 						if ( $where_clause ) {
-							$subscribed_where = $where_clause . " AND c1.status = 'subscribed'";
+							$subscribed_where = '(' . $where_clause . ") AND c1.status = 'subscribed'";
 							$count            = $filter_service->getContacts( $subscribed_where, array( 'count_only' => true ) );
 							$subscribers     += (int) $count;
 						}

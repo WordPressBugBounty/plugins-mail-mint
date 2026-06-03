@@ -1769,30 +1769,46 @@ class HelperFunctions { //phpcs:ignore
 	}
 
 	/**
-	 * Get automation log data by email
+	 * Get automation log data by email, optionally filtered to specific step keys
+	 * and/or a specific automation.
 	 *
-	 * @param string $email User email.
-	 * @param array  $status Array of status.
+	 * When $step_keys is provided, the query joins against mint_automation_steps so
+	 * only logs whose step matches one of the requested keys are returned. When
+	 * $automation_id is non-zero, results are further restricted to that automation.
+	 * Both filters keep the result set bounded even for contacts that have accumulated
+	 * large numbers of processing/hold log rows.
+	 *
+	 * @param string $email         User email.
+	 * @param array  $status        Array of log statuses (e.g. ['processing','hold']).
+	 * @param array  $step_keys     Optional whitelist of step keys (e.g. ['sendMail','condition']).
+	 * @param int    $automation_id Optional automation id to restrict results.
 	 */
-	public static function get_automaiton_log_data_by_email( $email, $status ) {
+	public static function get_automaiton_log_data_by_email( $email, $status, $step_keys = array(), $automation_id = 0 ) {
 		global $wpdb;
-		$table_name = $wpdb->prefix . AutomationLogSchema::$table_name;
 
-		$offset      = 0;
-		$batch_size  = 500;
-		$all_results = array();
+		if ( empty( $email ) || empty( $status ) ) {
+			return array();
+		}
 
-		do {
-			$results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $table_name as log WHERE log.status IN (" . self::escape_array( $status ) . ') AND log.email = %s LIMIT %d OFFSET %d', $email, $batch_size, $offset ), ARRAY_A ); // phpcs:ignore.
+		$log_table  = $wpdb->prefix . AutomationLogSchema::$table_name;
+		$step_table = $wpdb->prefix . AutomationStepSchema::$table_name;
 
-			if ( !empty( $results ) ) {
-				$all_results = array_merge( $all_results, $results );
-			}
+		$status_sql = self::escape_array( $status );
+		$join_sql   = '';
+		$extra_sql  = '';
 
-			$offset += $batch_size;
-		} while ( !empty( $results ) );
+		if ( !empty( $step_keys ) ) {
+			$keys_sql = self::escape_array( $step_keys );
+			$join_sql = "INNER JOIN {$step_table} AS step ON step.step_id = log.step_id AND step.`key` IN ({$keys_sql})";
+		}
 
-		return $all_results;
+		if ( $automation_id > 0 ) {
+			$extra_sql = $wpdb->prepare( ' AND log.automation_id = %d', (int) $automation_id );
+		}
+
+		$results = $wpdb->get_results( $wpdb->prepare( "SELECT log.* FROM {$log_table} AS log {$join_sql} WHERE log.email = %s AND log.status IN ({$status_sql}){$extra_sql}", $email ), ARRAY_A ); // phpcs:ignore.
+
+		return is_array( $results ) ? $results : array();
 	}
 
 

@@ -266,7 +266,7 @@ class AutomationLogModel {
 		global $wpdb;
 		$automation_log_table = $wpdb->prefix . AutomationLogSchema::$table_name;
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$select_query = $wpdb->prepare( "SELECT * FROM $automation_log_table WHERE email = %s", array( $email ) );
+		$select_query = $wpdb->prepare( "SELECT id FROM $automation_log_table WHERE email = %s LIMIT 1", array( $email ) );
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
 		$results = $wpdb->get_results( $select_query ); // db call ok. ; no-cache ok.

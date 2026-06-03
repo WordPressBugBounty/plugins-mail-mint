@@ -47,6 +47,11 @@ class DatabaseIndexes {
 			'columns' => 'status, created_at',
 		),
 		array(
+			'table'   => 'mint_automation_log',
+			'name'    => 'idx_email_status',
+			'columns' => 'email, status',
+		),
+		array(
 			'table'   => 'mint_automation_jobs',
 			'name'    => 'idx_status_created',
 			'columns' => 'status, created_at',
