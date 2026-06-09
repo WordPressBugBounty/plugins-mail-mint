@@ -551,6 +551,162 @@ class MessageController extends AdminBaseController {
 	}
 
 	/**
+	 * Prepare "engagement since send" reports for a campaign email.
+	 *
+	 * Builds three ranges measured from the moment the email was sent:
+	 *  - 24h / 48h: cumulative opens, clicks and unsubscribes bucketed by hour.
+	 *  - overall:   opens, clicks and unsubscribes per day since send (not cumulative).
+	 *
+	 * @param int $email_id        Mint email step id.
+	 * @param int $total_delivered Total delivered emails for this step.
+	 * @return array Map of range key => series payload consumed by the engagement chart.
+	 * @since 1.23.4
+	 */
+	public static function prepare_engagement_since_send( $email_id, $total_delivered ) {
+		// Nothing delivered yet, or no send time recorded — return zeroed ranges so the UI can show its empty state.
+		$send_time = (int) $total_delivered > 0 ? EmailModel::get_campaign_email_send_time( $email_id ) : null;
+		if ( empty( $send_time ) ) {
+			return array(
+				'24h'     => self::build_hourly_engagement_range( 24, array(), array(), array(), array( 0, 3, 6, 9, 12, 15, 18, 21, 24 ) ),
+				'48h'     => self::build_hourly_engagement_range( 48, array(), array(), array(), array( 0, 6, 12, 18, 24, 36, 48 ) ),
+				'overall' => self::build_daily_engagement_range( null, array(), array(), array() ),
+			);
+		}
+
+		// Hourly buckets across the full 48h window; the 24h range reuses the first 24 hours.
+		$open_hourly        = EmailModel::count_engagement_by_hour_offset( $email_id, 'is_open', $send_time, 48 );
+		$click_hourly       = EmailModel::count_engagement_by_hour_offset( $email_id, 'is_click', $send_time, 48 );
+		$unsubscribe_hourly = EmailModel::count_engagement_by_hour_offset( $email_id, 'is_unsubscribe', $send_time, 48 );
+
+		// Per-day buckets since send.
+		$open_daily        = EmailModel::count_engagement_by_day_offset( $email_id, 'is_open', $send_time );
+		$click_daily       = EmailModel::count_engagement_by_day_offset( $email_id, 'is_click', $send_time );
+		$unsubscribe_daily = EmailModel::count_engagement_by_day_offset( $email_id, 'is_unsubscribe', $send_time );
+
+		return array(
+			'24h'     => self::build_hourly_engagement_range( 24, $open_hourly, $click_hourly, $unsubscribe_hourly, array( 0, 3, 6, 9, 12, 15, 18, 21, 24 ) ),
+			'48h'     => self::build_hourly_engagement_range( 48, $open_hourly, $click_hourly, $unsubscribe_hourly, array( 0, 6, 12, 18, 24, 36, 48 ) ),
+			'overall' => self::build_daily_engagement_range( $send_time, $open_daily, $click_daily, $unsubscribe_daily ),
+		);
+	}
+
+	/**
+	 * Build a per-hour engagement range from per-hour buckets.
+	 *
+	 * Each point reflects the events that occurred within that hour (not a running total).
+	 *
+	 * @param int   $hours        Number of hours to render (inclusive of hour 0 = send).
+	 * @param array $open         Map of hour offset => open count.
+	 * @param array $click        Map of hour offset => click count.
+	 * @param array $unsubscribe  Map of hour offset => unsubscribe count.
+	 * @param array $tick_hours   Hour offsets that should be labelled on the X axis.
+	 * @return array Series payload (labels, ticks, open, click, unsubscribe, max, step_size, has_data).
+	 * @since 1.23.4
+	 */
+	private static function build_hourly_engagement_range( $hours, $open, $click, $unsubscribe, $tick_hours ) {
+		$labels       = array();
+		$ticks        = array();
+		$open_series  = array();
+		$click_series = array();
+		$unsub_series = array();
+		$max          = 0;
+
+		for ( $hour = 0; $hour <= $hours; $hour++ ) {
+			$label    = 0 === $hour ? __( 'Sent', 'mrm' ) : $hour . 'h';
+			$labels[] = $label;
+			if ( in_array( $hour, $tick_hours, true ) ) {
+				$ticks[] = $label;
+			}
+			$open_value     = isset( $open[ $hour ] ) ? (int) $open[ $hour ] : 0;
+			$click_value    = isset( $click[ $hour ] ) ? (int) $click[ $hour ] : 0;
+			$unsub_value    = isset( $unsubscribe[ $hour ] ) ? (int) $unsubscribe[ $hour ] : 0;
+			$open_series[]  = $open_value;
+			$click_series[] = $click_value;
+			$unsub_series[] = $unsub_value;
+			$max            = max( $max, $open_value, $click_value, $unsub_value );
+		}
+
+		return array(
+			'labels'      => $labels,
+			'ticks'       => $ticks,
+			'open'        => $open_series,
+			'click'       => $click_series,
+			'unsubscribe' => $unsub_series,
+			'max'         => (int) $max,
+			'step_size'   => $max > 0 ? (int) ceil( $max / 5 ) : 0,
+			'has_data'    => $max > 0,
+		);
+	}
+
+	/**
+	 * Build a per-calendar-day engagement range from the send date until today.
+	 *
+	 * Points are calendar dates (not rolling 24-hour windows from send), matching the
+	 * DATEDIFF buckets returned by EmailModel::count_engagement_by_day_offset. Today
+	 * gets its own point as soon as the date rolls over, even if fewer than 24 hours
+	 * have elapsed since send.
+	 *
+	 * @param string|null $send_time   MySQL datetime of the send moment, or null when nothing was sent.
+	 * @param array       $open        Map of day offset => open count.
+	 * @param array       $click       Map of day offset => click count.
+	 * @param array       $unsubscribe Map of day offset => unsubscribe count.
+	 * @return array Series payload (labels, ticks, open, click, unsubscribe, max, step_size, has_data).
+	 * @since 1.23.4
+	 */
+	private static function build_daily_engagement_range( $send_time, $open, $click, $unsubscribe ) {
+		// Without a send time there is a single zeroed point so the empty state can still render an axis.
+		if ( empty( $send_time ) ) {
+			return array(
+				'labels'      => array( __( 'Sent', 'mrm' ) ),
+				'ticks'       => array(),
+				'open'        => array( 0 ),
+				'click'       => array( 0 ),
+				'unsubscribe' => array( 0 ),
+				'max'         => 0,
+				'step_size'   => 0,
+				'has_data'    => false,
+			);
+		}
+
+		// Anchor to calendar dates (midnight) so offsets match the DATEDIFF buckets and avoid DST drift.
+		$send_day  = strtotime( gmdate( 'Y-m-d', strtotime( $send_time ) ) );
+		$today     = strtotime( gmdate( 'Y-m-d', strtotime( current_time( 'mysql' ) ) ) );
+		$days      = (int) round( ( $today - $send_day ) / DAY_IN_SECONDS );
+		$days      = max( 0, min( $days, 365 ) );
+
+		$labels       = array();
+		$open_series  = array();
+		$click_series = array();
+		$unsub_series = array();
+		$max          = 0;
+
+		for ( $day = 0; $day <= $days; $day++ ) {
+			$labels[]      = date_i18n( 'M j', strtotime( "+{$day} day", $send_day ) );
+			$open_value    = isset( $open[ $day ] ) ? (int) $open[ $day ] : 0;
+			$click_value   = isset( $click[ $day ] ) ? (int) $click[ $day ] : 0;
+			$unsub_value   = isset( $unsubscribe[ $day ] ) ? (int) $unsubscribe[ $day ] : 0;
+			$open_series[]  = $open_value;
+			$click_series[] = $click_value;
+			$unsub_series[] = $unsub_value;
+			$max            = max( $max, $open_value, $click_value, $unsub_value );
+		}
+
+		// Show every label for short spans; let the chart auto-skip (empty ticks) for longer spans.
+		$ticks = count( $labels ) <= 8 ? $labels : array();
+
+		return array(
+			'labels'      => $labels,
+			'ticks'       => $ticks,
+			'open'        => $open_series,
+			'click'       => $click_series,
+			'unsubscribe' => $unsub_series,
+			'max'         => (int) $max,
+			'step_size'   => $max > 0 ? (int) ceil( $max / 5 ) : 0,
+			'has_data'    => $max > 0,
+		);
+	}
+
+	/**
 	 * Prepare total number of open and click based on user agent or devices
 	 * 
 	 * @param mixed $email_id Email ID

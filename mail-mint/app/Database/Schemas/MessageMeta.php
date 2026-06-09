@@ -49,7 +49,8 @@ class EmailMetaSchema implements Schema {
             `meta_key` VARCHAR(50) DEFAULT NULL,    
             `meta_value` longtext,
             `created_at` TIMESTAMP NULL,
-            `updated_at` TIMESTAMP NULL
+            `updated_at` TIMESTAMP NULL,
+            UNIQUE KEY unique_email_meta (mint_email_id, meta_key)
         ) ";
 	}
 }

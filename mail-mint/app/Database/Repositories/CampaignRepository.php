@@ -201,12 +201,12 @@ class CampaignRepository extends AbstractRepository {
 		$sql = $wpdb->prepare(
 			"SELECT
 				b.campaign_id AS id,
-				COUNT( b.id ) AS total_sent,
-				SUM( CASE WHEN b.status = %s THEN 1 ELSE 0 END ) AS total_delivered,
-				SUM( CASE WHEN b.status = %s THEN 1 ELSE 0 END ) AS total_bounced,
-				COALESCE( SUM( CASE WHEN m_open.meta_key = 'is_open' AND m_open.meta_value = '1' THEN 1 ELSE 0 END ), 0 ) AS open_rate,
-				COALESCE( SUM( CASE WHEN m_click.meta_key = 'is_click' AND m_click.meta_value = '1' THEN 1 ELSE 0 END ), 0 ) AS click_rate,
-				COALESCE( SUM( CASE WHEN m_unsub.meta_key = 'is_unsubscribe' AND m_unsub.meta_value = '1' THEN 1 ELSE 0 END ), 0 ) AS unsubscribe_count
+				COUNT( DISTINCT b.id ) AS total_sent,
+				COUNT( DISTINCT CASE WHEN b.status = %s THEN b.id END ) AS total_delivered,
+				COUNT( DISTINCT CASE WHEN b.status = %s THEN b.id END ) AS total_bounced,
+				COUNT( DISTINCT CASE WHEN m_open.meta_value = '1' THEN b.id END ) AS open_rate,
+				COUNT( DISTINCT CASE WHEN m_click.meta_value = '1' THEN b.id END ) AS click_rate,
+				COUNT( DISTINCT CASE WHEN m_unsub.meta_value = '1' THEN b.id END ) AS unsubscribe_count
 			FROM {$broadcast_table} AS b
 			LEFT JOIN {$meta_table} AS m_open
 				ON b.id = m_open.mint_email_id AND m_open.meta_key = 'is_open'

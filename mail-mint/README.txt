@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.23.2
+Stable tag:  1.23.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -527,6 +527,12 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.23.3 (2026-06-09) =
+Improvement: Campaign overview metrics on the analytics
+Improvement: Performance optimization on email open and click
+Improvement: Number of database queries on admin pages for faster load times
+Bugfix: Time changing issue on the campaign scheduling
 
 = 1.23.2 (2026-06-02) =
 * Bugfix: Campaign recipients count issue for segmentation

@@ -570,7 +570,7 @@ class EmailModel {
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
 		$campaign_meta_table        = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
 
-		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_open FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_open' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE campaign_id = %d)", array( $campaign_id ) ) ); //phpcs:ignore
+		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(DISTINCT mint_email_id) as total_open FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_open' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE campaign_id = %d)", array( $campaign_id ) ) ); //phpcs:ignore
 		$anon    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_open_count'", $campaign_id ) ); //phpcs:ignore
 		return $tracked + $anon;
 	}
@@ -590,7 +590,7 @@ class EmailModel {
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
 		$campaign_meta_table        = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
 
-		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_click FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_click' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE campaign_id = %d)", array( $campaign_id ) ) ); //phpcs:ignore
+		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(DISTINCT mint_email_id) as total_click FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_click' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE campaign_id = %d)", array( $campaign_id ) ) ); //phpcs:ignore
 		$anon    = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_click_count'", $campaign_id ) ); //phpcs:ignore
 		return $tracked + $anon;
 	}
@@ -714,6 +714,69 @@ class EmailModel {
 
 		$result = $wpdb->get_results( $wpdb->prepare( "SELECT date_format(created_at,'%H %p') as label, COUNT(mint_email_id) as total_unsubscribe FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_unsubscribe' AND meta_value = 1 AND created_at >= now() - INTERVAL 1 DAY AND HOUR(created_at) AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d) GROUP BY date_format(created_at,'%H %p')", array( $email_id ) ), ARRAY_A ); //phpcs:ignore
 		return array_column( $result, 'total_unsubscribe', 'label' );
+	}
+
+	/**
+	 * Get the send time of a campaign email step.
+	 *
+	 * Returns the earliest moment the broadcast rows for the given email step were
+	 * marked sent, used as the zero reference for "engagement since send" charts.
+	 *
+	 * @param int $email_id Mint email step id.
+	 * @return string|null MySQL datetime of the send moment, or null when nothing has been sent.
+	 * @since 1.23.4
+	 */
+	public static function get_campaign_email_send_time( $email_id ) {
+		global $wpdb;
+		$broadcast_email_table = $wpdb->prefix . EmailSchema::$table_name;
+
+		// Prefer the earliest sent row; fall back to any row when status was not recorded.
+		$send_time = $wpdb->get_var( $wpdb->prepare( "SELECT MIN( COALESCE( updated_at, created_at ) ) FROM {$broadcast_email_table} WHERE email_id = %d AND status = %s", array( $email_id, 'sent' ) ) ); //phpcs:ignore
+		if ( empty( $send_time ) ) {
+			$send_time = $wpdb->get_var( $wpdb->prepare( "SELECT MIN( COALESCE( updated_at, created_at ) ) FROM {$broadcast_email_table} WHERE email_id = %d", array( $email_id ) ) ); //phpcs:ignore
+		}
+		return ! empty( $send_time ) ? $send_time : null;
+	}
+
+	/**
+	 * Count engagement events grouped by whole hours elapsed since send time.
+	 *
+	 * @param int    $email_id     Mint email step id.
+	 * @param string $meta_key     Event meta key (is_open, is_click, is_unsubscribe).
+	 * @param string $send_time    MySQL datetime used as the zero reference.
+	 * @param int    $window_hours Number of hours after send to include.
+	 * @return array Map of hour offset (int) => event count (int).
+	 * @since 1.23.4
+	 */
+	public static function count_engagement_by_hour_offset( $email_id, $meta_key, $send_time, $window_hours ) {
+		global $wpdb;
+		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
+		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT TIMESTAMPDIFF( HOUR, %s, created_at ) AS offset_unit, COUNT(mint_email_id) AS total FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND meta_value = 1 AND created_at >= %s AND created_at < ( %s + INTERVAL %d HOUR ) AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d) GROUP BY offset_unit", array( $send_time, $meta_key, $send_time, $send_time, $window_hours, $email_id ) ), ARRAY_A ); //phpcs:ignore
+		return array_column( $result, 'total', 'offset_unit' );
+	}
+
+	/**
+	 * Count engagement events grouped by calendar days since send time.
+	 *
+	 * Buckets are calendar-date offsets (DATEDIFF), so an event is attributed to the
+	 * calendar date it occurred on rather than to a rolling 24-hour window from send.
+	 * Offset 0 is the send date, 1 the next calendar date, and so on.
+	 *
+	 * @param int    $email_id  Mint email step id.
+	 * @param string $meta_key  Event meta key (is_open, is_click, is_unsubscribe).
+	 * @param string $send_time MySQL datetime used as the zero reference.
+	 * @return array Map of day offset (int) => event count (int).
+	 * @since 1.23.4
+	 */
+	public static function count_engagement_by_day_offset( $email_id, $meta_key, $send_time ) {
+		global $wpdb;
+		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
+		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT DATEDIFF( created_at, %s ) AS offset_unit, COUNT(mint_email_id) AS total FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND meta_value = 1 AND created_at >= %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d) GROUP BY offset_unit", array( $send_time, $meta_key, $send_time, $email_id ) ), ARRAY_A ); //phpcs:ignore
+		return array_column( $result, 'total', 'offset_unit' );
 	}
 
 	/**

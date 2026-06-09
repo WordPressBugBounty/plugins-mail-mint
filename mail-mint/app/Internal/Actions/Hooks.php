@@ -42,8 +42,6 @@ class Hooks {
 		add_filter( 'plugin_row_meta', array( $this, 'mailmint_plugin_row_meta' ), 10, 2 );
 		add_action( 'admin_footer', array( $this, 'remove_jetpack_note_from_mail_mint' ) );
 		add_action( 'init', array( $this, 'clear_litespeed_cache' ) );
-		// add_action( 'action_scheduler_failed_action', array( $this, 'handle_failed_action' ), 10, 1);
-		// add_action( 'action_scheduler_failed_execution', array( $this, 'handle_failed_action' ), 10, 2);
 		add_action( 'init', array($this, 'handle_email_open_tracking'));
 		add_filter( 'mint_merge_tag_fallback', array( $this, 'mint_merge_tag_fallback' ), 10, 2 );
 		add_action( 'woocommerce_order_status_changed', array($this, 'handle_payment_status_changed'), 100, 4);
@@ -206,38 +204,6 @@ class Hooks {
 			}
 
 			MrmCommon::generate_gif();
-		}
-	}
-
-	/**
-	 * Handles a failed action by rescheduling it if certain conditions are met.
-	 *
-	 * This function checks if the ActionScheduler class exists and if the specified
-	 * action hook is 'mailmint_send_scheduled_emails'. It extracts the properties of 
-	 * the action and reschedules it if it is not already scheduled.
-	 *
-	 * @param int $action_id The ID of the action to handle.
-	 *
-	 * @return void
-	 * @since 1.14.6
-	 */
-	public function handle_failed_action( $action_id ){
-		if (class_exists('ActionScheduler')) {
-			$store = \ActionScheduler::store();
-			$action = $store->fetch_action($action_id);
-
-			$args = array();
-			$group = '';
-			if ('mailmint_send_scheduled_emails' === $action->get_hook()) {
-				// Extract properties.
-				$args  = $action->get_args();
-				$group = $action->get_group();
-			}
-
-			// Check if the action is scheduled and reschedule if not.
-			if (defined('MAILMINT_SEND_SCHEDULED_EMAILS') && !as_has_scheduled_action(MAILMINT_SEND_SCHEDULED_EMAILS, $args, $group)) {
-				as_schedule_single_action(time() + 120, MAILMINT_SEND_SCHEDULED_EMAILS, $args, $group);
-			}
 		}
 	}
 

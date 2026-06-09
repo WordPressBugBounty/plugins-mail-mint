@@ -888,7 +888,7 @@ class MrmCommon {
 			return 0;
 		}
 		global $wpdb;
-		return $wpdb->get_var( $wpdb->prepare( "SELECT `group_id` FROM {$wpdb->actionscheduler_groups} WHERE `slug` = %s", $slug ) ); //phpcs:ignore
+		return $wpdb->get_var( $wpdb->prepare( "SELECT `group_id` FROM {$wpdb->prefix}actionscheduler_groups WHERE `slug` = %s", $slug ) ); //phpcs:ignore
 	}
 
 	/**
@@ -914,7 +914,7 @@ class MrmCommon {
 
 		global $wpdb;
 
-		$query = $wpdb->prepare( "DELETE FROM {$wpdb->actionscheduler_actions} WHERE `group_id` = %d", $group_id );
+		$query = $wpdb->prepare( "DELETE FROM {$wpdb->prefix}actionscheduler_actions WHERE `group_id` = %d", $group_id );
 
 		if ( $status ) {
 			$query .= $wpdb->prepare( ' AND `status` = %s', $status );
@@ -937,7 +937,7 @@ class MrmCommon {
 	public static function mailmint_as_has_scheduled_action( $hook, $statuses = array( 'pending' ) ) {
 		global $wpdb;
 		$placeholders = implode( ', ', array_fill( 0, count( $statuses ), '%s' ) );
-		$query  = "SELECT `action_id` FROM {$wpdb->actionscheduler_actions} ";
+		$query  = "SELECT `action_id` FROM {$wpdb->prefix}actionscheduler_actions ";
 		$query .= 'WHERE `hook` = %s ';
 		$query .= "AND `status` IN ($placeholders) ";
 		$query .= 'ORDER BY `action_id` ASC ';
@@ -983,7 +983,7 @@ class MrmCommon {
 	 */
 	public static function delete_completed_action_scheduler( $hook, $status ) {
 		global $wpdb;
-		$query = $wpdb->prepare( "DELETE FROM {$wpdb->actionscheduler_actions} WHERE `hook` = %s AND `status` = %s", $hook, $status );
+		$query = $wpdb->prepare( "DELETE FROM {$wpdb->prefix}actionscheduler_actions WHERE `hook` = %s AND `status` = %s", $hook, $status );
 		$wpdb->query( $query ); //phpcs:ignore
 	}
 

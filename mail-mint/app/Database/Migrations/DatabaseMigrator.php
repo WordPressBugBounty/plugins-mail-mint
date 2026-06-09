@@ -78,6 +78,8 @@ class DatabaseMigrator {
 	public function init() {
 		add_action( 'mail_mint_run_update_callback', array( $this, 'run_update_callback' ), 10, 2 );
 		add_action( 'mail_mint_sync_wc_customers', array( $this, 'sync_wc_customers_batch' ), 10, 1 );
+		add_action( 'mailmint_dedupe_broadcast_email_meta', array( $this, 'mm_update_1163_dedupe_broadcast_email_meta' ) );
+		add_action( 'init', array( $this, 'maybe_schedule_broadcast_email_meta_dedupe' ), 20 );
 		add_action( 'init', array( $this, 'install_actions' ) );
 
 		$this->update_db_versions = array(
@@ -791,6 +793,167 @@ class DatabaseMigrator {
 		if ( ! $key_exists ) {
 			$wpdb->query( "ALTER TABLE {$table} ADD UNIQUE KEY `unique_contact_meta` (`contact_id`, `meta_key`(191))" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
+	}
+
+	/**
+	 * Helper-index name used while de-duplicating the broadcast email meta table.
+	 *
+	 * @var string
+	 */
+	const EMAIL_META_DEDUPE_INDEX = 'tmp_email_meta_dedupe';
+
+	/**
+	 * Action Scheduler hook that processes one de-dupe batch of the email meta table.
+	 *
+	 * @var string
+	 */
+	const EMAIL_META_DEDUPE_HOOK = 'mailmint_dedupe_broadcast_email_meta';
+
+	/**
+	 * Check whether a named index exists on a table.
+	 *
+	 * @param string $table      Fully-prefixed table name.
+	 * @param string $index_name Index name to look for.
+	 * @return bool
+	 * @since 1.16.3
+	 */
+	private function index_exists( $table, $index_name ) {
+		global $wpdb;
+		return (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				 FROM information_schema.statistics
+				 WHERE table_schema = %s
+				   AND table_name   = %s
+				   AND index_name   = %s",
+				DB_NAME,
+				$table,
+				$index_name
+			)
+		);
+	}
+
+	/**
+	 * Option flag set once the broadcast email meta table is de-duplicated and keyed.
+	 *
+	 * Autoloaded so the per-request check in maybe_schedule_broadcast_email_meta_dedupe()
+	 * costs nothing once migration is complete.
+	 *
+	 * @var string
+	 */
+	const EMAIL_META_DEDUPE_DONE = 'mailmint_email_meta_deduped';
+
+	/**
+	 * Enqueue the background de-duplication of the broadcast email meta table when needed.
+	 *
+	 * Hooked on `init` (priority 20, after Action Scheduler is initialised) rather than the
+	 * synchronous upgrade_database_tables() path, which runs at plugin-include time before
+	 * AS is ready. Self-healing and idempotent: a one-shot enqueue tied to the version bump
+	 * could be missed if the upgrade request dies, so this re-checks every request until the
+	 * unique key exists, guarded by an autoloaded option flag so it is free afterwards. The
+	 * heavy dedupe + ALTER work happens in mm_update_1163_dedupe_broadcast_email_meta(), so a
+	 * large meta table (100k–200k+ rows) can never block a page load or hit the PHP
+	 * execution-time limit on upgrade.
+	 *
+	 * @return void
+	 * @since 1.16.3
+	 */
+	public function maybe_schedule_broadcast_email_meta_dedupe() {
+		if ( get_option( self::EMAIL_META_DEDUPE_DONE ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\EmailMetaSchema::$table_name;
+
+		// Already migrated (fresh installs get the key from the schema) — record and stop checking.
+		if ( $this->index_exists( $table, 'unique_email_meta' ) ) {
+			update_option( self::EMAIL_META_DEDUPE_DONE, 'yes' );
+			return;
+		}
+
+		// Enqueue the first dedupe batch; the handler reschedules itself until done.
+		if ( function_exists( 'as_schedule_single_action' ) && function_exists( 'as_next_scheduled_action' )
+			&& false === as_next_scheduled_action( self::EMAIL_META_DEDUPE_HOOK ) ) {
+			as_schedule_single_action( time() + 60, self::EMAIL_META_DEDUPE_HOOK, array(), 'mail-mint-db-updates' );
+		}
+	}
+
+	/**
+	 * Process one batch of the broadcast email meta de-duplication, then add the unique key.
+	 *
+	 * Background Action Scheduler handler for self::EMAIL_META_DEDUPE_HOOK. Each run:
+	 *  1. Returns early if the unique key already exists (idempotent / safe to re-run).
+	 *  2. Adds a temporary helper index on (mint_email_id, meta_key) so the duplicate
+	 *     lookup is indexed instead of an O(n^2) self-join.
+	 *  3. Deletes up to BATCH duplicate rows (every row except the lowest id per
+	 *     (mint_email_id, meta_key)) and reschedules itself while duplicates remain.
+	 *  4. Once clean, adds UNIQUE KEY `unique_email_meta` and drops the helper index. If
+	 *     a duplicate slipped in between the empty check and the ALTER (tracking writes
+	 *     continue during migration), the ALTER fails and another batch is rescheduled.
+	 *
+	 * @return void
+	 * @since 1.16.3
+	 */
+	public function mm_update_1163_dedupe_broadcast_email_meta() {
+		global $wpdb;
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\EmailMetaSchema::$table_name;
+		$batch = 5000;
+
+		// Idempotent: unique key already present means the migration is complete.
+		if ( $this->index_exists( $table, 'unique_email_meta' ) ) {
+			if ( $this->index_exists( $table, self::EMAIL_META_DEDUPE_INDEX ) ) {
+				$wpdb->query( "ALTER TABLE {$table} DROP INDEX `" . self::EMAIL_META_DEDUPE_INDEX . "`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			}
+			update_option( self::EMAIL_META_DEDUPE_DONE, 'yes' );
+			return;
+		}
+
+		// Helper index so the duplicate lookup is indexed (avoids an O(n^2) self-join).
+		if ( ! $this->index_exists( $table, self::EMAIL_META_DEDUPE_INDEX ) ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD INDEX `" . self::EMAIL_META_DEDUPE_INDEX . "` (`mint_email_id`, `meta_key`)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		// Collect a batch of duplicate row ids (all but the lowest id per (mint_email_id, meta_key)).
+		$duplicate_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT t1.id FROM {$table} t1
+				 INNER JOIN {$table} t2
+				   ON t1.mint_email_id = t2.mint_email_id
+				  AND t1.meta_key = t2.meta_key
+				  AND t1.id > t2.id
+				 LIMIT %d",
+				$batch
+			)
+		); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( ! empty( $duplicate_ids ) ) {
+			$ids_in = implode( ',', array_map( 'absint', $duplicate_ids ) );
+			$wpdb->query( "DELETE FROM {$table} WHERE id IN ({$ids_in})" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			// More may remain — reschedule the next batch.
+			if ( function_exists( 'as_schedule_single_action' ) ) {
+				as_schedule_single_action( time() + 30, self::EMAIL_META_DEDUPE_HOOK, array(), 'mail-mint-db-updates' );
+			}
+			return;
+		}
+
+		// No duplicates left — enforce uniqueness.
+		$added = $wpdb->query( "ALTER TABLE {$table} ADD UNIQUE KEY `unique_email_meta` (`mint_email_id`, `meta_key`)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( false === $added ) {
+			// A duplicate likely slipped in via a tracking write during the gap — try again.
+			if ( function_exists( 'as_schedule_single_action' ) ) {
+				as_schedule_single_action( time() + 30, self::EMAIL_META_DEDUPE_HOOK, array(), 'mail-mint-db-updates' );
+			}
+			return;
+		}
+
+		// Unique key now supersedes the helper index — drop it and mark the migration done.
+		if ( $this->index_exists( $table, self::EMAIL_META_DEDUPE_INDEX ) ) {
+			$wpdb->query( "ALTER TABLE {$table} DROP INDEX `" . self::EMAIL_META_DEDUPE_INDEX . "`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+		update_option( self::EMAIL_META_DEDUPE_DONE, 'yes' );
 	}
 
 	/**

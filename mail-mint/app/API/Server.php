@@ -87,6 +87,7 @@ class Server {
 			'tags'            => 'TagRoute',
 			'contacts'        => 'ContactRoute',
 			'campaigns'       => 'CampaignRoute',
+			'campaign-analytics' => 'AnalyticsRoute',
 			'campaign-emails' => 'CampaignEmailRoute',
 			'contact-columns' => 'ContactColumnRoute',
 			'forms'           => 'FormRoute',
