@@ -183,6 +183,80 @@ class CampaignController extends AdminBaseController {
 	}
 
 	/**
+	 * Toggle whether a campaign appears in the public archive.
+	 *
+	 * Lightweight endpoint used from the sent-campaign view so existing
+	 * campaigns can be opted in/out of the archive without re-saving the whole
+	 * campaign (which would bump updated_at and re-process email steps).
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 * @since 1.24.0
+	 */
+	public function update_archive_visibility( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$campaign_id = ! empty( $params['campaign_id'] ) ? (int) $params['campaign_id'] : 0;
+
+		if ( ! $campaign_id || ! $this->repository()->find( $campaign_id ) ) {
+			return $this->get_error_response( __( 'Campaign not found.', 'mrm' ), 404 );
+		}
+
+		$enabled = ! empty( $params['show_in_archive'] );
+		$this->save_archive_setting( $campaign_id, array( 'show_in_archive' => $enabled ? 1 : 0 ) );
+
+		return $this->get_success_response(
+			$enabled
+				? __( 'Campaign added to the archive.', 'mrm' )
+				: __( 'Campaign removed from the archive.', 'mrm' ),
+			200,
+			array(
+				'show_in_archive' => $enabled,
+				'archive_url'     => $this->repository()->getArchiveUrl( $campaign_id ),
+			)
+		);
+	}
+
+	/**
+	 * Update the share-bar visibility for an archived campaign.
+	 *
+	 * Controls whether the social share toolbar is rendered on the public
+	 * archive page. Does not affect URL access — that is gated by show_in_archive.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 * @since 1.25.0
+	 */
+	public function update_share_visibility( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$campaign_id = ! empty( $params['campaign_id'] ) ? (int) $params['campaign_id'] : 0;
+
+		if ( ! $campaign_id || ! $this->repository()->find( $campaign_id ) ) {
+			return $this->get_error_response( __( 'Campaign not found.', 'mrm' ), 404 );
+		}
+
+		$visibility = isset( $params['share_visibility'] ) && 'private' === $params['share_visibility']
+			? 'private'
+			: 'public';
+
+		$this->repository()->insertOrUpdateMeta( $campaign_id, 'share_visibility', $visibility );
+
+		if ( 'public' === $visibility && ! $this->repository()->getMeta( $campaign_id, 'archive_hash' ) ) {
+			$this->repository()->insertOrUpdateMeta( $campaign_id, 'archive_hash', wp_generate_password( 24, false ) );
+		}
+
+		return $this->get_success_response(
+			__( 'Share visibility updated.', 'mrm' ),
+			200,
+			array(
+				'share_visibility' => $visibility,
+				'archive_url'      => $this->repository()->getArchiveUrl( $campaign_id ),
+			)
+		);
+	}
+
+	/**
 	 * Handle campaign update path.
 	 *
 	 * @since 1.20.0
@@ -229,6 +303,9 @@ class CampaignController extends AdminBaseController {
 
 		$recipients = isset( $params['recipients'] ) ? maybe_serialize( $params['recipients'] ) : '';
 		$this->repository()->insertOrUpdateMeta( $campaign_id, 'recipients', $recipients );
+		$this->save_utm_params( $campaign_id, $params );
+		$this->save_archive_setting( $campaign_id, $params );
+		$this->save_share_visibility_setting( $campaign_id, $params );
 		$this->save_campaign_emails( $campaign_id, $params, false );
 
 		return $campaign_id;
@@ -251,6 +328,9 @@ class CampaignController extends AdminBaseController {
 		$type             = $this->campaign_data['type'] ?? '';
 
 		$this->repository()->insertOrUpdateMeta( $campaign_id, 'recipients', $recipients );
+		$this->save_utm_params( $campaign_id, $params );
+		$this->save_archive_setting( $campaign_id, $params );
+		$this->save_share_visibility_setting( $campaign_id, $params );
 
 		if ( CampaignStatus::ACTIVE === $status || CampaignStatus::SCHEDULE === $status ) {
 			$this->repository()->insertOrUpdateMeta( $campaign_id, 'total_recipients', $total_recipients );
@@ -260,6 +340,74 @@ class CampaignController extends AdminBaseController {
 			$recurring_properties = isset( $params['recurringData'] ) ? maybe_serialize( $params['recurringData'] ) : '';
 			$this->repository()->insertOrUpdateMeta( $campaign_id, 'recurring_properties', $recurring_properties );
 		}
+	}
+
+	/**
+	 * Sanitize and persist UTM params from request into campaign meta.
+	 *
+	 * @since 1.21.0
+	 *
+	 * @param int|string $campaign_id Campaign ID.
+	 * @param array      $params      Request parameters.
+	 */
+	private function save_utm_params( $campaign_id, array $params ) {
+		if ( ! isset( $params['utm'] ) || ! is_array( $params['utm'] ) ) {
+			return;
+		}
+		$utm = array(
+			'status'   => intval( $params['utm']['status'] ?? 0 ),
+			'source'   => sanitize_text_field( $params['utm']['source'] ?? '' ),
+			'medium'   => sanitize_text_field( $params['utm']['medium'] ?? '' ),
+			'campaign' => sanitize_text_field( $params['utm']['campaign'] ?? '' ),
+			'term'     => sanitize_text_field( $params['utm']['term'] ?? '' ),
+			'content'  => sanitize_text_field( $params['utm']['content'] ?? '' ),
+		);
+		$this->repository()->insertOrUpdateMeta( $campaign_id, 'utm_params', wp_json_encode( $utm ) );
+	}
+
+	/**
+	 * Persist the "show in archive" setting and ensure a public archive hash exists.
+	 *
+	 * When a campaign is flagged to appear in the public archive, a stable random
+	 * hash is generated once and reused as the slug for its public "view in
+	 * browser" URL. The hash is never regenerated, so existing shared links keep
+	 * working even if the toggle is turned off and on again.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int|string $campaign_id Campaign ID.
+	 * @param array      $params      Request parameters.
+	 */
+	private function save_archive_setting( $campaign_id, array $params ) {
+		if ( ! isset( $params['show_in_archive'] ) ) {
+			return;
+		}
+
+		$enabled = ! empty( $params['show_in_archive'] ) ? '1' : '0';
+		$this->repository()->insertOrUpdateMeta( $campaign_id, 'show_in_archive', $enabled );
+
+		// Generate a stable public hash once, on first enable.
+		if ( '1' === $enabled && ! $this->repository()->getMeta( (int) $campaign_id, 'archive_hash' ) ) {
+			$this->repository()->insertOrUpdateMeta( $campaign_id, 'archive_hash', wp_generate_password( 24, false ) );
+		}
+	}
+
+	/**
+	 * Persist the social sharing visibility setting independently of archive.
+	 *
+	 * Defaults to 'private' when the meta row does not yet exist.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int|string $campaign_id Campaign ID.
+	 * @param array      $params      Request parameters.
+	 */
+	private function save_share_visibility_setting( $campaign_id, array $params ) {
+		if ( ! isset( $params['share_visibility'] ) ) {
+			return;
+		}
+		$visibility = 'public' === $params['share_visibility'] ? 'public' : 'private';
+		$this->repository()->insertOrUpdateMeta( $campaign_id, 'share_visibility', $visibility );
 	}
 
 	/**
@@ -390,8 +538,15 @@ class CampaignController extends AdminBaseController {
 
 		if ( $is_update ) {
 			$email_id = isset( $email_data['id'] ) ? (int) $email_data['id'] : 0;
-			if ( $email_id && $this->repository()->updateCampaignEmail( $email_id, (int) $campaign_id, $email_data ) ) {
-				return $email_id;
+			if ( $email_id ) {
+				// updateCampaignEmail returns the affected-row count, or false on DB error.
+				// A return of 0 means the row matched but no values changed (e.g. status is
+				// already correct) — the row still exists, so we must NOT fall through to insert.
+				// Only a real DB failure (false) should trigger the insert fallback.
+				$updated = $this->repository()->updateCampaignEmail( $email_id, (int) $campaign_id, $email_data );
+				if ( false !== $updated ) {
+					return $email_id;
+				}
 			}
 		}
 
@@ -786,6 +941,13 @@ class CampaignController extends AdminBaseController {
 		$campaign           = $this->format_campaign_schedule( $campaign );
 		$campaign           = $this->load_and_filter_recipients( $campaign_id, $campaign );
 		$campaign           = $this->load_recurring_data( $campaign_id, $campaign );
+		$campaign           = $this->load_utm_params( $campaign_id, $campaign );
+		$campaign           = $this->load_archive_setting( $campaign_id, $campaign );
+
+		$created_by_id                  = ! empty( $campaign['created_by'] ) ? (int) $campaign['created_by'] : 0;
+		$created_by_user                = $created_by_id ? get_userdata( $created_by_id ) : false;
+		$campaign['created_by_name']    = $created_by_user ? $created_by_user->display_name : '';
+		$campaign['created_by_email']   = $created_by_user ? $created_by_user->user_email : '';
 
 		return $this->get_success_response( 'Campaign has been retrieved successfully.', 200, $campaign );
 	}
@@ -932,7 +1094,6 @@ class CampaignController extends AdminBaseController {
 		}
 
 		$campaign['meta']['recipients'] = MrmCommon::filter_recipients( $campaign['meta']['recipients'], $campaign['status'] );
-		$this->repository()->insertOrUpdateMeta( $campaign_id, 'recipients', maybe_serialize( $campaign['meta']['recipients'] ) );
 
 		return $campaign;
 	}
@@ -963,8 +1124,42 @@ class CampaignController extends AdminBaseController {
 		return $campaign;
 	}
 
+	/**
+	 * Load UTM params from campaign meta into the campaign array.
+	 *
+	 * @since 1.21.0
+	 *
+	 * @param int   $campaign_id Campaign ID.
+	 * @param array $campaign    Campaign data.
+	 *
+	 * @return array Campaign data with meta.utm populated.
+	 */
+	private function load_utm_params( int $campaign_id, array $campaign ): array {
+		$raw                       = $this->repository()->getMeta( $campaign_id, 'utm_params' );
+		$campaign['meta']['utm']   = $raw ? json_decode( $raw, true ) : array();
+		return $campaign;
+	}
+
+	/**
+	 * Load the "show in archive" setting from campaign meta into the campaign array.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int   $campaign_id Campaign ID.
+	 * @param array $campaign    Campaign data.
+	 *
+	 * @return array Campaign data with meta.show_in_archive populated as a boolean.
+	 */
+	private function load_archive_setting( int $campaign_id, array $campaign ): array {
+		$campaign['meta']['show_in_archive']  = '1' === $this->repository()->getMeta( $campaign_id, 'show_in_archive' );
+		$campaign['meta']['archive_url']      = $this->repository()->getArchiveUrl( $campaign_id );
+		$share_visibility                     = $this->repository()->getMeta( $campaign_id, 'share_visibility' );
+		$campaign['meta']['share_visibility'] = $share_visibility ?: 'private';
+		return $campaign;
+	}
+
 	// =========================================================================
-	// Legacy / Action Scheduler Operations 
+	// Legacy / Action Scheduler Operations
 	// =========================================================================
 
 	/**
@@ -1045,7 +1240,7 @@ class CampaignController extends AdminBaseController {
 
 		$update = ModelsCampaign::update_campaign_status( $campaign_id, $status );
 
-		if ( CampaignStatus::SUSPENDED === $status ) {
+		if ( CampaignStatus::SUSPENDED === $status || CampaignStatus::DRAFT === $status ) {
 			ModelsCampaign::unschedule_campaign_actions( $campaign_id );
 		}
 
@@ -1075,6 +1270,43 @@ class CampaignController extends AdminBaseController {
 		$params      = MrmCommon::get_api_params_values( $request );
 		$subscribers = 0;
 		$segment_ids = '';
+
+		// Parse exclude lists/tags from query params.
+		$exclude_list_ids = ! empty( $params['exclude_lists'] ) ? array_filter( array_map( 'intval', explode( ', ', $params['exclude_lists'] ) ) ) : [];
+		$exclude_tag_ids  = ! empty( $params['exclude_tags'] ) ? array_filter( array_map( 'intval', explode( ', ', $params['exclude_tags'] ) ) ) : [];
+
+		// Resolve the excluded contacts to a concrete ID set ONCE. Exclusion is a set
+		// difference (audience MINUS these contacts), never a flat count subtraction:
+		// subtracting a standalone group size double-removes contacts the audience
+		// (e.g. a segment) already excludes, and over-removes when the groups don't
+		// overlap. We push these IDs into each audience query as a NOT IN filter so the
+		// count reflects only the contacts actually in the audience but not excluded.
+		$excluded_contact_ids = array();
+		if ( ! empty( $exclude_list_ids ) || ! empty( $exclude_tag_ids ) ) {
+			$excluded_rows = ContactGroupPivotModel::get_contacts_to_group( array_merge( $exclude_list_ids, $exclude_tag_ids ), 0, 0, false );
+			if ( is_array( $excluded_rows ) ) {
+				$excluded_contact_ids = array_filter( array_map( static function ( $row ) {
+					return (int) ( is_object( $row ) ? $row->contact_id : $row['contact_id'] );
+				}, $excluded_rows ) );
+			}
+		}
+
+		// When 'all' is passed, return total subscribed contacts count without filtering by list/tag.
+		if ( 'all' === ( $params['lists'] ?? '' ) && empty( $params['tags'] ) && empty( $params['segment'] ) ) {
+			global $wpdb;
+			$contact_table = esc_sql( $wpdb->prefix . \Mint\MRM\DataBase\Tables\ContactSchema::$table_name );
+
+			$query = $wpdb->prepare( "SELECT COUNT(*) FROM `{$contact_table}` WHERE status = %s", 'subscribed' ); //phpcs:ignore
+
+			// Exclude contacts who belong to excluded lists/tags (set difference).
+			if ( ! empty( $excluded_contact_ids ) ) {
+				$query .= ' AND id NOT IN (' . implode( ', ', $excluded_contact_ids ) . ')';
+			}
+
+			$subscribers = (int) $wpdb->get_var( $query ); //phpcs:ignore
+
+			return $this->get_success_response( __( 'Subscriber list count successfully fetched.', 'mrm' ), 200, $subscribers );
+		}
 
 		if ( ! empty( $params[ 'lists' ] ) || ! empty( $params[ 'tags' ] ) || ! empty( $params[ 'segment' ] ) ) {
 			$list_ids    = ! empty( $params[ 'lists' ] ) ? explode( ', ', $params[ 'lists' ] ) : [];
@@ -1108,14 +1340,32 @@ class CampaignController extends AdminBaseController {
 
 						if ( $where_clause ) {
 							$subscribed_where = '(' . $where_clause . ") AND c1.status = 'subscribed'";
-							$count            = $filter_service->getContacts( $subscribed_where, array( 'count_only' => true ) );
-							$subscribers     += (int) $count;
+
+							// Exclude contacts in excluded lists/tags (set difference, not subtraction).
+							if ( ! empty( $excluded_contact_ids ) ) {
+								$subscribed_where .= ' AND c1.id NOT IN (' . implode( ', ', $excluded_contact_ids ) . ')';
+							}
+
+							$count        = $filter_service->getContacts( $subscribed_where, array( 'count_only' => true ) );
+							$subscribers += (int) $count;
 						}
 					}
 				}
 			}
 		} elseif ( ! empty( $list_ids ) || ! empty( $tag_ids ) ) {
-			$subscribers = (int) ContactGroupPivotModel::get_contacts_to_group( array_merge( $list_ids, $tag_ids ), 0, 0, true );
+			global $wpdb;
+			$contact_table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\ContactSchema::$table_name;
+			$pivot_table   = $wpdb->prefix . \Mint\MRM\DataBase\Tables\ContactGroupPivotSchema::$table_name;
+			$group_ids     = implode( ', ', array_map( 'intval', array_merge( $list_ids, $tag_ids ) ) );
+
+			$query = "SELECT COUNT(DISTINCT cgp.contact_id) FROM `{$pivot_table}` AS cgp JOIN `{$contact_table}` AS c ON cgp.contact_id = c.id AND c.status = 'subscribed' WHERE cgp.group_id IN ({$group_ids})";
+
+			// Exclude contacts in excluded lists/tags (set difference, not subtraction).
+			if ( ! empty( $excluded_contact_ids ) ) {
+				$query .= ' AND cgp.contact_id NOT IN (' . implode( ', ', $excluded_contact_ids ) . ')';
+			}
+
+			$subscribers = (int) $wpdb->get_var( $query ); //phpcs:ignore
 		}
 
 		return $this->get_success_response( __( 'Subscriber list count successfully fetched.', 'mrm' ), 200, $subscribers );
@@ -1233,11 +1483,11 @@ class CampaignController extends AdminBaseController {
 		}
 
 		$progressData = [
-			'label'         => $phase_label,
-			'totalCount'    => $total_recipients,
-			'completeCount' => $complete_count,
-			'percentage'    => $percentage,
-			'diff'          => 12,
+			'label'      => $phase_label,
+			'percentage' => $percentage,
+			'scheduled'  => $counts['scheduled'] + $counts['sending'],
+			'sent'       => $counts['sent'],
+			'total'      => $total_recipients,
 		];
 
 		return rest_ensure_response([
@@ -1446,6 +1696,190 @@ class CampaignController extends AdminBaseController {
 	 *
 	 * @since 1.15.0
 	 */
+	/**
+	 * Return all lists with their subscribed contact count.
+	 *
+	 * Endpoint: GET mrm/v1/campaigns/recipient-lists
+	 *
+	 * @since 1.20.0
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_recipient_lists_for_campaign( WP_REST_Request $request ): WP_REST_Response {
+		$search = sanitize_text_field( $request->get_param( 'search' ) ?? '' );
+		$items  = $this->query_recipient_group_type( 'lists', $search );
+
+		return $this->legacy_success_response(
+			__( 'Recipient lists fetched successfully.', 'mrm' ),
+			array( 'data' => $items )
+		);
+	}
+
+	/**
+	 * Return all tags with their subscribed contact count.
+	 *
+	 * Endpoint: GET mrm/v1/campaigns/recipient-tags
+	 *
+	 * @since 1.20.0
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_recipient_tags_for_campaign( WP_REST_Request $request ): WP_REST_Response {
+		$search = sanitize_text_field( $request->get_param( 'search' ) ?? '' );
+		$items  = $this->query_recipient_group_type( 'tags', $search );
+
+		return $this->legacy_success_response(
+			__( 'Recipient tags fetched successfully.', 'mrm' ),
+			array( 'data' => $items )
+		);
+	}
+
+	/**
+	 * Return all segments with their dynamically-computed subscribed contact count.
+	 *
+	 * Endpoint: GET mrm/v1/campaigns/recipient-segments
+	 *
+	 * Segments are dynamic filter-based groups (Pro feature). Their contact count is computed
+	 * at query-time via SegmentRepository + SegmentFilterService (Pro classes), guarded by
+	 * class_exists(). When Pro is inactive, total_subscribed_contacts is 0 for every segment.
+	 *
+	 * @since 1.20.0
+	 *
+	 * @param WP_REST_Request $request Full request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_recipient_segments_for_campaign( WP_REST_Request $request ): WP_REST_Response {
+		global $wpdb;
+
+		$search       = sanitize_text_field( $request->get_param( 'search' ) ?? '' );
+		$groups_table = $wpdb->prefix . 'mint_contact_groups';
+
+		if ( ! empty( $search ) ) {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT id, title FROM {$groups_table} WHERE type = %s AND title LIKE %s ORDER BY title ASC",
+					'segments',
+					'%' . $wpdb->esc_like( $search ) . '%'
+				),
+				ARRAY_A
+			); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		} else {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT id, title FROM {$groups_table} WHERE type = %s ORDER BY title ASC",
+					'segments'
+				),
+				ARRAY_A
+			); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+
+		$rows = $rows ?? array();
+
+		$has_pro = class_exists( 'MailMintPro\Mint\Database\Repositories\SegmentRepository' )
+			&& class_exists( 'MailMintPro\Mint\Internal\Admin\Segmentation\SegmentFilterService' );
+
+		$items = array();
+		foreach ( $rows as $row ) {
+			$count = 0;
+
+			if ( $has_pro ) {
+				$segment_repo   = new \MailMintPro\Mint\Database\Repositories\SegmentRepository();
+				$filter_service = new \MailMintPro\Mint\Internal\Admin\Segmentation\SegmentFilterService();
+				$segment        = $segment_repo->findWithFilters( (int) $row['id'] );
+
+				if ( $segment && ! empty( $segment['filters'] ) ) {
+					$where_clause = $filter_service->buildWhereClause( $segment['filters'] );
+					if ( $where_clause ) {
+						$count = (int) $filter_service->getContacts(
+							$where_clause . " AND c1.status = 'subscribed'",
+							array( 'count_only' => true )
+						);
+					}
+				}
+			}
+
+			$items[] = array(
+				'id'                        => (int) $row['id'],
+				'title'                     => $row['title'],
+				'total_subscribed_contacts' => $count,
+			);
+		}
+
+		return $this->legacy_success_response(
+			__( 'Recipient segments fetched successfully.', 'mrm' ),
+			array( 'data' => $items )
+		);
+	}
+
+	/**
+	 * Query lists or tags with subscribed contact counts, optionally filtered by title.
+	 *
+	 * @since 1.20.0
+	 *
+	 * @param string $type   'lists' or 'tags'.
+	 * @param string $search Optional title search string.
+	 *
+	 * @return array Array of { id, title, total_subscribed_contacts }.
+	 */
+	private function query_recipient_group_type( string $type, string $search = '' ): array {
+		global $wpdb;
+
+		$groups_table   = $wpdb->prefix . 'mint_contact_groups';
+		$pivot_table    = $wpdb->prefix . 'mint_contact_group_relationship';
+		$contacts_table = $wpdb->prefix . 'mint_contacts';
+
+		if ( ! empty( $search ) ) {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT g.id, g.title,
+					COALESCE(COUNT(DISTINCT CASE WHEN c.status = %s THEN r.contact_id END), 0) AS total_subscribed_contacts
+					FROM {$groups_table} AS g
+					LEFT JOIN {$pivot_table} AS r ON r.group_id = g.id
+					LEFT JOIN {$contacts_table} AS c ON c.id = r.contact_id
+					WHERE g.type = %s AND g.title LIKE %s
+					GROUP BY g.id, g.title
+					ORDER BY g.title ASC",
+					'subscribed',
+					$type,
+					'%' . $wpdb->esc_like( $search ) . '%'
+				),
+				ARRAY_A
+			); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		} else {
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT g.id, g.title,
+					COALESCE(COUNT(DISTINCT CASE WHEN c.status = %s THEN r.contact_id END), 0) AS total_subscribed_contacts
+					FROM {$groups_table} AS g
+					LEFT JOIN {$pivot_table} AS r ON r.group_id = g.id
+					LEFT JOIN {$contacts_table} AS c ON c.id = r.contact_id
+					WHERE g.type = %s
+					GROUP BY g.id, g.title
+					ORDER BY g.title ASC",
+					'subscribed',
+					$type
+				),
+				ARRAY_A
+			); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+
+		return array_map(
+			function ( $row ) {
+				return array(
+					'id'                        => (int) $row['id'],
+					'title'                     => $row['title'],
+					'total_subscribed_contacts' => (int) $row['total_subscribed_contacts'],
+				);
+			},
+			$rows ?? array()
+		);
+	}
+
 	private function enrich_campaign_with_stats( array $campaign, array $stats ) {
 		if ( ! isset( $campaign['id'] ) ) {
 			return $campaign;
@@ -1492,5 +1926,89 @@ class CampaignController extends AdminBaseController {
 		$campaign['updated_at']   = MrmCommon::format_campaign_date_time( 'updated_at', $campaign );
 
 		return $campaign;
+	}
+
+	/**
+	 * Get URLs from a campaign email for the Campaign Actions feature.
+	 *
+	 * Returns all URLs found in the campaign email body by default.
+	 * Pro overrides the 'mint_campaign_clicked_links' filter to return only
+	 * URLs that contacts actually clicked.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 * @since 1.24.0
+	 */
+	public function get_clicked_links( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$campaign_id = isset( $params['campaign_id'] ) ? intval( $params['campaign_id'] ) : 0;
+
+		if ( empty( $campaign_id ) ) {
+			return rest_ensure_response( array( 'success' => false, 'message' => __( 'Invalid campaign ID.', 'mrm' ) ) );
+		}
+
+		$links = ModelsCampaign::get_urls_from_campaign_email( $campaign_id );
+
+		/**
+		 * Filters the list of URLs shown in the Campaign Actions "clicked links" selector.
+		 *
+		 * By default returns all URLs found in the email body. Pro overrides this to
+		 * return only URLs that contacts actually clicked.
+		 *
+		 * @param array $links       Array of link objects: [ [ 'value' => url, 'label' => url ], … ].
+		 * @param int   $campaign_id Campaign ID.
+		 * @since 1.24.0
+		 */
+		$links = apply_filters( 'mint_campaign_clicked_links', $links, $campaign_id );
+
+		return rest_ensure_response( array( 'success' => true, 'links' => array_values( $links ) ) );
+	}
+
+	/**
+	 * Apply campaign actions (add/remove tags or lists) to contacts filtered by email interaction.
+	 *
+	 * The actual processing is delegated to Pro via the 'mint_campaign_do_actions' filter.
+	 * Returns an error without Pro.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response
+	 * @since 1.24.0
+	 */
+	public function do_campaign_actions( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$campaign_id = isset( $params['campaign_id'] ) ? intval( $params['campaign_id'] ) : 0;
+
+		if ( empty( $campaign_id ) ) {
+			return rest_ensure_response( array( 'success' => false, 'message' => __( 'Invalid campaign ID.', 'mrm' ) ) );
+		}
+
+		if ( ! MrmCommon::is_mailmint_pro_active() ) {
+			return rest_ensure_response( array(
+				'success' => false,
+				'code'    => 'pro_required',
+				'message' => __( 'Campaign Actions requires Mail Mint Pro.', 'mrm' ),
+			) );
+		}
+
+		/**
+		 * Filters the result of applying campaign actions (add/remove tags or lists to filtered contacts).
+		 *
+		 * Pro hooks into this filter to perform tag/list operations and returns pagination/status data.
+		 *
+		 * @param array|null $result      Null by default; Pro returns status array.
+		 * @param int        $campaign_id Campaign ID.
+		 * @param array      $params      Request params: action_type, tags, lists, filter_type, page.
+		 * @since 1.24.0
+		 */
+		$result = apply_filters( 'mint_campaign_do_actions', null, $campaign_id, $params );
+
+		if ( null === $result ) {
+			return rest_ensure_response( array(
+				'success' => false,
+				'message' => __( 'Campaign Actions could not be processed.', 'mrm' ),
+			) );
+		}
+
+		return rest_ensure_response( array_merge( array( 'success' => true ), $result ) );
 	}
 }

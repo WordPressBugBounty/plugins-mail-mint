@@ -14,6 +14,7 @@ namespace Mint\MRM\DataBase\Models;
 
 use MailMint\App\Helper;
 use Mint\MRM\DataBase\Tables\CampaignEmailBuilderSchema;
+use Mint\MRM\DataBase\Tables\ContactSchema;
 use Mint\MRM\DataBase\Tables\CustomFieldSchema;
 use Mint\MRM\DataBase\Tables\EmailSchema;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
@@ -1468,6 +1469,17 @@ class CampaignModel {
 		$all_recipients = maybe_unserialize( $all_recipients );
 		$contacts       = array();
 
+		// Build the set of contact IDs to exclude (from excluded lists + excluded tags).
+		$exclude_group_ids = array_merge(
+			array_column( $all_recipients['exclude_lists'] ?? array(), 'id' ),
+			array_column( $all_recipients['exclude_tags'] ?? array(), 'id' )
+		);
+		$exclude_contact_ids = array();
+		if ( ! empty( $exclude_group_ids ) ) {
+			$excluded_rows       = ContactGroupPivotModel::get_contacts_to_group( $exclude_group_ids );
+			$exclude_contact_ids = array_flip( array_column( $excluded_rows, 'contact_id' ) );
+		}
+
 		if ( !empty( $all_recipients['segments'] ) ) {
 			$segment_id = isset( $all_recipients['segments'][0]['id'] ) ? $all_recipients['segments'][0]['id'] : 0;
 
@@ -1476,7 +1488,7 @@ class CampaignModel {
 
 				if (!empty($segment_data['contacts']['data'])) {
 					foreach ($segment_data['contacts']['data'] as $contact) {
-						if ($contact['status'] === 'subscribed') {
+						if ($contact['status'] === 'subscribed' && ! isset( $exclude_contact_ids[ $contact['id'] ] ) ) {
 							$contacts[$contact['id']] = $contact;
 						}
 					}
@@ -1490,10 +1502,28 @@ class CampaignModel {
 				$all_recipients['tags'] ?? array()
 			);
 
-			if (!empty($group_ids)) {
-				$recipients_ids = ContactGroupPivotModel::get_contacts_to_group(array_column($group_ids, 'id'), $offset, $per_batch);
-				$recipients_ids = array_column($recipients_ids, 'contact_id');
-				$contacts = ContactModel::get_single_email($recipients_ids);
+			if ( !empty( $group_ids ) ) {
+				$recipients_ids = ContactGroupPivotModel::get_contacts_to_group( array_column( $group_ids, 'id' ), $offset, $per_batch );
+				$recipients_ids = array_column( $recipients_ids, 'contact_id' );
+				if ( ! empty( $exclude_contact_ids ) ) {
+					$recipients_ids = array_values( array_filter( $recipients_ids, function( $cid ) use ( $exclude_contact_ids ) {
+						return ! isset( $exclude_contact_ids[ $cid ] );
+					} ) );
+				}
+				$contacts = ContactModel::get_single_email( $recipients_ids );
+			} else {
+				// No lists, tags, or segments — send to all subscribed contacts.
+				global $wpdb;
+				$contact_table = esc_sql( $wpdb->prefix . ContactSchema::$table_name );
+				$sql           = $wpdb->prepare( "SELECT `id`, `email` FROM `{$contact_table}` WHERE `status` = %s", 'subscribed' ); //phpcs:ignore
+				if ( ! empty( $exclude_contact_ids ) ) {
+					$ids_placeholder = implode( ',', array_fill( 0, count( $exclude_contact_ids ), '%d' ) );
+					$sql            .= $wpdb->prepare( " AND `id` NOT IN ({$ids_placeholder})", array_keys( $exclude_contact_ids ) ); //phpcs:ignore
+				}
+				if ( $per_batch ) {
+					$sql .= $wpdb->prepare( ' LIMIT %d, %d', (int) $offset, (int) $per_batch );
+				}
+				$contacts = $wpdb->get_results( $sql, ARRAY_A ); //phpcs:ignore
 			}
 
 			return $contacts;

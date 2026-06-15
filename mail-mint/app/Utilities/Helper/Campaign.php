@@ -129,6 +129,36 @@ class Campaign {
 	}
 
 	/**
+	 * Return sanitized UTM params for a campaign, or an empty array when UTM is disabled.
+	 *
+	 * Used by the redirect handler to append UTM params at click-time.
+	 *
+	 * @since 1.21.0
+	 *
+	 * @param int $campaign_id Campaign ID.
+	 *
+	 * @return array Associative array of utm_* keys ready for add_query_arg(), empty when disabled.
+	 */
+	public static function get_utm_params( int $campaign_id ): array {
+		$raw = CampaignModel::get_campaign_meta_value( $campaign_id, 'utm_params' );
+		if ( empty( $raw ) ) {
+			return array();
+		}
+		$utm = json_decode( $raw, true );
+		if ( empty( $utm['status'] ) ) {
+			return array();
+		}
+		$map = array(
+			'utm_source'   => $utm['source'] ?? '',
+			'utm_medium'   => $utm['medium'] ?? '',
+			'utm_campaign' => $utm['campaign'] ?? '',
+			'utm_term'     => $utm['term'] ?? '',
+			'utm_content'  => $utm['content'] ?? '',
+		);
+		return array_filter( $map );
+	}
+
+	/**
 	 * Extract URLs from the HTML content of an email body.
 	 *
 	 * This function parses the HTML content of an email body to extract all URLs from anchor tags.

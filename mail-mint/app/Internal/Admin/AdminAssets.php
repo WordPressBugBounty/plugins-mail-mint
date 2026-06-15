@@ -18,6 +18,7 @@ use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Utilites\Helper\Email;
 use Mint\MRM\Utilities\Helper\PermissionManager;
 use Mint\MRM\Utilities\Helper\TranslationString\TransStrings;
+use Mint\MRM\Internal\Optin\UnsubscribeReasons;
 use Mint\Utilities\CustomFonts;
 use MintMail\App\Internal\Automation\HelperFunctions;
 use MintMailPro\Mint_Pro_Helper;
@@ -264,7 +265,9 @@ class AdminAssets {
 			        'business_basic_settings'        => get_option( '_mrm_business_basic_info_setting', $default ),
 			        'business_social_settings'       => get_option( '_mrm_business_social_info_setting', array( 'socialMedia' => array() ) ),
 			        'date_format'                    => get_option( 'date_format', 'F j, Y' ),
+			        'time_format'                    => get_option( 'time_format', 'g:i a' ),
 			        'local_time'                     => date_i18n( 'Y-m-d H:i:s' ),
+			        'timezone'                       => MrmCommon::get_site_timezone_info(),
 			        'site_url'                       => site_url(),
 			        'currency_format'                => $wc_active ? html_entity_decode( get_woocommerce_currency_symbol() ) : '',
 			        'is_mailmint_pro_active'         => MrmCommon::is_mailmint_pro_active(),
@@ -305,6 +308,7 @@ class AdminAssets {
                     'is_wpf_active'                  => MrmCommon::is_wpfnl_active(),
                     'smtp_notice'                    => MrmCommon::find_active_smtp_plugin(),
                     'mint_mail_home_url'             => home_url(),
+                    'unsubscribe_reasons'            => UnsubscribeReasons::get_reasons(),
 		        )
 	        );
         }
@@ -363,6 +367,7 @@ class AdminAssets {
                     'wc_order_statuses'              => HelperFunctions::get_woocommerce_order_statuses(),
                     'twilio_settings'                => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.9.3' ) ? Common::get_twilio_settings() : array(),
                     'local_time'                     => date_i18n( 'Y-m-d H:i:s' ),
+                    'timezone'                       => MrmCommon::get_site_timezone_info(),
                     'date_fields'                    => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.12.0' ) ? Common::get_date_fields() : array(),
                     'is_lifterlms_active'            => HelperFunctions::is_lifter_lms_active(),
                     'is_bricks_active'               => HelperFunctions::is_bricks_active(),

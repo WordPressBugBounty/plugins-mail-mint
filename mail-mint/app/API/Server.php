@@ -109,10 +109,11 @@ class Server {
 			'integration-data' => 'IntegrationDataRoute',
 		);
 		$frontend_routes = array(
-			'form'       => 'FormRoute',
-			'preference' => 'PreferenceRoute',
-			'cookie'     => 'CookieRoute',
-			'bounce'	 => 'BounceHandlerRoute',
+			'form'               => 'FormRoute',
+			'preference'         => 'PreferenceRoute',
+			'cookie'             => 'CookieRoute',
+			'bounce'             => 'BounceHandlerRoute',
+			'unsubscribe-survey' => 'UnsubscribeSurveyRoute',
 		);
 
 		return apply_filters(

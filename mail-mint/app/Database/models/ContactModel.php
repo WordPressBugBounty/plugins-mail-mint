@@ -1328,6 +1328,43 @@ class ContactModel {
 	}
 
 	/**
+	 * Retrieve a contact meta value directly by contact ID and meta key.
+	 *
+	 * @param int    $contact_id Contact ID.
+	 * @param string $meta_key   Meta key to look up.
+	 * @return string|null       Meta value, or null if not found.
+	 * @since 1.20.0
+	 */
+	public static function get_meta_value_by_contact_id( $contact_id, $meta_key ) {
+		global $wpdb;
+		$meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
+		return $wpdb->get_var( // db call ok. ; no-cache ok.
+			$wpdb->prepare( "SELECT meta_value FROM {$meta_table} WHERE contact_id = %d AND meta_key = %s LIMIT 1", $contact_id, $meta_key ) //phpcs:ignore
+		);
+	}
+
+	/**
+	 * Delete a contact meta row by contact ID and meta key.
+	 *
+	 * @param int    $contact_id Contact ID.
+	 * @param string $meta_key   Meta key to remove.
+	 * @return int|false Number of rows deleted, or false on error.
+	 * @since 1.20.0
+	 */
+	public static function delete_contact_meta_by_key( $contact_id, $meta_key ) {
+		global $wpdb;
+		$meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
+		return $wpdb->delete( // db call ok. ; no-cache ok.
+			$meta_table,
+			array(
+				'contact_id' => (int) $contact_id,
+				'meta_key'   => $meta_key,
+			),
+			array( '%d', '%s' )
+		);
+	}
+
+	/**
 	 * Get contacts by list ID with pagination
 	 *
 	 * @param int $item_id Group ID.

@@ -702,6 +702,24 @@ class Helper {
 			site_url()
 		);
 	}
+
+	/**
+	 * Get the "View in Browser" URL for a broadcast email hash.
+	 *
+	 * @param string $hash Broadcast email hash.
+	 * @return string
+	 */
+	public static function get_view_in_browser_url( string $hash ): string {
+		return add_query_arg(
+			array(
+				'mrm'   => '1',
+				'route' => 'email_preview',
+				'hash'  => $hash,
+			),
+			site_url()
+		);
+	}
+
 	/**
 	 * Retrieves the email frequency setting.
 	 *

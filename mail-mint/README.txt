@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.23.3
+Stable tag:  1.24.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -528,11 +528,32 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Changelog ==
 
+= 1.24.0 (2026-06-15) =
+* New: An option to include all subscribers when sending a regular campaign.
+* New: An option to exclude specific subscribers from a regular campaign.
+* New: Archive regular campaign emails and make them accessible via a dedicated page.
+* New: A shortcode to display the email archive page anywhere on the site.
+* New: A merge tag to show a "View in Browser" link inside emails.
+* New: Social sharing options for the regular campaigns.
+* New: UTM parameter support to track campaign links in analytics tool.
+* New: A way to collect unsubscribe reasons from subscribers.
+* New: A dedicated unsubscribe survey page to gather feedback when someone unsubscribes.
+* New: A resubscription option so subscribers can easily opt back in after unsubscribing.
+* New: Assign or remove Lists and Tags based on how subscribers engage with campaign emails.
+* New: Resend a campaign to subscribers who did not open it the first time (Pro).
+* New: View detailed WooCommerce revenue data directly on campaign analytics (Pro).
+* New: See why subscribers unsubscribed directly from campaign analytics (Pro).
+* Improvement: Filter campaign analytics by date range for more focused insights (Pro).
+* Improvement: Redesigned the completed campaign view with a better layout for clearer insights.
+* Improvement: Redesigned the campaign creation experience with a better and cleaner UI.
+* Improvement: Campaign progress bar to more accurately reflect email scheduling and sending status.
+* Bugfix: Fixed multiple bugs for improved stability and reliability.
+
 = 1.23.3 (2026-06-09) =
-Improvement: Campaign overview metrics on the analytics
-Improvement: Performance optimization on email open and click
-Improvement: Number of database queries on admin pages for faster load times
-Bugfix: Time changing issue on the campaign scheduling
+* Improvement: Campaign overview metrics on the analytics
+* Improvement: Performance optimization on email open and click
+* Improvement: Number of database queries on admin pages for faster load times
+* Bugfix: Time changing issue on the campaign scheduling
 
 = 1.23.2 (2026-06-02) =
 * Bugfix: Campaign recipients count issue for segmentation
@@ -838,151 +859,5 @@ Bugfix: Time changing issue on the campaign scheduling
 * Bugfix: Cart Block does not Render Products Dynamically
 * Bugfix: Contacts Selection Issue on the 'Price Drop / On Sale' Automation Trigger
 * Bugfix: 'Price Drop / On Sale' Automation Trigger Runs After Product Update
-
-= 1.16.3 (2024-12-19) =
-* Improvement: Allow Sending Transactional Emails to Pending Contacts in Automation
-* Improvement: Allow Automation Creation through Trigger Names Instead of Default 'Untitled'
-* Bugfix: Form Builder Not Working with Custom Fields
-
-= 1.16.2 (2024-11-28) =
-* Improvement: SQL Query Optimization Used for Form Duplication
-* Improvement: 'Bounced' and 'Complained' Status for Contacts
-* Bugfix: Form Preview is not Working on Some Use cases
-* Bugfix: Automation Do Not Save After Import
-
-= 1.16.1 (2024-11-28) =
-* Bugfix: WooCommerce Email Customization Failed to Replace Default Email
-
-= 1.16.0 (2024-11-27) =
-* New: Settings Option to Clear the Transient Cache
-* New: GDPR Compliance Settings to Load Custom Fonts
-* New: Custom Font Families Support on the Form Builder
-* Improvement: "Add Block" Icon in the Middle of the Form Builder Canvas
-* Bugfix: _load_textdomain_just_in_time Notice with WordPress 6.7
-* Bugfix: Multiple API Calling Issues on the Contact Update
-
-= 1.15.4 (2024-11-21) =
-* Bugfix: Email Sender Information Issues on the Automation
-* Bugfix: Required Field Issues on the Form Submission
-
-= 1.15.3 (2024-11-19) =
-* Improvement: Optimize Email Templates Database Queries
-* Bugfix: Email Template Saving Issue
-* Bugfix: Missing Text Block Typography Settings in Visual Editor
-* Bugfix: Placeholder Image for Missing Thumbnails in Template Selection Modal
-* Bugfix: Form ID is Showing on the Contacts List Source Column
-
-= 1.15.2 (2024-11-14) =
-* Improvement: Compatibility with WordPress 6.7.0
-* Improvement: Hide or Show Option for Read More Button on Post Block
-* Bugfix: Typography Issues on the Form Editor
-* Bugfix: Unsubscription does not Working from Automation in few cases
-
-= 1.15.1 (2024-11-05) =
-* Bugfix: Visual Editor not Opening on the Safari Browser
-* Bugfix: Campaigns not working on the Safari Browser
-
-= 1.15.0 (2024-10-25) =
-* New: Introduced Email Bounce Handling for Various Email Sending Services
-* Improvement: Inline Text Editor Accessibility and Usability on the Visual Editor
-* Improvement: Full-screen Mode on the Form Editor for Better Usability
-* Improvement: Form Settings are now Split into Two Distinct Sections—Form Settings and Block Settings
-* Bugfix: Multiple Emails Sent from the Automation Email 
-* Bugfix: Campaign Details Page is not loading
-
-= 1.14.6 (2024-10-10) =
-* Bugfix: WordPress Database Error to Unsubscribe a Contact
-
-= 1.14.5 (2024-10-10) =
-* Improvement: Enhance UI on Preference, Unsubscribe, and Opt-in Confirmation Pages
-* Bugfix: Email Editor Requires Double Click for Actions to Register
-
-= 1.14.4 (2024-09-26) =
-* New: Introduced New Email Templates
-* Bugfix: Hyperlinks do not Generate in the Visual Editor
-* Bugfix: Merge Tags do not Work on the Test Email
-* Bugfix: PHP Version Compatibility Issues
-
-= 1.14.3 (2024-09-11) =
-* Improvement: Compatibility with WordPress 6.6.2
-
-= 1.14.2 (2024-09-11) =
-* Bugfix: Multiple Emails are Sending after People Sign Up for a Newsletter
-
-= 1.14.1 (2024-09-10) =
-* Improvement: Email Open Tracking Process
-* Improvement: Email Editor Full Screen Mode
-* Improvement: Enhance Personalization for Business Information
-* Improvement: Accordion Support on the Email Editor Settings Panel
-* Bugfix: Static Placeholders on the Email Template Images
-
-= 1.14.0 (2024-08-29) =
-* Improvement: Added Option to Send Test Email with Subject Line
-* Improvement: Added Poppins, Josefin Sans, Quicksand, and Jeanne Moderno Font Families to Visual Editor
-* Improvement: Dynamic Business Information on the Visual Editor Footer Block
-* Improvement: Enhance UI on the Integrations Page
-* Improvement: Enhance Personalization Dropdown on Visual Editor
-* Improvement: Enhance UI for the Pro Tag Modal
-* Improvement: Remove OpenAI Integration From the Settings
-* Improvement: Responsiveness on Pre-built Email Templates
-* Bugfix: Static Business Information on the Pre-built Email Templates
-* Bugfix: Remove Case-sensitive Issues
-
-= 1.13.9 (2024-08-23) =
-* Improvement: Compatibility with WooCommerce 9.2.2
-* Bugfix: Emails Failed to Deliver from Automation
-* Bugfix: Automation Failed to Save from the Preview Page
-
-= 1.13.8 (2024-08-21) =
-* Bugfix: Add Automation Redirect to Forms Module
-
-= 1.13.7 (2024-08-19) =
-* Improvement: Setup Wizard UI Enhancements.
-* Bugfix: Lead Magnet URL not Generating in Campaign Emails.
-
-= 1.13.6 (2024-08-10) =
-* Improvement: Campaign Email Scheduling and Sending Process Optimized
-* Improvement: Automation Preview before Importing from Automation Recipe Page
-* Improvement: UI on the Automation Recipe Page
-* Bugfix: Email Sending Limit Selection Issue
-* Bugfix: List and Tag Names do not Show in Arabic
-
-= 1.13.5 (2024-07-25) =
-* Improvement: Compatibility with WordPress 6.6
-* Improvement: Compatibility with WP HTML Mail
-
-= 1.13.4 (2024-07-11) =
-* Bugfix: Background Color not Working on Visual Editor Text Block
-* Bugfix: White Screen Issue on Abandoned Cart Page
-
-= 1.13.3 (2024-06-27) =
-* Improvement: Litespeed Cache Compatibility
-* Bugfix: SQL Vulnerability while Getting Contacts
-* Bugfix: Style Issues on Contact Import
-
-= 1.13.2 (2024-06-25) =
-* Bugfix: Redirect Issues on WooCommerce Settings Page
-* Bugfix: Pre-built Form Templates do not Load on Smaller Screen
-* Bugfix: Redirect Issues on Double Opt-in Settings Page
-
-= 1.13.1 (2024-06-20) =
-* Bugfix: CSS Conflict on the Contact Create Page
-* Bugfix: Regular Campaign not Working without Pro Version
-
-= 1.13.0 (2024-06-13) =
-* New: Added Post Published Trigger on Automation
-* Improvement: Full-Width Setup Wizard
-
-= 1.12.2 (2024-06-07) =
-* Improvement: Performance & Security Vulnerability
-
-= 1.12.1 (2024-06-05) =
-* Bugfix: reCAPTCHA does not Work for Multiple Forms
-* Bugfix: Subscribe Link Merge Tags do not Work on Test Email
-* Bugfix: Business Name Merge Tag does not Work on Opt-in Email 
-
-= 1.12.0 (2024-05-23) =
-* New: Import Contacts from the LifterLMS
-* Bugfix: Broken Link on the Opt-in Email 
 
 The full changelog is available [here](https://getwpfunnels.com/changelog/).

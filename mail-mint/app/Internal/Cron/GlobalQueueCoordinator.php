@@ -167,10 +167,15 @@ class GlobalQueueCoordinator {
 	}
 
 	/**
-	 * Schedule a coordinator action if one is not already pending.
+	 * Schedule a coordinator action if one is not already pending, or reschedule
+	 * an existing pending action if the requested time is sooner.
 	 *
-	 * @param int $timestamp Optional scheduled timestamp. Immediate when <= current time.
-	 * @return bool True when scheduled or already pending.
+	 * When a new resend or campaign is queued for a time earlier than the existing
+	 * pending coordinator wakeup, this cancels the stale future action and schedules
+	 * a new one so emails are not orphaned until the old wakeup fires.
+	 *
+	 * @param int $timestamp Optional scheduled timestamp. Immediate (async) when <= current time.
+	 * @return bool True when scheduled or already pending within the needed window.
 	 * @since 1.20.0
 	 */
 	public function schedule( int $timestamp = 0 ): bool {
@@ -178,25 +183,55 @@ class GlobalQueueCoordinator {
 			return false;
 		}
 
+		$now            = time();
+		$want_immediate = ( $timestamp <= $now );
+
 		// Check for a PENDING or IN-PROGRESS action only — as_has_scheduled_action()
 		// matches all statuses including 'failed', which must not block re-scheduling.
 		global $wpdb;
-		$active_action = $wpdb->get_var(
+		$active_row = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT ag.action_id FROM {$wpdb->prefix}actionscheduler_actions ag
+				"SELECT ag.action_id, ag.scheduled_date_gmt, ag.status
+				FROM {$wpdb->prefix}actionscheduler_actions ag
 				INNER JOIN {$wpdb->prefix}actionscheduler_groups ag_grp ON ag.group_id = ag_grp.group_id
 				WHERE ag.hook = %s AND ag_grp.slug = %s AND ag.status IN ('pending', 'in-progress')
 				LIMIT 1",
 				self::HOOK,
 				self::GROUP
-			)
+			),
+			ARRAY_A
 		);
 
-		if ( $active_action ) {
+		if ( $active_row ) {
+			// A currently-running action cannot be safely rescheduled — let it finish.
+			// Only a pending (not yet started) action is a candidate for early rescheduling.
+			$is_pending = isset( $active_row['status'] ) && 'pending' === $active_row['status'];
+			if ( ! $is_pending || ! function_exists( 'as_unschedule_action' ) ) {
+				return true;
+			}
+
+			$existing_scheduled_unix = strtotime( $active_row['scheduled_date_gmt'] . ' UTC' );
+
+			// Immediate request: reschedule only if existing action is more than 60 s away
+			// (avoids pointless churn for near-immediate actions already queued).
+			if ( $want_immediate && $existing_scheduled_unix > ( $now + 60 ) ) {
+				as_unschedule_action( self::HOOK, array(), self::GROUP );
+				as_enqueue_async_action( self::HOOK, array(), self::GROUP );
+				return true;
+			}
+
+			// Future request: reschedule if existing action fires more than 60 s after
+			// the requested timestamp (keeps timing accurate without constant churn).
+			if ( ! $want_immediate && $existing_scheduled_unix > ( $timestamp + 60 ) ) {
+				as_unschedule_action( self::HOOK, array(), self::GROUP );
+				as_schedule_single_action( $timestamp, self::HOOK, array(), self::GROUP );
+				return true;
+			}
+
 			return true;
 		}
 
-		if ( $timestamp > time() && function_exists( 'as_schedule_single_action' ) ) {
+		if ( ! $want_immediate && function_exists( 'as_schedule_single_action' ) ) {
 			as_schedule_single_action( $timestamp, self::HOOK, array(), self::GROUP );
 			return true;
 		}
@@ -207,7 +242,7 @@ class GlobalQueueCoordinator {
 		}
 
 		if ( function_exists( 'as_schedule_single_action' ) ) {
-			as_schedule_single_action( time() + 1, self::HOOK, array(), self::GROUP );
+			as_schedule_single_action( $now + 1, self::HOOK, array(), self::GROUP );
 			return true;
 		}
 
@@ -439,10 +474,15 @@ class GlobalQueueCoordinator {
 		$email_subject = Parser::parse( $cached['email_subject'], $contact );
 		$preview_text  = Parser::parse( $cached['email_preview_text'], $contact );
 		$email_body    = Parser::parse( $email_body_raw, $contact );
+
 		$click_tracking_mode = ComplianceAction::get_click_tracking_mode();
 		if ( 'no' !== $click_tracking_mode ) {
 			$email_body = Helper::replace_url( $email_body, $email_hash, $click_tracking_mode );
 		}
+
+		// Resolve {{link.view_in_browser}} merge tag after click tracking so the URL is not wrapped in a redirect.
+		$view_in_browser_url = ! empty( $email_hash ) ? Helper::get_view_in_browser_url( $email_hash ) : '';
+		$email_body          = str_replace( '{{link.view_in_browser}}', $view_in_browser_url, $email_body );
 
 		$headers = array_filter(
 			$headers,

@@ -179,6 +179,9 @@ class RedirectionHandler {
             set_transient( $dedup_key, 1, MINUTE_IN_SECONDS );
         }
 
+        // Resolve campaign_id once — used for both anonymous tracking and UTM appending.
+        $campaign_id = (int) EmailModel::get_campaign_id_by_email_id( $email_id );
+
         if ( 'anonymous' === $click_tracking_mode ) {
             /*
              * In anonymous mode we increment an aggregate counter on mint_campaigns_meta
@@ -187,12 +190,9 @@ class RedirectionHandler {
              * which carries contact_id — any row there lets a JOIN identify the contact.
              * mint_campaigns_meta only references campaign_id, so no contact is traceable.
              */
-            if ( ! $already_counted ) {
-                $campaign_id = (int) EmailModel::get_campaign_id_by_email_id( $email_id );
-                if ( $campaign_id ) {
-                    $current = (int) CampaignModel::get_campaign_meta_value( $campaign_id, '_anon_click_count' );
-                    CampaignModel::insert_or_update_campaign_meta( $campaign_id, '_anon_click_count', $current + 1 );
-                }
+            if ( ! $already_counted && $campaign_id ) {
+                $current = (int) CampaignModel::get_campaign_meta_value( $campaign_id, '_anon_click_count' );
+                CampaignModel::insert_or_update_campaign_meta( $campaign_id, '_anon_click_count', $current + 1 );
             }
 
             /**
@@ -234,6 +234,15 @@ class RedirectionHandler {
             }
 
             do_action('mailmint_after_email_click', $email_id, $target_url);
+        }
+
+        // Append UTM params from campaign config — evaluated at click-time so already-inboxed
+        // emails are never affected (their URLs are unchanged; only the final destination changes).
+        if ( $campaign_id ) {
+            $utm_params = Campaign::get_utm_params( $campaign_id );
+            if ( ! empty( $utm_params ) ) {
+                $target_url = add_query_arg( $utm_params, $target_url );
+            }
         }
 
         wp_redirect($target_url, 307);

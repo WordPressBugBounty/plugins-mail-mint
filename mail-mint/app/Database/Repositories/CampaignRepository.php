@@ -1371,6 +1371,142 @@ class CampaignRepository extends AbstractRepository {
 	}
 
 	/**
+	 * Fetch sent regular campaigns flagged for the public archive.
+	 *
+	 * Eligibility: a regular campaign whose lifecycle status is 'archived'
+	 * (i.e. it finished sending) and whose 'show_in_archive' meta equals '1'.
+	 * Results are ordered newest-first by updated_at (the timestamp set when
+	 * the campaign transitioned to 'archived', which acts as its sent date).
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param array $args {
+	 *     Optional. Filter arguments (parsed from shortcode attributes).
+	 *
+	 *     @type int    $limit            Maximum rows to return. Default 100.
+	 *     @type string $subject_contains Subject substring match. Default ''.
+	 *     @type string $start_date       Lower bound on sent date (any strtotime-parsable). Default ''.
+	 *     @type string $end_date         Upper bound on sent date. Default ''.
+	 *     @type int    $in_the_last_days Rolling window in days; overrides start/end dates. Default 0.
+	 * }
+	 *
+	 * @return array<int,array<string,mixed>> Rows with id, title, updated_at, email_subject, email_preview_text.
+	 */
+	public function getArchivedPublicCampaigns( array $args = array() ): array {
+		global $wpdb;
+
+		$args = wp_parse_args(
+			$args,
+			array(
+				'limit'            => 100,
+				'subject_contains' => '',
+				'start_date'       => '',
+				'end_date'         => '',
+				'in_the_last_days' => 0,
+			)
+		);
+
+		$campaigns_table = $this->prefixedTable();
+		$meta_table      = $wpdb->prefix . 'mint_campaigns_meta';
+		$emails_table    = $wpdb->prefix . 'mint_campaign_emails';
+
+		$query = QueryBuilder::table( $campaigns_table . ' AS CT' )
+			->select(
+				'CT.id', 'CT.title', 'CT.updated_at',
+				'CET.email_subject', 'CET.email_preview_text'
+			)
+			->innerJoin( $meta_table . ' AS CM', 'CM.campaign_id', '=', 'CT.id' )
+			->leftJoin( $emails_table . ' AS CET', 'CET.campaign_id', '=', 'CT.id' )
+			->where( 'CT.type', '=', CampaignType::REGULAR )
+			->where( 'CT.status', '=', CampaignStatus::ARCHIVED )
+			->where( 'CM.meta_key', '=', 'show_in_archive' )
+			->where( 'CM.meta_value', '=', '1' )
+			->where( 'CET.email_index', '=', 0 );
+
+		if ( ! empty( $args['subject_contains'] ) ) {
+			$query->where( 'CET.email_subject', 'LIKE', '%' . $wpdb->esc_like( $args['subject_contains'] ) . '%' );
+		}
+
+		// A rolling window overrides explicit start/end dates (MailPoet parity).
+		$in_last = (int) $args['in_the_last_days'];
+		if ( $in_last > 0 ) {
+			$query->where( 'CT.updated_at', '>=', gmdate( 'Y-m-d 00:00:00', strtotime( "-{$in_last} days" ) ) );
+		} else {
+			if ( ! empty( $args['start_date'] ) && false !== strtotime( $args['start_date'] ) ) {
+				$query->where( 'CT.updated_at', '>=', gmdate( 'Y-m-d 00:00:00', strtotime( $args['start_date'] ) ) );
+			}
+			if ( ! empty( $args['end_date'] ) && false !== strtotime( $args['end_date'] ) ) {
+				$query->where( 'CT.updated_at', '<=', gmdate( 'Y-m-d 23:59:59', strtotime( $args['end_date'] ) ) );
+			}
+		}
+
+		$limit = (int) $args['limit'] > 0 ? (int) $args['limit'] : 100;
+
+		$rows = $query->orderBy( 'CT.updated_at', 'DESC' )
+			->limit( $limit )
+			->get();
+
+		return $rows ?: array();
+	}
+
+	/**
+	 * Find a campaign by its public archive hash.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param string $hash Archive hash stored in the 'archive_hash' meta key.
+	 *
+	 * @return array|null Campaign row, or null if no campaign matches the hash.
+	 */
+	public function findByArchiveHash( string $hash ): ?array {
+		global $wpdb;
+
+		if ( '' === $hash ) {
+			return null;
+		}
+
+		$meta_row = QueryBuilder::table( $wpdb->prefix . 'mint_campaigns_meta' )
+			->where( 'meta_key', '=', 'archive_hash' )
+			->where( 'meta_value', '=', $hash )
+			->first();
+
+		if ( empty( $meta_row['campaign_id'] ) ) {
+			return null;
+		}
+
+		return $this->find( (int) $meta_row['campaign_id'] );
+	}
+
+	/**
+	 * Build the public "view in browser" URL for an archived campaign.
+	 *
+	 * Returns an empty string when the campaign has no archive hash (i.e. it was
+	 * never enabled for the archive).
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int $campaign_id Campaign ID.
+	 *
+	 * @return string Public archive URL, or '' if unavailable.
+	 */
+	public function getArchiveUrl( int $campaign_id ): string {
+		$hash = $this->getMeta( $campaign_id, 'archive_hash' );
+
+		if ( empty( $hash ) ) {
+			return '';
+		}
+
+		return add_query_arg(
+			array(
+				'mrm'   => 1,
+				'route' => 'campaign_archive',
+				'hash'  => $hash,
+			),
+			home_url( '/' )
+		);
+	}
+
+	/**
 	 * Fetch globally due campaign broadcast recipients in deterministic order.
 	 *
 	 * Used by the global queue coordinator to process due campaign rows with
@@ -2235,6 +2371,11 @@ class CampaignRepository extends AbstractRepository {
 		$broadcast_table = $wpdb->prefix . EmailSchema::$table_name;
 		$campaigns_table = $this->prefixedTable();
 
+		// Only look 10 minutes ahead so that future-scheduled resend/drip rows
+		// (which can sit days in the future) cannot push an immediate campaign's
+		// slots past the scheduling window.
+		$lookahead_mysql = get_date_from_gmt( gmdate( 'Y-m-d H:i:s', $from_unix + 600 ) );
+
 		// Exclude rows from paused/suspended campaigns so a paused campaign's
 		// future-scheduled rows do not push new campaign rows far into the future.
 		// Rows with campaign_id = 0 (e.g. automation previews) are kept via the
@@ -2246,8 +2387,10 @@ class CampaignRepository extends AbstractRepository {
 				 LEFT JOIN {$campaigns_table} AS c ON c.id = b.campaign_id
 				 WHERE b.status IN ('scheduled', 'sending')
 				   AND b.scheduled_at >= %s
+				   AND b.scheduled_at <= %s
 				   AND (b.campaign_id = 0 OR c.id IS NULL OR c.status NOT IN ('paused', 'suspended'))",
-				$from_mysql
+				$from_mysql,
+				$lookahead_mysql
 			),
 			ARRAY_A
 		);

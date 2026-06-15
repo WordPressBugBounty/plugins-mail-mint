@@ -33,6 +33,8 @@ use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Internal\Cron\CampaignsBackgroundProcess;
 use Mint\MRM\Internal\UsageReport\UsageReportScheduler;
 use Mint\MRM\Internal\Optin\UnsubscribeConfirmation;
+use Mint\MRM\Internal\Optin\EmailPreview;
+use Mint\MRM\Internal\Optin\CampaignArchiveView;
 use Mint\MRM\Internal\Admin\WooCommerceOrderDetails;
 use Mint\MRM\Internal\DataCleanup\DataCleanupScheduler;
 use Mint\MRM\Internal\DataCleanup\DatabaseIndexes;
@@ -76,6 +78,10 @@ class App {
 			OptinConfirmation::get_instance();
 			// Unsubscription.
 			new UnsubscribeConfirmation();
+			// View in browser.
+			new EmailPreview();
+			// Public campaign archive view.
+			new CampaignArchiveView();
 
 			WooCommerceCheckoutContact::get_instance()->init();
 		}

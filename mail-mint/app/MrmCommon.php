@@ -1061,11 +1061,12 @@ class MrmCommon {
 	 * @since 1.0.0
 	 */
 	public static function filter_recipients( $recipients, $status ) {
-		$group_ids   = ContactGroupModel::get_all_group_ids();
+		// get_col() returns strings; cast to int so strict in_array() works against int IDs from the frontend.
+		$group_ids   = array_map( 'intval', ContactGroupModel::get_all_group_ids() );
 		$subscribers = 0;
 		if ( !empty( $recipients[ 'lists' ] ) ) {
 			foreach ( $recipients[ 'lists' ] as $index => $list ) {
-				if ( !empty( $list[ 'id' ] ) && !in_array( $list[ 'id' ], $group_ids, true ) ) {
+				if ( !empty( $list[ 'id' ] ) && !in_array( (int) $list[ 'id' ], $group_ids, true ) ) {
 					unset( $recipients[ 'lists' ][ $index ] );
 				}
 			}
@@ -1073,7 +1074,7 @@ class MrmCommon {
 		}
 		if ( !empty( $recipients[ 'tags' ] ) ) {
 			foreach ( $recipients[ 'tags' ] as $index => $tag ) {
-				if ( !empty( $tag[ 'id' ] ) && !in_array( $tag[ 'id' ], $group_ids, true ) ) {
+				if ( !empty( $tag[ 'id' ] ) && !in_array( (int) $tag[ 'id' ], $group_ids, true ) ) {
 					unset( $recipients[ 'tags' ][ $index ] );
 				}
 			}
@@ -1081,7 +1082,7 @@ class MrmCommon {
 		}
 		if ( !empty( $recipients[ 'segments' ] ) ) {
 			foreach ( $recipients[ 'segments' ] as $index => $segment ) {
-				if ( !empty( $segment[ 'id' ] ) && !in_array( $segment[ 'id' ], $group_ids, true ) ) {
+				if ( !empty( $segment[ 'id' ] ) && !in_array( (int) $segment[ 'id' ], $group_ids, true ) ) {
 					unset( $recipients[ 'segments' ][ $index ] );
 				}
 			}
@@ -1680,6 +1681,33 @@ class MrmCommon {
 		} else {
 			return floatval( get_option( 'gmt_offset', 0 ) );
 		}
+	}
+
+	/**
+	 * Get the site timezone details for display in the admin UI.
+	 *
+	 * Returns the configured timezone string (or a UTC offset when no named zone is set),
+	 * the numeric hour offset, and a human-readable label such as "Asia/Dhaka (UTC+6)".
+	 *
+	 * @return array{ string: string, offset: float, label: string }
+	 * @since 1.20.0
+	 */
+	public static function get_site_timezone_info() {
+		$offset = self::get_timezone_offset();
+		$sign   = $offset < 0 ? '-' : '+';
+		$abs    = abs( $offset );
+		$hours  = (int) $abs;
+		$mins   = (int) round( ( $abs - $hours ) * 60 );
+		$utc    = sprintf( 'UTC%s%d%s', $sign, $hours, $mins ? ':' . sprintf( '%02d', $mins ) : '' );
+
+		$timezone_string = get_option( 'timezone_string' );
+		$label           = $timezone_string ? sprintf( '%s (%s)', $timezone_string, $utc ) : $utc;
+
+		return array(
+			'string' => $timezone_string ? $timezone_string : $utc,
+			'offset' => $offset,
+			'label'  => $label,
+		);
 	}
 
 	public static function get_total_batches() {

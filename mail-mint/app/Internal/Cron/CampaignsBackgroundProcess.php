@@ -403,10 +403,15 @@ class CampaignsBackgroundProcess {
 					 $email_subject      = Parser::parse( $cached['email_subject'], $contact );
 					 $preview_text       = Parser::parse( $cached['email_preview_text'], $contact );
 					 $parsed_email_body  = Parser::parse( $email_body, $contact );
+
 					 $click_tracking_mode = ComplianceAction::get_click_tracking_mode();
 					 if ( 'no' !== $click_tracking_mode ) {
 						 $parsed_email_body = Helper::replace_url( $parsed_email_body, $email_hash, $click_tracking_mode );
 					 }
+
+					 // Resolve {{link.view_in_browser}} merge tag after click tracking so the URL is not wrapped in a redirect.
+					 $view_in_browser_url = ! empty( $email_hash ) ? Helper::get_view_in_browser_url( $email_hash ) : '';
+					 $parsed_email_body   = str_replace( '{{link.view_in_browser}}', $view_in_browser_url, $parsed_email_body );
 
 					 // Update X-PreHeader with the parsed (per-contact) preview text.
 					 // Remove the placeholder added by buildHeaders and re-add with parsed value.

@@ -65,9 +65,9 @@ class HandleFrontendMenu {
 
 		$post_table = $wpdb->prefix . 'posts';
 
-		$sql = 'SELECT `id` FROM %1s WHERE `post_type` = %s AND `post_name` IN (%s, %s, %s)';
+		$sql = 'SELECT `id` FROM %1s WHERE `post_type` = %s AND `post_name` IN (%s, %s, %s, %s)';
 
-		return $wpdb->get_col( $wpdb->prepare( $sql, $post_table, 'page', 'optin_confirmation', 'preference_page', 'unsubscribe_confirmation' ) ); //phpcs:ignore
+		return $wpdb->get_col( $wpdb->prepare( $sql, $post_table, 'page', 'optin_confirmation', 'preference_page', 'unsubscribe_confirmation', 'unsubscribe_survey' ) ); //phpcs:ignore
 	}
 
 }

@@ -251,6 +251,10 @@ class SendMail extends AbstractAutomationAction {
 				);
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );
 
+				// Resolve {{link.view_in_browser}} merge tag.
+				$view_in_browser_url   = ! empty( $rand_hash ) ? Helper::get_view_in_browser_url( $rand_hash ) : '';
+				$email_data['body']    = str_replace( '{{link.view_in_browser}}', $view_in_browser_url, $email_data['body'] );
+
 				/**
 				 * Summary: Applies the 'mint_replace_abandoned_carts_placeholder' filter to replace abandoned carts placeholders in the email body.
 				 *

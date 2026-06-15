@@ -145,6 +145,7 @@ class FrontendAssets {
 				|| has_shortcode( $content, 'optin_confirmation' )
 				|| has_shortcode( $content, 'preference_page' )
 				|| has_shortcode( $content, 'unsubscribe_confirmation' )
+				|| has_shortcode( $content, 'unsubscribe_survey' )
 				|| has_block( 'mint/mintform', $post )
 			) {
 				return $result = true;

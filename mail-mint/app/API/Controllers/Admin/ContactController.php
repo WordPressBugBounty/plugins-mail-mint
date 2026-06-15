@@ -26,6 +26,7 @@ use Mint\MRM\DataBase\Models\ContactGroupPivotModel;
 use Mint\MRM\DataBase\Models\CustomFieldModel;
 use Mint\MRM\DataBase\Models\FormModel;
 use Mint\MRM\Utilites\Helper\Contact;
+use Mint\MRM\Internal\Optin\UnsubscribeReasons;
 use Mint\MRM\Utilites\Helper\Import;
 use Mint\MRM\Internal\Import\ImportService;
 use WP_REST_Response;
@@ -274,6 +275,12 @@ class ContactController extends AdminBaseController {
 			}
 			$contact['meta_fields']['avatar_url'] = Contact::get_avatar_url( $contact );
 			$contact['general_fields']            = Contact::get_contact_primary_fields();
+
+			// Append unsubscribe reason fields for display on the contact profile.
+			$unsub_reason                      = ContactModel::get_meta_value_by_contact_id( $contact_id, 'unsubscribe_reason' );
+			$contact['unsubscribe_reason']       = $unsub_reason ? $unsub_reason : '';
+			$contact['unsubscribe_reason_label'] = $unsub_reason ? UnsubscribeReasons::get_label( $unsub_reason ) : '';
+			$contact['unsubscribe_reason_text']  = ContactModel::get_meta_value_by_contact_id( $contact_id, 'unsubscribe_reason_text' ) ?: '';
 			$is_wc_active                         = MrmCommon::is_wc_active();
 			if ( $is_wc_active ) {
 				/**

@@ -36,6 +36,8 @@ class ShortCode {
 			'optin_confirmation'       => __CLASS__ . '::render_optin_confirmation_page',
 			'preference_page'          => __CLASS__ . '::render_preference_page',
 			'unsubscribe_confirmation' => __CLASS__ . '::render_unsubscribe_confirmation_page',
+			'unsubscribe_survey'       => __CLASS__ . '::render_unsubscribe_survey_page',
+			'mailmint_archive'         => __CLASS__ . '::render_campaign_archive',
 		);
 
 		foreach ( $shortcodes as $shortcode => $function ) {
@@ -96,6 +98,19 @@ class ShortCode {
 		$shortcode = new UnsubscribeConfirmation( (array) $atts );
 		return $shortcode->get_content();
 	}
+
+	/**
+	 * Render unsubscribe survey page shortcode.
+	 *
+	 * @param array|object $atts Page attributes.
+	 *
+	 * @return string
+	 * @since 1.20.0
+	 */
+	public static function render_unsubscribe_survey_page( $atts ) {
+		$shortcode = new UnsubscribeSurvey( (array) $atts );
+		return $shortcode->get_content();
+	}
 	/**
 	 * Render optin confirmation page shortcode
 	 *
@@ -106,6 +121,19 @@ class ShortCode {
 	 */
 	public static function render_form_preview( $atts ) {
 		$shortcode = new FormPreview( (array) $atts );
+		return $shortcode->get_content();
+	}
+
+	/**
+	 * Render the public campaign archive list shortcode.
+	 *
+	 * @param array|object $atts Shortcode attributes.
+	 *
+	 * @return string
+	 * @since 1.24.0
+	 */
+	public static function render_campaign_archive( $atts ) {
+		$shortcode = new CampaignArchive( (array) $atts );
 		return $shortcode->get_content();
 	}
 }

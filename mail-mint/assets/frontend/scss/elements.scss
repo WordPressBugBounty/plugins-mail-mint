@@ -39,3 +39,154 @@
     }
 
 }
+
+/* Survey Page */
+.mintmrm-default-pages.mintmrm-survey-page {
+    .mintmrm-card-wrapper {
+        padding: 57px 80px;
+    }
+
+    .mintmrm-card-wrapper .mintmrm-card {
+        max-width: 540px;
+        margin: 0 auto;
+        padding: 48px 40px 40px;
+        text-align: center;
+
+        .mintmrm-card-header {
+            display: flex;
+            justify-content: center;
+
+            svg {
+                width: 120px;
+                height: 120px;
+                overflow: visible;
+            }
+        }
+
+        .mintmrm-card-title {
+            font-size: 32px;
+            word-break: normal;
+            overflow-wrap: break-word;
+            margin: 24px 0 0;
+        }
+
+        .mintmrm-card-subtitle {
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 12px 0 0;
+            color: #9398A5;
+        }
+    }
+
+    .mint-survey-reasons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-align: left;
+        margin-top: 24px;
+
+        .mintmrm-radiobtn {
+            display: block;
+
+            label {
+                font-size: 14px;
+                line-height: 20px;
+                color: #2D3149;
+                white-space: normal;
+                word-break: normal;
+
+                &::before {
+                    top: 0;
+                }
+
+                &::after {
+                    top: 5px;
+                }
+            }
+        }
+    }
+
+    .mint-survey-other-wrap {
+        margin-top: 12px;
+    }
+
+    .mint-survey-textarea {
+        width: 100%;
+        border-radius: 6px;
+        border: 1px solid #E4E6EB;
+        padding: 12px 15px;
+        font-size: 14px;
+        font-family: "Inter", sans-serif;
+        color: #2D3149;
+        resize: vertical;
+        box-sizing: border-box;
+        outline: none;
+        transition: all 0.3s ease;
+
+        &:focus {
+            border-color: #573BFF;
+        }
+    }
+
+    .mintmrm-alert {
+        margin-top: 16px;
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 14px;
+        text-align: left;
+
+        &.mintmrm-success {
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        &.mintmrm-error {
+            background: #fff1f2;
+            color: #b91c1c;
+            border: 1px solid #fecdd3;
+        }
+    }
+
+    .mint-survey-buttons {
+        margin-top: 28px;
+    }
+
+    .mint-survey-resub {
+        margin-top: 20px;
+        font-size: 13px;
+        color: #9398A5;
+    }
+
+    .mint-survey-resub-link {
+        color: #573BFF;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+
+        &:hover {
+            color: #4C25A5;
+            text-decoration: underline;
+        }
+    }
+
+    @media only screen and (max-width: 991px) {
+        .mintmrm-card-wrapper {
+            padding: 40px 30px;
+        }
+    }
+
+    @media only screen and (max-width: 575px) {
+        .mintmrm-card-wrapper {
+            padding: 24px 16px;
+        }
+
+        .mintmrm-card-wrapper .mintmrm-card {
+            padding: 24px 20px 20px;
+
+            .mintmrm-card-title {
+                font-size: 22px;
+            }
+        }
+    }
+}

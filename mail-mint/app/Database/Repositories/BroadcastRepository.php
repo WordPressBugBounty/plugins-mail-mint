@@ -207,15 +207,26 @@ class BroadcastRepository extends AbstractRepository {
 	 *
 	 * @since 1.20.0
 	 *
-	 * @param int    $campaign_id Campaign ID.
-	 * @param string $status      Status to count (e.g. BroadcastStatus::SENT).
+	 * @param int        $campaign_id Campaign ID.
+	 * @param string     $status      Status to count (e.g. BroadcastStatus::SENT).
+	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by created_at.
 	 * @return int Count of matching rows.
 	 */
-	public function countDeliveredStatusOnCampaign( int $campaign_id, string $status ): int {
-		return QueryBuilder::table( $this->prefixedTable() )
+	public function countDeliveredStatusOnCampaign( int $campaign_id, string $status, ?array $date_range = null, string $search = '' ): int {
+		$qb = QueryBuilder::table( $this->prefixedTable() )
 			->where( 'campaign_id', '=', $campaign_id )
-			->where( 'status', '=', $status )
-			->count();
+			->where( 'status', '=', $status );
+
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$qb = $qb->where( 'created_at', '>=', $date_range['start'] )
+					->where( 'created_at', '<=', $date_range['end'] );
+		}
+
+		if ( '' !== $search ) {
+			$qb = $qb->where( 'email_address', 'LIKE', '%' . $search . '%' );
+		}
+
+		return $qb->count();
 	}
 
 	/**
@@ -225,24 +236,40 @@ class BroadcastRepository extends AbstractRepository {
 	 *
 	 * @since 1.20.0
 	 *
-	 * @param int $campaign_id Campaign ID.
+	 * @param int        $campaign_id Campaign ID.
+	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by meta created_at.
 	 * @return int Count of broadcast emails with `is_open = 1` meta.
 	 */
-	public function calculateOpenRateOnCampaign( int $campaign_id ): int {
+	public function calculateOpenRateOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '' ): int {
 		global $wpdb;
 
 		$broadcast = $this->prefixedTable();
-		$tracked   = QueryBuilder::table( $broadcast )
+		$qb        = QueryBuilder::table( $broadcast )
 			->leftJoin( $this->metaTable() . ' AS meta', 'meta.mint_email_id', '=', $broadcast . '.id' )
 			->where( $broadcast . '.campaign_id', '=', $campaign_id )
 			->where( 'meta.meta_key', '=', 'is_open' )
-			->where( 'meta.meta_value', '=', '1' )
-			->count();
+			->where( 'meta.meta_value', '=', '1' );
 
-		$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
-		$anon = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_open_count'", $campaign_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$qb = $qb->where( 'meta.created_at', '>=', $date_range['start'] )
+					->where( 'meta.created_at', '<=', $date_range['end'] );
+		}
 
-		return $tracked + $anon;
+		if ( '' !== $search ) {
+			$qb = $qb->where( $broadcast . '.email_address', 'LIKE', '%' . $search . '%' );
+		}
+
+		$tracked = $qb->count();
+
+		// Anon pixel counts are not timestamped so only include them on all-time queries.
+		// Skip anon counts when searching, as they are not tied to an email address.
+		if ( empty( $date_range ) && '' === $search ) {
+			$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
+			$anon                = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_open_count'", $campaign_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$tracked            += $anon;
+		}
+
+		return $tracked;
 	}
 
 	/**
@@ -252,24 +279,40 @@ class BroadcastRepository extends AbstractRepository {
 	 *
 	 * @since 1.20.0
 	 *
-	 * @param int $campaign_id Campaign ID.
+	 * @param int        $campaign_id Campaign ID.
+	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by meta created_at.
 	 * @return int Count of broadcast emails with `is_click = 1` meta.
 	 */
-	public function calculateClickRateOnCampaign( int $campaign_id ): int {
+	public function calculateClickRateOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '' ): int {
 		global $wpdb;
 
 		$broadcast = $this->prefixedTable();
-		$tracked   = QueryBuilder::table( $broadcast )
+		$qb        = QueryBuilder::table( $broadcast )
 			->leftJoin( $this->metaTable() . ' AS meta', 'meta.mint_email_id', '=', $broadcast . '.id' )
 			->where( $broadcast . '.campaign_id', '=', $campaign_id )
 			->where( 'meta.meta_key', '=', 'is_click' )
-			->where( 'meta.meta_value', '=', '1' )
-			->count();
+			->where( 'meta.meta_value', '=', '1' );
 
-		$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
-		$anon = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_click_count'", $campaign_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$qb = $qb->where( 'meta.created_at', '>=', $date_range['start'] )
+					->where( 'meta.created_at', '<=', $date_range['end'] );
+		}
 
-		return $tracked + $anon;
+		if ( '' !== $search ) {
+			$qb = $qb->where( $broadcast . '.email_address', 'LIKE', '%' . $search . '%' );
+		}
+
+		$tracked = $qb->count();
+
+		// Anon click counts are not timestamped so only include them on all-time queries.
+		// Skip anon counts when searching, as they are not tied to an email address.
+		if ( empty( $date_range ) && '' === $search ) {
+			$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
+			$anon                = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_click_count'", $campaign_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$tracked            += $anon;
+		}
+
+		return $tracked;
 	}
 
 	/**
@@ -279,18 +322,98 @@ class BroadcastRepository extends AbstractRepository {
 	 *
 	 * @since 1.20.0
 	 *
-	 * @param int $campaign_id Campaign ID.
+	 * @param int        $campaign_id Campaign ID.
+	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by meta created_at.
 	 * @return int Count of broadcast emails with `is_unsubscribe = 1` meta.
 	 */
-	public function countUnsubscribeOnCampaign( int $campaign_id ): int {
+	public function countUnsubscribeOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '' ): int {
 		$broadcast = $this->prefixedTable();
 
-		return QueryBuilder::table( $broadcast )
+		$qb = QueryBuilder::table( $broadcast )
 			->leftJoin( $this->metaTable() . ' AS meta', 'meta.mint_email_id', '=', $broadcast . '.id' )
 			->where( $broadcast . '.campaign_id', '=', $campaign_id )
 			->where( 'meta.meta_key', '=', 'is_unsubscribe' )
-			->where( 'meta.meta_value', '=', '1' )
-			->count();
+			->where( 'meta.meta_value', '=', '1' );
+
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$qb = $qb->where( 'meta.created_at', '>=', $date_range['start'] )
+					->where( 'meta.created_at', '<=', $date_range['end'] );
+		}
+
+		if ( '' !== $search ) {
+			$qb = $qb->where( $broadcast . '.email_address', 'LIKE', '%' . $search . '%' );
+		}
+
+		return $qb->count();
+	}
+
+	/**
+	 * Get unsubscribe reason counts for a campaign, keyed by reason slug.
+	 *
+	 * Queries broadcast_email_meta for meta_key='unsubscribe_reason' joined to
+	 * broadcast emails belonging to the given campaign.
+	 *
+	 * @since 1.20.0
+	 *
+	 * @param int $campaign_id Campaign ID.
+	 * @return array<string,int> Map of reason slug → count. Empty array when no reasons recorded.
+	 */
+	public function getUnsubscribeReasonCountsForCampaign( int $campaign_id ): array {
+		global $wpdb;
+		$broadcast = $this->prefixedTable();
+		$meta      = $this->metaTable();
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results( // db call ok. ; no-cache ok.
+			$wpdb->prepare(
+				"SELECT meta.meta_value AS reason, COUNT(*) AS total
+				FROM {$broadcast} AS be
+				INNER JOIN {$meta} AS meta ON meta.mint_email_id = be.id AND meta.meta_key = 'unsubscribe_reason'
+				WHERE be.campaign_id = %d
+				GROUP BY meta.meta_value",
+				$campaign_id
+			),
+			ARRAY_A
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( empty( $rows ) ) {
+			return array();
+		}
+
+		$result = array();
+		foreach ( $rows as $row ) {
+			$result[ $row['reason'] ] = (int) $row['total'];
+		}
+		return $result;
+	}
+
+	/**
+	 * Count contacts who left written feedback (unsubscribe_reason_text) for a campaign.
+	 *
+	 * @since 1.26.0
+	 *
+	 * @param int $campaign_id Campaign ID.
+	 * @return int Number of broadcast emails that have an unsubscribe_reason_text meta entry.
+	 */
+	public function countUnsubscribeReasonTextOnCampaign( int $campaign_id ): int {
+		global $wpdb;
+		$broadcast = $this->prefixedTable();
+		$meta      = $this->metaTable();
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+		$count = (int) $wpdb->get_var( // db call ok. ; no-cache ok.
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				FROM {$broadcast} AS be
+				INNER JOIN {$meta} AS meta ON meta.mint_email_id = be.id AND meta.meta_key = 'unsubscribe_reason_text'
+				WHERE be.campaign_id = %d",
+				$campaign_id
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared
+
+		return $count;
 	}
 
 	/**
@@ -524,21 +647,21 @@ class BroadcastRepository extends AbstractRepository {
 	 * @return float Total revenue amount.
 	 */
 	public function getTotalRevenueFromEmail( array $order_ids ): float {
-		if ( empty( $order_ids ) ) {
+		if ( empty( $order_ids ) || ! function_exists( 'wc_get_order' ) ) {
 			return 0.0;
 		}
 
-		global $wpdb;
+		$paid_statuses = array( 'processing', 'completed', 'on-hold', 'wc-wpfnl-main-order' );
+		$total         = 0.0;
 
-		$order_ids  = array_map( 'absint', $order_ids );
-		$id_list    = implode( ',', $order_ids );
-		$stats_table = $wpdb->prefix . 'wc_order_stats';
+		foreach ( $order_ids as $order_id ) {
+			$order = wc_get_order( absint( $order_id ) );
+			if ( $order && \in_array( $order->get_status(), $paid_statuses, true ) ) {
+				$total += (float) $order->get_total();
+			}
+		}
 
-		$query = "SELECT SUM(total_sales) as total_sales FROM {$stats_table} WHERE (order_id IN ({$id_list}) OR parent_id IN ({$id_list})) AND status IN ('wc-processing', 'wc-completed', 'wc-wpfnl-main-order')"; // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-
-		$result = $wpdb->get_var( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-
-		return (float) $result;
+		return $total;
 	}
 
 	/**
@@ -913,10 +1036,66 @@ class BroadcastRepository extends AbstractRepository {
 	 * @param int $campaign_id Campaign ID.
 	 * @return int Total count of broadcast email rows for the campaign.
 	 */
-	public function countBroadcastEmailsByCampaign( int $campaign_id ): int {
-		return QueryBuilder::table( $this->prefixedTable() )
-			->where( 'campaign_id', '=', $campaign_id )
-			->count();
+	/**
+	 * Count broadcast emails that have NOT been opened for a campaign.
+	 *
+	 * A recipient is "not opened" when their broadcast email row exists (status = 'sent')
+	 * but there is no corresponding `is_open = 1` entry in the meta table.
+	 *
+	 * @since 1.23.5
+	 *
+	 * @param int    $campaign_id Campaign ID.
+	 * @param string $search      Optional email address search filter.
+	 * @return int Count of broadcast emails with no open meta entry.
+	 */
+	public function countNotOpenedOnCampaign( int $campaign_id, string $search = '', ?array $date_range = null ): int {
+		global $wpdb;
+
+		$broadcast = $this->prefixedTable();
+		$meta      = $this->metaTable();
+
+		$query = "SELECT COUNT(DISTINCT {$broadcast}.id)
+			FROM {$broadcast}
+			WHERE {$broadcast}.campaign_id = %d
+			  AND {$broadcast}.status IN ('sent', 'scheduled')
+			  AND NOT EXISTS (
+			      SELECT 1 FROM {$meta}
+			      WHERE {$meta}.mint_email_id = {$broadcast}.id
+			        AND {$meta}.meta_key = 'is_open'
+			        AND {$meta}.meta_value = '1'
+			  )";
+
+		$values = array( $campaign_id );
+
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$query   .= " AND {$broadcast}.scheduled_at >= %s AND {$broadcast}.scheduled_at <= %s";
+			$values[] = $date_range['start'];
+			$values[] = $date_range['end'];
+		}
+
+		if ( '' !== $search ) {
+			$query   .= ' AND ' . $broadcast . '.email_address LIKE %s';
+			$values[] = '%' . $wpdb->esc_like( $search ) . '%';
+		}
+
+		return (int) $wpdb->get_var( $wpdb->prepare( $query, $values ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	}
+
+	public function countBroadcastEmailsByCampaign( int $campaign_id, string $search = '', ?array $date_range = null ): int {
+		$table = $this->prefixedTable();
+		$qb    = QueryBuilder::table( $table )
+			->where( 'campaign_id', '=', $campaign_id );
+
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$qb = $qb->where( 'scheduled_at', '>=', $date_range['start'] )
+					->where( 'scheduled_at', '<=', $date_range['end'] );
+		}
+
+		if ( '' !== $search ) {
+			$qb = $qb->where( 'email_address', 'LIKE', '%' . $search . '%' );
+		}
+
+		return $qb->count();
 	}
 
 	/**
@@ -1087,6 +1266,53 @@ class BroadcastRepository extends AbstractRepository {
 	}
 
 	/**
+	 * Get the most recent meta timestamp for a given meta_key across all emails in a campaign.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int        $campaign_id Campaign ID.
+	 * @param string     $meta_key    Meta key to query (e.g. 'is_open', 'is_click').
+	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime].
+	 * @return string|null Datetime string or null if no match.
+	 */
+	public function getLastMetaTimestampOnCampaign( int $campaign_id, string $meta_key, ?array $date_range = null ): ?string {
+		global $wpdb;
+
+		$broadcast  = $this->prefixedTable();
+		$meta_table = $this->metaTable();
+
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$result = $wpdb->get_var( // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$wpdb->prepare(
+					"SELECT MAX(COALESCE(meta.updated_at, meta.created_at))
+					FROM {$broadcast} be
+					LEFT JOIN {$meta_table} meta
+						ON meta.mint_email_id = be.id AND meta.meta_key = %s AND meta.meta_value = '1'
+					WHERE be.campaign_id = %d AND meta.created_at BETWEEN %s AND %s",
+					$meta_key,
+					$campaign_id,
+					$date_range['start'],
+					$date_range['end']
+				)
+			);
+		} else {
+			$result = $wpdb->get_var( // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$wpdb->prepare(
+					"SELECT MAX(COALESCE(meta.updated_at, meta.created_at))
+					FROM {$broadcast} be
+					LEFT JOIN {$meta_table} meta
+						ON meta.mint_email_id = be.id AND meta.meta_key = %s AND meta.meta_value = '1'
+					WHERE be.campaign_id = %d",
+					$meta_key,
+					$campaign_id
+				)
+			);
+		}
+
+		return ! empty( $result ) ? $result : null;
+	}
+
+	/**
 	 * Get the most recent broadcast email creation timestamp for a contact.
 	 *
 	 * Replaces legacy EmailModel::last_email_sent_single_contact().
@@ -1109,6 +1335,53 @@ class BroadcastRepository extends AbstractRepository {
 				$contact_id
 			)
 		);
+	}
+
+	/**
+	 * Re-queue sent broadcast rows that were never opened back to 'scheduled'.
+	 *
+	 * Finds every sent broadcast row for the given campaign + email that has no
+	 * corresponding is_open meta entry, then bulk-updates their status to
+	 * 'scheduled' and sets a new scheduled_at so the send worker picks them up.
+	 *
+	 * @param int    $campaign_id  Campaign ID.
+	 * @param int    $email_id     Campaign-email ID (mint_campaign_emails.id).
+	 * @param string $scheduled_at UTC datetime string ('Y-m-d H:i:s') for the resend.
+	 * @return int Number of rows re-queued.
+	 *
+	 * @since 1.24.0
+	 */
+	public function rescheduleUnopenedBroadcasts( int $campaign_id, int $email_id, string $scheduled_at ): int {
+		global $wpdb;
+
+		$broadcast = $this->prefixedTable();
+		$meta      = $this->metaTable();
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$updated = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$broadcast}
+				SET status       = 'scheduled',
+				    scheduled_at = %s,
+				    updated_at   = %s
+				WHERE campaign_id = %d
+				  AND email_id    = %d
+				  AND status      = 'sent'
+				  AND NOT EXISTS (
+				      SELECT 1 FROM {$meta}
+				      WHERE {$meta}.mint_email_id = {$broadcast}.id
+				        AND {$meta}.meta_key      = 'is_open'
+				        AND {$meta}.meta_value    = '1'
+				  )",
+				$scheduled_at,
+				current_time( 'mysql' ),
+				$campaign_id,
+				$email_id
+			)
+		);
+		// phpcs:enable
+
+		return is_int( $updated ) ? $updated : 0;
 	}
 
 }

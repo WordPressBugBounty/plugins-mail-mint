@@ -29,6 +29,7 @@ class UnsubscribeConfirmation {
 	public function __construct() {
 		add_action( 'init', array( $this, 'unsubscribe_confirmation_page' ), 9999 );
 		add_action( 'init', array( $this, 'unsubscribe_confirmation' ), 9999 );
+		add_action( 'init', array( $this, 'resubscribe_confirmation_page' ), 9999 );
 	}
 
 	/**
@@ -146,6 +147,16 @@ class UnsubscribeConfirmation {
 			ContactModel::update_subscription_status( $contact_id, 'unsubscribed' );
 			EmailModel::insert_or_update_email_meta( 'is_unsubscribe', 1, $broadcast_email_id );
 
+			// Redirect to unsubscribe survey page when the survey is enabled.
+			$unsubscriber_settings = get_option( '_mrm_general_unsubscriber_settings', array() );
+			if ( 'yes' === ( isset( $unsubscriber_settings['unsubscribe_survey_enabled'] ) ? $unsubscriber_settings['unsubscribe_survey_enabled'] : 'no' ) ) {
+				$survey_page_id = MrmCommon::get_page_id_by_slug( 'unsubscribe_survey' );
+				if ( $survey_page_id ) {
+					$survey_url = add_query_arg( 'hash', $hash, get_permalink( $survey_page_id ) );
+					exit( wp_redirect( esc_url( $survey_url ) ) ); //phpcs:ignore
+				}
+			}
+
 			// if redirecting to a page, get the page's URL.
 			if ( 'redirect-page' === $confirmation_type ) {
 				$page_id      = isset( $settings[ 'page_id' ] ) ? $settings[ 'page_id' ] : '';
@@ -162,6 +173,55 @@ class UnsubscribeConfirmation {
 				exit( wp_redirect( $redirect_url ) ); //phpcs:ignore
 			}
 		}
+	}
+
+	/**
+	 * Handle resubscription requests via /?mrm=1&route=resubscribe&hash=X.
+	 *
+	 * Restores an unsubscribed contact to subscribed status and removes
+	 * the stored unsubscribe reason meta.
+	 *
+	 * @return void
+	 * @since 1.20.0
+	 */
+	public function resubscribe_confirmation_page() {
+		$get = MrmCommon::get_sanitized_get_post();
+		$get = isset( $get['get'] ) ? $get['get'] : array();
+
+		if ( ! isset( $get['mrm'] ) || ! isset( $get['route'] ) || 'resubscribe' !== $get['route'] ) {
+			return;
+		}
+
+		$unsubscriber_settings = get_option( '_mrm_general_unsubscriber_settings', array() );
+		if ( 'no' === ( isset( $unsubscriber_settings['unsubscribe_allow_resubscription'] ) ? $unsubscriber_settings['unsubscribe_allow_resubscription'] : 'yes' ) ) {
+			exit( wp_redirect( home_url() ) ); //phpcs:ignore
+		}
+
+		$hash         = isset( $get['hash'] ) ? $get['hash'] : '';
+		$contact_hash = EmailModel::get_contact_id_by_hash( $hash );
+		if ( empty( $contact_hash ) ) {
+			$contact      = ContactModel::get_by_hash( $hash );
+			$contact_hash = $contact;
+		}
+		$contact_id = isset( $contact_hash['contact_id'] ) ? (int) $contact_hash['contact_id'] : ( isset( $contact_hash['id'] ) ? (int) $contact_hash['id'] : 0 );
+
+		if ( ! $contact_id ) {
+			exit( wp_redirect( home_url() ) ); //phpcs:ignore
+		}
+
+		$contact = ContactModel::get( $contact_id );
+		if ( empty( $contact ) || 'unsubscribed' !== ( isset( $contact['status'] ) ? $contact['status'] : '' ) ) {
+			exit( wp_redirect( home_url() ) ); //phpcs:ignore
+		}
+
+		// Restore subscription status.
+		ContactModel::update_subscription_status( $contact_id, 'subscribed' );
+
+		// Remove stored unsubscribe reason.
+		ContactModel::delete_contact_meta_by_key( $contact_id, 'unsubscribe_reason' );
+		ContactModel::delete_contact_meta_by_key( $contact_id, 'unsubscribe_reason_text' );
+
+		exit( wp_redirect( esc_url( add_query_arg( 'resubscribed', '1', home_url() ) ) ) ); //phpcs:ignore
 	}
 
 	/**

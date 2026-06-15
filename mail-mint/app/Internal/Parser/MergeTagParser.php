@@ -1054,6 +1054,9 @@ class MergeTagParser
 				);
 
 				return '<a class="mint-pref-url" href="' . $url . '">' . $default_value . '</a>';
+			case 'view_in_browser':
+				// Return the tag as-is so the email sender can resolve it with the actual hash.
+				return '{{link.view_in_browser}}';
 			default:
 				return $default_value;
 		}

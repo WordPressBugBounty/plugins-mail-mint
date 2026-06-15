@@ -180,6 +180,46 @@ class CampaignRoute {
 		);
 
 		/**
+		 * Toggle whether a campaign appears in the public archive.
+		 *
+		 * @since 1.24.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<campaign_id>[\d]+)/archive-visibility',
+			array(
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array(
+						$this->controller,
+						'update_archive_visibility',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
+				),
+			)
+		);
+
+		/**
+		 * Update the social share-bar visibility for an archived campaign.
+		 *
+		 * @since 1.25.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<campaign_id>[\d]+)/share-visibility',
+			array(
+				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array(
+						$this->controller,
+						'update_share_visibility',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_campaigns'),
+				),
+			)
+		);
+
+		/**
 		 * Delete a campaign email
 		 *
 		 * @since 1.0.0
@@ -306,7 +346,79 @@ class CampaignRoute {
 				),
 			)
 		);
-		
+
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/recipient-lists',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_recipient_lists_for_campaign' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_read_campaigns' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/recipient-tags',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_recipient_tags_for_campaign' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_read_campaigns' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/recipient-segments',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_recipient_segments_for_campaign' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_read_campaigns' ),
+				),
+			)
+		);
+
+		/**
+		 * Get URLs from a campaign email for the Campaign Actions feature.
+		 * Pro extends this via the 'mint_campaign_clicked_links' filter.
+		 *
+		 * @since 1.24.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/(?P<campaign_id>[\d]+)/clicked-links',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_clicked_links' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_read_campaigns' ),
+				),
+			)
+		);
+
+		/**
+		 * Apply/remove tags to contacts filtered by email interaction.
+		 * Requires Pro plugin — dispatches via 'mint_campaign_do_actions' filter.
+		 *
+		 * @since 1.24.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/(?P<campaign_id>[\d]+)/campaign-actions',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'do_campaign_actions' ),
+					'permission_callback' => PermissionManager::current_user_can( 'mint_manage_campaigns' ),
+				),
+			)
+		);
+
 	}
 
 }

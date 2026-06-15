@@ -98,4 +98,5 @@ class CampaignAnalyticsController extends AdminBaseController {
 			)
 		);
 	}
+
 }

@@ -287,6 +287,13 @@ class MrmActivator {
 					'post_status'  => 'publish',
 					'post_type'    => 'page',
 				),
+				'unsubscribe_survey'      => array(
+					'post_name'    => _x( 'unsubscribe_survey', 'Page slug', 'mrm' ),
+					'post_title'   => _x( 'Mint Mail Unsubscribe Survey', 'Page title', 'mrm' ),
+					'post_content' => '<!-- wp:shortcode -->[unsubscribe_survey]<!-- /wp:shortcode -->',
+					'post_status'  => 'publish',
+					'post_type'    => 'page',
+				),
 			)
 		);
 
@@ -305,6 +312,9 @@ class MrmActivator {
 				if ( 'unsubscribe_confirmation' === get_post_field( 'post_name', $post_id ) ) {
 					update_post_meta( $post_id, '_wp_page_template', 'template-unsubscribe-page.php' );
 					MrmCommon::default_unsubscribe_setting( $post_id );
+				}
+				if ( 'unsubscribe_survey' === get_post_field( 'post_name', $post_id ) ) {
+					update_post_meta( $post_id, '_wp_page_template', 'template-unsubscribe-page.php' );
 				}
 			}
 		}

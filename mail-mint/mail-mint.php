@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.23.3
+ * Version:           1.24.0
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -36,9 +36,9 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.23.3' );
+define( 'MRM_VERSION', '1.24.0' );
 define( 'MAILMINT', 'mailmint' );
-define( 'MRM_DB_VERSION', '1.16.3' );
+define( 'MRM_DB_VERSION', '1.16.4' );
 define( 'MINT_DEV_MODE', false );
 define( 'MRM_PLUGIN_NAME', 'mrm' );
 define( 'MRM_FILE', __FILE__ );
@@ -276,63 +276,134 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 							return array( 'campaign_id' => (int) $campaign_id );
 						},
 					),
-					// Fires per visitor opt-in form submission.
-					'form_submission_received' => array(
-						'hook'     => 'mailmint_after_form_submit',
-						'callback' => function ( $form_id ) {
-							return array( 'form_id' => (int) $form_id );
-						},
-					),
-					// Fires while user import contacts
+					// Fires once per bulk import operation — safe frequency.
 					'contacts_imported' => array(
 						'hook'     => 'mailmint_contacts_imported',
 						'callback' => function ( $count, $source ) {
 							return array( 'source' => $source, 'count' => (int) $count );
 						},
 					),
-					// Fires while user import added or updated
-					'contacts_added' => array(
-						'hook'     => 'mailmint_contacts_saved',
-						'callback' => function ( $contact_id, $params ) {
-							return array( 'contact_id' => $contact_id );
-						},
-					),
-					// Fires when a WooCommerce cart is marked as abandoned.
-					'cart_abandoned' => array(
-						'hook'     => 'mailmint_after_cart_abandoned',
-						'callback' => function ( $abandoned_id ) {
-							return array( 'abandoned_id' => (int) $abandoned_id );
-						},
-					),
+					/*
+					 * NOTE: High-frequency feature_used events fire on concurrent public
+					 * requests (form submissions, contact saves, cart abandonment) and would
+					 * otherwise emit a burst of duplicate events that inflates telemetry
+					 * volume. They are registered separately below behind a shared atomic
+					 * weekly gate instead of here:
+					 *   - form_submission_received (mailmint_after_form_submit)
+					 *   - contacts_added           (mailmint_contacts_saved)
+					 *   - cart_abandoned           (mailmint_after_cart_abandoned)
+					 */
 				),
 			)
 		);
 
 		/**
-		 * Track automation_triggered at most once per week.
+		 * Send a high-frequency feature_used event at most once per week, per site.
 		 *
-		 * The hook fires on every automation execution (potentially thousands/day),
-		 * so we gate it behind a weekly timestamp stored in a WP option.
+		 * These hooks fire on public, concurrent web requests (automation triggers
+		 * such as email opens, opt-in form submissions, contact saves). A plain
+		 * get_option/compare/update_option gate is NOT atomic: at each week boundary
+		 * a burst of concurrent requests all read the stale timestamp before any of
+		 * them writes the new one, so they all pass the gate and emit duplicate
+		 * events — inflating the telemetry (PostHog) volume.
+		 *
+		 * To prevent this we claim the weekly slot with a single conditional UPDATE.
+		 * MySQL serialises concurrent UPDATEs on the same row, so exactly one request
+		 * can flip the timestamp (affected rows = 1) and send; every other concurrent
+		 * request matches 0 rows and bails. The "unique user" in telemetry is the
+		 * stable per-site profile id, so this is one event per unique user per week.
+		 *
+		 * @param string $feature     Feature name passed to track_feature_used().
+		 * @param string $option_key  Per-feature gate option storing the last-sent time.
+		 * @param array  $properties  Event properties.
+		 * @return void
 		 */
+		$send_weekly_feature_used = function ( $feature, $option_key, $properties ) use ( $client ) {
+			global $wpdb;
+
+			$now       = time();
+			$threshold = $now - WEEK_IN_SECONDS;
+
+			// Ensure the row exists so the conditional UPDATE below has something to
+			// claim. add_option is a no-op (returns false) if it already exists, so any
+			// timestamp written by a previous send is preserved.
+			add_option( $option_key, '0', '', false );
+
+			// Atomically claim the send slot: only one concurrent request can match the
+			// WHERE clause and flip the value; the rest affect 0 rows and skip.
+			$claimed = $wpdb->query(
+				$wpdb->prepare(
+					"UPDATE {$wpdb->options} SET option_value = %d WHERE option_name = %s AND option_value < %d",
+					$now,
+					$option_key,
+					$threshold
+				)
+			); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- atomic claim; the options API check-then-set is racy under concurrency.
+
+			if ( empty( $claimed ) ) {
+				return; // Already sent this week, or another request won the slot.
+			}
+
+			// Keep the options cache in sync with the value we just wrote directly.
+			wp_cache_delete( $option_key, 'options' );
+
+			$client->track_feature_used( $feature, $properties );
+		};
+
+		// automation_triggered — fires on every automation execution, incl. email-open triggers.
 		add_action(
 			MINT_TRIGGER_AUTOMATION,
-			function ( $data ) use ( $client ) {
-				$option_key = 'mail-mint_telemetry_automation_triggered_last_sent';
-				$last_sent  = (int) get_option( $option_key, 0 );
-
-				if ( ( time() - $last_sent ) < WEEK_IN_SECONDS ) {
-					return;
-				}
-
-				$client->track_feature_used(
+			function ( $data ) use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used(
 					'automation_triggered',
+					'mail-mint_telemetry_automation_triggered_last_sent',
 					array(
 						'trigger_name'   => isset( $data['trigger_name'] ) ? $data['trigger_name'] : '',
 						'connector_name' => isset( $data['connector_name'] ) ? $data['connector_name'] : '',
 					)
 				);
+			},
+			10,
+			1
+		);
 
-				update_option( $option_key, time() );
+		// form_submission_received — fires per visitor opt-in form submission.
+		add_action(
+			'mailmint_after_form_submit',
+			function ( $form_id ) use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used(
+					'form_submission_received',
+					'mail-mint_telemetry_form_submission_received_last_sent',
+					array( 'form_id' => (int) $form_id )
+				);
+			},
+			10,
+			1
+		);
+
+		// contacts_added — fires per contact create/update.
+		add_action(
+			'mailmint_contacts_saved',
+			function ( $contact_id ) use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used(
+					'contacts_added',
+					'mail-mint_telemetry_contacts_added_last_sent',
+					array( 'contact_id' => $contact_id )
+				);
+			},
+			10,
+			1
+		);
+
+		// cart_abandoned — fires when a WooCommerce cart is marked as abandoned.
+		add_action(
+			'mailmint_after_cart_abandoned',
+			function ( $abandoned_id ) use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used(
+					'cart_abandoned',
+					'mail-mint_telemetry_cart_abandoned_last_sent',
+					array( 'abandoned_id' => (int) $abandoned_id )
+				);
 			},
 			10,
 			1

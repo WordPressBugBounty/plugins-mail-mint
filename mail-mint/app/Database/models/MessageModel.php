@@ -539,12 +539,20 @@ class EmailModel {
 	 * @return int
 	 * @since 1.0.0
 	 */
-	public static function count_email_open( $email_id ) {
+	public static function count_email_open( $email_id, $date_range = null ) {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
 		$campaign_emails_table      = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
 		$campaign_meta_table        = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
+
+		$has_range = ! empty( $date_range['start'] ) && ! empty( $date_range['end'] );
+
+		if ( $has_range ) {
+			$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_open FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_open' AND meta_value = 1 AND created_at BETWEEN %s AND %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", $date_range['start'], $date_range['end'], $email_id ) ); //phpcs:ignore
+			// Anonymous aggregate counts carry no timestamp, so skip them when a date range is active.
+			return $tracked;
+		}
 
 		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_open FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_open' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", array( $email_id ) ) ); //phpcs:ignore
 
@@ -635,12 +643,18 @@ class EmailModel {
 	 * @return int
 	 * @since 1.0.0
 	 */
-	public static function count_unsubscribe( $email_id ) {
+	public static function count_unsubscribe( $email_id, $date_range = null ) {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
 
-		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_unsubscribe FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_unsubscribe' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", array( $email_id )  ) ); //phpcs:ignore
+		$has_range = ! empty( $date_range['start'] ) && ! empty( $date_range['end'] );
+
+		if ( $has_range ) {
+			return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_unsubscribe FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_unsubscribe' AND meta_value = 1 AND created_at BETWEEN %s AND %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", $date_range['start'], $date_range['end'], $email_id ) ); //phpcs:ignore
+		}
+
+		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_unsubscribe FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_unsubscribe' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", array( $email_id ) ) ); //phpcs:ignore
 	}
 
 
@@ -780,6 +794,48 @@ class EmailModel {
 	}
 
 	/**
+	 * Count engagement events grouped by calendar date within a date range.
+	 *
+	 * @param int    $email_id   Mint email step id.
+	 * @param string $meta_key   Event meta key (is_open, is_click, is_unsubscribe).
+	 * @param string $start_date Start of the date range (MySQL datetime inclusive).
+	 * @param string $end_date   End of the date range (MySQL datetime inclusive).
+	 * @return array Map of date string (Y-m-d) => event count.
+	 * @since 1.23.5
+	 */
+	public static function count_engagement_by_date_range( $email_id, $meta_key, $start_date, $end_date ) {
+		global $wpdb;
+		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
+		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT DATE(created_at) AS day, COUNT(mint_email_id) AS total FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND meta_value = 1 AND created_at >= %s AND created_at <= %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d) GROUP BY day", array( $meta_key, $start_date, $end_date, $email_id ) ), ARRAY_A ); //phpcs:ignore
+		return array_column( $result, 'total', 'day' );
+	}
+
+	/**
+	 * Count engagement events grouped by fixed-width hour buckets within a date range.
+	 *
+	 * Bucket index 0 starts at $start_datetime; bucket N spans hours [N*bucket, (N+1)*bucket).
+	 * Events outside [$start_datetime, $end_datetime] are excluded.
+	 *
+	 * @param int    $email_id        Mint email step id.
+	 * @param string $meta_key        Event meta key (is_open, is_click, is_unsubscribe).
+	 * @param string $start_datetime  Range start (MySQL datetime, inclusive).
+	 * @param string $end_datetime    Range end   (MySQL datetime, inclusive).
+	 * @param int    $bucket_hours    Width of each bucket in hours (e.g. 2 or 6).
+	 * @return array Map of bucket index (int) => event count (int).
+	 * @since 1.23.5
+	 */
+	public static function count_engagement_by_time_buckets( $email_id, $meta_key, $start_datetime, $end_datetime, $bucket_hours ) {
+		global $wpdb;
+		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
+		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
+
+		$result = $wpdb->get_results( $wpdb->prepare( "SELECT FLOOR( TIMESTAMPDIFF( HOUR, %s, created_at ) / %d ) AS bucket, COUNT(mint_email_id) AS total FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND meta_value = 1 AND created_at >= %s AND created_at <= %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d) GROUP BY bucket", array( $start_datetime, $bucket_hours, $meta_key, $start_datetime, $end_datetime, $email_id ) ), ARRAY_A ); //phpcs:ignore
+		return array_column( $result, 'total', 'bucket' );
+	}
+
+	/**
 	 * Run sql query to count total emails opening on speceific time range
 	 *
 	 * @param int    $email_id mint email id.
@@ -806,12 +862,20 @@ class EmailModel {
 	 * @return int
 	 * @since 1.0.0
 	 */
-	public static function count_email_click( $email_id ) {
+	public static function count_email_click( $email_id, $date_range = null ) {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
 		$campaign_emails_table      = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
 		$campaign_meta_table        = $wpdb->prefix . CampaignSchema::$campaign_meta_table;
+
+		$has_range = ! empty( $date_range['start'] ) && ! empty( $date_range['end'] );
+
+		if ( $has_range ) {
+			$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_click FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_click' AND meta_value = 1 AND created_at BETWEEN %s AND %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", $date_range['start'], $date_range['end'], $email_id ) ); //phpcs:ignore
+			// Anonymous aggregate counts carry no timestamp, so skip them when a date range is active.
+			return $tracked;
+		}
 
 		$tracked = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_click FROM {$broadcast_email_meta_table} WHERE meta_key = 'is_click' AND meta_value = 1 AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d)", array( $email_id ) ) ); //phpcs:ignore
 
@@ -837,6 +901,21 @@ class EmailModel {
 		$email_table  = $wpdb->prefix . EmailSchema::$table_name;
 		$select_query = $wpdb->prepare( "SELECT `id` FROM {$email_table} WHERE email_hash=%s", $hash ); //phpcs:ignore
 		return $wpdb->get_var( $select_query ); // db call ok. ; no-cache ok.
+	}
+
+	/**
+	 * Get the full broadcast email row by ID.
+	 *
+	 * @param int $id Broadcast email ID.
+	 * @return array|null Row with id, campaign_id, automation_id, step_id, email_id, email_type, contact_id or null if not found.
+	 */
+	public static function get_broadcast_email_row( $id ) {
+		global $wpdb;
+		$table = $wpdb->prefix . EmailSchema::$table_name;
+		return $wpdb->get_row( //phpcs:ignore
+			$wpdb->prepare( "SELECT `id`, `campaign_id`, `automation_id`, `step_id`, `email_id`, `email_type`, `contact_id` FROM {$table} WHERE id = %d", $id ), //phpcs:ignore
+			ARRAY_A
+		);
 	}
 
 	/**
@@ -1315,10 +1394,21 @@ class EmailModel {
 	 * @since 1.0.0
 	 */
 	public static function get_total_revenue_from_email( $order_ids ) {
-		global $wpdb;
+		if ( empty( $order_ids ) || ! function_exists( 'wc_get_order' ) ) {
+			return 0;
+		}
 
-		$query = "SELECT SUM(total_sales) as total_sales FROM {$wpdb->prefix}wc_order_stats WHERE (order_id IN (".implode(',', $order_ids).") OR parent_id IN (".implode(',', $order_ids).")) AND status IN ('wc-processing', 'wc-completed', 'wc-wpfnl-main-order')"; //phpcs:ignore
-		return $wpdb->get_var( $query ); //phpcs:ignore
+		$paid_statuses = array( 'processing', 'completed', 'on-hold', 'wc-wpfnl-main-order' );
+		$total         = 0.0;
+
+		foreach ( $order_ids as $order_id ) {
+			$order = wc_get_order( absint( $order_id ) );
+			if ( $order && \in_array( $order->get_status(), $paid_statuses, true ) ) {
+				$total += (float) $order->get_total();
+			}
+		}
+
+		return $total;
 	}
 
 
@@ -1568,12 +1658,16 @@ class EmailModel {
 	 * @return int|float
 	 * @since 1.0.0
 	 */
-	public static function count_total_orders_to_campaign_email( $email_id, $type ) {
+	public static function count_total_orders_to_campaign_email( $email_id, $type, $date_range = null ) {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
 
-		return $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_order FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d AND email_type = %s)", array( 'order_id', $email_id, $type ) ) ); //phpcs:ignore
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND created_at BETWEEN %s AND %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d AND email_type = %s)", 'order_id', $date_range['start'], $date_range['end'], $email_id, $type ) ); //phpcs:ignore
+		}
+
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(mint_email_id) as total_order FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_id = %d AND email_type = %s)", [ 'order_id', $email_id, $type ] ) ); //phpcs:ignore
 	}
 
 
@@ -1584,17 +1678,19 @@ class EmailModel {
 	 * @return int|float
 	 * @since 1.0.0
 	 */
-	public static function count_total_revenue_to_campaign_email( $email_id, $type ) {
+	public static function count_total_revenue_to_campaign_email( $email_id, $type, $date_range = null ) {
 		global $wpdb;
 		$broadcast_email_table      = $wpdb->prefix . EmailSchema::$table_name;
 		$broadcast_email_meta_table = $wpdb->prefix . EmailMetaSchema::$table_name;
 
-		$results   = $wpdb->get_results( $wpdb->prepare( "SELECT meta_value FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_type = %s AND email_id = %d)", array( 'order_id', $type, $email_id ) ), ARRAY_A ); //phpcs:ignore
-		$order_ids = array_column( $results, 'meta_value' );
-		if ( empty( $order_ids ) ) {
-			return 0;
+		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_value FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND created_at BETWEEN %s AND %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_type = %s AND email_id = %d)", 'order_id', $date_range['start'], $date_range['end'], $type, $email_id ), ARRAY_A ); //phpcs:ignore
+		} else {
+			$results = $wpdb->get_results( $wpdb->prepare( "SELECT meta_value FROM {$broadcast_email_meta_table} WHERE meta_key = %s AND mint_email_id IN (SELECT id FROM {$broadcast_email_table} WHERE email_type = %s AND email_id = %d)", [ 'order_id', $type, $email_id ] ), ARRAY_A ); //phpcs:ignore
 		}
-		return self::get_total_revenue_from_email( $order_ids );
+
+		$order_ids = array_column( $results, 'meta_value' );
+		return empty( $order_ids ) ? 0 : self::get_total_revenue_from_email( $order_ids );
 	}
 
 	/**

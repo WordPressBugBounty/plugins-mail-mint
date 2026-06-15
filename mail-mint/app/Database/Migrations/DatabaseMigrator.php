@@ -105,6 +105,9 @@ class DatabaseMigrator {
 			'1.16.2' => array(
 				'add_unique_key_to_contact_meta',
 			),
+			'1.16.4' => array(
+				'maybe_create_unsubscribe_survey_page',
+			),
 		);
 
 		$this->current_db_version = get_option( 'mail_mint_db_version', null );
@@ -792,6 +795,34 @@ class DatabaseMigrator {
 
 		if ( ! $key_exists ) {
 			$wpdb->query( "ALTER TABLE {$table} ADD UNIQUE KEY `unique_contact_meta` (`contact_id`, `meta_key`(191))" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+	}
+
+	/**
+	 * Create the unsubscribe survey page for existing installs (upgrade migration).
+	 *
+	 * Safe to run multiple times — guarded by get_page_by_path() check.
+	 *
+	 * @return void
+	 * @since 1.16.4
+	 */
+	private function maybe_create_unsubscribe_survey_page() {
+		if ( get_page_by_path( 'unsubscribe_survey', OBJECT, 'page' ) ) {
+			return;
+		}
+
+		$post_id = wp_insert_post(
+			array(
+				'post_name'    => 'unsubscribe_survey',
+				'post_title'   => _x( 'Mint Mail Unsubscribe Survey', 'Page title', 'mrm' ),
+				'post_content' => '<!-- wp:shortcode -->[unsubscribe_survey]<!-- /wp:shortcode -->',
+				'post_status'  => 'publish',
+				'post_type'    => 'page',
+			)
+		);
+
+		if ( $post_id && ! is_wp_error( $post_id ) ) {
+			update_post_meta( $post_id, '_wp_page_template', 'template-unsubscribe-page.php' );
 		}
 	}
 
