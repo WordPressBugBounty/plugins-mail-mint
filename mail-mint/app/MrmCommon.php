@@ -524,6 +524,96 @@ class MrmCommon {
 	}
 
 	/**
+	 * HTML-entity-decode email content without corrupting HTML attributes.
+	 *
+	 * Email bodies are run through entity decoding before sending (e.g. so that click
+	 * tracking can read clean `&` in URLs and double-encoded text is normalised). A plain
+	 * `html_entity_decode()` also decodes quote entities (`&quot;`, `&#34;`, `&#39;`, …).
+	 * When content is pasted from rich editors — Word, Google Docs, Notion, Lark/Feishu —
+	 * those editors embed JSON or quoted values inside attributes (e.g.
+	 * `data-*="{&quot;a&quot;:1}"`). Decoding the quotes turns them back into real `"`,
+	 * which prematurely closes the attribute and makes clients such as Gmail render the raw
+	 * markup as visible text (the broken footer users reported).
+	 *
+	 * This decoder preserves quote entities so attribute boundaries always survive, while
+	 * still decoding every other entity (`&amp;`, `&lt;`, `&gt;`, named/numeric, …) exactly
+	 * like `html_entity_decode()`. Quote entities left in text still render as quotes in all
+	 * mail clients, so visible output is unchanged. Source-agnostic: works for any paste
+	 * origin, not a single editor.
+	 *
+	 * Use this for HTML email bodies. For genuine plain-text bodies (no markup), keep using
+	 * `html_entity_decode()` so quotes are decoded for display.
+	 *
+	 * @param string $content HTML email content.
+	 * @return string Decoded content with attribute-safe quote handling.
+	 * @since 1.24.1
+	 */
+	public static function safe_html_entity_decode( $content ) {
+		if ( ! is_string( $content ) || '' === $content ) {
+			return $content;
+		}
+
+		// Shield quote entities from decoding; they delimit HTML attributes.
+		$protected = array(
+			'&quot;'  => "\x01MMDQ\x01",
+			'&#34;'   => "\x01MMDQ\x01",
+			'&#034;'  => "\x01MMDQ\x01",
+			'&#x22;'  => "\x01MMDQ\x01",
+			'&apos;'  => "\x01MMSQ\x01",
+			'&#39;'   => "\x01MMSQ\x01",
+			'&#039;'  => "\x01MMSQ\x01",
+			'&#x27;'  => "\x01MMSQ\x01",
+		);
+
+		$content = str_ireplace( array_keys( $protected ), array_values( $protected ), $content );
+		$content = html_entity_decode( $content );
+
+		return str_replace( array( "\x01MMDQ\x01", "\x01MMSQ\x01" ), array( '&quot;', '&#39;' ), $content );
+	}
+
+	/**
+	 * Strip rich-editor clipboard metadata from an outgoing email body.
+	 *
+	 * Pasting into the email builder from rich editors (Lark/Feishu, and similar) injects
+	 * empty wrapper elements carrying huge serialized blobs in `data-*` attributes (e.g.
+	 * `data-lark-record-data` can be 10-15 KB each). These blobs:
+	 *   - break rendering: once any `html_entity_decode()` turns their escaped quotes into
+	 *     real quotes, the attribute closes early and clients such as Gmail dump the raw JSON
+	 *     as visible text (the broken footer users reported);
+	 *   - bloat the email: several of them push the message past Gmail's ~102 KB clipping
+	 *     threshold, which hides the footer behind "View entire message".
+	 *
+	 * They carry no visible content, so they are removed entirely. This runs at the single
+	 * mailer chokepoint, so it cleans every send path (campaign, test, automation) no matter
+	 * how the body was encoded upstream, and it is robust to both still-escaped and
+	 * already-corrupted (raw-quote) markup.
+	 *
+	 * @param string $html Final email HTML.
+	 * @return string Cleaned HTML.
+	 * @since 1.24.1
+	 */
+	public static function clean_pasted_clipboard_artifacts( $html ) {
+		if ( ! is_string( $html ) || '' === $html ) {
+			return $html;
+		}
+
+		// 1) Remove empty clipboard wrapper spans (e.g. Lark/Feishu `lark-record-clipboard`).
+		//    `[^<]` (not `[^>]`) lets the match survive even when the metadata JSON has already
+		//    been corrupted into raw quotes/brackets by an earlier decode.
+		$cleaned = preg_replace( '/<span\b[^<]*?lark-record-clipboard[^<]*?>\s*<\/span>/i', '', $html );
+		if ( null === $cleaned ) {
+			return $html; // preg failure — keep original rather than risk data loss.
+		}
+
+		// 2) Source-agnostic safety net: drop any `data-*` attribute whose value is an
+		//    oversized serialized blob. Legitimate email markup never needs a 400+ char data
+		//    attribute, so this catches metadata from any editor without an allow-list.
+		$stripped = preg_replace( '/\s+data-[\w:-]+="[^"]{400,}"/i', '', $cleaned );
+
+		return null === $stripped ? $cleaned : $stripped;
+	}
+
+	/**
 	 * Gets unique value from a multidimensional array
 	 *
 	 * @param array  $array Array data.

@@ -94,6 +94,12 @@ class Mailer {
     }
 
     public function send( $email, $subject, $content, $headers ) {
+        // Strip rich-editor clipboard metadata (e.g. Lark/Feishu `data-lark-record-data`)
+        // at the single point every Mail Mint email passes through. This prevents the broken
+        // markup Gmail renders as visible text and removes the bloat that triggers clipping,
+        // regardless of source editor or which send path produced the body.
+        $content = \MRM\Common\MrmCommon::clean_pasted_clipboard_artifacts( $content );
+
         $message = new Message();
 
         $message->to      = $email;

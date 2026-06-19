@@ -127,7 +127,7 @@ class ContactGroupPivotModel {
 		}
 
 		try {
-			$select_query = $wpdb->prepare( "SELECT %1s FROM %1s AS cgp JOIN %1s AS c ON cgp.contact_id = c.id AND c.status = %s WHERE cgp.group_id IN( %1s )", $select_fields, $pivot_table, $contact_table, 'subscribed',$ids ); //phpcs:ignore
+			$select_query = $wpdb->prepare( "SELECT %1s FROM %1s AS cgp JOIN %1s AS c ON cgp.contact_id = c.id AND c.status = %s WHERE cgp.group_id IN( %1s ) ORDER BY cgp.contact_id", $select_fields, $pivot_table, $contact_table, 'subscribed',$ids ); //phpcs:ignore
 			if ( $per_batch ) {
 				$select_query = $select_query . $wpdb->prepare( ' LIMIT %d, %d', (int) $offset, (int) $per_batch );
 			}

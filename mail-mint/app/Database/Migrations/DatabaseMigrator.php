@@ -801,12 +801,42 @@ class DatabaseMigrator {
 	/**
 	 * Create the unsubscribe survey page for existing installs (upgrade migration).
 	 *
+	 * wp_insert_post() computes the post GUID via get_permalink(), which dereferences
+	 * the global $wp_rewrite. This migration can run synchronously at plugin-include
+	 * time (App::init() is invoked directly from the plugin bootstrap), which is before
+	 * WordPress instantiates $wp_rewrite in wp-settings.php. Calling wp_insert_post()
+	 * then fatals with "Call to a member function get_page_permastruct() on null".
+	 *
+	 * So when the rewrite subsystem is not ready yet, defer the actual creation to the
+	 * 'init' hook, where $wp_rewrite is guaranteed to exist. The DB version is still
+	 * bumped by the surrounding migration loop, and the page is created later in the
+	 * same request.
+	 *
 	 * Safe to run multiple times — guarded by get_page_by_path() check.
 	 *
 	 * @return void
 	 * @since 1.16.4
 	 */
 	private function maybe_create_unsubscribe_survey_page() {
+		if ( empty( $GLOBALS['wp_rewrite'] ) ) {
+			add_action( 'init', array( $this, 'create_unsubscribe_survey_page' ), 20 );
+			return;
+		}
+
+		$this->create_unsubscribe_survey_page();
+	}
+
+	/**
+	 * Insert the unsubscribe survey page.
+	 *
+	 * Safe to run multiple times — guarded by get_page_by_path() check. Public so it
+	 * can be deferred to the 'init' hook by maybe_create_unsubscribe_survey_page() when
+	 * the rewrite subsystem is not yet available during early bootstrap.
+	 *
+	 * @return void
+	 * @since 1.16.4
+	 */
+	public function create_unsubscribe_survey_page() {
 		if ( get_page_by_path( 'unsubscribe_survey', OBJECT, 'page' ) ) {
 			return;
 		}

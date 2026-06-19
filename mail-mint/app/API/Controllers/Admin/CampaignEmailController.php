@@ -282,7 +282,7 @@ class CampaignEmailController extends AdminBaseController {
 				CampaignEmailBuilderModel::insert(
 					array(
 						'email_id'   => $email_id,
-						'email_body' => html_entity_decode( $params['email_body'] ),
+						'email_body' => MrmCommon::safe_html_entity_decode( $params['email_body'] ),
 						'json_data'  => maybe_serialize( $params['json_data'] ),
 					)
 				);
@@ -331,7 +331,7 @@ class CampaignEmailController extends AdminBaseController {
 		);
 
 		$editor_type = !empty($params['json_data']['editor_type']) ? $params['json_data']['editor_type'] : 'advanced-builder';
-		$content     = ! empty( $params[ 'json_data' ][ 'content' ] ) ? html_entity_decode( $params[ 'json_data' ][ 'content' ] ) : '';
+		$content     = ! empty( $params[ 'json_data' ][ 'content' ] ) ? MrmCommon::safe_html_entity_decode( $params[ 'json_data' ][ 'content' ] ) : '';
 		$headers     = Email::get_mail_header( $header_data, '' );
 		$preview     = ! empty( $params[ 'json_data' ][ 'email_preview_text' ] ) ? $params[ 'json_data' ][ 'email_preview_text' ] : '';
 
@@ -406,7 +406,6 @@ class CampaignEmailController extends AdminBaseController {
 			$parsed_content = Parser::parse($content, $contact, $post_id, $resolved_order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
 			$parsed_preview = Parser::parse($preview, $contact, $post_id, $resolved_order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
 			$final_content  = Email::inject_preview_text_on_email_body($parsed_preview, $parsed_content);
-
 			MM()->mailer->send($receiver, $parsed_subject, $final_content, $headers);
 		}
 

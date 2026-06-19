@@ -618,9 +618,23 @@ class Email {
 		$args['tmode'] = $tracking_mode;
 
 		$track_url  = add_query_arg( $args, $domain_link );
-		$image_url  = '<img width="1" height="1" src="' . esc_url( $track_url ) . '" alt="" style="display:none;border:0;outline:none;text-decoration:none" />';
-		$email_body = $email_body . $image_url;
-		return $email_body;
+		$image_url  = '<img width="1" height="1" src="' . esc_url( $track_url ) . '" alt="" style="width:1px;height:1px;border:0;outline:none;text-decoration:none;overflow:hidden;" />';
+
+		// Insert the pixel INSIDE the document — just before </body> (or </html> as a
+		// fallback). Appending after </html> puts it outside the body, where Gmail and other
+		// clients strip it, so opens never register. Use the last occurrence to stay safe if
+		// the body contains nested/duplicate closing tags.
+		$body_pos = strripos( $email_body, '</body>' );
+		if ( false !== $body_pos ) {
+			return substr( $email_body, 0, $body_pos ) . $image_url . substr( $email_body, $body_pos );
+		}
+
+		$html_pos = strripos( $email_body, '</html>' );
+		if ( false !== $html_pos ) {
+			return substr( $email_body, 0, $html_pos ) . $image_url . substr( $email_body, $html_pos );
+		}
+
+		return $email_body . $image_url;
 	}
 
     /**

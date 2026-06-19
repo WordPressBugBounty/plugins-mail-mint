@@ -73,7 +73,7 @@ class MessageController extends AdminBaseController {
 		$sender_id     = isset( $params['sender_id'] ) ? sanitize_text_field( $params['sender_id'] ) : null;
 		$contact_id    = isset( $params['contact_id'] ) ? sanitize_text_field( $params['contact_id'] ) : null;
 		$email_address = isset( $params['email_address'] ) ? sanitize_text_field( $params['email_address'] ) : null;
-		$email_body    = isset( $params['email_body'] ) ? html_entity_decode( $params['email_body'] ) : null;
+		$email_body    = isset( $params['email_body'] ) ? MrmCommon::safe_html_entity_decode( $params['email_body'] ) : null;
 		$email_hash    = MrmCommon::get_rand_email_hash( $email_address, $contact_id );
 
 		// Prepare email information array.

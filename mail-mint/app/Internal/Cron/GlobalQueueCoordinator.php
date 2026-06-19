@@ -16,6 +16,7 @@ use MailMint\App\Helper;
 use Mint\MRM\DataBase\Models\CampaignEmailBuilderModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\Database\Enums\BroadcastStatus;
+use Mint\MRM\Database\Repositories\BroadcastRepository;
 use Mint\MRM\Database\Repositories\CampaignRepository;
 use Mint\MRM\Internal\Campaign\EmailPersonalizer;
 use Mint\MRM\Internal\Parser\Parser;
@@ -40,6 +41,13 @@ class GlobalQueueCoordinator {
 	 * @since 1.20.0
 	 */
 	public const HOOK = 'mailmint_global_queue_coordinator';
+
+	/**
+	 * Minutes after which a row still in 'sending' is considered stuck.
+	 *
+	 * @since 1.24.1
+	 */
+	private const STUCK_SENDING_TIMEOUT_MINUTES = 30;
 
 	/**
 	 * Action Scheduler group for coordinator actions.
@@ -83,6 +91,9 @@ class GlobalQueueCoordinator {
 	 * broadcast row query is skipped on subsequent requests until the transient
 	 * expires — keeping the per-request cost to a single get_transient() call.
 	 *
+	 * Also resolves rows stuck in 'sending' (claimed for dispatch but never
+	 * finalized after a fatal/timeout) so they cannot block campaign archival.
+	 *
 	 * @since 1.21.3
 	 * @return void
 	 */
@@ -114,6 +125,10 @@ class GlobalQueueCoordinator {
 		}
 
 		global $wpdb;
+
+		// Finalize any rows stuck in 'sending' before counting work, so a stuck
+		// row cannot keep this method rescheduling a coordinator that ignores it.
+		$this->recoverStuckSendingEmails();
 
 		// Check our own broadcast table for any active or pending campaign emails.
 		// 'sending' = claimed mid-batch, 'scheduled' = waiting to be picked up.
@@ -355,7 +370,13 @@ class GlobalQueueCoordinator {
 				continue;
 			}
 
-			$status = $this->dispatchCandidate( $candidate, $contacts_cache, $email_cache ) ? BroadcastStatus::SENT : BroadcastStatus::FAILED;
+			try {
+				$dispatch_success = $this->dispatchCandidate( $candidate, $contacts_cache, $email_cache );
+				$status           = $dispatch_success ? BroadcastStatus::SENT : BroadcastStatus::FAILED;
+			} catch ( \Throwable $e ) {
+				$status = BroadcastStatus::FAILED;
+			}
+
 			$repository->updateGlobalDispatchCandidateStatus( $candidate_id, $status );
 
 			if ( BroadcastStatus::SENT === $status ) {
@@ -729,5 +750,53 @@ class GlobalQueueCoordinator {
 	 */
 	private function getWindowStart( int $now, int $window_seconds ): int {
 		return (int) ( floor( $now / $window_seconds ) * $window_seconds );
+	}
+
+	/**
+	 * Resolve broadcast rows that are stuck in 'sending' status.
+	 *
+	 * Rows that remain in 'sending' beyond the timeout threshold were already
+	 * handed off to the SMTP layer — the status update failed due to an
+	 * exception or Action Scheduler timeout. Marking them 'sent' prevents
+	 * duplicate delivery and unblocks campaign archival.
+	 *
+	 * Invoked from selfHeal() on init, so no dedicated cron job is required.
+	 *
+	 * @return void
+	 * @since 1.24.1
+	 */
+	private function recoverStuckSendingEmails(): void {
+		$broadcast_repo = new BroadcastRepository();
+		$campaign_repo  = new CampaignRepository();
+		$stuck_rows     = $broadcast_repo->getStuckSendingEmails( self::STUCK_SENDING_TIMEOUT_MINUTES );
+
+		if ( empty( $stuck_rows ) ) {
+			return;
+		}
+
+		$affected_pairs = array();
+
+		foreach ( $stuck_rows as $row ) {
+			$broadcast_id = ! empty( $row['id'] ) ? (int) $row['id'] : 0;
+			if ( ! $broadcast_id ) {
+				continue;
+			}
+
+			$campaign_repo->updateGlobalDispatchCandidateStatus( $broadcast_id, BroadcastStatus::SENT );
+
+			$campaign_id = ! empty( $row['campaign_id'] ) ? (int) $row['campaign_id'] : 0;
+			$email_id    = ! empty( $row['email_id'] ) ? (int) $row['email_id'] : 0;
+
+			if ( $campaign_id && $email_id ) {
+				$affected_pairs[ $campaign_id . ':' . $email_id ] = array(
+					'campaign_id' => $campaign_id,
+					'email_id'    => $email_id,
+				);
+			}
+		}
+
+		foreach ( $affected_pairs as $candidate ) {
+			$this->maybeMarkCampaignEmailComplete( $campaign_repo, $candidate );
+		}
 	}
 }

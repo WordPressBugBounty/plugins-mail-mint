@@ -5,7 +5,7 @@ Tags: email automation, email marketing, newsletter, crm, woocommerce emails
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.24.0
+Stable tag:  1.24.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -527,6 +527,13 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.24.1 (2026-06-19) =
+* Improvement: Lists, Tags, Segments, and Exclusions in the contact selection of campaign analytics.
+* Bugfix: Some contacts being silently skipped when a campaign targets multiple lists.
+* Bugfix: Active and paused campaign titles not linking to the correct page.
+* Bugfix: Pasted content from external tools breaking email rendering in some cases.
+* Bugfix: Sites going blank on every front-end page in special cases.
 
 = 1.24.0 (2026-06-15) =
 * New: An option to include all subscribers when sending a regular campaign.

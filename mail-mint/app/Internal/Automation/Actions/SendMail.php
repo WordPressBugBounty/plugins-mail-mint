@@ -354,7 +354,7 @@ class SendMail extends AbstractAutomationAction {
 	public function send_message( $data, $rand_hash ) {
 		$to      = isset( $data['receiver_email'] ) ? $data['receiver_email'] : '';
 		$subject = isset( $data['subject'] ) ? $data['subject'] : 'Mail from Mint Email';
-		$body    = isset( $data['body'] ) ? html_entity_decode( $data['body'] ) : ''; //phpcs:ignore
+		$body    = isset( $data['body'] ) ? MrmCommon::safe_html_entity_decode( $data['body'] ) : '';
 
 		$editor_type = isset( $data['editor_type'] ) ? $data['editor_type'] : 'advanced-builder';
 		$watermark   = CampaignEmailBuilderModel::get_email_footer_watermark();

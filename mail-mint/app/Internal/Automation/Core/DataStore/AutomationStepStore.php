@@ -17,6 +17,7 @@ use Mint\MRM\DataBase\Tables\AutomationStepSchema;
 use Mint\MRM\DataBase\Tables\AutomationLogSchema;
 use Mint\MRM\DataBase\Tables\AutomationStepMetaSchema;
 use Mint\MRM\DataBase\Tables\EmailSchema;
+use MRM\Common\MrmCommon;
 use wpdb;
 
 /**
@@ -76,7 +77,7 @@ class AutomationStepModel {
 		try {
 			if ( 'sendEmail' === $payload['key'] ) {
 				if ( isset( $payload['settings']['message_data']['body'] ) ) {
-					$payload['settings']['message_data']['body'] = html_entity_decode( $payload['settings']['message_data']['body'] ); //phpcs:ignore
+					$payload['settings']['message_data']['body'] = MrmCommon::safe_html_entity_decode( $payload['settings']['message_data']['body'] );
 				}
 			}
 			$wpdb->insert(
@@ -126,7 +127,7 @@ class AutomationStepModel {
 			if ( 'sendMail' === $payload['key'] ) {
 				$settings = maybe_unserialize( $payload['settings'] );
 				if ( isset( $settings['message_data']['body'] ) ) {
-					$settings['message_data']['body'] = html_entity_decode( $settings['message_data']['body'] ); //phpcs:ignore
+					$settings['message_data']['body'] = MrmCommon::safe_html_entity_decode( $settings['message_data']['body'] );
 					$payload['settings']              = serialize( $settings ); //phpcs:ignore
 				}
 			}
