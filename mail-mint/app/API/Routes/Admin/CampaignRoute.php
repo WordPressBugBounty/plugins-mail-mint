@@ -180,6 +180,46 @@ class CampaignRoute {
 		);
 
 		/**
+		 * Resolve the next scheduled run time for a recurring campaign.
+		 *
+		 * @since 1.24.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<campaign_id>[\d]+)/recurring/next-run',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'get_recurring_next_run',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
+				),
+			)
+		);
+
+		/**
+		 * List the per-occurrence run history for a recurring campaign.
+		 *
+		 * @since 1.24.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<campaign_id>[\d]+)/recurring/runs',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'get_recurring_runs',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_read_campaigns'),
+				),
+			)
+		);
+
+		/**
 		 * Toggle whether a campaign appears in the public archive.
 		 *
 		 * @since 1.24.0

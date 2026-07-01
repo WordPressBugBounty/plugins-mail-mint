@@ -216,7 +216,17 @@ class UsageReportScheduler {
 		$body    = self::build_email_body( $stats, $settings, true, $date_from, $date_to );
 		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
 
-		return wp_mail( $recipients, $subject, $body, $headers );
+		// Send a separate email to each recipient (mirrors send_digest()). Passing the
+		// whole array to a single wp_mail() call puts every address in one "To" header,
+		// which some mail relays/providers only deliver to the first recipient.
+		$all_sent = ! empty( $recipients );
+		foreach ( $recipients as $to ) {
+			if ( ! wp_mail( $to, $subject, $body, $headers ) ) {
+				$all_sent = false;
+			}
+		}
+
+		return $all_sent;
 	}
 
 	/**

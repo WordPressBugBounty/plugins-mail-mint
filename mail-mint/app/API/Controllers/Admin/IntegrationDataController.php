@@ -52,4 +52,14 @@ class IntegrationDataController extends AdminBaseController {
 	public function get_contact_custom_fields( WP_REST_Request $request ): WP_REST_Response {
 		return $this->get_success_response( '', 200, MrmCommon::get_contact_custom_fields() );
 	}
+
+	public function get_buddypress_groups( WP_REST_Request $request ): WP_REST_Response {
+		$data = HelperFunctions::get_buddypress_groups();
+		return $this->get_success_response( '', 200, $data ?: array() );
+	}
+
+	public function get_buddypress_member_types( WP_REST_Request $request ): WP_REST_Response {
+		$data = HelperFunctions::get_buddypress_member_types();
+		return $this->get_success_response( '', 200, $data ?: array() );
+	}
 }

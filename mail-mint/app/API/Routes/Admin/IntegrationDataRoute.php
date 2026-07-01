@@ -40,6 +40,8 @@ class IntegrationDataRoute extends AdminRoute {
 			'lifter-courses'       => 'get_lifter_courses',
 			'lifter-memberships'   => 'get_lifter_memberships',
 			'contact-custom-fields' => 'get_contact_custom_fields',
+			'buddypress-groups'       => 'get_buddypress_groups',
+			'buddypress-member-types' => 'get_buddypress_member_types',
 		);
 
 		foreach ( $endpoints as $path => $method ) {

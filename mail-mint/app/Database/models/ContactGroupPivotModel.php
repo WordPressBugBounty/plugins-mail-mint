@@ -116,7 +116,13 @@ class ContactGroupPivotModel {
 		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
 		$pivot_table   = $wpdb->prefix . ContactGroupPivotSchema::$table_name;
 
-		$ids = implode( ', ', $ids );
+		// Enforce integer group ids: drop any non-numeric value, then cast the rest to int.
+		// Group ids are always integers; this neutralises injected payloads (e.g. "1) UNION ...")
+		// that survive int-cast validation elsewhere but reach this query as raw strings.
+		$ids = array_map( 'intval', array_filter( $ids, 'is_numeric' ) );
+		if ( empty( $ids ) ) {
+			return $count_only ? 0 : array();
+		}
 
 		if ( $count_only ) {
 			$select_fields      = 'COUNT(DISTINCT cgp.contact_id)';
@@ -126,8 +132,15 @@ class ContactGroupPivotModel {
 			$get_query_function = 'get_results';
 		}
 
+		// One %d placeholder per id so values are bound, never interpolated.
+		$id_placeholders = implode( ', ', array_fill( 0, count( $ids ), '%d' ) );
+
 		try {
-			$select_query = $wpdb->prepare( "SELECT %1s FROM %1s AS cgp JOIN %1s AS c ON cgp.contact_id = c.id AND c.status = %s WHERE cgp.group_id IN( %1s ) ORDER BY cgp.contact_id", $select_fields, $pivot_table, $contact_table, 'subscribed',$ids ); //phpcs:ignore
+			// $select_fields is one of two fixed literals above, and the table names derive from
+			// $wpdb->prefix plus fixed schema constants (not user input), so they are embedded as
+			// backtick-quoted identifiers. Only the bound group ids and status vary.
+			$sql          = "SELECT {$select_fields} FROM `{$pivot_table}` AS cgp JOIN `{$contact_table}` AS c ON cgp.contact_id = c.id AND c.status = %s WHERE cgp.group_id IN( {$id_placeholders} ) ORDER BY cgp.contact_id";
+			$select_query = $wpdb->prepare( $sql, array_merge( array( 'subscribed' ), $ids ) ); //phpcs:ignore
 			if ( $per_batch ) {
 				$select_query = $select_query . $wpdb->prepare( ' LIMIT %d, %d', (int) $offset, (int) $per_batch );
 			}

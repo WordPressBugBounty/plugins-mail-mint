@@ -521,6 +521,70 @@ class ContactImportRoute extends AdminRoute {
 		);
 
 		/**
+		 * Register a REST route for mapping contacts with BuddyPress/BuddyBoss groups or member types.
+		 *
+		 * @access public
+		 * @since 1.20.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/buddypress/map',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'map_contacts_with_buddypress' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+					'args'                => array(
+						'importType' => array(
+							'description'       => __( 'The dimension to import by, either member_group or member_type.', 'mrm' ),
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'selection'  => array(
+							'description'       => __( 'The selected groups or member types from which to import contacts.', 'mrm' ),
+							'required'          => false,
+							'type'              => 'array',
+							'sanitize_callback' => 'rest_sanitize_array',
+						),
+					),
+				),
+			)
+		);
+
+		/**
+		 * Register a REST route for inserting BuddyPress/BuddyBoss contacts.
+		 *
+		 * @access public
+		 * @since 1.20.0
+		 */
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/buddypress',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'insert_buddypress_contacts' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+					'args'                => array(
+						'importType' => array(
+							'description'       => __( 'The dimension to import by, either member_group or member_type.', 'mrm' ),
+							'required'          => true,
+							'type'              => 'string',
+							'sanitize_callback' => 'sanitize_text_field',
+						),
+						'selection'  => array(
+							'description'       => __( 'The selected groups or member types from which to import contacts.', 'mrm' ),
+							'required'          => false,
+							'type'              => 'array',
+							'sanitize_callback' => 'rest_sanitize_array',
+						),
+					),
+				),
+			)
+		);
+
+		/**
 		 * mail poet contact import
 		 *
 		 * @return void

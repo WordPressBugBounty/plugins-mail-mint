@@ -924,6 +924,12 @@ class TransStrings
 			'RecoveryRate' => __('Recovery Rate', 'mrm'),
 			'RecoverableCarts' => __('Recoverable Carts', 'mrm'),
 
+			// Recurring campaign edit / resume
+			'Resume' => __('Resume', 'mrm'),
+			'SaveChanges' => __('Save changes', 'mrm'),
+			'CampaignResumed' => __('Campaign resumed successfully.', 'mrm'),
+			'ResumeFailed' => __('Failed to resume campaign.', 'mrm'),
+
 			// Automation Module
 			'NewAutomation' => __('Create automation', 'mrm'),
 			'Active' => __('Active', 'mrm'),

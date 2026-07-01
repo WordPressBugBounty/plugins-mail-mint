@@ -465,6 +465,38 @@ class ContactImportController extends AdminBaseController {
     }
 
     /**
+     * Map contacts with BuddyPress/BuddyBoss.
+     *
+     * Description: Handles the mapping of contacts with BuddyPress/BuddyBoss based on the provided request parameters.
+     *
+     * @param WP_REST_Request $request The REST request object.
+     * @return WP_REST_Response The REST response containing the result of the mapping.
+     * @access public
+     * @since 1.20.0
+     */
+    public function map_contacts_with_buddypress( WP_REST_Request $request ) {
+        $params   = MrmCommon::prepare_request_params( $request );
+        $response = $this->action->retrieve_contacts_associated_with_buddypress( $params );
+        return new WP_REST_Response( $response );
+    }
+
+    /**
+     * Insert BuddyPress/BuddyBoss Contacts.
+     *
+     * Description: Handles the insertion of contacts from BuddyPress/BuddyBoss based on the provided request parameters.
+     *
+     * @param WP_REST_Request $request The REST request object.
+     * @return WP_REST_Response The REST response containing the result of the insertion.
+     * @access public
+     * @since 1.20.0
+     */
+    public function insert_buddypress_contacts( WP_REST_Request $request ) {
+        $params   = MrmCommon::prepare_request_params( $request );
+        $response = $this->action->perform_buddypress_user_import( $params );
+		return new WP_REST_Response( $response );
+    }
+
+    /**
      * Retrieve MailPoet contact fields.
      *
      * This function retrieves the contact fields from the MailPoet subscribers table,

@@ -169,6 +169,7 @@ class ContactForm {
 		}
 		$block_html = '';
 		$class      = '';
+		add_filter( 'render_block', array( $this, 'inject_country_block_options' ), 10, 2 );
 		foreach ( $blocks as $block ) {
 			if ( 'core/columns' === $block[ 'blockName' ] ) {
 				if ( isset( $block[ 'attrs' ][ 'style' ][ 'color' ][ 'background' ] ) ) {
@@ -200,6 +201,7 @@ class ContactForm {
 			
 			$block_html .= render_block( $block );
 		}
+		remove_filter( 'render_block', array( $this, 'inject_country_block_options' ), 10 );
 		$settings           = get_option( '_mint_recaptcha_settings' );
 		$recaptch_is_enable = isset( $settings['enable'] ) ? $settings['enable'] : false;
 		$version            = isset( $settings['api_version'] ) ? $settings['api_version'] : '';
@@ -302,6 +304,46 @@ class ContactForm {
 
 			return $output;
 		}
+	}
+
+
+	/**
+	 * Inject the full country list into the country form-field block at render time.
+	 *
+	 * The country block's saved markup only contains the "Select Country" placeholder
+	 * option — the editor populates the dropdown dynamically via the admin-only
+	 * `mrm/v1/wp/countries` REST endpoint, which logged-out visitors cannot reach.
+	 * Rendered on the frontend the dropdown would therefore be empty, so the country
+	 * options are injected here while the form blocks are rendered. Hooked at every
+	 * nesting depth via the `render_block` filter, so country blocks placed inside
+	 * columns or groups are handled too.
+	 *
+	 * @param string $block_content Rendered HTML of the block.
+	 * @param array  $block         Parsed block data.
+	 *
+	 * @return string
+	 * @since 1.20.0
+	 */
+	public function inject_country_block_options( $block_content, $block ) {
+		if ( empty( $block['blockName'] ) || 'mrmformfield/country-block' !== $block['blockName'] ) {
+			return $block_content;
+		}
+
+		if ( false === strpos( $block_content, '</select>' ) ) {
+			return $block_content;
+		}
+
+		$countries = \Mint\MRM\Internal\Constants::get_country_name();
+		$options   = '';
+		foreach ( $countries as $country ) {
+			if ( empty( $country['title'] ) ) {
+				continue;
+			}
+			$options .= '<option value="' . esc_attr( $country['title'] ) . '">' . esc_html( $country['title'] ) . '</option>';
+		}
+
+		// Insert the country options just before the closing select tag, keeping the placeholder first.
+		return str_replace( '</select>', $options . '</select>', $block_content );
 	}
 
 }

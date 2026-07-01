@@ -22,6 +22,7 @@ use Mint\MRM\DataBase\Tables\ContactMetaSchema;
 use Mint\MRM\DataBase\Tables\ContactNoteSchema;
 use MRM\Common\MrmCommon;
 use Mint\MRM\DataBase\Models\ContactModel;
+use Mint\MRM\DataBase\Models\FormModel;
 
 /**
  * Class ContactRepository
@@ -397,6 +398,15 @@ class ContactRepository extends AbstractRepository {
 		// Batch-load meta for all contacts on this page.
 		$meta_map = ! empty( $ids ) ? ContactModel::get_meta_for_contacts( $ids ) : array();
 
+		// Batch-resolve Mail Mint form titles for sources stored as "Form-{id}".
+		$form_ids = array();
+		foreach ( $data as $row ) {
+			if ( isset( $row['source'] ) && preg_match( '/Form-(\d+)/', $row['source'], $m ) ) {
+				$form_ids[] = (int) $m[1];
+			}
+		}
+		$form_titles = ! empty( $form_ids ) ? FormModel::get_form_titles_by_ids( array_unique( $form_ids ) ) : array();
+
 		// Merge tags, lists, and meta into each contact row.
 		foreach ( $data as &$row ) {
 			$row_id = (int) $row['id'];
@@ -408,6 +418,12 @@ class ContactRepository extends AbstractRepository {
 				$row['lists'] = array();
 			}
 			$row['meta_fields'] = isset( $meta_map[ $row_id ] ) ? $meta_map[ $row_id ]['meta_fields'] : array();
+
+			// Display the form name instead of the raw "Form-{id}" source string.
+			if ( isset( $row['source'] ) && preg_match( '/Form-(\d+)/', $row['source'], $matches ) ) {
+				$form_id       = (int) $matches[1];
+				$row['source'] = 'Form - ' . ( isset( $form_titles[ $form_id ] ) ? $form_titles[ $form_id ] : '' );
+			}
 		}
 		unset( $row );
 

@@ -15,6 +15,7 @@ namespace Mint\MRM\Utilites\Helper;
 use DOMDocument;
 use MailMint\App\Helper;
 use Mint\MRM\DataBase\Models\CampaignModel;
+use Mint\MRM\DataBase\Models\MessageModel;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
 use Mint\MRM\DataBase\Tables\EmailSchema;
 
@@ -84,6 +85,76 @@ class Campaign {
 	}
 
 	/**
+	 * Prepare a compact "Broadcasts …" sentence for a recurring campaign list row.
+	 *
+	 * Differs from prepare_recurring_schedule_sentence() in wording and time format:
+	 * it leads with "Broadcasts" and uses 24-hour time (e.g. "Broadcasts daily at 00:15"),
+	 * which is what the recurring campaign list Description column renders.
+	 *
+	 * @param array $recurring_properties Recurring schedule properties (the stored `recurring_properties` meta).
+	 *
+	 * @return string The broadcast cadence sentence, or an empty string when no schedule is configured.
+	 * @since 1.24.0
+	 */
+	public static function prepare_recurring_broadcast_sentence( $recurring_properties ) {
+		$schedule = isset( $recurring_properties['schedule'] ) ? $recurring_properties['schedule'] : array();
+		if ( empty( $schedule ) ) {
+			return '';
+		}
+
+		$repeat       = isset( $schedule['recurringRepeat'] ) ? $schedule['recurringRepeat'] : '';
+		$recurring_at = isset( $schedule['recurringAt'] ) ? $schedule['recurringAt'] : '';
+		$recurring_on = isset( $schedule['recurringOn'] ) ? (array) $schedule['recurringOn'] : array();
+		$every        = isset( $schedule['recurringEvery'] ) ? (int) $schedule['recurringEvery'] : 1;
+		$time         = $recurring_at ? gmdate( 'H:i', strtotime( $recurring_at ) ) : '';
+
+		if ( 'daily' === $repeat ) {
+			if ( $every > 1 ) {
+				/* translators: %1$d: number of days, %2$s: time of day */
+				return sprintf( esc_html__( 'Broadcasts every %1$d days at %2$s', 'mrm' ), $every, $time );
+			}
+			/* translators: %s: time of day */
+			return sprintf( esc_html__( 'Broadcasts daily at %s', 'mrm' ), $time );
+		}
+
+		if ( 'weekly' === $repeat ) {
+			$days = implode( ', ', array_map( 'ucfirst', $recurring_on ) );
+			if ( $every > 1 ) {
+				/* translators: %1$d: number of weeks, %2$s: days of week, %3$s: time of day */
+				return sprintf( esc_html__( 'Broadcasts every %1$d weeks on %2$s at %3$s', 'mrm' ), $every, $days, $time );
+			}
+			/* translators: %1$s: days of week, %2$s: time of day */
+			return sprintf( esc_html__( 'Broadcasts weekly on %1$s at %2$s', 'mrm' ), $days, $time );
+		}
+
+		if ( 'monthly' === $repeat ) {
+			usort(
+				$recurring_on,
+				function ( $a, $b ) {
+					return $a - $b;
+				}
+			);
+			$days = implode(
+				', ',
+				array_map(
+					function ( $day ) {
+						return Helper::get_ordinal_suffix( $day );
+					},
+					$recurring_on
+				)
+			);
+			if ( $every > 1 ) {
+				/* translators: %1$d: number of months, %2$s: days of month, %3$s: time of day */
+				return sprintf( esc_html__( 'Broadcasts every %1$d months on the %2$s at %3$s', 'mrm' ), $every, $days, $time );
+			}
+			/* translators: %1$s: days of month, %2$s: time of day */
+			return sprintf( esc_html__( 'Broadcasts monthly on the %1$s at %2$s', 'mrm' ), $days, $time );
+		}
+
+		return '';
+	}
+
+	/**
 	 * Track email link click performance.
 	 *
 	 * @param int    $email_id   Email ID.
@@ -96,6 +167,13 @@ class Campaign {
 		global $wpdb;
 		$email_table    = $wpdb->prefix . EmailSchema::$table_name;
 		$campaign_email = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
+
+		// Record the click against the individual broadcast row first so click
+		// performance can be rebuilt per recurring run. This only needs the broadcast
+		// row id + URL, so it runs regardless of whether the campaign can be resolved
+		// below — independent of the campaign-wide blob path. $email_id is the
+		// mint_broadcast_emails row id (the same id used for is_click meta).
+		self::track_broadcast_row_clicked_url( $email_id, $target_url );
 
 		$campaign_email_id = $wpdb->get_var( $wpdb->prepare( "SELECT email_id FROM {$email_table} WHERE id = %d", $email_id ) ); //phpcs:ignore
 		$campaign_id       = $wpdb->get_var( $wpdb->prepare( "SELECT campaign_id FROM {$campaign_email} WHERE id = %d", $campaign_email_id ) ); //phpcs:ignore
@@ -126,6 +204,47 @@ class Campaign {
 		}
 
 		CampaignModel::insert_or_update_campaign_meta( $campaign_id, 'click_performance', maybe_serialize( $click_performance ) );
+	}
+
+	/**
+	 * Record a clicked URL against a single broadcast email row.
+	 *
+	 * Stores a serialized url => { count, last_clicked } map in one
+	 * `clicked_urls` meta row per broadcast email (the UNIQUE(mint_email_id,
+	 * meta_key) constraint allows only one row per key, so multiple URLs are folded
+	 * into a single serialized value). This row-level record is what lets recurring
+	 * per-run click performance be rebuilt by scoping to an occurrence's email_id.
+	 *
+	 * Only sends made after this tracking shipped populate the map; historical runs
+	 * have no row-level URLs and fall back to an empty per-run breakdown.
+	 *
+	 * @param int    $broadcast_email_id The mint_broadcast_emails row id.
+	 * @param string $target_url         The clicked URL.
+	 * @return void
+	 * @since 1.25.1
+	 */
+	private static function track_broadcast_row_clicked_url( $broadcast_email_id, $target_url ) {
+		if ( empty( $broadcast_email_id ) || empty( $target_url ) ) {
+			return;
+		}
+
+		$existing = MessageModel::get_email_meta_value_by_key( 'clicked_urls', $broadcast_email_id );
+		$urls     = $existing ? maybe_unserialize( $existing ) : array();
+		if ( ! is_array( $urls ) ) {
+			$urls = array();
+		}
+
+		if ( isset( $urls[ $target_url ] ) ) {
+			$urls[ $target_url ]['count']++;
+			$urls[ $target_url ]['last_clicked'] = current_time( 'mysql' );
+		} else {
+			$urls[ $target_url ] = array(
+				'count'        => 1,
+				'last_clicked' => current_time( 'mysql' ),
+			);
+		}
+
+		MessageModel::insert_or_update_email_meta( 'clicked_urls', maybe_serialize( $urls ), $broadcast_email_id );
 	}
 
 	/**

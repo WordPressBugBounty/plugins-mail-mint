@@ -23,6 +23,8 @@ use MailMint\App\Helper;
 use Mint\MRM\Internal\Parser\Parser;
 use WP_Query;
 use Mint\MRM\DataBase\Models\ContactModel;
+use Mint\MRM\API\Actions\ComplianceAction;
+use Mint\MRM\Internal\Campaign\EmailPersonalizer;
 
 require_once ABSPATH . 'wp-admin/includes/image.php';
 require_once ABSPATH . 'wp-admin/includes/file.php';
@@ -368,6 +370,10 @@ class CampaignEmailController extends AdminBaseController {
 			'message' => __('A test email has been sent successfully.', 'mrm'),
 		);
 
+		// Resolve click-tracking mode once; reused for every recipient.
+		$click_tracking_mode = ComplianceAction::get_click_tracking_mode();
+		$personalizer        = new EmailPersonalizer();
+
 		$false_emails = array();
 		foreach( $receivers as $receiver ) {
 			$receiver = trim( $receiver );
@@ -406,6 +412,19 @@ class CampaignEmailController extends AdminBaseController {
 			$parsed_content = Parser::parse($content, $contact, $post_id, $resolved_order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
 			$parsed_preview = Parser::parse($preview, $contact, $post_id, $resolved_order_id, array('abandoned_id' => $abandoned_id, 'edd_payment_id' => $payment_id, 'wp_user_id' => $wp_user_id));
 			$final_content  = Email::inject_preview_text_on_email_body($parsed_preview, $parsed_content);
+
+			// Wrap links with click-tracking URLs so routed links (lead-magnet downloads,
+			// preference/unsubscribe, etc.) resolve in test emails the same way they do in
+			// real sends. Without this the raw URL lacks action=mint_action and the
+			// redirection handler never fires, dropping the recipient on the home page.
+			$test_hash = MrmCommon::get_rand_email_hash( $receiver, (int) $post_id ?: 16 );
+			if ( 'no' !== $click_tracking_mode ) {
+				$final_content = Helper::replace_url( $final_content, $test_hash, $click_tracking_mode );
+			}
+
+			// Apply Pro lead-magnet tracking (generates the download token; no-op without Pro).
+			$final_content = $personalizer->applyProProcessing( $final_content, $receiver );
+
 			MM()->mailer->send($receiver, $parsed_subject, $final_content, $headers);
 		}
 

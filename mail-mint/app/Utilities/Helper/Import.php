@@ -1151,6 +1151,160 @@ class Import
 	}
 
 	/**
+	 * Get WordPress users by BuddyPress/BuddyBoss with limit and offset.
+	 *
+	 * Retrieves WordPress users associated with the selected BuddyPress/BuddyBoss groups or
+	 * member types based on the provided parameters.
+	 *
+	 * @param string $import_type The import dimension, either 'member_group' or 'member_type'.
+	 * @param array  $selection   An array of selected groups or member types ({ value, label }).
+	 * @param int    $number      The number of users to retrieve (default is 5).
+	 * @param int    $offset      The offset for batch processing (default is 0).
+	 * @return array An array containing formatted user data and the total number of users.
+	 * @access public
+	 * @since 1.20.0
+	 */
+	public static function get_wp_users_by_buddypress_with_limit_offset( $import_type, $selection, $number = 5, $offset = 0 ) {
+		if ( ! HelperFunctions::is_buddypress_active() ) {
+			return array(
+				'formatted_users' => array(),
+				'total_users'     => 0,
+			);
+		}
+
+		if ( 'member_type' === $import_type ) {
+			$result = self::get_buddypress_user_ids_by_member_types( $selection, $number, $offset );
+		} else {
+			$result = self::get_buddypress_user_ids_by_groups( $selection, $number, $offset );
+		}
+
+		$user_ids = $result['user_ids'];
+		$total    = $result['total'];
+
+		if ( empty( $user_ids ) ) {
+			return array(
+				'formatted_users' => array(),
+				'total_users'     => 0,
+			);
+		}
+
+		$contacts = get_users( array( 'include' => $user_ids ) );
+
+		if ( empty( $contacts ) ) {
+			return array(
+				'formatted_users' => array(),
+				'total_users'     => 0,
+			);
+		}
+
+		// Format user data, including usermeta information.
+		$formatted_users = array_map(
+			function ( $user ) {
+				$user->usermeta = array_map(
+					function ( $user_data ) {
+						return reset( $user_data );
+					},
+					get_user_meta( $user->ID )
+				);
+
+				return $user;
+			},
+			$contacts
+		);
+
+		return array(
+			'formatted_users' => $formatted_users,
+			'total_users'     => $total,
+		);
+	}
+
+	/**
+	 * Get paginated BuddyPress/BuddyBoss user IDs belonging to the selected groups.
+	 *
+	 * @param array $groups An array of selected groups ({ value, label }). Empty means all groups.
+	 * @param int   $number The number of user IDs to retrieve.
+	 * @param int   $offset The offset for batch processing.
+	 * @return array An array containing 'user_ids' and 'total'.
+	 * @access private
+	 * @since 1.20.0
+	 */
+	private static function get_buddypress_user_ids_by_groups( $groups, $number, $offset ) {
+		global $wpdb;
+
+		$group_ids  = array_map( 'intval', array_column( $groups, 'value' ) );
+		$table_name = $wpdb->prefix . 'bp_groups_members';
+
+		if ( ! empty( $group_ids ) ) {
+			$placeholders = implode( ', ', array_fill( 0, count( $group_ids ), '%d' ) );
+			$total        = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( DISTINCT user_id ) FROM {$table_name} WHERE is_confirmed = 1 AND group_id IN ($placeholders)", $group_ids ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+			$user_ids     = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT user_id FROM {$table_name} WHERE is_confirmed = 1 AND group_id IN ($placeholders) ORDER BY user_id ASC LIMIT %d OFFSET %d", array_merge( $group_ids, array( $number, $offset ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		} else {
+			$total    = (int) $wpdb->get_var( "SELECT COUNT( DISTINCT user_id ) FROM {$table_name} WHERE is_confirmed = 1" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$user_ids = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT user_id FROM {$table_name} WHERE is_confirmed = 1 ORDER BY user_id ASC LIMIT %d OFFSET %d", $number, $offset ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		}
+
+		return array(
+			'user_ids' => array_map( 'intval', (array) $user_ids ),
+			'total'    => $total,
+		);
+	}
+
+	/**
+	 * Get paginated BuddyPress/BuddyBoss user IDs belonging to the selected member types.
+	 *
+	 * @param array $member_types An array of selected member types ({ value, label }). Empty means all types.
+	 * @param int   $number       The number of user IDs to retrieve.
+	 * @param int   $offset       The offset for batch processing.
+	 * @return array An array containing 'user_ids' and 'total'.
+	 * @access private
+	 * @since 1.20.0
+	 */
+	private static function get_buddypress_user_ids_by_member_types( $member_types, $number, $offset ) {
+		$type_slugs = array_column( $member_types, 'value' );
+
+		if ( empty( $type_slugs ) ) {
+			$type_slugs = array_keys( (array) bp_get_member_types() );
+		}
+
+		if ( empty( $type_slugs ) || ! function_exists( 'bp_get_term_by' ) || ! function_exists( 'bp_get_objects_in_term' ) ) {
+			return array(
+				'user_ids' => array(),
+				'total'    => 0,
+			);
+		}
+
+		$term_ids = array();
+		foreach ( $type_slugs as $slug ) {
+			$term = bp_get_term_by( 'slug', $slug, bp_get_member_type_tax_name() );
+			if ( $term && ! is_wp_error( $term ) ) {
+				$term_ids[] = $term->term_id;
+			}
+		}
+
+		if ( empty( $term_ids ) ) {
+			return array(
+				'user_ids' => array(),
+				'total'    => 0,
+			);
+		}
+
+		$user_ids = bp_get_objects_in_term( $term_ids, bp_get_member_type_tax_name() );
+		if ( is_wp_error( $user_ids ) || empty( $user_ids ) ) {
+			return array(
+				'user_ids' => array(),
+				'total'    => 0,
+			);
+		}
+
+		$user_ids = array_values( array_unique( array_map( 'intval', $user_ids ) ) );
+
+		return array(
+			'user_ids' => array_slice( $user_ids, $offset, $number ),
+			'total'    => count( $user_ids ),
+		);
+	}
+
+	/**
 	 * Retrieves MailPoet contacts with a specified limit and offset.
 	 *
 	 * @param int $number The number of contacts to retrieve. Default is 5.

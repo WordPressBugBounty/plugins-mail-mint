@@ -210,12 +210,19 @@ class BroadcastRepository extends AbstractRepository {
 	 * @param int        $campaign_id Campaign ID.
 	 * @param string     $status      Status to count (e.g. BroadcastStatus::SENT).
 	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by created_at.
+	 * @param string     $search      Optional email address search filter.
+	 * @param int        $email_id    Optional occurrence (campaign email) ID. When > 0, narrows the
+	 *                                count to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return int Count of matching rows.
 	 */
-	public function countDeliveredStatusOnCampaign( int $campaign_id, string $status, ?array $date_range = null, string $search = '' ): int {
+	public function countDeliveredStatusOnCampaign( int $campaign_id, string $status, ?array $date_range = null, string $search = '', int $email_id = 0 ): int {
 		$qb = QueryBuilder::table( $this->prefixedTable() )
 			->where( 'campaign_id', '=', $campaign_id )
 			->where( 'status', '=', $status );
+
+		if ( $email_id > 0 ) {
+			$qb = $qb->where( 'email_id', '=', $email_id );
+		}
 
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
 			$qb = $qb->where( 'created_at', '>=', $date_range['start'] )
@@ -238,9 +245,12 @@ class BroadcastRepository extends AbstractRepository {
 	 *
 	 * @param int        $campaign_id Campaign ID.
 	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by meta created_at.
+	 * @param string     $search      Optional email address search filter.
+	 * @param int        $email_id    Optional occurrence (campaign email) ID. When > 0, narrows the
+	 *                                count to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return int Count of broadcast emails with `is_open = 1` meta.
 	 */
-	public function calculateOpenRateOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '' ): int {
+	public function calculateOpenRateOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '', int $email_id = 0 ): int {
 		global $wpdb;
 
 		$broadcast = $this->prefixedTable();
@@ -249,6 +259,10 @@ class BroadcastRepository extends AbstractRepository {
 			->where( $broadcast . '.campaign_id', '=', $campaign_id )
 			->where( 'meta.meta_key', '=', 'is_open' )
 			->where( 'meta.meta_value', '=', '1' );
+
+		if ( $email_id > 0 ) {
+			$qb = $qb->where( $broadcast . '.email_id', '=', $email_id );
+		}
 
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
 			$qb = $qb->where( 'meta.created_at', '>=', $date_range['start'] )
@@ -263,7 +277,10 @@ class BroadcastRepository extends AbstractRepository {
 
 		// Anon pixel counts are not timestamped so only include them on all-time queries.
 		// Skip anon counts when searching, as they are not tied to an email address.
-		if ( empty( $date_range ) && '' === $search ) {
+		// Anon counts are campaign-level (no email_id dimension), so they are also
+		// skipped for a per-occurrence (recurring run) scope to avoid double-attributing
+		// a campaign-wide tally to one run.
+		if ( empty( $date_range ) && '' === $search && 0 === $email_id ) {
 			$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
 			$anon                = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_open_count'", $campaign_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$tracked            += $anon;
@@ -281,9 +298,12 @@ class BroadcastRepository extends AbstractRepository {
 	 *
 	 * @param int        $campaign_id Campaign ID.
 	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by meta created_at.
+	 * @param string     $search      Optional email address search filter.
+	 * @param int        $email_id    Optional occurrence (campaign email) ID. When > 0, narrows the
+	 *                                count to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return int Count of broadcast emails with `is_click = 1` meta.
 	 */
-	public function calculateClickRateOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '' ): int {
+	public function calculateClickRateOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '', int $email_id = 0 ): int {
 		global $wpdb;
 
 		$broadcast = $this->prefixedTable();
@@ -292,6 +312,10 @@ class BroadcastRepository extends AbstractRepository {
 			->where( $broadcast . '.campaign_id', '=', $campaign_id )
 			->where( 'meta.meta_key', '=', 'is_click' )
 			->where( 'meta.meta_value', '=', '1' );
+
+		if ( $email_id > 0 ) {
+			$qb = $qb->where( $broadcast . '.email_id', '=', $email_id );
+		}
 
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
 			$qb = $qb->where( 'meta.created_at', '>=', $date_range['start'] )
@@ -306,7 +330,10 @@ class BroadcastRepository extends AbstractRepository {
 
 		// Anon click counts are not timestamped so only include them on all-time queries.
 		// Skip anon counts when searching, as they are not tied to an email address.
-		if ( empty( $date_range ) && '' === $search ) {
+		// Anon counts are campaign-level (no email_id dimension), so they are also
+		// skipped for a per-occurrence (recurring run) scope to avoid double-attributing
+		// a campaign-wide tally to one run.
+		if ( empty( $date_range ) && '' === $search && 0 === $email_id ) {
 			$campaign_meta_table = $wpdb->prefix . 'mint_campaigns_meta';
 			$anon                = (int) $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$campaign_meta_table} WHERE campaign_id = %d AND meta_key = '_anon_click_count'", $campaign_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			$tracked            += $anon;
@@ -324,9 +351,12 @@ class BroadcastRepository extends AbstractRepository {
 	 *
 	 * @param int        $campaign_id Campaign ID.
 	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by meta created_at.
+	 * @param string     $search      Optional email address search filter.
+	 * @param int        $email_id    Optional occurrence (campaign email) ID. When > 0, narrows the
+	 *                                count to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return int Count of broadcast emails with `is_unsubscribe = 1` meta.
 	 */
-	public function countUnsubscribeOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '' ): int {
+	public function countUnsubscribeOnCampaign( int $campaign_id, ?array $date_range = null, string $search = '', int $email_id = 0 ): int {
 		$broadcast = $this->prefixedTable();
 
 		$qb = QueryBuilder::table( $broadcast )
@@ -334,6 +364,10 @@ class BroadcastRepository extends AbstractRepository {
 			->where( $broadcast . '.campaign_id', '=', $campaign_id )
 			->where( 'meta.meta_key', '=', 'is_unsubscribe' )
 			->where( 'meta.meta_value', '=', '1' );
+
+		if ( $email_id > 0 ) {
+			$qb = $qb->where( $broadcast . '.email_id', '=', $email_id );
+		}
 
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
 			$qb = $qb->where( 'meta.created_at', '>=', $date_range['start'] )
@@ -530,6 +564,259 @@ class BroadcastRepository extends AbstractRepository {
 			->first();
 
 		return $row ? (int) $row['cnt'] : 0;
+	}
+
+	/**
+	 * Count broadcast rows queued for a single recurring occurrence (email_id).
+	 *
+	 * Returns the number of broadcast rows for one occurrence's email step. This
+	 * is the correct denominator for that occurrence's delivered/open/click
+	 * percentages, because it shares the same per-occurrence scope as the
+	 * delivered count — unlike the campaign-wide DISTINCT-contact reach, which
+	 * accumulates across runs and would push a multi-run rate above 100%.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int|string $email_id The campaign email (occurrence) ID.
+	 * @return int The count of broadcast rows for that occurrence.
+	 */
+	public function getRecurringOccurrenceRecipients( $email_id ): int {
+		if ( empty( $email_id ) ) {
+			return 0;
+		}
+
+		$row = QueryBuilder::table( $this->prefixedTable() )
+			->select( 'COUNT(*) as cnt' )
+			->where( 'email_id', '=', $email_id )
+			->first();
+
+		return $row ? (int) $row['cnt'] : 0;
+	}
+
+	/**
+	 * Per-occurrence run history for a recurring campaign (real runs only).
+	 *
+	 * Groups broadcast rows by `email_id` (one occurrence = one cloned email
+	 * step) and returns ONLY discrete occurrences — those whose cloned step
+	 * carries the `recurring_run` meta (INNER JOIN). Pre-upgrade and clone-failed
+	 * sends share the untouched template `email_id` and carry no such meta, so
+	 * they are excluded here and collapsed separately by getRecurringLegacyBucket()
+	 * into the single bottom-pinned "Earlier runs" entry.
+	 *
+	 * The row's identity (subject), its occurrence meta (sequence, scheduled
+	 * time) and enough send progress to derive a status are all resolved in this
+	 * one query — the caller no longer issues per-row meta/subject lookups. Rows
+	 * are ordered by the occurrence's scheduled time (the same field the list
+	 * displays), newest first, so visible order matches visible dates. The
+	 * per-run open/click/bounce aggregates are deliberately omitted; those are
+	 * shown in the analytics report, not this list.
+	 *
+	 * @since 1.24.0
+	 * @since 1.24.0 Excludes the legacy bucket; folds in subject + occurrence meta.
+	 *
+	 * @param int $campaign_id The recurring campaign ID.
+	 * @param int $limit       Max rows to return. 0 (default) returns all rows.
+	 * @param int $offset      Row offset for pagination. Ignored when $limit is 0.
+	 * @return array List of per-email_id occurrence rows, newest first.
+	 */
+	public function getRecurringRunHistory( int $campaign_id, int $limit = 0, int $offset = 0 ): array {
+		global $wpdb;
+
+		$broadcast_table = $wpdb->prefix . 'mint_broadcast_emails';
+		$emails_table    = $wpdb->prefix . 'mint_campaign_emails';
+		$meta_table      = $wpdb->prefix . 'mint_campaign_emails_meta';
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// One row per real occurrence. The INNER JOIN on `recurring_run` meta
+		// keeps legacy/clone-failed sends (no meta) out of this list. Subject and
+		// occurrence meta are MAX()-aggregated so the query stays one-row-per
+		// email_id and is safe under ONLY_FULL_GROUP_BY. Ordering uses the
+		// occurrence's stamped scheduled time (falling back to the earliest
+		// broadcast time) so the sort matches the date shown in the row. A LIMIT
+		// is appended only when supplied, so the caller can page without loading
+		// every run.
+		$select = "SELECT
+				b.email_id AS email_id,
+				MIN( b.scheduled_at ) AS scheduled_at,
+				MAX( b.updated_at ) AS sent_at,
+				COUNT( DISTINCT b.id ) AS recipients,
+				COUNT( DISTINCT CASE WHEN b.status = %s THEN b.id END ) AS delivered,
+				MAX( ce.email_subject ) AS subject,
+				MAX( seq.meta_value ) AS run_sequence,
+				MAX( sched.meta_value ) AS run_scheduled_at
+			FROM {$broadcast_table} AS b
+			INNER JOIN {$meta_table} AS run ON run.campaign_emails_id = b.email_id AND run.meta_key = 'recurring_run'
+			LEFT JOIN {$emails_table} AS ce ON ce.id = b.email_id
+			LEFT JOIN {$meta_table} AS seq ON seq.campaign_emails_id = b.email_id AND seq.meta_key = 'run_sequence'
+			LEFT JOIN {$meta_table} AS sched ON sched.campaign_emails_id = b.email_id AND sched.meta_key = 'run_scheduled_at'
+			WHERE b.campaign_id = %d
+			GROUP BY b.email_id
+			ORDER BY COALESCE( MAX( sched.meta_value ), MIN( b.scheduled_at ) ) DESC";
+
+		if ( $limit > 0 ) {
+			$sql = $wpdb->prepare(
+				$select . ' LIMIT %d, %d',
+				BroadcastStatus::SENT,
+				$campaign_id,
+				$offset,
+				$limit
+			);
+		} else {
+			$sql = $wpdb->prepare(
+				$select,
+				BroadcastStatus::SENT,
+				$campaign_id
+			);
+		}
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$results = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		return is_array( $results ) ? $results : array();
+	}
+
+	/**
+	 * Count of real recurring occurrences (distinct meta-stamped email_id groups).
+	 *
+	 * Mirrors the INNER JOIN filter in getRecurringRunHistory() so the paginated
+	 * total counts only discrete runs. The legacy bucket is a single extra entry
+	 * the caller appends separately; it is NOT counted here.
+	 *
+	 * @since 1.24.0
+	 * @since 1.24.0 Counts real occurrences only (excludes the legacy bucket).
+	 *
+	 * @param int $campaign_id The recurring campaign ID.
+	 * @return int Number of distinct real occurrences.
+	 */
+	public function getRecurringRunHistoryCount( int $campaign_id ): int {
+		global $wpdb;
+
+		$broadcast_table = $wpdb->prefix . 'mint_broadcast_emails';
+		$meta_table      = $wpdb->prefix . 'mint_campaign_emails_meta';
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT( DISTINCT b.email_id )
+				FROM {$broadcast_table} AS b
+				INNER JOIN {$meta_table} AS run ON run.campaign_emails_id = b.email_id AND run.meta_key = 'recurring_run'
+				WHERE b.campaign_id = %d",
+				$campaign_id
+			)
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		return (int) $count;
+	}
+
+	/**
+	 * The single "Earlier runs" (legacy) bucket for a recurring campaign.
+	 *
+	 * Collapses EVERY send that is not a discrete occurrence — pre-upgrade sends
+	 * and any clone-failed run, all of which share the untouched template
+	 * `email_id` and carry no `recurring_run` meta — into one aggregate row, so
+	 * the UI's "combines every send … into one row" promise holds no matter how
+	 * many such email_ids exist. The anti-join (`run.campaign_emails_id IS NULL`)
+	 * selects exactly the rows excluded by getRecurringRunHistory().
+	 *
+	 * `email_id` is the lowest legacy email_id and is used purely as the report
+	 * scope when the user opens the bucket's analytics. For a recurring campaign
+	 * this is the one template step, so the report covers the whole bucket; the
+	 * MIN keeps it deterministic in the rare multi-legacy-id case.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int $campaign_id The recurring campaign ID.
+	 * @return array|null { email_id, scheduled_at, sent_at, recipients, delivered },
+	 *                     or null when the campaign has no legacy sends.
+	 */
+	public function getRecurringLegacyBucket( int $campaign_id ) {
+		global $wpdb;
+
+		$broadcast_table = $wpdb->prefix . 'mint_broadcast_emails';
+		$meta_table      = $wpdb->prefix . 'mint_campaign_emails_meta';
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT
+					MIN( b.email_id ) AS email_id,
+					MIN( b.scheduled_at ) AS scheduled_at,
+					MAX( b.updated_at ) AS sent_at,
+					COUNT( DISTINCT b.id ) AS recipients,
+					COUNT( DISTINCT CASE WHEN b.status = %s THEN b.id END ) AS delivered
+				FROM {$broadcast_table} AS b
+				LEFT JOIN {$meta_table} AS run ON run.campaign_emails_id = b.email_id AND run.meta_key = 'recurring_run'
+				WHERE b.campaign_id = %d AND run.campaign_emails_id IS NULL",
+				BroadcastStatus::SENT,
+				$campaign_id
+			),
+			ARRAY_A
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		// The aggregate always returns one row; it is "no legacy" when the
+		// anti-join matched nothing (null email_id / zero recipients).
+		if ( empty( $row ) || empty( $row['email_id'] ) || (int) $row['recipients'] <= 0 ) {
+			return null;
+		}
+
+		return $row;
+	}
+
+	/**
+	 * Campaign-level rollup across all recurring occurrences.
+	 *
+	 * Sums delivered/opens/clicks/bounced/unsubscribes across every occurrence
+	 * (every email_id) of the campaign. `recipients` is the SUM of per-occurrence
+	 * sends (NOT a DISTINCT contact count), so campaign KPI rates divide opens by
+	 * the same scope they accumulated in. The single legacy occurrence contributes
+	 * its blended numbers as one bucket, keeping the total correct.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int $campaign_id The recurring campaign ID.
+	 * @return array { recipients, delivered, bounced, opens, clicks, unsubscribes }
+	 */
+	public function getRecurringCampaignRollup( int $campaign_id ): array {
+		global $wpdb;
+
+		$broadcast_table = $wpdb->prefix . 'mint_broadcast_emails';
+		$meta_table      = $wpdb->prefix . 'mint_broadcast_email_meta';
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$sql = $wpdb->prepare(
+			"SELECT
+				COUNT( DISTINCT b.id ) AS recipients,
+				COUNT( DISTINCT CASE WHEN b.status = %s THEN b.id END ) AS delivered,
+				COUNT( DISTINCT CASE WHEN b.status = %s THEN b.id END ) AS bounced,
+				COUNT( DISTINCT CASE WHEN m_open.meta_value = '1' THEN b.id END ) AS opens,
+				COUNT( DISTINCT CASE WHEN m_click.meta_value = '1' THEN b.id END ) AS clicks,
+				COUNT( DISTINCT CASE WHEN m_unsub.meta_value = '1' THEN b.id END ) AS unsubscribes
+			FROM {$broadcast_table} AS b
+			LEFT JOIN {$meta_table} AS m_open
+				ON b.id = m_open.mint_email_id AND m_open.meta_key = 'is_open'
+			LEFT JOIN {$meta_table} AS m_click
+				ON b.id = m_click.mint_email_id AND m_click.meta_key = 'is_click'
+			LEFT JOIN {$meta_table} AS m_unsub
+				ON b.id = m_unsub.mint_email_id AND m_unsub.meta_key = 'is_unsubscribe'
+			WHERE b.campaign_id = %d",
+			BroadcastStatus::SENT,
+			BroadcastStatus::FAILED,
+			$campaign_id
+		);
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$row = $wpdb->get_row( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		return array(
+			'recipients'   => isset( $row['recipients'] ) ? (int) $row['recipients'] : 0,
+			'delivered'    => isset( $row['delivered'] ) ? (int) $row['delivered'] : 0,
+			'bounced'      => isset( $row['bounced'] ) ? (int) $row['bounced'] : 0,
+			'opens'        => isset( $row['opens'] ) ? (int) $row['opens'] : 0,
+			'clicks'       => isset( $row['clicks'] ) ? (int) $row['clicks'] : 0,
+			'unsubscribes' => isset( $row['unsubscribes'] ) ? (int) $row['unsubscribes'] : 0,
+		);
 	}
 
 	/**
@@ -1046,9 +1333,12 @@ class BroadcastRepository extends AbstractRepository {
 	 *
 	 * @param int    $campaign_id Campaign ID.
 	 * @param string $search      Optional email address search filter.
+	 * @param array|null $date_range Optional ['start' => datetime, 'end' => datetime] to restrict by scheduled_at.
+	 * @param int    $email_id    Optional occurrence (campaign email) ID. When > 0, narrows the
+	 *                            count to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return int Count of broadcast emails with no open meta entry.
 	 */
-	public function countNotOpenedOnCampaign( int $campaign_id, string $search = '', ?array $date_range = null ): int {
+	public function countNotOpenedOnCampaign( int $campaign_id, string $search = '', ?array $date_range = null, int $email_id = 0 ): int {
 		global $wpdb;
 
 		$broadcast = $this->prefixedTable();
@@ -1067,6 +1357,11 @@ class BroadcastRepository extends AbstractRepository {
 
 		$values = array( $campaign_id );
 
+		if ( $email_id > 0 ) {
+			$query   .= " AND {$broadcast}.email_id = %d";
+			$values[] = $email_id;
+		}
+
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
 			$query   .= " AND {$broadcast}.scheduled_at >= %s AND {$broadcast}.scheduled_at <= %s";
 			$values[] = $date_range['start'];
@@ -1081,10 +1376,14 @@ class BroadcastRepository extends AbstractRepository {
 		return (int) $wpdb->get_var( $wpdb->prepare( $query, $values ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
-	public function countBroadcastEmailsByCampaign( int $campaign_id, string $search = '', ?array $date_range = null ): int {
+	public function countBroadcastEmailsByCampaign( int $campaign_id, string $search = '', ?array $date_range = null, int $email_id = 0 ): int {
 		$table = $this->prefixedTable();
 		$qb    = QueryBuilder::table( $table )
 			->where( 'campaign_id', '=', $campaign_id );
+
+		if ( $email_id > 0 ) {
+			$qb = $qb->where( 'email_id', '=', $email_id );
+		}
 
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
 			$qb = $qb->where( 'scheduled_at', '>=', $date_range['start'] )
@@ -1273,38 +1572,51 @@ class BroadcastRepository extends AbstractRepository {
 	 * @param int        $campaign_id Campaign ID.
 	 * @param string     $meta_key    Meta key to query (e.g. 'is_open', 'is_click').
 	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime].
+	 * @param int        $email_id    Optional occurrence (campaign email) ID. When > 0, narrows the
+	 *                                lookup to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return string|null Datetime string or null if no match.
 	 */
-	public function getLastMetaTimestampOnCampaign( int $campaign_id, string $meta_key, ?array $date_range = null ): ?string {
+	public function getLastMetaTimestampOnCampaign( int $campaign_id, string $meta_key, ?array $date_range = null, int $email_id = 0 ): ?string {
 		global $wpdb;
 
 		$broadcast  = $this->prefixedTable();
 		$meta_table = $this->metaTable();
 
+		// Narrow to a single recurring occurrence when an email_id is given.
+		$occurrence_clause = $email_id > 0 ? ' AND be.email_id = %d' : '';
+
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
+			$args = array( $meta_key, $campaign_id );
+			if ( $email_id > 0 ) {
+				$args[] = $email_id;
+			}
+			$args[] = $date_range['start'];
+			$args[] = $date_range['end'];
+
 			$result = $wpdb->get_var( // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$wpdb->prepare(
 					"SELECT MAX(COALESCE(meta.updated_at, meta.created_at))
 					FROM {$broadcast} be
 					LEFT JOIN {$meta_table} meta
 						ON meta.mint_email_id = be.id AND meta.meta_key = %s AND meta.meta_value = '1'
-					WHERE be.campaign_id = %d AND meta.created_at BETWEEN %s AND %s",
-					$meta_key,
-					$campaign_id,
-					$date_range['start'],
-					$date_range['end']
+					WHERE be.campaign_id = %d{$occurrence_clause} AND meta.created_at BETWEEN %s AND %s",
+					$args
 				)
 			);
 		} else {
+			$args = array( $meta_key, $campaign_id );
+			if ( $email_id > 0 ) {
+				$args[] = $email_id;
+			}
+
 			$result = $wpdb->get_var( // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				$wpdb->prepare(
 					"SELECT MAX(COALESCE(meta.updated_at, meta.created_at))
 					FROM {$broadcast} be
 					LEFT JOIN {$meta_table} meta
 						ON meta.mint_email_id = be.id AND meta.meta_key = %s AND meta.meta_value = '1'
-					WHERE be.campaign_id = %d",
-					$meta_key,
-					$campaign_id
+					WHERE be.campaign_id = %d{$occurrence_clause}",
+					$args
 				)
 			);
 		}

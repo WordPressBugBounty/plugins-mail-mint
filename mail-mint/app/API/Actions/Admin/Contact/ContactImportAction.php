@@ -1350,6 +1350,118 @@ class ContactImportAction implements Action {
     }
 
     /**
+     * Retrieve contacts associated with BuddyPress/BuddyBoss.
+     *
+     * Description: Retrieves contacts associated with the selected BuddyPress/BuddyBoss groups
+     * or member types based on the provided parameters.
+     *
+     * @param array $params The parameters for retrieving contacts.
+     * @return array An array containing the status, data, and message of the retrieval operation.
+     * @access public
+     * @since 1.20.0
+     */
+    public function retrieve_contacts_associated_with_buddypress( $params ) {
+        $import_type = isset( $params['importType'] ) ? $params['importType'] : 'member_group';
+        $selection   = isset( $params['selection'] ) ? $params['selection'] : array();
+
+        $wp_users    = Import::get_wp_users_by_buddypress_with_limit_offset( $import_type, $selection, 5 );
+        $contacts    = array_map( array( $this, 'format_contact_data_from_wp_user' ), $wp_users['formatted_users'] );
+        $total_users = (int) $wp_users['total_users'];
+
+        /**
+         * Get the import batch limit per operation.
+         *
+         * @param int $per_batch The default import batch limit per operation.
+         * @return int The modified import batch limit per operation.
+         *
+         * @since 1.20.0
+         */
+        $per_batch = apply_filters( 'mint_import_batch_limit', 500 );
+
+        return array(
+            'status'  => 'success',
+            'data'    => array(
+                            'contacts'    => $contacts,
+                            'total_batch' => ceil( $total_users / (int) $per_batch ),
+                            'total'       => $total_users,
+                            'importType'  => $import_type,
+                            'selection'   => $selection,
+                        ),
+            'message' => __( 'Data retrieval and processing completed successfully.', 'mrm' ),
+        );
+    }
+
+    /**
+     * Perform BuddyPress/BuddyBoss user import.
+     *
+     * Description: Imports BuddyPress/BuddyBoss users based on the provided parameters.
+     *
+     * @param array $params The parameters for performing the import.
+     * @return array An array containing the status, data, and message of the import operation.
+     * @access public
+     * @since 1.20.0
+     */
+    public function perform_buddypress_user_import( $params ) {
+        $skipped  = 0;
+        $exists   = 0;
+        $imported = 0;
+
+        if ( isset( $params['automation_control'] ) && $params['automation_control'] ) {
+            add_filter( 'mint_automation_trigger_control_on_import', '__return_true' );
+        }
+
+        /**
+         * Get the import batch limit per operation.
+         *
+         * @param int $per_batch The default import batch limit per operation.
+         * @return int The modified import batch limit per operation.
+         *
+         * @since 1.20.0
+         */
+        $per_batch = apply_filters( 'mint_import_batch_limit', 500 );
+
+        $import_type = isset( $params['importType'] ) ? $params['importType'] : 'member_group';
+        $selection   = isset( $params['selection'] ) ? $params['selection'] : array();
+
+        $wp_users = Import::get_wp_users_by_buddypress_with_limit_offset( $import_type, $selection, $per_batch, $params['offset'] );
+
+        if ( ! is_array( $wp_users['formatted_users'] ) && empty( $wp_users['formatted_users'] ) ) {
+            return array(
+                'status'  => 'failed',
+                'message' => __( 'No BuddyPress user available to import.', 'mrm' ),
+            );
+        }
+
+        $wp_users = array_map( array( $this, 'format_contact_data_from_wp_user' ), $wp_users['formatted_users'] );
+
+        foreach ( $wp_users as $wp_user ) {
+            $result = $this->process_individual_user_to_insert( $wp_user, $params, 'BuddyPress' );
+
+            $skipped  += $result['skipped'];
+            $exists   += $result['exists'];
+            $imported += $result['imported'];
+        }
+        // Prepare data for success response.
+        $result = array(
+            'imported'          => $imported,
+            'total'             => count( $wp_users ),
+            'skipped'           => $skipped,
+            'existing_contacts' => $exists,
+            'offset'            => $params['offset'] + (int) $per_batch,
+        );
+
+        if ( $imported > 0 ) {
+            do_action( 'mailmint_contacts_imported', $imported, 'BuddyPress' );
+        }
+
+        return array(
+            'status'  => 'success',
+            'data'    => $result,
+            'message' => __( 'Contact(s) has been successfully imported.', 'mrm' ),
+        );
+    }
+
+    /**
      * Perform Fluent Booking Import.
      * 
      * Description: This function handles the import of Fluent Booking users based on the provided parameters.

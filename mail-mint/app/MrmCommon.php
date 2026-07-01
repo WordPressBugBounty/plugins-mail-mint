@@ -685,6 +685,44 @@ class MrmCommon {
 
 
 	/**
+	 * Build the list of post types offered as recurring-campaign sending-condition
+	 * sources (e.g. "Blog posts", "Pages", "WooCommerce products", plus any public
+	 * custom post type registered on the site).
+	 *
+	 * Returns the WordPress public post types as `{ value, label }` pairs so the
+	 * recurring-campaign condition dropdowns can render them directly. The
+	 * `attachment` type is excluded — media has no "published within N days"
+	 * meaning for content digests.
+	 *
+	 * @return array<int,array{value:string,label:string}> List of post type options.
+	 * @since 1.20.4
+	 */
+	public static function get_condition_post_types() {
+		$post_types = get_post_types( array( 'public' => true ), 'objects' );
+		unset( $post_types['attachment'] );
+
+		/**
+		 * Filters the post types offered as recurring-campaign sending-condition
+		 * sources. Allows sites to add or remove content sources from the dropdown.
+		 *
+		 * @param WP_Post_Type[] $post_types Public post type objects, keyed by name.
+		 * @since 1.20.4
+		 */
+		$post_types = apply_filters( 'mint_condition_post_types', $post_types );
+
+		$options = array();
+		foreach ( $post_types as $name => $post_type ) {
+			$options[] = array(
+				'value' => $name,
+				'label' => isset( $post_type->label ) ? $post_type->label : $name,
+			);
+		}
+
+		return $options;
+	}
+
+
+	/**
 	 * Check if wc is installed
 	 *
 	 * @return bool

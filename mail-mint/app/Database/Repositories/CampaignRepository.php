@@ -504,6 +504,112 @@ class CampaignRepository extends AbstractRepository {
 	}
 
 	/**
+	 * Clone a campaign email step (and its builder body) into a new step row.
+	 *
+	 * Used by recurring campaigns to give each occurrence its own email_id, so
+	 * per-occurrence analytics (which are email_id-keyed) are isolated per run.
+	 * The new step is a self-contained copy: the builder body/json are duplicated
+	 * so editing the template later never retroactively changes a past run.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int $campaign_id      Campaign ID that owns the source step.
+	 * @param int $source_email_id  The email step to clone.
+	 *
+	 * @return int The new email step ID, or 0 on failure.
+	 */
+	public function cloneCampaignEmail( int $campaign_id, int $source_email_id ): int {
+		global $wpdb;
+
+		$source = $this->getCampaignEmailById( $campaign_id, $source_email_id );
+		if ( empty( $source ) ) {
+			return 0;
+		}
+
+		// Copy the step row verbatim minus identity/timestamp columns; insertCampaignEmail
+		// re-stamps campaign_id + created_at.
+		unset( $source['id'], $source['created_at'], $source['updated_at'] );
+		$new_email_id = $this->insertCampaignEmail( $campaign_id, $source );
+		if ( ! $new_email_id ) {
+			return 0;
+		}
+
+		// Duplicate the builder body row so the occurrence renders identically and
+		// is independent of future template edits.
+		$builder_table = $wpdb->prefix . 'mint_campaign_email_builder';
+		$body          = QueryBuilder::table( $builder_table )
+			->where( 'email_id', '=', $source_email_id )
+			->first();
+
+		if ( ! empty( $body ) ) {
+			unset( $body['id'], $body['created_at'], $body['updated_at'] );
+			$body['email_id']   = $new_email_id;
+			$body['created_at'] = current_time( 'mysql' );
+			QueryBuilder::table( $builder_table )->insert( $body );
+		}
+
+		return (int) $new_email_id;
+	}
+
+	/**
+	 * Count how many recurring occurrences (cloned steps) a campaign has produced.
+	 *
+	 * Counts campaign email steps stamped with the `recurring_run` meta. Used to
+	 * assign the next occurrence's 1-based sequence number. Returns the count
+	 * INCLUDING the step that was just created, so call it after the clone.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int $campaign_id Campaign ID.
+	 * @return int Number of recurring occurrence steps for the campaign.
+	 */
+	public function getRecurringRunCount( int $campaign_id ): int {
+		global $wpdb;
+
+		$emails_table = $wpdb->prefix . 'mint_campaign_emails';
+		$meta_table   = $wpdb->prefix . 'mint_campaign_emails_meta';
+
+		$row = QueryBuilder::table( $emails_table . ' AS CE' )
+			->select( 'COUNT(*) as cnt' )
+			->leftJoin( $meta_table . ' AS CEM', 'CE.id', '=', 'CEM.campaign_emails_id' )
+			->where( 'CE.campaign_id', '=', $campaign_id )
+			->where( 'CEM.meta_key', '=', 'recurring_run' )
+			->first();
+
+		return $row ? (int) $row['cnt'] : 0;
+	}
+
+	/**
+	 * Resolve the next scheduled run time for a recurring campaign.
+	 *
+	 * Reads the next pending Action Scheduler action in the campaign's recurring
+	 * group. Action Scheduler ships with Free (it schedules Free's own jobs), so
+	 * this works without Pro; the lookup is by group only to avoid coupling Free
+	 * to the Pro hook-constant value.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param int $campaign_id Campaign ID.
+	 * @return int|null Unix timestamp (UTC) of the next run, or null if none.
+	 */
+	public function getRecurringNextRunTimestamp( int $campaign_id ): ?int {
+		if ( ! function_exists( 'as_next_scheduled_action' ) ) {
+			return null;
+		}
+
+		$group = 'mailmint-recurring-campaign-schedule-' . $campaign_id;
+		// Pass null (not array()) for args: an empty array forces an exact "args = []"
+		// match in Action Scheduler, which never matches the real recurring action
+		// (scheduled with non-empty args). null matches any args, giving the intended
+		// group-only lookup.
+		$next = as_next_scheduled_action( '', null, $group );
+
+		// as_next_scheduled_action returns false when none, true for a past-due
+		// async action, or an int timestamp for a scheduled one.
+		return is_int( $next ) ? $next : null;
+	}
+
+	/**
 	 * Delete a campaign email step by campaign ID and email ID.
 	 *
 	 * @since 1.20.0
@@ -833,6 +939,17 @@ class CampaignRepository extends AbstractRepository {
 		$all_recipients = maybe_unserialize( $all_recipients );
 		$contacts       = array();
 
+		// Build the set of contact IDs to exclude (from excluded lists + excluded tags).
+		$exclude_group_ids = array_merge(
+			array_column( $all_recipients['exclude_lists'] ?? array(), 'id' ),
+			array_column( $all_recipients['exclude_tags'] ?? array(), 'id' )
+		);
+		$exclude_contact_ids = array();
+		if ( ! empty( $exclude_group_ids ) ) {
+			$excluded_rows       = ContactGroupPivotModel::get_contacts_to_group( $exclude_group_ids );
+			$exclude_contact_ids = array_flip( array_column( $excluded_rows, 'contact_id' ) );
+		}
+
 		if ( ! empty( $all_recipients['segments'] ) ) {
 			$segment_id = isset( $all_recipients['segments'][0]['id'] ) ? $all_recipients['segments'][0]['id'] : 0;
 
@@ -856,7 +973,7 @@ class CampaignRepository extends AbstractRepository {
 
 						if ( ! empty( $segment_data['data'] ) ) {
 							foreach ( $segment_data['data'] as $contact ) {
-								if ( 'subscribed' === $contact['status'] ) {
+								if ( 'subscribed' === $contact['status'] && ! isset( $exclude_contact_ids[ $contact['id'] ] ) ) {
 									$contacts[ $contact['id'] ] = $contact;
 								}
 							}
@@ -876,7 +993,30 @@ class CampaignRepository extends AbstractRepository {
 		if ( ! empty( $group_ids ) ) {
 			$recipients_ids = ContactGroupPivotModel::get_contacts_to_group( array_column( $group_ids, 'id' ), $offset, $per_batch );
 			$recipients_ids = array_column( $recipients_ids, 'contact_id' );
-			$contacts       = ContactModel::get_single_email( $recipients_ids );
+			if ( ! empty( $exclude_contact_ids ) ) {
+				$recipients_ids = array_values(
+					array_filter(
+						$recipients_ids,
+						function ( $cid ) use ( $exclude_contact_ids ) {
+							return ! isset( $exclude_contact_ids[ $cid ] );
+						}
+					)
+				);
+			}
+			$contacts = ContactModel::get_single_email( $recipients_ids );
+		} else {
+			// No lists, tags, or segments selected — send to all subscribed contacts.
+			global $wpdb;
+			$contact_table = esc_sql( $wpdb->prefix . 'mint_contacts' );
+			$sql           = $wpdb->prepare( "SELECT `id`, `email` FROM `{$contact_table}` WHERE `status` = %s", 'subscribed' ); //phpcs:ignore
+			if ( ! empty( $exclude_contact_ids ) ) {
+				$ids_placeholder = implode( ',', array_fill( 0, count( $exclude_contact_ids ), '%d' ) );
+				$sql            .= $wpdb->prepare( " AND `id` NOT IN ({$ids_placeholder})", array_keys( $exclude_contact_ids ) ); //phpcs:ignore
+			}
+			if ( $per_batch ) {
+				$sql .= $wpdb->prepare( ' LIMIT %d, %d', (int) $offset, (int) $per_batch );
+			}
+			$contacts = $wpdb->get_results( $sql, ARRAY_A ); //phpcs:ignore
 		}
 
 		return $contacts;

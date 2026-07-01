@@ -133,11 +133,23 @@ class CampaignAnalyticsAction implements Action {
 		$email_id         = isset( $params['email_id'] ) ? $params['email_id'] : '';
 		$total_recipients = $campaign_repository->getMeta( $campaign_id, 'total_recipients' ) ?: 0;
 
+		// `$total_recipients` is the audience reach shown to the user. For
+		// recurring campaigns that is the DISTINCT contact count across all runs.
+		// `$rate_denominator` is what delivered/open/click percentages divide by;
+		// it must share the SAME scope as the delivered numerator (which counts
+		// `sent` rows for $email_id). Using the DISTINCT reach here would let a
+		// multi-run rate exceed 100% (opens accumulate per run, reach does not).
+		$rate_denominator = $total_recipients;
+
 		// Adjust total recipients for recurring campaigns (Pro-only type, handled defensively via Free repo).
 		if ( 'recurring' === $type ) {
 			$broadcast_repository = $this->get_broadcast_repository();
 			if ( null !== $broadcast_repository ) {
 				$total_recipients = $broadcast_repository->getRecurringCampaignTotalRecipients( $campaign_id );
+				// Per-occurrence row count keeps the percentage denominator in the
+				// same scope as the delivered count for this occurrence's email_id.
+				$occurrence_recipients = $broadcast_repository->getRecurringOccurrenceRecipients( $email_id );
+				$rate_denominator      = $occurrence_recipients > 0 ? $occurrence_recipients : $total_recipients;
 			}
 		}
 
@@ -149,8 +161,10 @@ class CampaignAnalyticsAction implements Action {
 		);
 
 		// Calculate delivered and bounced emails (always unfiltered — fixed at send time).
-		$total_delivered = MessageController::prepare_delivered_reports( $email_id, $total_recipients );
-		$total_bounced   = MessageController::prepare_bounced_reports( $email_id, $total_recipients );
+		// Pass the scope-matched denominator so percentages stay <= 100% for
+		// multi-run recurring campaigns; identical to $total_recipients otherwise.
+		$total_delivered = MessageController::prepare_delivered_reports( $email_id, $rate_denominator );
+		$total_bounced   = MessageController::prepare_bounced_reports( $email_id, $rate_denominator );
 		$bounced         = isset( $total_bounced['total_bounced'] ) ? $total_bounced['total_bounced'] : '';
 		$delivered       = isset( $total_delivered['total_delivered'] ) ? $total_delivered['total_delivered'] : '';
 
@@ -178,7 +192,10 @@ class CampaignAnalyticsAction implements Action {
 		$metrics = array_merge( $total_delivered, $total_bounced, $open_rate, $click_rate, $unsubscribe, $orders, $ctor );
 
 		// Prepare campaign summary (filtered by the same date range as the metric cards).
-		$summery = $this->prepare_campaign_summery( $campaign_id, $date_range );
+		// Recurring reports are opened per-run, so the summary must be scoped to that
+		// occurrence's email_id; every other type stays campaign-wide (0).
+		$occurrence_id = 'recurring' === $type ? (int) $email_id : 0;
+		$summery       = $this->prepare_campaign_summery( $campaign_id, $date_range, $occurrence_id );
 
 		return array(
 			'recipients' => $total_recipients,
@@ -195,27 +212,29 @@ class CampaignAnalyticsAction implements Action {
 	 *
 	 * @param int        $campaign_id The ID of the campaign for which to prepare the summary.
 	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict counts.
+	 * @param int        $email_id    Optional occurrence (campaign email) ID. When > 0, narrows every
+	 *                                summary metric to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return array An associative array containing various campaign metrics.
 	 *
 	 * @since 1.23.3
 	 */
-	private function prepare_campaign_summery( $campaign_id, ?array $date_range = null ) {
+	private function prepare_campaign_summery( $campaign_id, ?array $date_range = null, int $email_id = 0 ) {
 		$broadcast_repo = $this->get_broadcast_repository();
 		if ( null === $broadcast_repo ) {
 			return array();
 		}
 
-		$total_sent    = $this->calculate_total_email_sent( $campaign_id, $date_range );
-		$total_success = $broadcast_repo->countDeliveredStatusOnCampaign( $campaign_id, 'sent', $date_range );
+		$total_sent    = $this->calculate_total_email_sent( $campaign_id, $date_range, $email_id );
+		$total_success = $broadcast_repo->countDeliveredStatusOnCampaign( $campaign_id, 'sent', $date_range, '', $email_id );
 		$success_rate  = $this->calculate_email_delivery_success_rate( $total_sent, $total_success );
-		$total_bounced = $broadcast_repo->countDeliveredStatusOnCampaign( $campaign_id, 'failed', $date_range );
-		$unsubscribe   = $broadcast_repo->countUnsubscribeOnCampaign( $campaign_id, $date_range );
-		$total_open    = $broadcast_repo->calculateOpenRateOnCampaign( $campaign_id, $date_range );
-		$total_click   = $broadcast_repo->calculateClickRateOnCampaign( $campaign_id, $date_range );
+		$total_bounced = $broadcast_repo->countDeliveredStatusOnCampaign( $campaign_id, 'failed', $date_range, '', $email_id );
+		$unsubscribe   = $broadcast_repo->countUnsubscribeOnCampaign( $campaign_id, $date_range, '', $email_id );
+		$total_open    = $broadcast_repo->calculateOpenRateOnCampaign( $campaign_id, $date_range, '', $email_id );
+		$total_click   = $broadcast_repo->calculateClickRateOnCampaign( $campaign_id, $date_range, '', $email_id );
 		$ctor          = $this->calculate_click_to_open_rate( $total_open, $total_click );
-		$revenue       = $this->calculate_campaign_total_revenue( $campaign_id, $date_range );
-		$last_opened   = $broadcast_repo->getLastMetaTimestampOnCampaign( $campaign_id, 'is_open', $date_range );
-		$last_clicked  = $broadcast_repo->getLastMetaTimestampOnCampaign( $campaign_id, 'is_click', $date_range );
+		$revenue       = $this->calculate_campaign_total_revenue( $campaign_id, $date_range, $email_id );
+		$last_opened   = $broadcast_repo->getLastMetaTimestampOnCampaign( $campaign_id, 'is_open', $date_range, $email_id );
+		$last_clicked  = $broadcast_repo->getLastMetaTimestampOnCampaign( $campaign_id, 'is_click', $date_range, $email_id );
 
 		return array(
 			'total_sent'    => $total_sent,
@@ -237,19 +256,34 @@ class CampaignAnalyticsAction implements Action {
 	 *
 	 * @param int        $campaign_id The campaign ID.
 	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by created_at.
+	 * @param int        $email_id    Optional occurrence (campaign email) ID. When > 0, narrows the
+	 *                                count to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return int The total number of emails sent.
 	 *
 	 * @since 1.23.3
 	 */
-	private function calculate_total_email_sent( $campaign_id, ?array $date_range = null ): int {
+	private function calculate_total_email_sent( $campaign_id, ?array $date_range = null, int $email_id = 0 ): int {
 		global $wpdb;
 		$table_name = $wpdb->prefix . 'mint_broadcast_emails';
 
+		// Narrow to a single recurring occurrence when an email_id is given.
+		$occurrence_clause = $email_id > 0 ? ' AND email_id = %d' : '';
+
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
-			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE campaign_id = %d AND created_at BETWEEN %s AND %s", $campaign_id, $date_range['start'], $date_range['end'] ) ); //phpcs:ignore
+			$args = array( $campaign_id );
+			if ( $email_id > 0 ) {
+				$args[] = $email_id;
+			}
+			$args[] = $date_range['start'];
+			$args[] = $date_range['end'];
+			return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE campaign_id = %d{$occurrence_clause} AND created_at BETWEEN %s AND %s", $args ) ); //phpcs:ignore
 		}
 
-		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE campaign_id = %d", $campaign_id ) ); //phpcs:ignore
+		$args = array( $campaign_id );
+		if ( $email_id > 0 ) {
+			$args[] = $email_id;
+		}
+		return (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(id) FROM {$table_name} WHERE campaign_id = %d{$occurrence_clause}", $args ) ); //phpcs:ignore
 	}
 
 	/**
@@ -289,11 +323,13 @@ class CampaignAnalyticsAction implements Action {
 	 *
 	 * @param int        $campaign_id The campaign ID.
 	 * @param array|null $date_range  Optional ['start' => datetime, 'end' => datetime] to restrict by meta created_at.
+	 * @param int        $email_id    Optional occurrence (campaign email) ID. When > 0, narrows the
+	 *                                revenue to a single recurring run; 0 keeps the campaign-wide scope.
 	 * @return string|int The total revenue, or 0 when none.
 	 *
 	 * @since 1.23.3
 	 */
-	private function calculate_campaign_total_revenue( $campaign_id, ?array $date_range = null ) {
+	private function calculate_campaign_total_revenue( $campaign_id, ?array $date_range = null, int $email_id = 0 ) {
 		$broadcast_repo = $this->get_broadcast_repository();
 		if ( null === $broadcast_repo ) {
 			return 0;
@@ -302,10 +338,21 @@ class CampaignAnalyticsAction implements Action {
 		$email_table      = $wpdb->prefix . 'mint_broadcast_emails';
 		$email_meta_table = $wpdb->prefix . 'mint_broadcast_email_meta';
 
+		// Narrow the broadcast subquery to a single recurring occurrence when given.
+		$occurrence_clause = $email_id > 0 ? ' AND email_id = %d' : '';
+
 		if ( ! empty( $date_range['start'] ) && ! empty( $date_range['end'] ) ) {
-			$order_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_value FROM {$email_meta_table} WHERE meta_key = 'order_id' AND created_at BETWEEN %s AND %s AND mint_email_id IN (SELECT id FROM {$email_table} WHERE campaign_id = %d)", $date_range['start'], $date_range['end'], $campaign_id ) ); //phpcs:ignore
+			$args = array( $date_range['start'], $date_range['end'], $campaign_id );
+			if ( $email_id > 0 ) {
+				$args[] = $email_id;
+			}
+			$order_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_value FROM {$email_meta_table} WHERE meta_key = 'order_id' AND created_at BETWEEN %s AND %s AND mint_email_id IN (SELECT id FROM {$email_table} WHERE campaign_id = %d{$occurrence_clause})", $args ) ); //phpcs:ignore
 		} else {
-			$order_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_value FROM {$email_meta_table} WHERE meta_key = 'order_id' AND mint_email_id IN (SELECT id FROM {$email_table} WHERE campaign_id = %d)", $campaign_id ) ); //phpcs:ignore
+			$args = array( $campaign_id );
+			if ( $email_id > 0 ) {
+				$args[] = $email_id;
+			}
+			$order_ids = $wpdb->get_col( $wpdb->prepare( "SELECT meta_value FROM {$email_meta_table} WHERE meta_key = 'order_id' AND mint_email_id IN (SELECT id FROM {$email_table} WHERE campaign_id = %d{$occurrence_clause})", $args ) ); //phpcs:ignore
 		}
 
 		if ( empty( $order_ids ) ) {

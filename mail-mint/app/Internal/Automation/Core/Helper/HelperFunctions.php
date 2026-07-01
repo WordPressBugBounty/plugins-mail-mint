@@ -2607,6 +2607,85 @@ class HelperFunctions { //phpcs:ignore
     }
 
 	/**
+	 * Check if BuddyPress or BuddyBoss is active.
+	 *
+	 * Both BuddyPress and BuddyBoss Platform define BP_REQUIRED_PHP_VERSION and the
+	 * \buddypress() function, so this single check covers both plugins.
+	 *
+	 * @return bool True if BuddyPress/BuddyBoss is active, false otherwise.
+	 * @since 1.20.0
+	 */
+	public static function is_buddypress_active() {
+		return defined( 'BP_REQUIRED_PHP_VERSION' ) && function_exists( '\buddypress' );
+	}
+
+	/**
+	 * Retrieve the display label for the active BuddyPress/BuddyBoss plugin.
+	 *
+	 * BuddyBoss Platform additionally defines BP_PLATFORM_VERSION; use it to brand the
+	 * integration as "BuddyBoss" and fall back to "BuddyPress" otherwise.
+	 *
+	 * @return string The display label, either 'BuddyBoss' or 'BuddyPress'.
+	 * @since 1.20.0
+	 */
+	public static function get_buddypress_label() {
+		return defined( 'BP_PLATFORM_VERSION' ) ? 'BuddyBoss' : 'BuddyPress';
+	}
+
+	/**
+	 * Retrieve a list of BuddyPress/BuddyBoss groups for use in a select field.
+	 *
+	 * @return array|false An array of formatted groups with 'value' and 'label' keys, or false if inactive.
+	 * @since 1.20.0
+	 */
+	public static function get_buddypress_groups() {
+		if ( ! self::is_buddypress_active() || ! class_exists( 'BP_Groups_Group' ) ) {
+			return false;
+		}
+
+		$groups = \BP_Groups_Group::get(
+			array(
+				'per_page' => false,
+				'populate_extras' => false,
+			)
+		);
+
+		$formatted_groups = array();
+		if ( ! empty( $groups['groups'] ) ) {
+			foreach ( $groups['groups'] as $group ) {
+				$formatted_groups[] = array(
+					'value' => strval( $group->id ),
+					'label' => $group->name,
+				);
+			}
+		}
+		return $formatted_groups;
+	}
+
+	/**
+	 * Retrieve a list of BuddyPress/BuddyBoss member types for use in a select field.
+	 *
+	 * @return array|false An array of formatted member types with 'value' and 'label' keys, or false if inactive.
+	 * @since 1.20.0
+	 */
+	public static function get_buddypress_member_types() {
+		if ( ! self::is_buddypress_active() || ! function_exists( 'bp_get_member_types' ) ) {
+			return false;
+		}
+
+		$member_types = bp_get_member_types( array(), 'objects' );
+
+		$formatted_types = array();
+		foreach ( $member_types as $slug => $type ) {
+			$formatted_types[] = array(
+				'value' => strval( $slug ),
+				'label' => isset( $type->labels['name'] ) ? $type->labels['name'] : $slug,
+			);
+		}
+		return $formatted_types;
+	}
+
+	/**
 	 * Check if WooCommerce is active.
 	 *
 	 * @return bool True if WooCommerce is active, false otherwise.
@@ -2891,6 +2970,19 @@ class HelperFunctions { //phpcs:ignore
 	public static function is_bricks_active() {
         return wp_get_theme()->get_template() === 'bricks';
     }
+
+	/**
+	 * Check if Bricksforge is active.
+	 *
+	 * Bricksforge adds its own "Pro Forms" on top of the Bricks builder and defines
+	 * the BRICKSFORGE_VERSION constant on load.
+	 *
+	 * @return bool True if Bricksforge is active, false otherwise.
+	 * @since 1.22.0
+	 */
+	public static function is_bricksforge_active() {
+		return defined( 'BRICKSFORGE_VERSION' );
+	}
 
 	/**
 	 * Check if WPForms is active.

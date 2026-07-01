@@ -301,7 +301,7 @@ class CampaignController extends AdminBaseController {
 			return '';
 		}
 
-		$recipients = isset( $params['recipients'] ) ? maybe_serialize( $params['recipients'] ) : '';
+		$recipients = isset( $params['recipients'] ) ? maybe_serialize( $this->sanitize_recipient_ids( $params['recipients'] ) ) : '';
 		$this->repository()->insertOrUpdateMeta( $campaign_id, 'recipients', $recipients );
 		$this->save_utm_params( $campaign_id, $params );
 		$this->save_archive_setting( $campaign_id, $params );
@@ -322,7 +322,7 @@ class CampaignController extends AdminBaseController {
 	 * @param array      $params      Request parameters.
 	 */
 	private function save_campaign_meta( $campaign_id, array $params ) {
-		$recipients       = isset( $params['recipients'] ) ? maybe_serialize( $params['recipients'] ) : '';
+		$recipients       = isset( $params['recipients'] ) ? maybe_serialize( $this->sanitize_recipient_ids( $params['recipients'] ) ) : '';
 		$total_recipients = isset( $params['totalRecipients'] ) ? $params['totalRecipients'] : '';
 		$status           = $this->campaign_data['status'] ?? '';
 		$type             = $this->campaign_data['type'] ?? '';
@@ -340,6 +340,51 @@ class CampaignController extends AdminBaseController {
 			$recurring_properties = isset( $params['recurringData'] ) ? maybe_serialize( $params['recurringData'] ) : '';
 			$this->repository()->insertOrUpdateMeta( $campaign_id, 'recurring_properties', $recurring_properties );
 		}
+	}
+
+	/**
+	 * Enforce integer ids on campaign recipients before persistence.
+	 *
+	 * Recipient ids (lists, tags, segments and their exclude counterparts) are always
+	 * group/segment integer ids. Casting them to int here — and dropping entries whose id
+	 * is non-numeric — prevents a stored payload such as "1) UNION SELECT ..." from later
+	 * reaching a query as a raw string. This is defense-in-depth; queries that consume these
+	 * ids must still bind them as integers.
+	 *
+	 * @param mixed $recipients Recipients structure from the request.
+	 *
+	 * @return mixed Sanitized recipients (unchanged when not an array).
+	 *
+	 * @since 1.24.2
+	 */
+	private function sanitize_recipient_ids( $recipients ) {
+		if ( ! is_array( $recipients ) ) {
+			return $recipients;
+		}
+
+		$group_keys = array( 'lists', 'tags', 'segments', 'exclude_lists', 'exclude_tags' );
+
+		foreach ( $group_keys as $key ) {
+			if ( empty( $recipients[ $key ] ) || ! is_array( $recipients[ $key ] ) ) {
+				continue;
+			}
+
+			foreach ( $recipients[ $key ] as $index => $entry ) {
+				if ( ! is_array( $entry ) || ! isset( $entry['id'] ) ) {
+					continue;
+				}
+
+				if ( is_numeric( $entry['id'] ) ) {
+					$recipients[ $key ][ $index ]['id'] = (int) $entry['id'];
+				} else {
+					unset( $recipients[ $key ][ $index ] );
+				}
+			}
+
+			$recipients[ $key ] = array_values( $recipients[ $key ] );
+		}
+
+		return $recipients;
 	}
 
 	/**
@@ -978,6 +1023,20 @@ class CampaignController extends AdminBaseController {
 		$campaign['total_recipients'] = $this->repository()->getMeta( $campaign_id, 'total_recipients' );
 		$campaign['unsubscribed_rate'] = $this->calculate_unsubscribe_rate( $campaign );
 
+		// Recurring campaigns also expose a cross-occurrence rollup with rates that
+		// divide by SUM(per-run delivered) — the same scope the opens/clicks
+		// accumulate in — so campaign-level KPIs can't exceed 100% the way the
+		// opens / DISTINCT-recipients math does. The legacy occurrence contributes
+		// its blended numbers as one bucket, keeping the totals correct.
+		if ( CampaignType::RECURRING === $campaign['type'] ) {
+			$rollup = $broadcast_repo->getRecurringCampaignRollup( $campaign_id );
+
+			$rollup['open_rate']  = $rollup['delivered'] > 0 ? round( ( $rollup['opens'] / $rollup['delivered'] ) * 100, 1 ) : 0;
+			$rollup['click_rate'] = $rollup['delivered'] > 0 ? round( ( $rollup['clicks'] / $rollup['delivered'] ) * 100, 1 ) : 0;
+
+			$campaign['recurring_rollup'] = $rollup;
+		}
+
 		return $campaign;
 	}
 
@@ -1240,7 +1299,17 @@ class CampaignController extends AdminBaseController {
 
 		$update = ModelsCampaign::update_campaign_status( $campaign_id, $status );
 
-		if ( CampaignStatus::SUSPENDED === $status || CampaignStatus::DRAFT === $status ) {
+		// Cancel any queued Action Scheduler jobs whenever a campaign leaves an
+		// active/scheduled state. For recurring campaigns this also clears the
+		// recurring schedule group, so "End campaign" (archived) and Pause
+		// actually stop future runs. unschedule_campaign_actions() is idempotent.
+		$unschedule_statuses = array(
+			CampaignStatus::SUSPENDED,
+			CampaignStatus::DRAFT,
+			CampaignStatus::ARCHIVED,
+			CampaignStatus::PAUSED,
+		);
+		if ( in_array( $status, $unschedule_statuses, true ) ) {
 			ModelsCampaign::unschedule_campaign_actions( $campaign_id );
 		}
 
@@ -1248,6 +1317,138 @@ class CampaignController extends AdminBaseController {
 			return $this->get_success_response( __( 'Campaign status has been updated successfully', 'mrm' ), 201 );
 		}
 		return $this->get_error_response( __( 'Failed to update campaign status', 'mrm' ), 400 );
+	}
+
+	/**
+	 * Get the resolved next run time for a recurring campaign.
+	 *
+	 * Replaces the client-side next-run derivation with the authoritative time
+	 * from the Action Scheduler recurring group.
+	 *
+	 * @param WP_REST_Request $request WP_REST_Request.
+	 *
+	 * @return array|WP_REST_Response|\WP_Error
+	 * @since 1.24.0
+	 */
+	public function get_recurring_next_run( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$campaign_id = ! empty( $params['campaign_id'] ) ? (int) $params['campaign_id'] : 0;
+
+		$next_ts = $this->repository()->getRecurringNextRunTimestamp( $campaign_id );
+
+		$data = array(
+			'has_next_run' => null !== $next_ts,
+			'next_run_ts'  => $next_ts,
+			'next_run_gmt' => $next_ts ? gmdate( 'Y-m-d H:i:s', $next_ts ) : null,
+			'timezone'     => wp_timezone_string(),
+		);
+
+		return $this->get_success_response( __( 'Next run resolved.', 'mrm' ), 200, $data );
+	}
+
+	/**
+	 * Get the per-occurrence run history for a recurring campaign.
+	 *
+	 * Returns one entry per occurrence (cloned email step) with its own
+	 * delivered/open/click stats and server-computed rates. Pre-upgrade rows that
+	 * carry no occurrence meta are folded into a single "legacy" entry.
+	 *
+	 * @param WP_REST_Request $request WP_REST_Request.
+	 *
+	 * @return array|WP_REST_Response|\WP_Error
+	 * @since 1.24.0
+	 */
+	public function get_recurring_runs( WP_REST_Request $request ) {
+		$params      = MrmCommon::get_api_params_values( $request );
+		$campaign_id = ! empty( $params['campaign_id'] ) ? (int) $params['campaign_id'] : 0;
+		$page        = max( 1, intval( isset( $params['page'] ) ? $params['page'] : 1 ) );
+		$per_page    = max( 1, intval( isset( $params['per_page'] ) ? $params['per_page'] : 5 ) );
+		$offset      = ( $page - 1 ) * $per_page;
+
+		$broadcast_repo = new \Mint\MRM\Database\Repositories\BroadcastRepository();
+
+		// Real (meta-stamped) occurrences are paged on their own. The legacy bucket
+		// is a SINGLE extra entry that always renders last, so it is counted as one
+		// row on top of the real total and never paged through inline — otherwise a
+		// "before per-run reporting" aggregate could sort into the middle of the
+		// list by date and read as if it were a recent run.
+		$legacy      = $broadcast_repo->getRecurringLegacyBucket( $campaign_id );
+		$has_legacy  = ! empty( $legacy );
+		$total_real  = $broadcast_repo->getRecurringRunHistoryCount( $campaign_id );
+		$total_runs  = $total_real + ( $has_legacy ? 1 : 0 );
+		$total_pages = (int) ceil( $total_runs / max( 1, $per_page ) );
+
+		$rows = $broadcast_repo->getRecurringRunHistory( $campaign_id, $per_page, $offset );
+
+		$runs = array();
+		foreach ( $rows as $row ) {
+			$runs[] = $this->format_recurring_run( $row, false );
+		}
+
+		// Append the legacy bucket only on the last page, so it is pinned to the
+		// very bottom of the full list. The slot is already accounted for in
+		// $total_runs, so the last page always has room for it within $per_page.
+		if ( $has_legacy && $page >= max( 1, $total_pages ) ) {
+			$runs[] = $this->format_recurring_run( $legacy, true );
+		}
+
+		return $this->get_success_response(
+			__( 'Recurring run history retrieved.', 'mrm' ),
+			200,
+			array(
+				'runs'        => $runs,
+				'total_runs'  => $total_runs,
+				'page'        => $page,
+				'per_page'    => $per_page,
+				'total_pages' => $total_pages,
+				'has_more'    => $page < $total_pages,
+			)
+		);
+	}
+
+	/**
+	 * Shape one recurring run-history row for the API response.
+	 *
+	 * Both real occurrences and the collapsed legacy ("Earlier runs") bucket
+	 * arrive as an aggregate row carrying recipients/delivered counts. The
+	 * email-step status is NOT a reliable source — Pro stamps each cloned run as
+	 * SCHEDULED and never flips it — so the run's real status is derived from its
+	 * broadcast progress here. Subject and occurrence meta come pre-joined on the
+	 * row (no per-row lookups). Per-run open/click stats live in the analytics
+	 * report, not this list.
+	 *
+	 * @since 1.24.0
+	 *
+	 * @param array $row       Aggregate row from BroadcastRepository.
+	 * @param bool  $is_legacy Whether this row is the collapsed legacy bucket.
+	 * @return array Run entry for the response.
+	 */
+	private function format_recurring_run( array $row, bool $is_legacy ): array {
+		$email_id   = isset( $row['email_id'] ) ? (int) $row['email_id'] : 0;
+		$delivered  = isset( $row['delivered'] ) ? (int) $row['delivered'] : 0;
+		$recipients = isset( $row['recipients'] ) ? (int) $row['recipients'] : 0;
+
+		if ( $recipients <= 0 ) {
+			$status = 'scheduled';
+		} elseif ( $delivered >= $recipients ) {
+			$status = 'sent';
+		} elseif ( $delivered > 0 ) {
+			$status = 'sending';
+		} else {
+			$status = 'scheduled';
+		}
+
+		$run_scheduled = isset( $row['run_scheduled_at'] ) ? $row['run_scheduled_at'] : '';
+
+		return array(
+			'run_id'       => $email_id,
+			'sequence'     => $is_legacy ? 0 : ( isset( $row['run_sequence'] ) ? (int) $row['run_sequence'] : 0 ),
+			'is_legacy'    => $is_legacy,
+			'subject'      => isset( $row['subject'] ) ? (string) $row['subject'] : '',
+			'status'       => $status,
+			'scheduled_at' => ! empty( $run_scheduled ) ? $run_scheduled : ( isset( $row['scheduled_at'] ) ? $row['scheduled_at'] : null ),
+			'sent_at'      => isset( $row['sent_at'] ) ? $row['sent_at'] : null,
+		);
 	}
 
 	/**
@@ -1924,6 +2125,40 @@ class CampaignController extends AdminBaseController {
 
 		$campaign['scheduled_at'] = MrmCommon::format_campaign_date_time( 'scheduled_at', $campaign );
 		$campaign['updated_at']   = MrmCommon::format_campaign_date_time( 'updated_at', $campaign );
+
+		// Recurring campaigns show a schedule description, next-run time, and broadcast
+		// count in their dedicated list columns instead of recipient/open/click stats.
+		if ( CampaignType::RECURRING === $ctype ) {
+			$campaign = $this->enrich_recurring_list_meta( $cid, $campaign );
+		}
+
+		return $campaign;
+	}
+
+	/**
+	 * Attach recurring-specific list fields used by the recurring campaign list columns.
+	 *
+	 * Adds:
+	 *  - recurring_description: human-readable cadence (e.g. "Broadcasts daily at 00:15").
+	 *  - next_schedule:         site-local timestamp of the next scheduled run, or '' if none.
+	 *  - broadcasts_count:      number of occurrences already sent.
+	 *
+	 * Only invoked for recurring campaigns, so other campaign type lists are unaffected.
+	 *
+	 * @param int   $campaign_id Campaign ID.
+	 * @param array $campaign    Campaign data being enriched.
+	 * @return array Campaign data with recurring list fields.
+	 * @since 1.24.0
+	 */
+	private function enrich_recurring_list_meta( int $campaign_id, array $campaign ): array {
+		$recurring_properties = $this->repository()->getMeta( $campaign_id, 'recurring_properties' );
+		$recurring_properties = ! empty( $recurring_properties ) ? maybe_unserialize( $recurring_properties ) : array();
+
+		$campaign['recurring_description'] = Campaign::prepare_recurring_broadcast_sentence( $recurring_properties );
+		$campaign['broadcasts_count']      = $this->repository()->getRecurringRunCount( $campaign_id );
+
+		$next_ts                   = $this->repository()->getRecurringNextRunTimestamp( $campaign_id );
+		$campaign['next_schedule'] = $next_ts ? wp_date( 'Y-m-d H:i:s', $next_ts ) : '';
 
 		return $campaign;
 	}

@@ -195,6 +195,21 @@ class EmailModel {
 		}
 	}
 
+	/**
+	 * Get a single broadcast email meta value by key.
+	 *
+	 * @param string $key      Meta key.
+	 * @param int    $email_id Broadcast email (mint_broadcast_emails) row id.
+	 *
+	 * @return string|null The stored meta_value, or null when no row exists.
+	 * @since 1.25.1
+	 */
+	public static function get_email_meta_value_by_key( $key, $email_id ) {
+		global $wpdb;
+		$table_name = $wpdb->prefix . EmailMetaSchema::$table_name;
+		return $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM $table_name WHERE mint_email_id = %d AND meta_key = %s", array( $email_id, $key ) ) ); //phpcs:ignore
+	}
+
 
 	/**
 	 * SQL query only to insert broadcast email meta
