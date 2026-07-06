@@ -15,7 +15,7 @@ namespace Mint\MRM\Utilites\Helper;
 use DOMDocument;
 use MailMint\App\Helper;
 use Mint\MRM\DataBase\Models\CampaignModel;
-use Mint\MRM\DataBase\Models\MessageModel;
+use Mint\MRM\DataBase\Models\EmailModel;
 use Mint\MRM\DataBase\Tables\CampaignSchema;
 use Mint\MRM\DataBase\Tables\EmailSchema;
 
@@ -228,7 +228,7 @@ class Campaign {
 			return;
 		}
 
-		$existing = MessageModel::get_email_meta_value_by_key( 'clicked_urls', $broadcast_email_id );
+		$existing = EmailModel::get_email_meta_value_by_key( 'clicked_urls', $broadcast_email_id );
 		$urls     = $existing ? maybe_unserialize( $existing ) : array();
 		if ( ! is_array( $urls ) ) {
 			$urls = array();
@@ -244,7 +244,7 @@ class Campaign {
 			);
 		}
 
-		MessageModel::insert_or_update_email_meta( 'clicked_urls', maybe_serialize( $urls ), $broadcast_email_id );
+		EmailModel::insert_or_update_email_meta( 'clicked_urls', maybe_serialize( $urls ), $broadcast_email_id );
 	}
 
 	/**

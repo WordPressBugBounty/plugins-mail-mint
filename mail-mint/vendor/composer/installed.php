@@ -3,7 +3,7 @@
         'name' => 'coderex/code-rex-crm',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => 'ccdaba52a5118b347d76a78d66d130362132813b',
+        'reference' => 'a2038854c93860c1f5d512f845e650b6015312e9',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'coderex/code-rex-crm' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => 'ccdaba52a5118b347d76a78d66d130362132813b',
+            'reference' => 'a2038854c93860c1f5d512f845e650b6015312e9',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
