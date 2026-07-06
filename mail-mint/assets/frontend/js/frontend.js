@@ -2,29 +2,39 @@ jQuery(document).ready(function ($) {
     /**
      * Inline Validation System
      */
+    function initFormValidation($form) {
+        // Idempotent — safe to call again for forms injected after page load.
+        if ($form.data('mrmValidationInit')) {
+            return;
+        }
+        $form.data('mrmValidationInit', true);
+
+        $form.find('[required]').each(function() {
+            var $field = $(this);
+            var $formGroup = $field.closest('.mrm-form-group, .mrm-input-group');
+
+            // Add error message container if not exists
+            if ($formGroup.length && !$formGroup.find('.mrm-validation-error').length) {
+                $formGroup.append('<span class="mrm-validation-error">This field is required</span>');
+            }
+
+            // Override browser default validation tooltip
+            $field.on('invalid', function(e) {
+                e.preventDefault();
+                showFieldError($field);
+            });
+
+            // Clear error on input
+            $field.on('input change', function() {
+                clearFieldError($field);
+            });
+        });
+    }
+
     function initInlineValidation() {
         // Add validation error container after each required field
         $('.mrm-form-wrapper-inner form').each(function() {
-            $(this).find('[required]').each(function() {
-                var $field = $(this);
-                var $formGroup = $field.closest('.mrm-form-group, .mrm-input-group');
-                
-                // Add error message container if not exists
-                if ($formGroup.length && !$formGroup.find('.mrm-validation-error').length) {
-                    $formGroup.append('<span class="mrm-validation-error">This field is required</span>');
-                }
-                
-                // Override browser default validation tooltip
-                $field.on('invalid', function(e) {
-                    e.preventDefault();
-                    showFieldError($field);
-                });
-                
-                // Clear error on input
-                $field.on('input change', function() {
-                    clearFieldError($field);
-                });
-            });
+            initFormValidation($(this));
         });
     }
 
@@ -90,10 +100,13 @@ jQuery(document).ready(function ($) {
      * Shortcode form submission ajax
      */
 
-    $(".mrm-form-wrapper-inner form").on("submit",function (e){
+    // Delegated so forms injected after page load (page builders, popups,
+    // AJAX-rendered sections) are still handled.
+    $(document).on("submit", ".mrm-form-wrapper-inner form", function (e){
         e.preventDefault();
-        
+
         // Run inline validation first
+        initFormValidation($(this));
         if (!validateForm($(this))) {
             return false;
         }

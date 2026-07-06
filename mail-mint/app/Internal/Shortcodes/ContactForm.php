@@ -12,6 +12,7 @@
 namespace Mint\MRM\Internal\ShortCode;
 
 use Mint\MRM\DataBase\Models\FormModel;
+use Mint\MRM\Internal\Admin\FrontendAssets;
 use MRM\Common\MrmCommon;
 
 /**
@@ -120,6 +121,14 @@ class ContactForm {
 		} elseif ( 'draft' === $form_status ) {
 			return __( '<div>This form is not active. Please check</div>', 'mrm' ); //phpcs:ignore
 		}
+
+		// Enqueue at render time so forms placed via page builders, templates, or
+		// widgets get their submit-handler JS even when the shortcode/block is not
+		// stored in the post content that current_page_has_form() inspects.
+		if ( ! is_admin() ) {
+			FrontendAssets::enqueue_form_assets();
+		}
+
 		$get_setting    = FormModel::get_meta( $form_id );
 		$form_setting   = isset( $get_setting[ 'meta_fields' ][ 'settings' ] ) ? $get_setting[ 'meta_fields' ][ 'settings' ] : (object) array();
 		$form_setting   = json_decode( $form_setting );

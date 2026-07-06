@@ -49,38 +49,64 @@ class FrontendAssets {
 			return;
 		}
 
-		$recaptcha_default    = MrmCommon::recaptcha_default_configuration();
-		$recaptcha_raw        = get_option( '_mint_recaptcha_settings', $recaptcha_default );
-		$recaptcha_public     = array(
-			'enable'       => isset( $recaptcha_raw['enable'] ) ? $recaptcha_raw['enable'] : false,
-			'api_version'  => isset( $recaptcha_raw['api_version'] ) ? $recaptcha_raw['api_version'] : 'v2_visible',
-			'v2_visible'   => array(
-				'site_key' => isset( $recaptcha_raw['v2_visible']['site_key'] ) ? $recaptcha_raw['v2_visible']['site_key'] : '',
-			),
-			'v3_invisible' => array(
-				'site_key' => isset( $recaptcha_raw['v3_invisible']['site_key'] ) ? $recaptcha_raw['v3_invisible']['site_key'] : '',
-			),
-		);
-		wp_enqueue_script(
-			MRM_PLUGIN_NAME,
-			MRM_DIR_URL . 'assets/frontend/js/frontend.js',
-			array( 'jquery' ),
-			MRM_VERSION,
-			true
-		);
-		wp_localize_script(
-			MRM_PLUGIN_NAME,
-			'MRM_Frontend_Vars',
-			array(
-				'ajaxurl'            => admin_url( 'admin-ajax.php' ),
-				// This is a nonce created for front-end form submissions.
-				// This is used in the following file: /assets/frontend/js/frontend.js.
-				'nonce'              => wp_create_nonce( 'wp_rest' ),
-				'rest_api_url'       => get_rest_url(),
-				'form_cookies_time'  => apply_filters( 'mailmint_set_form_cookies_time', $this->set_dissmiss_time() ),
-				'recaptcha_settings' => $recaptcha_public,
+		self::enqueue_form_assets();
+	}
 
-			)
+
+	/**
+	 * Register and enqueue the frontend form script, its localized data, and stylesheet.
+	 *
+	 * Called from the `wp_enqueue_scripts` hook when `current_page_has_form()` detects a
+	 * form, and directly from form render callbacks (shortcode, block, global placement).
+	 * The render-time call covers forms placed via page builders, templates, and widgets
+	 * whose markup is not stored in `$post->post_content` — assets enqueued mid-render are
+	 * printed in the footer.
+	 *
+	 * @since 1.24.3
+	 */
+	public static function enqueue_form_assets() {
+		if ( ! wp_script_is( MRM_PLUGIN_NAME, 'registered' ) ) {
+			$recaptcha_default = MrmCommon::recaptcha_default_configuration();
+			$recaptcha_raw     = get_option( '_mint_recaptcha_settings', $recaptcha_default );
+			$recaptcha_public  = array(
+				'enable'       => isset( $recaptcha_raw['enable'] ) ? $recaptcha_raw['enable'] : false,
+				'api_version'  => isset( $recaptcha_raw['api_version'] ) ? $recaptcha_raw['api_version'] : 'v2_visible',
+				'v2_visible'   => array(
+					'site_key' => isset( $recaptcha_raw['v2_visible']['site_key'] ) ? $recaptcha_raw['v2_visible']['site_key'] : '',
+				),
+				'v3_invisible' => array(
+					'site_key' => isset( $recaptcha_raw['v3_invisible']['site_key'] ) ? $recaptcha_raw['v3_invisible']['site_key'] : '',
+				),
+			);
+			wp_register_script(
+				MRM_PLUGIN_NAME,
+				MRM_DIR_URL . 'assets/frontend/js/frontend.js',
+				array( 'jquery' ),
+				MRM_VERSION,
+				true
+			);
+			wp_localize_script(
+				MRM_PLUGIN_NAME,
+				'MRM_Frontend_Vars',
+				array(
+					'ajaxurl'            => admin_url( 'admin-ajax.php' ),
+					// This is a nonce created for front-end form submissions.
+					// This is used in the following file: /assets/frontend/js/frontend.js.
+					'nonce'              => wp_create_nonce( 'wp_rest' ),
+					'rest_api_url'       => get_rest_url(),
+					'form_cookies_time'  => apply_filters( 'mailmint_set_form_cookies_time', self::set_dissmiss_time() ),
+					'recaptcha_settings' => $recaptcha_public,
+
+				)
+			);
+		}
+
+		wp_enqueue_script( MRM_PLUGIN_NAME );
+		wp_enqueue_style(
+			MRM_PLUGIN_NAME . '-select2',
+			MRM_DIR_URL . 'assets/frontend/css/frontend.css',
+			array(),
+			MRM_VERSION
 		);
 	}
 
@@ -90,7 +116,7 @@ class FrontendAssets {
 	 * @return false|mixed|void
 	 * @since 1.0.0
 	 */
-	public function set_dissmiss_time() {
+	public static function set_dissmiss_time() {
 		return get_option( '_mailmint_form_dismissed', 7 );
 	}
 
@@ -107,12 +133,7 @@ class FrontendAssets {
 			return;
 		}
 
-		wp_enqueue_style(
-			MRM_PLUGIN_NAME . '-select2',
-			MRM_DIR_URL . 'assets/frontend/css/frontend.css',
-			array(),
-			MRM_VERSION
-		);
+		self::enqueue_form_assets();
 	}
 
 

@@ -1046,7 +1046,7 @@ class ContactController extends AdminBaseController {
         $params = filter_var_array( $params );
 
         // Extract contact IDs and status from the filtered parameters.
-        $contact_ids = isset( $params['contact_ids'] ) ? $params['contact_ids'] : array();
+        $contact_ids = isset( $params['contact_ids'] ) ? array_filter( array_map( 'absint', (array) $params['contact_ids'] ) ) : array();
         $status      = isset( $params['status'] ) ? $params['status'] : 'pending';
 
         // Check if contact IDs are empty.

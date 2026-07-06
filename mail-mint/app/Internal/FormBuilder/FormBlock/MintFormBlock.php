@@ -10,6 +10,7 @@
 namespace Mint\App\Internal\FormBuilder;
 
 use Mint\MRM\DataBase\Models\FormModel;
+use Mint\MRM\Internal\Admin\FrontendAssets;
 use Mint\Mrm\Internal\Traits\Singleton;
 use MRM\Common\MrmCommon;
 
@@ -180,6 +181,14 @@ class MintFormBlock {
 		} elseif ( 'draft' === $form_status ) {
 			return __( '<div>This form is not active. Please check</div>', 'mrm' ); //phpcs:ignore
 		}
+
+		// Enqueue at render time so the block also gets its submit-handler JS when
+		// rendered from a template, pattern, or widget area outside the post content
+		// that current_page_has_form() inspects.
+		if ( ! is_admin() ) {
+			FrontendAssets::enqueue_form_assets();
+		}
+
 		$show = true;
 
 		$show_always = isset( $form_setting->settings->extras->show_always ) ? $form_setting->settings->extras->show_always : true;

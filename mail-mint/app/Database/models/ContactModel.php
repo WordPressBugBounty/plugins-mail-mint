@@ -1154,9 +1154,15 @@ class ContactModel {
 		global $wpdb;
 		$contacts_table = $wpdb->prefix . ContactSchema::$table_name;
 
-		// Convert the IDs array into a comma-separated string.
-		$ids_str      = implode( ',', $contact_ids );
-		$update_query = $wpdb->prepare( "UPDATE {$contacts_table} SET status = %s WHERE id IN ($ids_str)", $status ); //phpcs:ignore
+		// Sanitize the IDs to integers to prevent SQL injection.
+		$contact_ids = array_filter( array_map( 'absint', (array) $contact_ids ) );
+		if ( empty( $contact_ids ) ) {
+			return false;
+		}
+
+		// Build a placeholder list and bind every value through prepare().
+		$ids_placeholder = implode( ',', array_fill( 0, count( $contact_ids ), '%d' ) );
+		$update_query    = $wpdb->prepare( "UPDATE {$contacts_table} SET status = %s WHERE id IN ($ids_placeholder)", array_merge( array( $status ), $contact_ids ) ); //phpcs:ignore
 		return $wpdb->query( $update_query ); //phpcs:ignore
 	}
 

@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, newsletter, email, 
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.24.2
+Stable tag:  1.24.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -574,6 +574,10 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.24.3 (2026-07-06) =
+* Security: SQL injection vulnerability in the contact status change action.
+* Bugfix: Form submission not working correctly when forms are rendered through page builders.
 
 = 1.24.2 (2026-06-30) =
 * New: Import BuddyBoss members directly as contacts in Mail Mint.
