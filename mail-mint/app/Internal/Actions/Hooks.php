@@ -18,6 +18,7 @@ use MailMint\App\Helper;
 use MailMint\App\Actions\Handlers\FormSubmissionHandler;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\Utilities\Helper\PermissionManager;
+use Mint\MRM\Utilities\Helper\WPMLHelper;
 use MintMail\App\Internal\Automation\AutomationLogModel;
 use MRM\Common\MrmCommon;
 
@@ -312,8 +313,13 @@ class Hooks {
 			// Get mail mint email id from hash.
 			$hash     = !empty( $cookie['mail_mint_link_trigger'] ) ? $cookie['mail_mint_link_trigger'] : '';
 			$email_id = EmailModel::get_broadcast_email_by_hash( $hash );
-			// Insert email meta table to track order.
-			EmailModel::insert_email_meta( 'order_id', $order_id, $email_id );
+			// Only record the meta when the hash resolves to a valid broadcast email. A campaign
+			// deleted between click and purchase yields a null id, which would otherwise fail the
+			// INSERT against the NOT NULL mint_email_id column.
+			if ( ! empty( $email_id ) ) {
+				// Insert email meta table to track order.
+				EmailModel::insert_email_meta( 'order_id', $order_id, $email_id );
+			}
 
 			// Delete on unset cookie.
 			setcookie( 'mail_mint_link_trigger', '', time() -3600 );
@@ -930,9 +936,10 @@ class Hooks {
 			foreach ($items as $item) {
 				$product = $item->get_product();
 				if ($product) {
-					$existing_products[] = $product->get_id();
-					$product_cats  = wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'ids'));
-					$product_tags  = wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'ids'));
+					// Normalize WPML-translated IDs to their default-language canonical IDs (no-op without WPML).
+					$existing_products[] = WPMLHelper::default_lang_post_id($product->get_id(), 'product');
+					$product_cats  = WPMLHelper::default_lang_term_ids(wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'ids')), 'product_cat');
+					$product_tags  = WPMLHelper::default_lang_term_ids(wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'ids')), 'product_tag');
 					$existing_cats = array_merge($existing_cats, $product_cats);
 					$existing_tags = array_merge($existing_tags, $product_tags);
 				}
@@ -979,9 +986,10 @@ class Hooks {
 			foreach ($items as $item) {
 				$product = $item->get_product();
 				if ($product) {
-					$purchased_products[]    = $product->get_id();
-					$product_cats            = wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'ids'));
-					$product_tags            = wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'ids'));
+					// Normalize WPML-translated IDs to their default-language canonical IDs (no-op without WPML).
+					$purchased_products[]    = WPMLHelper::default_lang_post_id($product->get_id(), 'product');
+					$product_cats            = WPMLHelper::default_lang_term_ids(wp_get_post_terms($product->get_id(), 'product_cat', array('fields' => 'ids')), 'product_cat');
+					$product_tags            = WPMLHelper::default_lang_term_ids(wp_get_post_terms($product->get_id(), 'product_tag', array('fields' => 'ids')), 'product_tag');
 					$purchased_products_cats = array_merge($purchased_products_cats, $product_cats);
 					$purchased_products_tags = array_merge($purchased_products_tags, $product_tags);
 				}
@@ -1142,3 +1150,16 @@ class Hooks {
 		return $uris;
 	}
 }
+
+// MCP boot guard — registers abilities for the WordPress Abilities API.
+// Guard: wp_register_ability only exists when the Abilities API is available
+// (bundled adapter polyfill or WP 6.9+ core). Opt-out via _mrm_mcp_enabled option.
+add_action( 'init', function () {
+	if ( ! function_exists( 'wp_register_ability' ) ) {
+		return;
+	}
+	if ( get_option( '_mrm_mcp_enabled', 'yes' ) !== 'yes' ) {
+		return;
+	}
+	( new \Mint\MRM\Internal\MCP\MCPInit() )->init();
+}, 5 );

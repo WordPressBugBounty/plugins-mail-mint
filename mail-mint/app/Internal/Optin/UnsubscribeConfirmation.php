@@ -30,6 +30,35 @@ class UnsubscribeConfirmation {
 		add_action( 'init', array( $this, 'unsubscribe_confirmation_page' ), 9999 );
 		add_action( 'init', array( $this, 'unsubscribe_confirmation' ), 9999 );
 		add_action( 'init', array( $this, 'resubscribe_confirmation_page' ), 9999 );
+		add_action( 'template_redirect', array( $this, 'disable_cache_for_survey_pages' ) );
+	}
+
+	/**
+	 * Prevents full-page cache plugins (WP Rocket, LiteSpeed, etc.) from caching the
+	 * per-recipient unsubscribe confirmation / survey pages.
+	 *
+	 * These pages render a contact-specific `hash` straight into the HTML, so a cached
+	 * copy served to a different visitor (or served stale after a status change) would
+	 * carry someone else's or an outdated hash, causing survey submissions to fail with
+	 * "This action is not allowed."
+	 *
+	 * @return void
+	 * @since 1.24.5
+	 */
+	public function disable_cache_for_survey_pages() {
+		$page_ids = array(
+			MrmCommon::get_page_id_by_slug( 'unsubscribe_confirmation' ),
+			MrmCommon::get_page_id_by_slug( 'unsubscribe_survey' ),
+		);
+
+		if ( ! is_page( array_filter( $page_ids ) ) ) {
+			return;
+		}
+
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			define( 'DONOTCACHEPAGE', true );
+		}
+		nocache_headers();
 	}
 
 	/**
@@ -54,6 +83,8 @@ class UnsubscribeConfirmation {
 		if ( !isset( $get['mrm'] ) || !isset( $get['route'] ) || 'unsubscribe' !== $get['route'] ) {
 			return;
 		}
+
+		nocache_headers();
 
 		// Retrieve the hash from the URL.
 		$hash = isset( $get[ 'hash' ] ) ? $get[ 'hash' ] : '';
@@ -84,7 +115,16 @@ class UnsubscribeConfirmation {
 			$contact_hash = $contact;
 		}
 
-		$contact_id = isset($contact_hash['contact_id']) ? $contact_hash['contact_id'] : $contact_hash['id'];
+		// Safely derive the contact id; a hash that resolves to no contact (stale link, deleted
+		// contact, legacy hash format) leaves $contact_hash null, so guard both offsets.
+		$contact_id = isset( $contact_hash['contact_id'] )
+			? $contact_hash['contact_id']
+			: ( isset( $contact_hash['id'] ) ? $contact_hash['id'] : 0 );
+
+		// Nothing to unsubscribe when the hash does not resolve to a contact.
+		if ( empty( $contact_id ) ) {
+			exit( wp_redirect( home_url() ) ); //phpcs:ignore
+		}
 
 		// Get compliance and unsubscribe settings.
 		$compliance = get_option('_mint_compliance');
@@ -145,7 +185,13 @@ class UnsubscribeConfirmation {
 
 			// update the contact's subscription status.
 			ContactModel::update_subscription_status( $contact_id, 'unsubscribed' );
-			EmailModel::insert_or_update_email_meta( 'is_unsubscribe', 1, $broadcast_email_id );
+
+			// Only record the unsubscribe meta when the hash resolves to a valid broadcast email.
+			// Stale links, deleted campaigns, or legacy hash formats can yield a null id, which would
+			// otherwise fail the INSERT against the NOT NULL mint_email_id column.
+			if ( ! empty( $broadcast_email_id ) ) {
+				EmailModel::insert_or_update_email_meta( 'is_unsubscribe', 1, $broadcast_email_id );
+			}
 
 			// Redirect to unsubscribe survey page when the survey is enabled.
 			$unsubscriber_settings = get_option( '_mrm_general_unsubscriber_settings', array() );
@@ -191,6 +237,8 @@ class UnsubscribeConfirmation {
 		if ( ! isset( $get['mrm'] ) || ! isset( $get['route'] ) || 'resubscribe' !== $get['route'] ) {
 			return;
 		}
+
+		nocache_headers();
 
 		$unsubscriber_settings = get_option( '_mrm_general_unsubscriber_settings', array() );
 		if ( 'no' === ( isset( $unsubscriber_settings['unsubscribe_allow_resubscription'] ) ? $unsubscriber_settings['unsubscribe_allow_resubscription'] : 'yes' ) ) {
@@ -243,6 +291,8 @@ class UnsubscribeConfirmation {
 
 		// check if the correct route is accessed.
 		if ( isset( $get[ 'mrm' ] ) && isset( $get[ 'route' ] ) && 'unsubscribe-confirmation' === $get[ 'route' ] ) {
+			nocache_headers();
+
 			// get the contact's unique hash.
 			$hash = isset( $get[ 'hash' ] ) ? $get[ 'hash' ] : '';
 

@@ -64,7 +64,15 @@ class AutomationController extends AdminBaseController {
 		unset( $params['showAnalyticsStat'] );
 		$automation_id = AutomationModel::get_instance()->create_or_update( $params );
 		if ( $automation_id ) {
-			HelperFunctions::update_automation_meta( $automation_id, 'source', 'mint' );
+			// Only stamp the source when the automation does not already have one.
+			// Integrations that store automations in these tables mark ownership with
+			// their own source (WPFunnels uses 'wpf') and list their automations by
+			// filtering on it, so overwriting it here would hide the automation from
+			// the integration that created it.
+			$existing_source = HelperFunctions::get_automation_meta( $automation_id, 'source' );
+			if ( empty( $existing_source ) ) {
+				HelperFunctions::update_automation_meta( $automation_id, 'source', 'mint' );
+			}
 			HelperFunctions::update_automation_meta( $automation_id, 'enable_stats', $stat );
 
 			HelperFunctions::update_automation_meta( $automation_id, '_at_most_date', maybe_serialize( $get_at_most_date ) );

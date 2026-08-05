@@ -69,7 +69,7 @@ class Helper {
 				'tmode'  => $tracking_mode,
 			);
 
-			$generated_url = add_query_arg( $args, site_url() );
+			$generated_url = add_query_arg( $args, MrmCommon::get_site_url_with_configured_scheme() );
 
 			// Append the extracted hash to the 'hash' query parameter.
 			if ( !empty( $hash ) ) {
@@ -394,7 +394,7 @@ class Helper {
 		$data            = str_replace( '{{business.address}}', $address, $data );
 		$data            = str_replace( '{{business.logo_url}}', $image, $data );
 		$data            = str_replace( '{{business.phone}}', $phone, $data );
-		$data            = str_replace( '{{site.url}}', site_url(), $data );
+		$data            = str_replace( '{{site.url}}', MrmCommon::get_site_url_with_configured_scheme(), $data );
 		$data            = str_replace( '{{site.title}}', get_bloginfo(), $data );
 		return $data;
 	}
@@ -646,8 +646,8 @@ class Helper {
 			$data = str_replace( '<div><br></div><div style="text-align: center;"><span style="font-size: 10px; font-weight: 400;">{{business.phone}}</span></div>', '', $data );
 		}
 
-		$data = self::replace_pipe_data( 'site.url', $data, site_url() );
-		$data = str_replace( '{{site.url}}', site_url(), $data );
+		$data = self::replace_pipe_data( 'site.url', $data, MrmCommon::get_site_url_with_configured_scheme() );
+		$data = str_replace( '{{site.url}}', MrmCommon::get_site_url_with_configured_scheme(), $data );
 
 		$data = self::replace_pipe_data( 'site.title', $data, get_bloginfo() );
 		$data = str_replace( '{{site.title}}', get_bloginfo(), $data );
@@ -699,7 +699,7 @@ class Helper {
 				'route' => 'unsubscribe',
 				'hash'  => $hash,
 			),
-			site_url()
+			MrmCommon::get_site_url_with_configured_scheme()
 		);
 	}
 
@@ -716,7 +716,7 @@ class Helper {
 				'route' => 'email_preview',
 				'hash'  => $hash,
 			),
-			site_url()
+			MrmCommon::get_site_url_with_configured_scheme()
 		);
 	}
 

@@ -103,7 +103,7 @@ class HomeScreen {
 			__( 'Campaigns', 'mrm' ),
 			__( 'Campaigns', 'mrm' ),
 			($is_admin) ? $dashboard_permission : 'mint_read_campaigns',
-			'mrm-admin#/campaigns/regular',
+			'mrm-admin#/campaigns',
 			array($this, 'load_wrapper')
 		);
 		add_submenu_page(
@@ -208,19 +208,18 @@ class HomeScreen {
 				'load_wrapper',
 			)
 		);
-		if (!defined('MAILMINT_PRO')) {
-			add_submenu_page(
-				self::MENU_SLUG,
-				__( 'Free vs Pro', 'mrm' ),
-				__( 'Free vs Pro', 'mrm' ),
-				($is_admin) ? $dashboard_permission : 'mint_manage_settings',
-				'mrm-admin#/free-vs-pro/',
-				array(
-					$this,
-					'load_wrapper',
-				)
-			);
-		}
+
+		add_submenu_page(
+			self::MENU_SLUG,
+			__( 'AI Assistant', 'mrm' ),
+			__( 'AI Assistant', 'mrm' ),
+			$dashboard_permission,
+			'mrm-admin#/ai-assistant',
+			array(
+				$this,
+				'load_wrapper',
+			)
+		);
 	}
 
 	public function mint_delete_promotional_banner( $payload ){

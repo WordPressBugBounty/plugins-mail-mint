@@ -105,6 +105,10 @@ class DatabaseMigrator {
 			'1.16.2' => array(
 				'add_unique_key_to_contact_meta',
 			),
+			'1.17.0' => array(
+				'mm_update_1170_create_ai_tables',
+				'add_position_to_custom_fields',
+			),
 			'1.16.4' => array(
 				'maybe_create_unsubscribe_survey_page',
 			),
@@ -777,6 +781,24 @@ class DatabaseMigrator {
 	 * @return void
 	 * @since 1.16.2
 	 */
+	/**
+	 * Create the AI copilot conversation tables (v1.17.0).
+	 *
+	 * Uses the same schema classes as fresh installs, so dbDelta stays the
+	 * single source of truth for the table structure.
+	 *
+	 * @return void
+	 * @since 1.17.0
+	 */
+	private function mm_update_1170_create_ai_tables() {
+		global $wpdb;
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+		$charset_collate = $wpdb->get_charset_collate();
+		dbDelta( ( new \Mint\MRM\DataBase\Tables\AIConversationSchema() )->get_sql() . $charset_collate );
+		dbDelta( ( new \Mint\MRM\DataBase\Tables\AIMessageSchema() )->get_sql() . $charset_collate );
+		update_option( '_mrm_ai_tables_ready', 'yes', false );
+	}
+
 	private function add_unique_key_to_contact_meta() {
 		global $wpdb;
 		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\ContactMetaSchema::$table_name;
@@ -795,6 +817,35 @@ class DatabaseMigrator {
 
 		if ( ! $key_exists ) {
 			$wpdb->query( "ALTER TABLE {$table} ADD UNIQUE KEY `unique_contact_meta` (`contact_id`, `meta_key`(191))" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+	}
+
+	/**
+	 * Add the position column to the custom fields table.
+	 *
+	 * Backs application-side field ordering.
+	 *
+	 * @return void
+	 * @since 1.17.0
+	 */
+	private function add_position_to_custom_fields() {
+		global $wpdb;
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\CustomFieldSchema::$table_name;
+
+		$column_exists = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				 FROM information_schema.columns
+				 WHERE table_schema = %s
+				   AND table_name   = %s
+				   AND column_name  = 'position'",
+				DB_NAME,
+				$table
+			)
+		);
+
+		if ( ! $column_exists ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN `position` INT UNSIGNED NOT NULL DEFAULT 0" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 	}
 

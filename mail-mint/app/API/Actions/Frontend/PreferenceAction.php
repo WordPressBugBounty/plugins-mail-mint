@@ -16,6 +16,7 @@ use Mint\MRM\API\Actions\Action;
 use Mint\MRM\DataBase\Models\ContactGroupModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Models\ContactGroupPivotModel;
+use Mint\MRM\DataBase\Models\CustomFieldModel;
 use Mint\MRM\DataBase\Models\EmailModel;
 
 
@@ -43,7 +44,9 @@ class PreferenceAction implements Action {
         $get_param_data = wp_unslash( $params['post_data'] ); //phpcs:ignore
 		parse_str( $get_param_data, $post_data );
 
-		$pref_data = array();
+		$pref_data   = array();
+		$meta_fields = array();
+		$custom_field_slugs = array_column( CustomFieldModel::get_all( 0, 200 )['data'], 'slug' );
 
 		if ( !empty( $post_data ) ) {
 			foreach ( $post_data as $key => $value ) {
@@ -52,6 +55,13 @@ class PreferenceAction implements Action {
 					case 'first_name':
 					case 'status':
 						$pref_data[ $key ] = sanitize_text_field( $value );
+						break;
+					default:
+						if ( in_array( $key, $custom_field_slugs, true ) ) {
+							$meta_fields[ $key ] = is_array( $value )
+								? array_map( 'sanitize_text_field', $value )
+								: sanitize_textarea_field( $value );
+						}
 						break;
 				}
 			}
@@ -107,6 +117,9 @@ class PreferenceAction implements Action {
 
 			$update_contact = ContactModel::update( $pref_data, $contact_id );
 			if ( $update_contact ) {
+				if ( ! empty( $meta_fields ) ) {
+					ContactModel::update_meta_fields( $contact_id, array( 'meta_fields' => $meta_fields ) );
+				}
 				$pivot_res = empty( $list_ids ) || ContactGroupModel::set_tags_to_contact( $list_ids, $contact_id );
 				if ( $pivot_res ) {
 					$response = array(

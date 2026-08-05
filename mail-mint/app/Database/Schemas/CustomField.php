@@ -50,6 +50,7 @@ class CustomFieldSchema implements Schema {
                 `group_id` BIGINT(20) DEFAULT 1,
                 `type` VARCHAR(192) NOT NULL COMMENT 'text-input, text-number, text-area, dropdown, radio-button, checkbox date',
                 `meta` TEXT NOT NULL,
+                `position` INT UNSIGNED NOT NULL DEFAULT 0,
                 `created_at` TIMESTAMP,
                 `updated_at` TIMESTAMP
             ) ";

@@ -54,6 +54,14 @@ class CustomFieldData {
 	private $meta;
 
 	/**
+	 * Sort position of the field.
+	 *
+	 * @var int
+	 * @since 1.24.5
+	 */
+	private $position;
+
+	/**
 	 * Initialize class functionalities
 	 *
 	 * @param array $args Custom field data.
@@ -61,10 +69,11 @@ class CustomFieldData {
 	 * @since 1.0.0
 	 */
 	public function __construct( $args ) {
-		$this->title = $args[ 'title' ];
-		$this->slug  = $args[ 'slug' ];
-		$this->type  = $args[ 'type' ];
-		$this->meta  = $args[ 'meta' ];
+		$this->title         = $args[ 'title' ];
+		$this->slug          = $args[ 'slug' ];
+		$this->type          = $args[ 'type' ];
+		$this->meta          = $args[ 'meta' ];
+		$this->position      = isset( $args[ 'position' ] ) ? (int) $args[ 'position' ] : 0;
 	}
 
 
@@ -113,6 +122,16 @@ class CustomFieldData {
 		}
 
 		return $this->meta;
+	}
+
+	/**
+	 * Return the sort position.
+	 *
+	 * @return int
+	 * @since 1.24.5
+	 */
+	public function get_position() {
+		return $this->position;
 	}
 
 }

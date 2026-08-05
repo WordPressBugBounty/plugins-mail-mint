@@ -412,7 +412,12 @@ class CampaignModel {
 		$filter_terms      = array();
 		$allowed_filter_by = array( 'type', 'status' );
 		if ( ! empty( $filter ) && 'all' !== $filter && in_array( $filter_type, $allowed_filter_by, true ) ) {
-			$filter_terms[] = $wpdb->prepare( "`{$filter_type}` = %s", $filter );
+			// When filtering by type=regular, include split test campaigns on the same listing page.
+			if ( 'type' === $filter_type && 'regular' === $filter ) {
+				$filter_terms[] = $wpdb->prepare( "`type` IN (%s, %s)", 'regular', 'split' );
+			} else {
+				$filter_terms[] = $wpdb->prepare( "`{$filter_type}` = %s", $filter );
+			}
 		}
 
 		// Prepare status filter terms for query.
@@ -1125,7 +1130,7 @@ class CampaignModel {
 		$data        = Helper::replace_placeholder_business_setting( $data, $hash );
 
 		// Replace subscribe link.
-		$subscribe_url = site_url( '?mrm=1&route=confirmation&hash=' . $hash );
+		$subscribe_url = MrmCommon::get_site_url_with_configured_scheme( '?mrm=1&route=confirmation&hash=' . $hash );
 
 		$data = str_replace( '{{subscribe_link}}', $subscribe_url, $data );
 		$data = str_replace( '{{link.subscribe}}', $subscribe_url, $data );

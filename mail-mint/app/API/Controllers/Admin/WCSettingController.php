@@ -13,6 +13,8 @@
 namespace Mint\MRM\Admin\API\Controllers;
 
 use Mint\MRM\DataBase\Tables\ContactGroupSchema;
+use Mint\MRM\Internal\Frontend\WooCommerceCheckoutContact;
+use Mint\MRM\Utilities\Helper\WPMLHelper;
 use MRM\Common\MrmCommon;
 use WP_REST_Request;
 
@@ -66,6 +68,11 @@ class WCSettingController extends SettingBaseController {
 						400
 					);
 				}
+			}
+
+			// Register the opt-in checkbox label with WPML String Translation so it is translatable per language (no-op without WPML).
+			if ( ! empty( $params['checkbox_label'] ) ) {
+				WPMLHelper::register_string( WooCommerceCheckoutContact::OPTIN_LABEL_STRING, $params['checkbox_label'] );
 			}
 
 			if ( update_option( '_mrm_woocommerce_settings', $params ) ) {

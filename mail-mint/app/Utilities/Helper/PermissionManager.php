@@ -494,4 +494,31 @@ class PermissionManager{
             return true;
         };
     }
+
+    /**
+     * Checks if the current user has at least one of several permissions.
+     *
+     * Use this for endpoints that are legitimately consumed by more than one module with
+     * different capability requirements (e.g. the Custom Fields endpoints, which are used
+     * both by the Settings page and by the in-editor "create field" control on the Form
+     * Builder) instead of loosening the permission_callback to '__return_true'.
+     *
+     * @param array $permissions List of capability slugs; the check passes if any one matches.
+     * @return callable
+     *
+     * @since 1.24.5
+     */
+    public static function current_user_can_any( array $permissions ) {
+        return function () use ( $permissions ) {
+            if ( current_user_can( 'manage_options' ) ) {
+                return apply_filters( 'mailmint_current_admin_can', true, $permissions );
+            }
+            foreach ( $permissions as $permission ) {
+                if ( current_user_can( $permission ) ) {
+                    return true;
+                }
+            }
+            return new \WP_Error( rest_authorization_required_code(), __( 'Sorry, you are not authorized to perform this action.', 'mrm' ), array( 'status' => 'mail_mint_access_denied' ) );
+        };
+    }
 }

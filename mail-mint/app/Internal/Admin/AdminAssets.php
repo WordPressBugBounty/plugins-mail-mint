@@ -120,13 +120,13 @@ class AdminAssets {
         $scripts = [
             'mail-mint-automation-editor' => [
                 'src'     => MRM_DIR_URL . 'assets/admin/dist/automation_editor/index.min.js',
-                'version'   => MRM_VERSION,
+                'version'   => ! empty( $editor_dependency['version'] ) ? $editor_dependency['version'] : MRM_VERSION,
                 'deps'      => $editor_dependency['dependencies'],
                 'in_footer' => true,
             ],
             'mail-mint-js' => [
                 'src'     => MRM_DIR_URL . 'assets/admin/dist/main/index.min.js',
-                'version'   => MRM_VERSION,
+                'version'   => ! empty( $dependency['version'] ) ? $dependency['version'] : MRM_VERSION,
                 'deps'      => $dependency['dependencies'],
                 'in_footer' => true,
             ],
@@ -297,6 +297,7 @@ class AdminAssets {
                     'admin_email'                    => $admin_email,
                     'address'                        => MrmCommon::get_business_full_address(),
                     'current_user_email'             => $current_user_email,
+                    'current_user_login'             => $current_user->user_login,
                     'current_user_name'              => $current_user->display_name,
                     'current_user_first_name'        => $current_user->first_name,
                     'bounce_configs'                 => MrmCommon::get_bounce_configs(),

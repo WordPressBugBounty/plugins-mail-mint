@@ -135,7 +135,12 @@ class RedirectionHandler {
      */
     private function handle_preference( $hash, $email_id ){
         $preference_url = Helper::get_preference_url( $hash );
-        EmailModel::insert_or_update_email_meta( 'is_preference', 1, $email_id );
+        // Only record the meta when the hash resolves to a valid broadcast email. Stale links,
+        // deleted campaigns, or legacy hash formats yield a null id, which would otherwise fail
+        // the INSERT against the NOT NULL mint_email_id column.
+        if ( ! empty( $email_id ) ) {
+            EmailModel::insert_or_update_email_meta( 'is_preference', 1, $email_id );
+        }
         exit( wp_redirect( $preference_url ) );
     }
 

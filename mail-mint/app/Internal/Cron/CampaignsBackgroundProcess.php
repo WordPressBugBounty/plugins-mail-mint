@@ -812,7 +812,10 @@ class CampaignsBackgroundProcess {
 		$status        = CampaignType::RECURRING === $type ? 'active' : 'archived';
 
 		if ( (int) $last_email_id === (int) $email_id ) {
-			$repo->updateStatus( (int) $campaign_id, $status );
+			$should_update = apply_filters( 'mailmint_should_update_campaign_status', true, $campaign_id );
+			if ( $should_update ) {
+				$repo->updateStatus( (int) $campaign_id, $status );
+			}
 		}
 	}
 

@@ -229,7 +229,7 @@ class MailMint {
 		 * The class responsible for auto loading all files of the
 		 * core plugin.
 		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload.php';
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'vendor/autoload_packages.php';
 
 		/**
 		 * The class responsible for defining internationalization functionality

@@ -841,6 +841,92 @@ class ContactModel {
 		return array();
 	}
 
+	/**
+	 * Return contact counts per status, scoped to the given tags/lists/status/search filters.
+	 *
+	 * Mirrors the filter semantics of get_filtered_contacts() so the stat cards on the
+	 * Contacts page can reflect the same result set as the filtered table.
+	 *
+	 * @param array  $status    Status values to restrict the result set to (empty = all statuses).
+	 * @param array  $tags_ids  Tag group ids.
+	 * @param array  $lists_ids List group ids.
+	 * @param string $search    Search keyword.
+	 *
+	 * @return array
+	 * @since 1.20.0
+	 */
+	public static function get_filtered_contact_total( $status = array(), $tags_ids = array(), $lists_ids = array(), $search = '' ) {
+		global $wpdb;
+		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
+		$pivot_table   = $wpdb->prefix . ContactGroupPivotSchema::$table_name;
+
+		$tags_ids  = array_filter( array_map( 'intval', (array) $tags_ids ) );
+		$lists_ids = array_filter( array_map( 'intval', (array) $lists_ids ) );
+
+		$allowed_statuses = array( 'subscribed', 'pending', 'unsubscribed', 'bounced', 'complained', 'inactive' );
+		$status            = array_values( array_intersect( (array) $status, $allowed_statuses ) );
+
+		$joins  = '';
+		$wheres = array();
+		$params = array();
+
+		if ( ! empty( $tags_ids ) ) {
+			$placeholders = implode( ',', array_fill( 0, count( $tags_ids ), '%d' ) );
+			$joins       .= " INNER JOIN $pivot_table AS tag_pivot ON ( $contact_table.id = tag_pivot.contact_id )";
+			$wheres[]     = "tag_pivot.group_id IN ($placeholders)";
+			$params        = array_merge( $params, $tags_ids );
+		}
+
+		if ( ! empty( $lists_ids ) ) {
+			$placeholders = implode( ',', array_fill( 0, count( $lists_ids ), '%d' ) );
+			$joins       .= " INNER JOIN $pivot_table AS list_pivot ON ( $contact_table.id = list_pivot.contact_id )";
+			$wheres[]     = "list_pivot.group_id IN ($placeholders)";
+			$params        = array_merge( $params, $lists_ids );
+		}
+
+		if ( ! empty( $status ) ) {
+			$placeholders = implode( ',', array_fill( 0, count( $status ), '%s' ) );
+			$wheres[]     = "$contact_table.status IN ($placeholders)";
+			$params        = array_merge( $params, $status );
+		}
+
+		if ( '' !== trim( (string) $search ) ) {
+			$like     = '%' . $wpdb->esc_like( trim( (string) $search ) ) . '%';
+			$wheres[] = "( `hash` LIKE %s OR `email` LIKE %s OR `first_name` LIKE %s OR `last_name` LIKE %s OR CONCAT(`first_name`, ' ', `last_name`) LIKE %s OR `source` LIKE %s OR `status` LIKE %s OR `stage` LIKE %s )";
+			$params    = array_merge( $params, array_fill( 0, 8, $like ) );
+		}
+
+		$where_sql = ! empty( $wheres ) ? 'WHERE ' . implode( ' AND ', $wheres ) : '';
+
+		$sql = "SELECT $contact_table.status AS status, COUNT(DISTINCT $contact_table.id) AS total
+			FROM $contact_table $joins
+			$where_sql
+			GROUP BY $contact_table.status";
+
+		if ( ! empty( $params ) ) {
+			$sql = $wpdb->prepare( $sql, $params ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+
+		$counts = array(
+			'subscribed'   => 0,
+			'pending'      => 0,
+			'unsubscribed' => 0,
+			'bounced'      => 0,
+			'complained'   => 0,
+			'inactive'     => 0,
+		);
+
+		foreach ( (array) $rows as $row ) {
+			if ( isset( $counts[ $row['status'] ] ) ) {
+				$counts[ $row['status'] ] = (int) $row['total'];
+			}
+		}
+
+		return $counts;
+	}
+
 
 	/**
 	 * Run SQL Query to get a single contact information by hash
@@ -1367,6 +1453,25 @@ class ContactModel {
 				'meta_key'   => $meta_key,
 			),
 			array( '%d', '%s' )
+		);
+	}
+
+	/**
+	 * Delete every contact meta row for a given meta key, across all contacts.
+	 *
+	 * Used to clean up orphaned values when a custom field definition is deleted.
+	 *
+	 * @param string $meta_key Meta key to remove.
+	 * @return int|false Number of rows deleted, or false on error.
+	 * @since 1.24.5
+	 */
+	public static function delete_meta_by_key( $meta_key ) {
+		global $wpdb;
+		$meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
+		return $wpdb->delete( // db call ok. ; no-cache ok.
+			$meta_table,
+			array( 'meta_key' => $meta_key ),
+			array( '%s' )
 		);
 	}
 

@@ -24,8 +24,9 @@ use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Tables\EmailSchema;
 use Mint\MRM\Utilites\Helper\Campaign;
 use MailMint\App\Helper;
-use MailMintPro\Mint\Database\Repositories\SegmentRepository;
-use MailMintPro\Mint\Internal\Admin\Segmentation\SegmentFilterService;
+// NOTE: Pro classes (SegmentRepository, SegmentFilterService) are referenced by
+// fully-qualified name behind class_exists() guards below — never via a top-level
+// `use MailMintPro\...` (which the project rules forbid, as it can fatal when Pro is absent).
 use MRM\Common\MrmCommon;
 
 /**
@@ -953,12 +954,14 @@ class CampaignRepository extends AbstractRepository {
 		if ( ! empty( $all_recipients['segments'] ) ) {
 			$segment_id = isset( $all_recipients['segments'][0]['id'] ) ? $all_recipients['segments'][0]['id'] : 0;
 
-			if ( class_exists( SegmentRepository::class ) && class_exists( SegmentFilterService::class ) ) {
-				$segment_repo = new SegmentRepository();
+			$segment_repo_class   = '\MailMintPro\Mint\Database\Repositories\SegmentRepository';
+			$segment_filter_class = '\MailMintPro\Mint\Internal\Admin\Segmentation\SegmentFilterService';
+			if ( class_exists( $segment_repo_class ) && class_exists( $segment_filter_class ) ) {
+				$segment_repo = new $segment_repo_class();
 				$segment      = $segment_repo->findWithFilters( $segment_id );
 
 				if ( $segment && ! empty( $segment['filters'] ) ) {
-					$filter_service = new SegmentFilterService();
+					$filter_service = new $segment_filter_class();
 					$where_clause   = $filter_service->buildWhereClause( $segment['filters'] );
 
 					if ( $where_clause ) {
@@ -1295,7 +1298,7 @@ class CampaignRepository extends AbstractRepository {
 		$data = Helper::replace_placeholder_business_setting( $data, $hash );
 
 		// Replace subscribe link placeholders.
-		$subscribe_url = site_url( '?mrm=1&route=confirmation&hash=' . $hash );
+		$subscribe_url = MrmCommon::get_site_url_with_configured_scheme( '?mrm=1&route=confirmation&hash=' . $hash );
 
 		$data = str_replace( '{{subscribe_link}}', $subscribe_url, $data );
 		$data = str_replace( '{{link.subscribe}}', $subscribe_url, $data );

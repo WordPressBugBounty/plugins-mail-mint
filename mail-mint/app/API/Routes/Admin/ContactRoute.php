@@ -494,6 +494,40 @@ class ContactRoute {
 				),
 			)
 		);
+
+		/**
+		 * Bulk-update a single custom field's value for multiple contacts
+		 *
+		 * @return void
+		 * @since 1.24.5
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/update-custom-field',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array(
+						$this->controller,
+						'update_custom_field_to_multiple_contacts',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+					'args'                => array(
+						'contact_ids' => array(
+							'type'     => 'array',
+							'required' => true,
+						),
+						'field_slug' => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+						'value' => array(
+							'required' => true,
+						),
+					),
+				),
+			)
+		);
 	}
 
 }

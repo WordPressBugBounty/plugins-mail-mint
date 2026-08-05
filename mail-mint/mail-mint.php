@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.24.4
+ * Version:           1.30.0
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -36,9 +36,9 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.24.4' );
+define( 'MRM_VERSION', '1.30.0' );
 define( 'MAILMINT', 'mailmint' );
-define( 'MRM_DB_VERSION', '1.16.4' );
+define( 'MRM_DB_VERSION', '1.17.0' );
 define( 'MINT_DEV_MODE', false );
 define( 'MRM_PLUGIN_NAME', 'mrm' );
 define( 'MRM_FILE', __FILE__ );
@@ -494,6 +494,7 @@ init_mail_mint_telemetry();
  * Fire one-time integration-connected hooks on plugins_loaded so the Linno
  * SDK can track when WooCommerce or WPFunnels becomes active alongside Mail Mint.
  */
+
 add_action( 'plugins_loaded', function () {
 	if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ), true )
 		&& ! get_option( 'mail_mint_woocommerce_connected_tracked' ) ) {

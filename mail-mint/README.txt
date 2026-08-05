@@ -1,15 +1,15 @@
 === Mail Mint - Email Marketing, Newsletter, Email Automation & WooCommerce Emails ===
 Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
-Tags: woocommerce emails, email automation, email marketing, newsletter, email, crm
+Tags: woocommerce emails, email automation, email marketing, newsletter, email
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.24.4
+Stable tag:  1.30.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Use Mail Mint, the easiest email marketing automation plugin for WordPress & WooCommerce to generate leads, send email campaigns, and set email automation workflows.
+The easiest email marketing automation plugin for WordPress & WooCommerce - capture leads, send email campaigns, and automate your newsletters.
 
 == Description ==
 If you are looking to increase sales and repeat purchases using email marketing automation, then we introduce you to Mail Mint!
@@ -574,6 +574,28 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.30.0 (2026-08-05) =
+* New: Write with AI – Generate email content and summaries with AI assistance
+* New: A/B testing campaign support introduced (Pro)
+* New: AI Assistant – Chat-based assistant panel to query analytics, contacts, campaigns, and automations in natural language
+* New: AI-powered contact summaries added to the Contacts module
+* New: AI-powered analytics summaries added to the Analytics module
+* New: MCP (Model Context Protocol) support introduced for AI agent integrations
+* New: Advanced filter options added to the Contacts list
+* New: DateTime type support added for custom fields
+* New: Redesigned bulk selection experience with expanded action options
+* Improvement: Comprehensive UI/UX refresh across the entire plugin for a more consistent and polished experience
+* Improvement: Custom fields now support reordering via position switching on the contact profile
+* Improvement: All custom field types are now supported in email personalization merge tags
+* Improvement: Enhanced WPML compatibility for multilingual WooCommerce stores
+* Fix: Lead magnet emails now assign a unique tracking token per link
+* Fix: Automation tracking pixel now respects the configured URL scheme
+* Fix: Removed trailing slash from segment REST API route path
+* Fix: WooCommerce automations now correctly match translated product IDs across WPML languages
+* Fix: WooCommerce checkout opt-in checkbox label can now be translated per language using WPML String Translation
+* Fix: WooCommerce purchase automations and product, category, and tag conditions now trigger correctly for purchases made on translated WPML pages (Pro)
+* Other: Security hardening, compatibility improvements, UI polish, and various bug fixes
 
 = 1.24.4 (2026-07-06) =
 * Bugfix: Click tracking not recording correctly on campaign emails.

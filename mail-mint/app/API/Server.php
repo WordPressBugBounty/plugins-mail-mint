@@ -99,6 +99,7 @@ class Server {
 			'automation-job'  => 'AutomationJobRoute',
 			'wp-apis'         => 'WPRoute',
 			'general-fields'  => 'GeneralFieldRoute',
+			'custom-fields'   => 'CustomFieldRoute',
 			'contact-import'  => 'ContactImportRoute',
 			'contact-profile' => 'ContactProfileRoute',
 			'email-template'  => 'TemplateRoute',
@@ -107,6 +108,11 @@ class Server {
 			'onboarding'      => 'OnboardingRoute',
 			'data-cleanup'    => 'DataCleanupRoute',
 			'integration-data' => 'IntegrationDataRoute',
+			'settings-mcp'     => 'McpSettingRoute',
+			'settings-mcp-app-password' => 'ApplicationPasswordRoute',
+			'settings-ai'      => 'AISettingRoute',
+			'ai-chat'          => 'AIChatRoute',
+			'segments'         => 'SegmentRoute',
 		);
 		$frontend_routes = array(
 			'form'               => 'FormRoute',
@@ -114,6 +120,7 @@ class Server {
 			'cookie'             => 'CookieRoute',
 			'bounce'             => 'BounceHandlerRoute',
 			'unsubscribe-survey' => 'UnsubscribeSurveyRoute',
+			'resubscribe'        => 'ResubscribeRoute',
 		);
 
 		return apply_filters(

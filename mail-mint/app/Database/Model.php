@@ -56,6 +56,8 @@ class Model {
 				'email_templates'				=> 'EmailTemplatesSchema',
 				'form_submissions'              => 'FormSubmissionsSchema',
 				'form_entry_details'            => 'FormEntryDetailsSchema',
+				'ai_conversations'              => 'AIConversationSchema',
+				'ai_messages'                   => 'AIMessageSchema',
 			)
 		);
 	}

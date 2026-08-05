@@ -330,14 +330,19 @@ class MrmCommon {
 	 * @return false|string
 	 */
 	public static function get_default_preference_page_id_title() {
-		$settings              = get_option( '_mrm_general_preference' ); //phpcs:ignore
+		$settings = get_option( '_mrm_general_preference' ); //phpcs:ignore
 		if ( isset( $settings['preference_page_id'] ) ) {
 			$page_id = isset( $settings['preference_page_id'] ) ? $settings['preference_page_id'] : '';
-			return get_permalink( $page_id );
 		} else {
 			$page_id = self::get_mint_page_id( 'preference_page' );
-			return get_permalink( $page_id );
 		}
+		// Force the admin-configured scheme so preference links stay https:// behind
+		// TLS-terminating proxies (e.g. Cloudflare Flexible SSL), where get_permalink()
+		// would otherwise inherit is_ssl()'s http:// on the origin. Matches the behaviour
+		// of self::get_site_url_with_configured_scheme() for the other in-email links.
+		$permalink = get_permalink( $page_id );
+		$scheme    = wp_parse_url( get_option( 'siteurl' ), PHP_URL_SCHEME );
+		return $scheme ? set_url_scheme( $permalink, $scheme ) : $permalink;
 	}
 
 	/**
@@ -510,6 +515,31 @@ class MrmCommon {
 	}
 
 	/**
+	 * Build a site URL whose scheme is taken from the saved Site Address
+	 * (the `siteurl` option) rather than from is_ssl().
+	 *
+	 * WordPress core's site_url()/get_site_url() overwrite the stored URL's
+	 * scheme with whatever is_ssl() returns at request time. Behind a TLS-
+	 * terminating proxy such as Cloudflare Flexible SSL, the origin server
+	 * receives plain HTTP, so is_ssl() is false and links are emitted as
+	 * http:// even though the admin configured an https:// Site Address.
+	 * Because these URLs are frozen into outgoing emails (tracking pixel,
+	 * click-tracking wrapper, unsubscribe/subscribe/preference links), the
+	 * wrong scheme cannot be corrected by the recipient's browser later.
+	 * Deriving the scheme from the saved option keeps the links on the
+	 * scheme the admin actually configured. When the option has no parseable
+	 * scheme, we fall back to core's default behaviour.
+	 *
+	 * @param string $path Optional path relative to the site URL.
+	 * @return string Site URL with the admin-configured scheme.
+	 * @since 1.24.5
+	 */
+	public static function get_site_url_with_configured_scheme( $path = '' ) {
+		$scheme = wp_parse_url( get_option( 'siteurl' ), PHP_URL_SCHEME );
+		return get_site_url( null, $path, $scheme ? $scheme : null );
+	}
+
+	/**
 	 * Returns alphanumeric hash for email
 	 *
 	 * @param string $email email address.
@@ -518,7 +548,12 @@ class MrmCommon {
 	 * @return string
 	 */
 	public static function get_rand_email_hash( $email, $id ) {
-		$rand_hash  = substr( md5( openssl_random_pseudo_bytes( $id ) ), -16 );
+		// $id is the random byte length for openssl_random_pseudo_bytes(), which
+		// requires a positive int. Cast defensively so a non-numeric caller value
+		// cannot raise a TypeError on PHP 8+; fall back to a sane default when the
+		// cast yields a non-positive length.
+		$length     = max( 1, (int) $id );
+		$rand_hash  = substr( md5( openssl_random_pseudo_bytes( $length ) ), -16 );
 		$email_hash = substr( md5( $email ), -16 );
 		return $rand_hash . $email_hash;
 	}
@@ -1696,12 +1731,11 @@ class MrmCommon {
 		// Iterate through each custom field and extract relevant information.
 		foreach ( $customer_fields as $customer_field ) {
 			$meta  = isset( $customer_field['meta'] ) ? maybe_unserialize( $customer_field['meta'] ) : array();
-			$type  = isset( $customer_field['type'] ) ? $customer_field['type'] : '';
 			$label = isset( $meta['label'] ) ? $meta['label'] : '';
 			$value = isset( $customer_field['value'] ) ? $customer_field['value'] : '';
 
-			// Check if the field type is 'text' or 'textArea'.
-			if ( in_array( $type, array( 'text', 'textArea' ), true ) ) {
+			// Every field type is a valid merge tag — the stored value is inserted as text.
+			if ( ! empty( $value ) ) {
 				$new_fields[ $value ] = $label;
 			}
 		}

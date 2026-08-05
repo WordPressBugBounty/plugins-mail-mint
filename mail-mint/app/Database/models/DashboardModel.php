@@ -678,7 +678,7 @@ class DashboardModel {
 			[
 				'label'     => __('Send your first campaign', 'mrm'),
 				'completed' => CampaignModel::get_sent_campaign_count() > 0,
-				'link'      => 'campaigns/regular',
+				'link'      => 'campaigns',
 			],
 			[
 				'label'     => __('Create a form', 'mrm'),

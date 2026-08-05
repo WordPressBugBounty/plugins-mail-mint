@@ -307,6 +307,7 @@ class TransStrings
 			// Purchase History Tab of Contact Details
 			'OrderID' => __('Order ID', 'mrm'),
 			'Date' => __('Date', 'mrm'),
+			'DateTime' => __('Date & Time', 'mrm'),
 			'Total' => __('Total', 'mrm'),
 			'Products' => __('Products', 'mrm'),
 			'NoPurchaseHistoryFound' => __('No Purchase History Found', 'mrm'),

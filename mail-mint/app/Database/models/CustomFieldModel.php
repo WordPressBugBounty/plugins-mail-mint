@@ -12,6 +12,7 @@
 
 namespace Mint\MRM\DataBase\Models;
 
+use Mint\MRM\Constants;
 use Mint\MRM\DataBase\Tables\CustomFieldSchema;
 use Mint\Mrm\Internal\Traits\Singleton;
 
@@ -49,6 +50,7 @@ class CustomFieldModel {
 					'slug'       => $field->get_slug(),
 					'type'       => $field->get_type(),
 					'meta'       => $field->get_meta(),
+					'position'   => $field->get_position(),
 					'created_at' => current_time( 'mysql' ),
 				)
 			); // db call ok. ; no-cache ok.
@@ -100,18 +102,18 @@ class CustomFieldModel {
 	 * @return array
 	 * @since 1.0.0
 	 */
-	public static function get_all( $offset = 0, $limit = 20, $search = '', $order_by = 'id', $order_type = 'DESC' ) {
+	public static function get_all( $offset = 0, $limit = 20, $search = '', $order_by = 'position', $order_type = 'ASC' ) {
 		global $wpdb;
 		$fields_table = $wpdb->prefix . CustomFieldSchema::$table_name;
 
 		// Validate order_by against whitelist
-		$allowed_order_by = array( 'id', 'title', 'slug', 'type' );
-		$order_by         = in_array( $order_by, $allowed_order_by, true ) ? $order_by : 'id';
+		$allowed_order_by = array( 'id', 'title', 'slug', 'type', 'position' );
+		$order_by         = in_array( $order_by, $allowed_order_by, true ) ? $order_by : 'position';
 
 		// Validate order_type against whitelist (ASC or DESC only)
 		$allowed_order_types = array( 'asc', 'desc', 'ASC', 'DESC' );
 		$order_type_param    = strtoupper( $order_type );
-		$order_type          = in_array( $order_type_param, $allowed_order_types, true ) ? $order_type_param : 'DESC';
+		$order_type          = in_array( $order_type_param, $allowed_order_types, true ) ? $order_type_param : 'ASC';
 
 		$search_terms = null;
 		if ( ! empty( $search ) ) {
@@ -120,7 +122,7 @@ class CustomFieldModel {
 		}
 		// Return field froups for list view with validated ORDER BY clause.
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$select_query = $wpdb->prepare( "SELECT * FROM $fields_table {$search_terms} ORDER BY {$order_by} {$order_type}  LIMIT %d, %d", $offset, $limit );
+		$select_query = $wpdb->prepare( "SELECT * FROM $fields_table {$search_terms} ORDER BY {$order_by} {$order_type}, `id` ASC LIMIT %d, %d", $offset, $limit );
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:disable WordPress.DB.PreparedSQL.NotPrepared
 		$results = $wpdb->get_results( $select_query, ARRAY_A ); // db call ok. ; no-cache ok.
@@ -213,6 +215,73 @@ class CustomFieldModel {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Generate a unique field slug from a label, auto-suffixing on collision.
+	 *
+	 * Sanitizes the label into a slug, then appends -2, -3, ... until it no longer
+	 * collides with a primary field slug or an existing custom field's slug.
+	 *
+	 * @param string $label Field label/title to slugify.
+	 *
+	 * @return string Unique slug.
+	 * @since 1.24.5
+	 */
+	public static function generate_unique_slug( $label ) {
+		$base_slug = sanitize_title( $label );
+		$slug      = $base_slug;
+		$suffix    = 2;
+
+		while ( in_array( $slug, Constants::$primary_fields, true ) || self::is_field_exist( $slug ) ) {
+			$slug = $base_slug . '-' . $suffix;
+			++$suffix;
+		}
+
+		return $slug;
+	}
+
+	/**
+	 * Get the next available sort position for a new field (append to the end of the list).
+	 *
+	 * @return int
+	 * @since 1.24.5
+	 */
+	public static function get_next_position() {
+		global $wpdb;
+		$fields_table = $wpdb->prefix . CustomFieldSchema::$table_name;
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$max_position = $wpdb->get_var( "SELECT MAX(`position`) FROM $fields_table" ); // db call ok. ; no-cache ok.
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		return null === $max_position ? 0 : (int) $max_position + 1;
+	}
+
+	/**
+	 * Update the sort position of a single field.
+	 *
+	 * @param int $id       Field ID.
+	 * @param int $position New sort position.
+	 *
+	 * @return bool
+	 * @since 1.24.5
+	 */
+	public static function update_position( $id, $position ) {
+		global $wpdb;
+		$fields_table = $wpdb->prefix . CustomFieldSchema::$table_name;
+
+		try {
+			$wpdb->update( // db call ok. ; no-cache ok.
+				$fields_table,
+				array( 'position' => (int) $position ),
+				array( 'id' => (int) $id ),
+				array( '%d' ),
+				array( '%d' )
+			);
+			return true;
+		} catch ( \Exception $e ) {
+			return false;
+		}
 	}
 
 	/**

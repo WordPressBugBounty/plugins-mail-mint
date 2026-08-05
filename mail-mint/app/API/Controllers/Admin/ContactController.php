@@ -776,7 +776,7 @@ class ContactController extends AdminBaseController {
 
         $contacts = ContactModel::get_filtered_contacts( $status_arr, $tags_ids, $lists_ids, $per_page, $offset, $search );
 
-        $total_contact = ContactModel::get_contact_total();
+        $total_contact = ContactModel::get_filtered_contact_total( $status_arr, $tags_ids, $lists_ids, $search );
 
         $subscriber_count  = ! empty( $total_contact['subscribed'] ) ? $total_contact['subscribed'] : 0;
         $unsubcriber_count = ! empty( $total_contact['unsubscribed'] ) ? $total_contact['unsubscribed'] : 0;
@@ -1060,6 +1060,48 @@ class ContactController extends AdminBaseController {
             return $this->get_success_response( __( 'Status have been successfully changed to the chosen contacts.', 'mrm' ), 201 );
         }
         return $this->get_error_response( __( 'Please select an item first.', 'mrm' ), 400 );
+    }
+
+    /**
+     * Set a single custom field's value for multiple contacts.
+     *
+     * @access public
+     *
+     * @param WP_REST_Request $request The REST request object containing the API parameters.
+     * @return WP_REST_Response Returns a REST response indicating the success or failure of the operation.
+     * @since 1.24.5
+     */
+    public function update_custom_field_to_multiple_contacts( WP_REST_Request $request ) {
+        $required_params = array( 'contact_ids', 'field_slug' );
+        foreach ( $required_params as $param ) {
+            if ( ! $request->has_param( $param ) ) {
+                return $this->get_error_response( __( "Required parameter '$param' is missing.", 'mrm' ), 400 );
+            }
+        }
+
+        $params = MrmCommon::get_api_params_values( $request );
+
+        $contact_ids = isset( $params['contact_ids'] ) ? array_filter( array_map( 'absint', (array) $params['contact_ids'] ) ) : array();
+        $field_slug  = isset( $params['field_slug'] ) ? sanitize_key( $params['field_slug'] ) : '';
+        $value       = isset( $params['value'] ) ? $params['value'] : '';
+
+        if ( empty( $contact_ids ) || empty( $field_slug ) ) {
+            return $this->get_error_response( __( 'Please select an item first.', 'mrm' ), 400 );
+        }
+
+        if ( ! CustomFieldModel::is_field_exist( $field_slug ) ) {
+            return $this->get_error_response( __( 'Selected custom field does not exist.', 'mrm' ), 400 );
+        }
+
+        $value = is_array( $value )
+            ? array_map( 'sanitize_text_field', $value )
+            : sanitize_text_field( $value );
+
+        foreach ( $contact_ids as $contact_id ) {
+            ContactModel::update_meta_fields( $contact_id, array( 'meta_fields' => array( $field_slug => $value ) ) );
+        }
+
+        return $this->get_success_response( __( 'Custom field has been successfully updated for the chosen contacts.', 'mrm' ), 201 );
     }
 
     /**

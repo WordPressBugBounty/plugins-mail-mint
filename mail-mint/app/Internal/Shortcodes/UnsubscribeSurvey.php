@@ -86,8 +86,9 @@ class UnsubscribeSurvey {
 			home_url()
 		);
 
-		$api_url     = esc_url( rest_url( 'mint-mail/v1/unsubscribe-survey' ) );
-		$reasons     = UnsubscribeReasons::get_reasons();
+		$api_url       = esc_url( rest_url( 'mint-mail/v1/unsubscribe-survey' ) );
+		$resub_api_url = esc_url( rest_url( 'mint-mail/v1/resubscribe' ) );
+		$reasons       = UnsubscribeReasons::get_reasons();
 
 		ob_start();
 		?>
@@ -148,9 +149,9 @@ class UnsubscribeSurvey {
 						</form>
 
 						<?php if ( $allow_resub && $hash ) : ?>
-						<p class="mint-survey-resub">
+						<p class="mint-survey-resub" id="mint-survey-resub">
 							<?php esc_html_e( 'Changed your mind?', 'mrm' ); ?>
-							<a href="<?php echo esc_url( $resub_url ); ?>" class="mint-survey-resub-link">
+							<a href="<?php echo esc_url( $resub_url ); ?>" id="mint-survey-resub-link" class="mint-survey-resub-link">
 								<?php esc_html_e( 'Resubscribe', 'mrm' ); ?>
 							</a>
 						</p>
@@ -167,6 +168,8 @@ class UnsubscribeSurvey {
 			var otherWrap  = document.getElementById( 'mint-survey-other-wrap' );
 			var msgBox     = document.getElementById( 'mint-survey-message' );
 			var submitBtn  = document.getElementById( 'mint-survey-submit' );
+			var resubWrap  = document.getElementById( 'mint-survey-resub' );
+			var resubLink  = document.getElementById( 'mint-survey-resub-link' );
 
 			<?php if ( $allow_text ) : ?>
 			// Show/hide free-text area when "other" is selected.
@@ -207,9 +210,19 @@ class UnsubscribeSurvey {
 						if ( data && data.success ) {
 							showMessage( '<?php echo esc_js( __( 'Thank you for your feedback!', 'mrm' ) ); ?>', true );
 							form.style.display = 'none';
+							if ( resubWrap ) {
+								resubWrap.style.display = 'none';
+							}
 							setTimeout( function () {
 								window.location.href = data.redirect_url || <?php echo wp_json_encode( $skip_url ); ?>;
 							}, 2000 );
+						} else if ( data && data.already_subscribed ) {
+							// Contact resubscribed since this page loaded — retrying can never succeed, so stop offering the form.
+							showMessage( data.message || '<?php echo esc_js( __( "You're already resubscribed.", 'mrm' ) ); ?>', true );
+							form.style.display = 'none';
+							if ( resubWrap ) {
+								resubWrap.style.display = 'none';
+							}
 						} else {
 							submitBtn.disabled = false;
 							showMessage( ( data && data.message ) ? data.message : '<?php echo esc_js( __( 'Something went wrong. Please try again.', 'mrm' ) ); ?>', false );
@@ -218,6 +231,42 @@ class UnsubscribeSurvey {
 					.catch( function () {
 						submitBtn.disabled = false;
 						showMessage( '<?php echo esc_js( __( 'Something went wrong. Please try again.', 'mrm' ) ); ?>', false );
+					} );
+				} );
+			}
+
+			if ( resubLink ) {
+				resubLink.addEventListener( 'click', function ( e ) {
+					e.preventDefault();
+					resubLink.style.pointerEvents = 'none';
+
+					fetch( <?php echo wp_json_encode( $resub_api_url ); ?>, {
+						method  : 'POST',
+						headers : { 'Content-Type': 'application/json' },
+						body    : JSON.stringify( { hash: <?php echo wp_json_encode( $hash ); ?> } )
+					} )
+					.then( function ( r ) { return r.json(); } )
+					.then( function ( data ) {
+						if ( data && data.success ) {
+							// Update the page in place instead of navigating away, so this
+							// tab can never submit the survey form with a now-stale hash.
+							if ( form ) {
+								form.style.display = 'none';
+							}
+							if ( resubWrap ) {
+								resubWrap.style.display = 'none';
+							}
+							showMessage( '<?php echo esc_js( __( "You've been resubscribed.", 'mrm' ) ); ?>', true );
+							setTimeout( function () {
+								window.location.href = data.redirect_url || resubLink.href;
+							}, 1500 );
+						} else {
+							// Fall back to the original full-page navigation.
+							window.location.href = resubLink.href;
+						}
+					} )
+					.catch( function () {
+						window.location.href = resubLink.href;
 					} );
 				} );
 			}

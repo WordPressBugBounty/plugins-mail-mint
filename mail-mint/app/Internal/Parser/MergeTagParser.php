@@ -979,7 +979,7 @@ class MergeTagParser
 							'hash'  => $contact['hash'],
 						)
 					),
-					site_url('/')
+					MrmCommon::get_site_url_with_configured_scheme('/')
 				);
 			case 'subscribe_html':
 				if (!$default_value) {
@@ -994,7 +994,7 @@ class MergeTagParser
 							'hash'  => $contact['hash'],
 						)
 					),
-					site_url('/')
+					MrmCommon::get_site_url_with_configured_scheme('/')
 				);
 
 				return '<a class="mint-sub-url" href="' . $url . '">' . $default_value . '</a>';
@@ -1007,7 +1007,7 @@ class MergeTagParser
 							'hash'  => $contact['hash'],
 						)
 					),
-					site_url('/')
+					MrmCommon::get_site_url_with_configured_scheme('/')
 				);
 			case 'unsubscribe_html':
 				if (!$default_value) {
@@ -1022,7 +1022,7 @@ class MergeTagParser
 							'hash'  => $contact['hash'],
 						)
 					),
-					site_url('/')
+					MrmCommon::get_site_url_with_configured_scheme('/')
 				);
 
 				return '<a class="mint-unsub-url" href="' . $url . '">' . $default_value . '</a>';

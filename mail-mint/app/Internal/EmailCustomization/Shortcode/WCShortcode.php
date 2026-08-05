@@ -68,7 +68,7 @@ class WCShortcode {
 			'{admin_email}'          => get_option( 'admin_email', '' ),
 			'{{site.title}}'         => get_bloginfo( 'name' ),
 			'{{url.home}}'           => home_url(),
-			'{{site.url}}'           => site_url(),
+			'{{site.url}}'           => MrmCommon::get_site_url_with_configured_scheme(),
 			'{{url.shop}}'           => $shop_url ? $shop_url : home_url(),
 			'{{url.my_account}}'     => $my_account_url ? $my_account_url : home_url(),
 			'{{url.checkout}}'       => $checkout_url ? $checkout_url : home_url(),

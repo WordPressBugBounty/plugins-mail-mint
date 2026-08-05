@@ -72,7 +72,21 @@ class UnsubscribeSurveyController {
 
 		// Only store reason for contacts that are actually unsubscribed.
 		$contact = ContactModel::get( $contact_id );
-		if ( empty( $contact ) || 'unsubscribed' !== ( $contact['status'] ?? '' ) ) {
+		$status  = $contact['status'] ?? '';
+
+		if ( ! empty( $contact ) && 'subscribed' === $status ) {
+			// Contact resubscribed (e.g. via the "Changed your mind?" link) since landing on this page.
+			return new WP_REST_Response(
+				array(
+					'success'            => false,
+					'already_subscribed' => true,
+					'message'            => __( "You're already resubscribed - no need to tell us why you left!", 'mrm' ),
+				),
+				409
+			);
+		}
+
+		if ( empty( $contact ) || 'unsubscribed' !== $status ) {
 			return new WP_REST_Response(
 				array(
 					'success' => false,

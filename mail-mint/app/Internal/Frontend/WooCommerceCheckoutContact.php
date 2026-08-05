@@ -17,6 +17,7 @@ use Mint\MRM\DataBase\Models\ContactGroupModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataStores\ContactData;
 use Mint\Mrm\Internal\Traits\Singleton;
+use Mint\MRM\Utilities\Helper\WPMLHelper;
 use MRM\Common\MrmCommon;
 
 /**
@@ -28,6 +29,14 @@ use MRM\Common\MrmCommon;
 class WooCommerceCheckoutContact {
 
 	use Singleton;
+
+	/**
+	 * Stable WPML String Translation name for the opt-in checkbox label.
+	 *
+	 * @var string
+	 * @since 1.24.5
+	 */
+	const OPTIN_LABEL_STRING = 'woocommerce_optin_checkbox_label';
 
 	/**
 	 * WooCommerce settings from wp_options table
@@ -64,6 +73,9 @@ class WooCommerceCheckoutContact {
 	 */
 	public function add_consent_checkbox() {
 		$label      = isset( $this->setting_options[ 'checkbox_label' ] ) ? $this->setting_options[ 'checkbox_label' ] : __( 'Register me as a contact after checkout.', 'mrm' );
+		// Register + translate the label so WPML String Translation can localize it per language (no-op without WPML).
+		WPMLHelper::register_string( self::OPTIN_LABEL_STRING, $label );
+		$label      = WPMLHelper::translate_string( $label, self::OPTIN_LABEL_STRING );
 		$user_email = is_user_logged_in() ? wp_get_current_user()->user_email : false;
 
 		if ( $user_email && ! ContactModel::is_contact_exist( $user_email ) || ! is_user_logged_in() ) {
@@ -93,6 +105,9 @@ class WooCommerceCheckoutContact {
 		}
 
 		$label = $this->setting_options['checkbox_label'] ?? __( 'I would like to receive exclusive emails with discounts and product information.', 'mrm' );
+		// Register + translate the label so WPML String Translation can localize it per language (no-op without WPML).
+		WPMLHelper::register_string( self::OPTIN_LABEL_STRING, $label );
+		$label = WPMLHelper::translate_string( $label, self::OPTIN_LABEL_STRING );
 
 		woocommerce_register_additional_checkout_field(
 			[

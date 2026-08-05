@@ -7,7 +7,10 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'cweagans\\Composer\\' => array($vendorDir . '/cweagans/composer-patches/src'),
+    'WP\\McpSchema\\' => array($vendorDir . '/wordpress/php-mcp-schema/src'),
+    'WP\\MCP\\' => array($vendorDir . '/wordpress/mcp-adapter/includes'),
     'PostHog\\' => array($vendorDir . '/posthog/posthog-php/lib'),
     'Mint\\MRM\\' => array($baseDir . '/app', $baseDir . '/includes'),
     'LinnoSDK\\Telemetry\\' => array($vendorDir . '/linno/telemetry/src'),
+    'Automattic\\Jetpack\\Autoloader\\' => array($vendorDir . '/automattic/jetpack-autoloader/src'),
 );

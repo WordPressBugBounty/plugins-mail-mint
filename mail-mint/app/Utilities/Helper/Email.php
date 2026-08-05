@@ -14,6 +14,7 @@ namespace Mint\MRM\Utilites\Helper;
 
 use MailMint\App\Helper;
 use Mint\MRM\DataBase\Models\ContactModel;
+use MRM\Common\MrmCommon;
 
 /**
  * Email class
@@ -603,8 +604,10 @@ class Email {
 	 * @since 1.5.14
 	 */
 	public static function inject_tracking_image_on_email_body( $rand_hash, $email_body, $tracking_mode = 'yes' ) {
-		// Get the site's domain URL.
-		$domain_link = get_site_url();
+		// Get the site's domain URL. Use the admin-configured scheme so the pixel
+		// stays https:// behind TLS-terminating proxies (e.g. Cloudflare Flexible SSL),
+		// where is_ssl() would otherwise downgrade get_site_url() to http://.
+		$domain_link = MrmCommon::get_site_url_with_configured_scheme();
 
 		// Build tracking URL args — bake the mode in so the handler uses send-time consent,
 		// not whatever the global setting happens to be when the pixel fires later.

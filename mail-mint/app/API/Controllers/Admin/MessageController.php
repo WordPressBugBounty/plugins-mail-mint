@@ -167,7 +167,7 @@ class MessageController extends AdminBaseController {
             ),
             $get_preference_url
         );
-        $unsubscribe_link = site_url( '?mrm=1&route=unsubscribe&hash=' . $email_hash );
+        $unsubscribe_link = MrmCommon::get_site_url_with_configured_scheme( '?mrm=1&route=unsubscribe&hash=' . $email_hash );
 
         $body = str_replace( '{{preference_link}}', $preference_link, $body );
         $body = str_replace( '{{unsubscribe_link}}', $unsubscribe_link, $body );
@@ -225,7 +225,7 @@ class MessageController extends AdminBaseController {
 			$to   = isset( $contact['email'] ) ? $contact['email'] : '';
 			$hash = isset( $contact['hash'] ) ? $contact['hash'] : '';
 
-			$subscribe_url = site_url( '?mrm=1&route=confirmation&hash=' . $hash );
+			$subscribe_url = MrmCommon::get_site_url_with_configured_scheme( '?mrm=1&route=confirmation&hash=' . $hash );
 			$preference_link = add_query_arg(
                 array(
                     'mrm'   => 1,
@@ -234,7 +234,7 @@ class MessageController extends AdminBaseController {
                 ),
                 $get_preference_url
             );
-			$unsubscribe_link = site_url( '?mrm=1&route=unsubscribe&hash=' . $hash );
+			$unsubscribe_link = MrmCommon::get_site_url_with_configured_scheme( '?mrm=1&route=unsubscribe&hash=' . $hash );
 
 			// Prepare email subject.
 			$site_title    = html_entity_decode( get_bloginfo( 'name' ), ENT_QUOTES );
@@ -277,7 +277,7 @@ class MessageController extends AdminBaseController {
 					function ($matches) {
 						// $matches[2] is the value of the src attribute
 						if (strpos($matches[2], '../') === 0) {
-							return str_replace('../', site_url().'/', $matches[0]);
+							return str_replace('../', MrmCommon::get_site_url_with_configured_scheme().'/', $matches[0]);
 						} else {
 							return $matches[0];
 						}

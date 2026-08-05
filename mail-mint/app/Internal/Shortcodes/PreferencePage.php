@@ -13,6 +13,7 @@ namespace Mint\MRM\Internal\ShortCode;
 
 use Mint\MRM\DataBase\Models\ContactGroupModel;
 use Mint\MRM\DataBase\Models\ContactModel;
+use Mint\MRM\DataBase\Models\CustomFieldModel;
 use Mint\MRM\DataBase\Models\EmailModel;
 use MRM\Common\MrmCommon;
 
@@ -161,6 +162,7 @@ class PreferencePage {
 			}
 			$html  = '';
 			$html .= $this->form_group_primary_filed( $fields, $hash, $html );
+			$html .= $this->render_custom_fields( $hash );
 			if ( $is_true ) {
 				$html .= '
 				<div class="mrm-form-group mintmrm-submit">
@@ -189,6 +191,7 @@ class PreferencePage {
 			$html      = '';
 			$html_list = '';
 			$html     .= $this->form_group_primary_filed( $primary_fields, $hash, $html );
+			$html     .= $this->render_custom_fields( $hash );
 
 			$html .= $this->contact_assign_list( $fields, $hash, $html_list );
 			$html .= '
@@ -216,6 +219,7 @@ class PreferencePage {
 		$html           = '';
 		$html_list      = '';
 		$html          .= $this->form_group_primary_filed( $primary_fields, $hash, $html );
+		$html          .= $this->render_custom_fields( $hash );
 
 		$html .= $this->contact_all_list( $hash, $html_list );
 		$html .= '
@@ -282,6 +286,140 @@ class PreferencePage {
 			}
 		}
 		return $html;
+	}
+
+	/**
+	 * Resolve a contact ID from a preference-link hash.
+	 *
+	 * @param string $hash Contact hash.
+	 * @return int|false
+	 * @since 1.24.5
+	 */
+	private function get_contact_id_by_hash( $hash ) {
+		$contact    = EmailModel::get_contact_id_by_hash( $hash );
+		$contact_id = ! empty( $contact['contact_id'] ) ? $contact['contact_id'] : false;
+		if ( empty( $contact ) ) {
+			$contact    = ContactModel::get_by_hash( $hash );
+			$contact_id = ! empty( $contact['id'] ) ? $contact['id'] : false;
+		}
+		return $contact_id;
+	}
+
+	/**
+	 * Render custom field inputs, pre-filled with the contact's current values.
+	 *
+	 * @param string $hash Contact hash.
+	 * @return string
+	 * @since 1.24.5
+	 */
+	public function render_custom_fields( $hash ) {
+		$contact_id = $this->get_contact_id_by_hash( $hash );
+		if ( ! $contact_id ) {
+			return '';
+		}
+
+		$fields = CustomFieldModel::get_all( 0, 200 );
+		$fields = isset( $fields['data'] ) ? $fields['data'] : array();
+		if ( empty( $fields ) ) {
+			return '';
+		}
+
+		$meta_values = ContactModel::get_meta( $contact_id );
+		$meta_values = isset( $meta_values['meta_fields'] ) ? $meta_values['meta_fields'] : array();
+
+		$html = '';
+		foreach ( $fields as $field ) {
+			$meta  = ! empty( $field['meta'] ) ? maybe_unserialize( $field['meta'] ) : array();
+			$label = isset( $meta['label'] ) ? $meta['label'] : $field['title'];
+			$slug  = $field['slug'];
+			$value = isset( $meta_values[ $slug ] ) ? $meta_values[ $slug ] : '';
+
+			$html .= $this->render_custom_field_input( $slug, $field['type'], $label, $value, $meta );
+		}
+
+		return $html;
+	}
+
+	/**
+	 * Render a single custom field's input, matching its stored field type.
+	 *
+	 * @param string $slug  Field slug (used as the input name).
+	 * @param string $type  Field type.
+	 * @param string $label Field label.
+	 * @param mixed  $value Current value for this contact.
+	 * @param array  $meta  Field meta (options, placeholder, etc.).
+	 * @return string
+	 * @since 1.24.5
+	 */
+	private function render_custom_field_input( $slug, $type, $label, $value, $meta ) {
+		$name    = esc_attr( $slug );
+		$options = ! empty( $meta['options'] ) && is_array( $meta['options'] ) ? $meta['options'] : array();
+
+		switch ( $type ) {
+			case 'textArea':
+				return '<div class="mrm-form-group mintmrm-custom-field">
+							<label class="mrm-block-label" for="">' . esc_html( $label ) . '</label>
+							<textarea name="' . $name . '">' . esc_textarea( is_string( $value ) ? $value : '' ) . '</textarea>
+						</div>';
+
+			case 'selectField':
+				$html = '<div class="mrm-form-group mintmrm-custom-field">
+							<label class="mrm-block-label" for="">' . esc_html( $label ) . '</label>
+							<select name="' . $name . '">';
+				foreach ( $options as $option ) {
+					$selected = ( (string) $value === (string) $option ) ? 'selected' : '';
+					$html    .= '<option value="' . esc_attr( $option ) . '" ' . $selected . '>' . esc_html( $option ) . '</option>';
+				}
+				$html .= '</select></div>';
+				return $html;
+
+			case 'radioField':
+				$html = '<div class="mrm-form-group mintmrm-custom-field">
+							<label class="mrm-block-label" for="">' . esc_html( $label ) . '</label>
+							<div class="input-custom-wrapper">';
+				foreach ( $options as $option ) {
+					$checked = ( (string) $value === (string) $option ) ? 'checked' : '';
+					$html   .= '<span class="mintmrm-radiobtn">
+									<input id="' . $name . '-' . esc_attr( $option ) . '" type="radio" name="' . $name . '" value="' . esc_attr( $option ) . '" ' . $checked . '>
+									<label for="' . $name . '-' . esc_attr( $option ) . '">' . esc_html( $option ) . '</label>
+								</span>';
+				}
+				$html .= '</div></div>';
+				return $html;
+
+			case 'checkboxField':
+				$selected_values = is_array( $value ) ? $value : array();
+				$html            = '<div class="mrm-form-group mintmrm-custom-field">
+							<label class="mrm-block-label" for="">' . esc_html( $label ) . '</label>
+							<div class="input-custom-wrapper">';
+				foreach ( $options as $option ) {
+					$checked = in_array( $option, $selected_values, true ) ? 'checked' : '';
+					$html   .= '<span class="mintmrm-checkbox">
+									<input id="' . $name . '-' . esc_attr( $option ) . '" type="checkbox" name="' . $name . '[]" value="' . esc_attr( $option ) . '" ' . $checked . '>
+									<label for="' . $name . '-' . esc_attr( $option ) . '">' . esc_html( $option ) . '</label>
+								</span>';
+				}
+				$html .= '</div></div>';
+				return $html;
+
+			case 'date':
+				return '<div class="mrm-form-group mintmrm-custom-field">
+							<label class="mrm-block-label" for="">' . esc_html( $label ) . '</label>
+							<input type="date" name="' . $name . '" value="' . esc_attr( is_scalar( $value ) ? $value : '' ) . '">
+						</div>';
+
+			case 'number':
+				return '<div class="mrm-form-group mintmrm-custom-field">
+							<label class="mrm-block-label" for="">' . esc_html( $label ) . '</label>
+							<input type="number" name="' . $name . '" value="' . esc_attr( is_scalar( $value ) ? $value : '' ) . '">
+						</div>';
+
+			default:
+				return '<div class="mrm-form-group mintmrm-custom-field">
+							<label class="mrm-block-label" for="">' . esc_html( $label ) . '</label>
+							<input type="text" name="' . $name . '" value="' . esc_attr( is_scalar( $value ) ? $value : '' ) . '">
+						</div>';
+		}
 	}
 
 	/**
@@ -525,6 +663,9 @@ class PreferencePage {
 			),
 			'span'   => array(
 				'class' => array(),
+			),
+			'textarea' => array(
+				'name' => array(),
 			),
 		);
 	}
