@@ -83,13 +83,15 @@ class SpecialOccasionBanner
         $screen = get_current_screen();
         $promotional_notice_pages = ['dashboard', 'plugins', 'toplevel_page_mrm-admin'];
         $current_date_time = current_time('timestamp');
-        $btn_link = 'https://getwpfunnels.com/pricing/?utm_source=plugin&utm_medium=dashboard-banner-mm&utm_campaign=eidoffer2026';
+        $btn_link = 'https://getwpfunnels.com/pricing/?utm_source=plugin&utm_medium=dashboard-banner-mm&utm_campaign=iemail40#mail-mint';
+        $coupon_code = 'AIEMAIL40';
+        $discount = '40% OFF';
 
         if (!in_array($screen->id, $promotional_notice_pages)) {
             return;
         }
 
-        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_show_eid_ul_fitr_26_banner') || MrmCommon::is_wpfnl_active()) {
+        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_show_ai_engine_banner')) {
             return;
         }
 
@@ -107,19 +109,40 @@ class SpecialOccasionBanner
                         <div class="gwpf-container">
                             <div class="promotional-banner">
                                 <div class="banner-content">
-                                    <span class="blackfriday-logo">
-                                        <img src="" alt="">
-                                    </span>
+                                    <span class="banner-emoji" aria-hidden="true">🔥</span>
 
                                     <div class="banner-text">
-                                        🔥 Eid ul-Fitr Special: Claim A Huge <span class="highlighted-text">40% OFF</span> On Mail Mint! - Limited Time Deal!
+                                        <span class="banner-headline">
+                                            <?php
+                                            printf(
+                                                /* translators: %s: discount amount, e.g. "40% OFF". */
+                                                esc_html__('AI Email Engine Is Here — %s on Mail Mint!', 'mrm'),
+                                                '<span class="highlighted-text">' . esc_html($discount) . '</span>'
+                                            );
+                                            ?>
+                                        </span>
+                                        <span class="banner-subtext">
+                                            <?php esc_html_e('Limited time deal · Use the code at checkout', 'mrm'); ?>
+                                        </span>
                                     </div>
 
-                                    <a href="<?php echo esc_url($btn_link); ?>" class="cta-button" role="button" aria-label="get special discount " target="_blank">
-                                        <?php
-                                            echo __('Get 40% OFF', 'getwpfunnels');
-                                        ?>
-                                        <svg width="11" height="11" fill="none" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path fill="#3C1F7D" stroke="#3C1F7D" stroke-width=".2" d="M9.419.1a.88.88 0 01.88.881V9.42a.88.88 0 11-1.761 0V3.11l-6.934 6.933A.88.88 0 01.358 8.796l6.934-6.934H.982A.88.88 0 11.981.1h8.437z"></path></svg>
+                                    <div class="coupon-block">
+                                        <span class="coupon-label"><?php esc_html_e('Coupon', 'mrm'); ?></span>
+
+                                        <button type="button" class="coupon-chip" data-coupon="<?php echo esc_attr($coupon_code); ?>" aria-label="<?php echo esc_attr(sprintf(/* translators: %s: coupon code. */ __('Copy coupon code %s', 'mrm'), $coupon_code)); ?>">
+                                            <span class="coupon-code"><?php echo esc_html($coupon_code); ?></span>
+                                            <span class="coupon-copy-icon" aria-hidden="true">
+                                                <svg width="14" height="14" fill="none" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M9.5 3.5v-1A1.5 1.5 0 008 1H2.5A1.5 1.5 0 001 2.5V8a1.5 1.5 0 001.5 1.5h1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+                                            </span>
+                                            <span class="coupon-copied-tip" aria-hidden="true"><?php esc_html_e('Copied!', 'mrm'); ?></span>
+                                        </button>
+                                    </div>
+
+                                    <span class="banner-divider" aria-hidden="true"></span>
+
+                                    <a href="<?php echo esc_url($btn_link); ?>" class="mintmrm-btn cta-button" role="button" aria-label="<?php esc_attr_e('Claim the discount', 'mrm'); ?>" target="_blank">
+                                        <?php esc_html_e('Claim Discount', 'mrm'); ?>
+                                        <svg width="11" height="11" fill="none" viewBox="0 0 11 11" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" stroke="currentColor" stroke-width=".2" d="M9.419.1a.88.88 0 01.88.881V9.42a.88.88 0 11-1.761 0V3.11l-6.934 6.933A.88.88 0 01.358 8.796l6.934-6.934H.982A.88.88 0 11.981.1h8.437z"></path></svg>
                                     </a>
 
                                 </div>
@@ -172,6 +195,54 @@ class SpecialOccasionBanner
                 updateCountdown();
                 setInterval(updateCountdown, 1000); // Update every minute
             });
+
+            (function() {
+                var COPIED_DURATION = 1800;
+
+                function copyToClipboard(text) {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        return navigator.clipboard.writeText(text);
+                    }
+
+                    // Fallback for non-secure contexts (e.g. plain http admin).
+                    return new Promise(function(resolve, reject) {
+                        var helper = document.createElement('textarea');
+                        helper.value = text;
+                        helper.setAttribute('readonly', '');
+                        helper.style.position = 'fixed';
+                        helper.style.top = '-9999px';
+                        document.body.appendChild(helper);
+                        helper.select();
+
+                        try {
+                            document.execCommand('copy') ? resolve() : reject();
+                        } catch (error) {
+                            reject(error);
+                        } finally {
+                            document.body.removeChild(helper);
+                        }
+                    });
+                }
+
+                function bindCouponChip(chip) {
+                    var timer = null;
+
+                    chip.addEventListener('click', function() {
+                        copyToClipboard(chip.getAttribute('data-coupon')).then(function() {
+                            chip.classList.add('is-copied');
+                            window.clearTimeout(timer);
+                            timer = window.setTimeout(function() {
+                                chip.classList.remove('is-copied');
+                            }, COPIED_DURATION);
+                        }).catch(function() {});
+                    });
+                }
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    var chips = document.querySelectorAll('.mailmint-promotional-notice .coupon-chip');
+                    Array.prototype.forEach.call(chips, bindCouponChip);
+                });
+            })();
         </script>
     <?php
     }
@@ -182,7 +253,31 @@ class SpecialOccasionBanner
     public function add_styles()
     {
     ?>
+        <script id="mailmint-promotional-banner-wizard-sync">
+            /**
+             * The setup wizard is a hash route, so it cannot be detected server-side.
+             * Sync the flag class as early as possible (admin_head) so the banner never
+             * flashes before Hooks::remove_jetpack_note_from_mail_mint() runs in the footer.
+             */
+            (function() {
+                function mintSyncPromoWizardClass() {
+                    document.documentElement.classList.toggle(
+                        'mrm-setup-wizard',
+                        window.location.href.indexOf('setup-wizard') !== -1
+                    );
+                }
+
+                mintSyncPromoWizardClass();
+                window.addEventListener('hashchange', mintSyncPromoWizardClass);
+            })();
+        </script>
+
         <style id="mailmint-promotional-banner-style">
+
+            /* Never promote inside the setup wizard. */
+            html.mrm-setup-wizard .mailmint-promotional-notice {
+                display: none !important;
+            }
 
             .mailmint-promotional-notice .gwpf-tb__notification,
             .mailmint-promotional-notice .gwpf-tb__notification * {
@@ -243,15 +338,12 @@ class SpecialOccasionBanner
             /* ---banner style start--- */
             .mailmint-promotional-notice .gwpf-promotional-banner {
                 position: relative;
-                background-color: #150A53;
-                /* background: linear-gradient(96deg, #573BFF 23.39%, #3216DA 49.94%); */
+                background-color: #1C1A4A;
                 z-index: 1111;
-                /* padding: 6px 0; */
+                font-family: "Inter", sans-serif;
             }
-            .gwpf-promotional-banner .banner-content .blackfriday-logo svg {
-                display: block;
-                position: relative;
-                top: 5px;
+            .mailmint-promotional-notice .gwpf-promotional-banner * {
+                font-family: "Inter", sans-serif;
             }
             .mailmint-promotional-notice .gwpf-promotional-banner .promotional-banner {
                 color: white;
@@ -273,60 +365,173 @@ class SpecialOccasionBanner
                 justify-content: center;
                 flex-wrap: wrap;
                 gap: 20px;
-                row-gap: 8px;
+                row-gap: 12px;
                 position: relative;
+                text-align: left;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .banner-emoji {
+                font-size: 24px;
+                line-height: 1;
+                flex: none;
             }
             .mailmint-promotional-notice .gwpf-promotional-banner .banner-text {
                 display: flex;
-                align-items: center;
-                flex-wrap: wrap;
-                gap: 6px;
-                row-gap: 0;
+                flex-flow: column;
+                align-items: flex-start;
                 justify-content: center;
+                gap: 3px;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .banner-headline {
                 font-size: 16px;
                 color: #fff;
-                font-weight: 400;
+                font-weight: 600;
                 line-height: 1.4;
-                text-transform: capitalize;
                 letter-spacing: 0;
             }
-            .mailmint-promotional-notice .gwpf-promotional-banner .banner-text svg {
-                display: block;
-            }
-            .mailmint-promotional-notice .gwpf-promotional-banner .banner-text .highlighted-text {
+            .mailmint-promotional-notice .gwpf-promotional-banner .banner-headline .highlighted-text {
                 color: #02C4FB;
                 font-weight: 700;
             }
-            .mailmint-promotional-notice .gwpf-promotional-banner .cta-button {
-                color: #3c1f7d;
-                font-size: 14px;
-                font-style: normal;
-                font-weight: 700;
+            .mailmint-promotional-notice .gwpf-promotional-banner .banner-subtext {
+                font-size: 12px;
+                font-weight: 400;
+                line-height: 1.4;
+                color: rgba(255, 255, 255, .65);
+            }
+
+            /* ---coupon chip--- */
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-block {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex: none;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-label {
+                font-size: 11px;
+                font-weight: 500;
                 line-height: 1;
-                letter-spacing: -0.084px;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: rgba(255, 255, 255, .65);
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-chip {
+                position: relative;
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                margin: 0;
+                padding: 6px 12px;
+                background: rgba(87, 59, 255, .25);
+                border: 1.5px dashed rgba(87, 59, 255, .8);
+                border-radius: 6px;
+                cursor: pointer;
+                box-shadow: none;
+                -webkit-appearance: none;
+                appearance: none;
+                transition: all .3s ease;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-chip:hover {
+                background: rgba(87, 59, 255, .4);
+                border-color: #573BFF;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-chip:focus {
+                outline: none;
+                box-shadow: none;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-chip.is-copied {
+                border-color: #10B981;
+                background: rgba(16, 185, 129, .2);
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-code {
+                font-size: 15px;
+                font-weight: 700;
+                line-height: 1.2;
+                letter-spacing: 0.12em;
+                color: #FFFFFF;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-copy-icon {
+                display: flex;
+                align-items: center;
+                color: rgba(255, 255, 255, .8);
+                transition: all .3s ease;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-copy-icon svg {
+                display: block;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-chip:hover .coupon-copy-icon {
+                color: #FFFFFF;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-chip.is-copied .coupon-copy-icon {
+                color: #10B981;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-copied-tip {
+                position: absolute;
+                left: 50%;
+                bottom: calc(100% + 8px);
+                transform: translate(-50%, 4px);
+                padding: 3px 8px;
+                border-radius: 4px;
+                background: #10B981;
+                color: #FFFFFF;
+                font-size: 11px;
+                font-weight: 600;
+                line-height: 1.4;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: all .3s ease;
+            }
+            .mailmint-promotional-notice .gwpf-promotional-banner .coupon-chip.is-copied .coupon-copied-tip {
+                opacity: 1;
+                visibility: visible;
+                transform: translate(-50%, 0);
+            }
+
+            /* ---divider--- */
+            .mailmint-promotional-notice .gwpf-promotional-banner .banner-divider {
+                width: 1px;
+                height: 34px;
+                flex: none;
+                background: rgba(255, 255, 255, .2);
+            }
+
+            /* ---cta--- */
+            .mailmint-promotional-notice .gwpf-promotional-banner .cta-button {
+                color: #fff;
+                font-size: 13px;
+                font-style: normal;
+                font-weight: 600;
+                line-height: 1;
+                letter-spacing: 0;
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
                 transition: all .3s ease;
-                border-radius: 100px;
-                background: #fff;
-                box-shadow: 0 4px 10px 0 rgba(110, 66, 211, .3);
-                padding: 10px 15px;
+                border: none;
+                border-radius: 6px;
+                background: #573BFF;
+                padding: 10px 18px;
                 text-decoration: none;
+                flex: none;
             }
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button svg {
+                display: block;
                 transform: translate(0, 0);
                 transition: all .3s ease;
             }
-            .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:focus, 
+            .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:focus,
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:visited {
-                color: #3c1f7d !important;
+                color: #fff !important;
+                box-shadow: none;
+                outline: none;
             }
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:hover {
-                color: #3c1f7d !important;
+                color: #fff !important;
+                background: #4C25A5;
             }
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:hover svg {
-                transform: translate(3px, -4px);
+                transform: translate(3px, -3px);
             }
 
             .mailmint-promotional-notice .gwpf-tb__notification .close-promotional-banner {
@@ -354,6 +559,18 @@ class SpecialOccasionBanner
             @media only screen and (max-width: 991px) {
                 .mailmint-promotional-notice .promotional-banner {
                     padding: 16px 20px;
+                }
+
+                .mailmint-promotional-notice .gwpf-tb__notification {
+                    max-height: none;
+                }
+
+                .mailmint-promotional-notice .gwpf-promotional-banner .banner-divider {
+                    display: none;
+                }
+
+                .mailmint-promotional-notice .gwpf-promotional-banner .banner-content {
+                    justify-content: flex-start;
                 }
 
                 .mailmint-promotional-notice .gwpf-tb__notification {

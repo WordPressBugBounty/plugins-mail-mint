@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, newsletter, email
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag:  1.30.0
+Stable tag:  1.30.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -562,18 +562,22 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 
 == Screenshots ==
 
-1. Mail Mint Dashboard for Email Marketing Automation
-2. Mail Mint Contacts – Manage User List
-3. Organize Users by List
-4. Assign Specific Tags to Users
-5. Email Campaigns for Automation
-6. Automated Workflow for Email Marketing
-7. Lead Generation Forms – Mail Mint
-8. Mail Mint Business Settings
+1. AI-powered dashboard — ask anything to create campaigns, build automations, and surface insights from a single prompt.
+2. Email campaigns — create regular, recurring, and sequence campaigns to engage your audience.
+3. Visual automation builder — automate your entire subscriber journey with triggers, delays, and if/else conditions.
+4. Contacts management — view, filter, and organize all your subscribers by lists, tags, and status.
+5. AI email engine — generate and optimize email content with built-in AI assistance.
+6. Lead collection forms — turn visitors into subscribers with popups, inline forms, and slide-ins.
+7. Abandoned cart recovery — track and recover abandoned carts with automated follow-up emails.
+8. Advanced analytics — monitor contact growth, email deliverability, engagement, and WooCommerce revenue.
 9. Email Settings for Automation
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.30.1 (2026-08-07) =
+* Improvement: Compatibility improvements with WPFunnels
+* Improvement: Reduced plugin size for faster load performance
 
 = 1.30.0 (2026-08-05) =
 * New: Write with AI – Generate email content and summaries with AI assistance

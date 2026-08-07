@@ -11,8 +11,6 @@
 
 namespace Mint\MRM\DataBase\Tables;
 
-require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
 /**
  * [Manage campaign schema]
  *
@@ -106,6 +104,7 @@ class CampaignSchema {
             INDEX `ctitle_index` (`title` ASC)
          ) $charset_collate;";
 
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 	}
 
@@ -129,6 +128,8 @@ class CampaignSchema {
             `updated_at` TIMESTAMP NULL,
             INDEX `campaign_id_index` (`campaign_id` ASC)
          ) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 	}
 
@@ -165,6 +166,7 @@ class CampaignSchema {
             INDEX `campaign_id_index` (`campaign_id` ASC)
          ) $charset_collate;";
 
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 	}
 
@@ -186,6 +188,8 @@ class CampaignSchema {
             `meta_value` longtext,
             INDEX `campaign_emails_id_index` (`campaign_emails_id` ASC)
          ) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 	}
 }

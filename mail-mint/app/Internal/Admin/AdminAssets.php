@@ -117,17 +117,45 @@ class AdminAssets {
         $dependency         = require_once MRM_DIR_PATH . '/assets/admin/dist/main/index.min.asset.php';
         $editor_dependency  = require_once MRM_DIR_PATH . '/assets/admin/dist/automation_editor/index.min.asset.php';
 
-        $scripts = [
+        // Modules used by both the main app and the automation editor are
+        // extracted into a single shared initial chunk by the `mmShared`
+        // splitChunks cacheGroup in webpack.config.js. Webpack does not load
+        // initial chunks itself, so it is registered here and declared as a
+        // dependency of both entries — that also guarantees load order.
+        //
+        // Note the path: initial chunks are named by output.filename
+        // ('[name]/index.min.js'), not output.chunkFilename, so this is
+        // mm-shared/index.min.js rather than chunks/mm-shared.min.js.
+        $shared_asset_file  = MRM_DIR_PATH . '/assets/admin/dist/mm-shared/index.min.asset.php';
+        $has_shared_chunk   = file_exists( $shared_asset_file );
+        $shared_dependency  = $has_shared_chunk ? require $shared_asset_file : array();
+
+        $scripts = [];
+
+        if ( $has_shared_chunk ) {
+            $scripts['mail-mint-vendor'] = [
+                'src'       => MRM_DIR_URL . 'assets/admin/dist/mm-shared/index.min.js',
+                'version'   => ! empty( $shared_dependency['version'] ) ? $shared_dependency['version'] : MRM_VERSION,
+                'deps'      => ! empty( $shared_dependency['dependencies'] ) ? $shared_dependency['dependencies'] : array(),
+                'in_footer' => true,
+            ];
+        }
+
+        $scripts += [
             'mail-mint-automation-editor' => [
                 'src'     => MRM_DIR_URL . 'assets/admin/dist/automation_editor/index.min.js',
                 'version'   => ! empty( $editor_dependency['version'] ) ? $editor_dependency['version'] : MRM_VERSION,
-                'deps'      => $editor_dependency['dependencies'],
+                'deps'      => $has_shared_chunk
+                    ? array_merge( $editor_dependency['dependencies'], [ 'mail-mint-vendor' ] )
+                    : $editor_dependency['dependencies'],
                 'in_footer' => true,
             ],
             'mail-mint-js' => [
                 'src'     => MRM_DIR_URL . 'assets/admin/dist/main/index.min.js',
                 'version'   => ! empty( $dependency['version'] ) ? $dependency['version'] : MRM_VERSION,
-                'deps'      => $dependency['dependencies'],
+                'deps'      => $has_shared_chunk
+                    ? array_merge( $dependency['dependencies'], [ 'mail-mint-vendor' ] )
+                    : $dependency['dependencies'],
                 'in_footer' => true,
             ],
         ];

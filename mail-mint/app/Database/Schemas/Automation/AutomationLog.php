@@ -11,8 +11,6 @@
 
 namespace Mint\MRM\DataBase\Tables;
 
-require_once MRM_DIR_PATH . 'app/Interfaces/Schema.php';
-
 use Mint\MRM\Interfaces\Schema;
 use Mint\MRM\DataBase\Tables\AutomationSchema;
 

@@ -447,7 +447,7 @@ class DefaultEmailTemplates {
                         ],
                     ],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/product-suggestion.png',
+                    'thumbnail_image' => $image_path . '/thumbnails/product-suggestion.webp',
                 ),
 				array(
 					'id'              => 2,
@@ -457,7 +457,7 @@ class DefaultEmailTemplates {
 					'title'           => 'Product Offer',
 					'json_content'    => [],
 					'html_content'    => '',
-					'thumbnail_image' => $image_path . '/thumbnails/product-offer.png',
+					'thumbnail_image' => $image_path . '/thumbnails/product-offer.webp',
 				),
 
                 array(
@@ -814,7 +814,7 @@ class DefaultEmailTemplates {
                         ],
                     ],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/order-received.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/order-received.webp',
                 ),
 				array(
 					'id'              => 4,
@@ -824,7 +824,7 @@ class DefaultEmailTemplates {
 					'title'           => 'Coming Soon!',
 					'json_content'    => [],
 					'html_content'    => '',
-					'thumbnail_image' => $image_path . '/thumbnails/coming-soon.jpg',
+					'thumbnail_image' => $image_path . '/thumbnails/coming-soon.webp',
 				),
 				array(
 					'id'              => 5,
@@ -1245,7 +1245,7 @@ class DefaultEmailTemplates {
               ),
             ),
 					'html_content'    => '',
-					'thumbnail_image' => $image_path . '/thumbnails/congratulate.png',
+					'thumbnail_image' => $image_path . '/thumbnails/congratulate.webp',
 				),
 				array(
 					'id'              => 6,
@@ -2033,7 +2033,7 @@ class DefaultEmailTemplates {
 						],
 					],
 					'html_content'    => '',
-					'thumbnail_image' => $image_path . '/thumbnails/welcome-email.png',
+					'thumbnail_image' => $image_path . '/thumbnails/welcome-email.webp',
 				),
 				array(
 					'id'              => 7,
@@ -2430,7 +2430,7 @@ class DefaultEmailTemplates {
             ),
           ),
 					'html_content'    => '',
-					'thumbnail_image' => $image_path . '/thumbnails/giveaway.jpg',
+					'thumbnail_image' => $image_path . '/thumbnails/giveaway.webp',
 				),
 				array(
 					'id'              => 8,
@@ -2806,7 +2806,7 @@ class DefaultEmailTemplates {
                         ],
                     ],
 					'html_content'    => '',
-					'thumbnail_image' => $image_path . '/thumbnails/black-friday.jpg',
+					'thumbnail_image' => $image_path . '/thumbnails/black-friday.webp',
 				),
                 array(
                     'id'              => 9,
@@ -3576,7 +3576,7 @@ class DefaultEmailTemplates {
                         ),
                       ),
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/marketing-email.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/marketing-email.webp',
                 ),
 
                 array(
@@ -4104,7 +4104,7 @@ class DefaultEmailTemplates {
                         ],
                     ],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/last-minute.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/last-minute.webp',
                 ),
 
                 array(
@@ -4115,7 +4115,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Post Purchase Follow Up',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/recent-purchase.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/recent-purchase.webp',
                 ),
 
                 array(
@@ -4126,7 +4126,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Juice Store',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/abandoned-cart-2.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/abandoned-cart-2.webp',
                 ),
                 array(
                     'id'              => 13,
@@ -4470,7 +4470,7 @@ class DefaultEmailTemplates {
                         ],
                     ],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/upgrade-notice.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/upgrade-notice.webp',
                 ),
                 array(
                     'id'              => 14,
@@ -4866,7 +4866,7 @@ class DefaultEmailTemplates {
                         ],
                     ],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/subscription-cancellation-notice.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/subscription-cancellation-notice.webp',
                 ),
                 array(
                     'id'              => 15,
@@ -5210,7 +5210,7 @@ class DefaultEmailTemplates {
                         ],
                     ],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/limited-time-deal.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/limited-time-deal.webp',
                 ),
                 array(
                     'id'              => 16,
@@ -5220,7 +5220,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Event Registration',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/event-registration.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/event-registration.webp',
                 ),
                 array(
                     'id'              => 17,
@@ -5230,7 +5230,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Hotel Booking',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/hotel-booking.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/hotel-booking.webp',
                 ),
                 array(
                     'id'              => 18,
@@ -5240,7 +5240,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Abandoned Cart Recovery 1',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/reserve-cart.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/reserve-cart.webp',
                 ),
                 array(
                     'id'              => 19,
@@ -5250,7 +5250,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Abandoned Cart Recovery 2',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/purchase-today.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/purchase-today.webp',
                 ),
                 array(
                     'id'              => 20,
@@ -5260,7 +5260,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Happy Halloween!',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/halloween-thumb.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/halloween-thumb.webp',
                 ),
                 array(
                     'id'              => 21,
@@ -6640,7 +6640,7 @@ class DefaultEmailTemplates {
                         ),
                       ),
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/restaurent-welcome-email.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/restaurent-welcome-email.webp',
                 ),
                 array(
                     'id'              => 22,
@@ -7704,7 +7704,7 @@ class DefaultEmailTemplates {
                           ),
                       ),
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/event-invitation.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/event-invitation.webp',
                 ),
                 array(
                     'id'              => 23,
@@ -7714,7 +7714,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Christmas Exclusive Offer',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/christmas-exclusive-offer.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/christmas-exclusive-offer.webp',
                 ),
                 array(
                     'id'              => 24,
@@ -7724,7 +7724,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Shipping Update',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/shipping-update.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/shipping-update.webp',
                 ),
                 array(
                     'id'              => 25,
@@ -7734,7 +7734,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Welcome To Gym Email',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/welcome-to-gym.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/welcome-to-gym.webp',
                 ),
                 array(
                     'id'              => 26,
@@ -7744,7 +7744,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Cyber Monday - Extended Sale',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/extend-sale.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/extend-sale.webp',
                 ),
                 array(
                     'id'              => 27,
@@ -7754,7 +7754,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Anniversary Greetings',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/anniversary-greetings.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/anniversary-greetings.webp',
                 ),
                 array(
                     'id'              => 28,
@@ -8877,7 +8877,7 @@ class DefaultEmailTemplates {
                         ),
                       ),
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/newsletter-update.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/newsletter-update.webp',
                 ),
                 array(
                     'id'              => 29,
@@ -8887,7 +8887,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Abandoned Cart Reminder',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/abandoned-cart-reminder.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/abandoned-cart-reminder.webp',
                 ),
                 array(
                     'id'              => 30,
@@ -9266,7 +9266,7 @@ class DefaultEmailTemplates {
                         ),
                       ),
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/birthday-greetings.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/birthday-greetings.webp',
                 ),
                 array(
                     'id'              => 31,
@@ -9276,7 +9276,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Referral Program Invitation',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/referral-program.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/referral-program.webp',
                 ),
                 array(
                     'id'              => 32,
@@ -9286,7 +9286,7 @@ class DefaultEmailTemplates {
                     'title'           => 'Apology Email Template',
                     'json_content'    => [],
                     'html_content'    => '',
-                    'thumbnail_image' => $image_path . '/thumbnails/apology-email-template.jpg',
+                    'thumbnail_image' => $image_path . '/thumbnails/apology-email-template.webp',
                 ),
               array(
                   'id'              => 33,
@@ -9676,7 +9676,7 @@ class DefaultEmailTemplates {
                     'subTitle' => 'Nice to meet you!',
                   ),
                   'html_content'    => '',
-                  'thumbnail_image' => $image_path . '/thumbnails/feedback-needed.jpg',
+                  'thumbnail_image' => $image_path . '/thumbnails/feedback-needed.webp',
               ),
               array(
                 'id'              => 34,
@@ -9686,7 +9686,7 @@ class DefaultEmailTemplates {
                 'title'           => 'Behind The Scenes Peek',
                 'json_content'    => [],
                 'html_content'    => '',
-                'thumbnail_image' => $image_path . '/thumbnails/behind-the-scenes-peek.jpg',
+                'thumbnail_image' => $image_path . '/thumbnails/behind-the-scenes-peek.webp',
               ),
               array(
                 'id'              => 35,
@@ -10230,7 +10230,7 @@ class DefaultEmailTemplates {
                   ),
                 ),
                 'html_content'    => '',
-                'thumbnail_image' => $image_path . '/thumbnails/survey-invitation.jpg',
+                'thumbnail_image' => $image_path . '/thumbnails/survey-invitation.webp',
               ),
             array(
               'id'              => 36,
@@ -10240,7 +10240,7 @@ class DefaultEmailTemplates {
               'title'           => 'Product Launch Announcement',
               'json_content'    => [],
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/product-launch-announcement.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/product-launch-announcement.webp',
             ),
             array(
               'id'              => 37,
@@ -10250,7 +10250,7 @@ class DefaultEmailTemplates {
               'title'           => 'Customer Success Story',
               'json_content'    => [],
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/customer-success-story.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/customer-success-story.webp',
             ),
             array(
               'id'              => 38,
@@ -11319,7 +11319,7 @@ class DefaultEmailTemplates {
                   ),
                 ),
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/educational-content.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/educational-content.webp',
             ),
             array(
               'id'              => 39,
@@ -11329,7 +11329,7 @@ class DefaultEmailTemplates {
               'title'           => 'Campaign Alert',
               'json_content'    => [],
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/campaign-alert.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/campaign-alert.webp',
             ),
             array(
               'id'              => 40,
@@ -11339,7 +11339,7 @@ class DefaultEmailTemplates {
               'title'           => 'Seasonal Greetings',
               'json_content'    => [],
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/seasonal-greetings.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/seasonal-greetings.webp',
             ),
             array(
               'id'              => 41,
@@ -12264,7 +12264,7 @@ class DefaultEmailTemplates {
                   'subTitle' => 'Nice to meet you!',
                 ),
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/personalized-recommendations.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/personalized-recommendations.webp',
             ),
             array(
               'id'              => 42,
@@ -12659,7 +12659,7 @@ class DefaultEmailTemplates {
                 ),
               ),
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/easter-bunny-easter-eggs.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/easter-bunny-easter-eggs.webp',
             ),
             array(
               'id'              => 43,
@@ -12669,7 +12669,7 @@ class DefaultEmailTemplates {
               'title'           => 'Re-engagement Campaign',
               'json_content'    => [],
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/re-engagement-campaign.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/re-engagement-campaign.webp',
             ),
             array(
               'id'              => 44,
@@ -13059,7 +13059,7 @@ class DefaultEmailTemplates {
                 ),
               ),
               'html_content'    => '',
-              'thumbnail_image' => $image_path . '/thumbnails/opt-in.jpg',
+              'thumbnail_image' => $image_path . '/thumbnails/opt-in.webp',
           ),
           array(
             'id'              => 45,
@@ -13694,7 +13694,7 @@ class DefaultEmailTemplates {
                 ),
             ),
             'html_content'    => '',
-            'thumbnail_image' => $image_path . '/thumbnails/join-us-on-social-media.png',
+            'thumbnail_image' => $image_path . '/thumbnails/join-us-on-social-media.webp',
           ),
           array(
             'id'              => 46,
@@ -13704,7 +13704,7 @@ class DefaultEmailTemplates {
             'title'           => 'Abandoned Cart Recovery 3',
             'json_content'    => [],
             'html_content'    => '',
-            'thumbnail_image' => $image_path . '/thumbnails/abandoned-cart-4.png',
+            'thumbnail_image' => $image_path . '/thumbnails/abandoned-cart-4.webp',
           ),
           array(
             'id'              => 47,
@@ -13714,7 +13714,7 @@ class DefaultEmailTemplates {
             'title'           => 'Download Emails 1',
             'json_content'    => [],
             'html_content'    => '',
-            'thumbnail_image' => $image_path . '/thumbnails/download-emails-1.png',
+            'thumbnail_image' => $image_path . '/thumbnails/download-emails-1.webp',
           ),
           array(
             'id'              => 48,
@@ -14074,7 +14074,7 @@ class DefaultEmailTemplates {
               ),
             ),
             'html_content'    => '',
-            'thumbnail_image' => $image_path . '/thumbnails/download-emails-2.png',
+            'thumbnail_image' => $image_path . '/thumbnails/download-emails-2.webp',
           ),
           array(
             'id'              => 49,
@@ -15071,7 +15071,7 @@ class DefaultEmailTemplates {
               ),
             ),
             'html_content'    => '',
-            'thumbnail_image' => $image_path . '/thumbnails/podcast-welcome.png',
+            'thumbnail_image' => $image_path . '/thumbnails/podcast-welcome.webp',
           ),
           array(
             'id'              => 50,
@@ -15913,7 +15913,7 @@ class DefaultEmailTemplates {
               ),
             ),
             'html_content'    => '',
-            'thumbnail_image' => $image_path . '/thumbnails/summer-collection-deals.png',
+            'thumbnail_image' => $image_path . '/thumbnails/summer-collection-deals.webp',
           ),
           array(
             'id'              => 51,
@@ -16648,7 +16648,7 @@ class DefaultEmailTemplates {
               'subTitle' => 'Nice to meet you!',
             ),
             'html_content'    => '',
-            'thumbnail_image' => $image_path . '/thumbnails/ecommerce-newsletter.png',
+            'thumbnail_image' => $image_path . '/thumbnails/ecommerce-newsletter.webp',
           ),
 			)
 		);

@@ -11,8 +11,6 @@
 
 namespace Mint\MRM\DataBase\Tables;
 
-require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
 /**
  * [Manage campaign email builder schema]
  *
@@ -66,6 +64,8 @@ class CampaignEmailBuilderSchema {
             `updated_at` TIMESTAMP NULL,
             INDEX `email_id_index` (`email_id` ASC)
          ) $charset_collate;";
+
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 	}
 }

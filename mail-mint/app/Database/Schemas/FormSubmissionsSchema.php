@@ -10,8 +10,6 @@
 
 namespace Mint\MRM\DataBase\Tables;
 
-require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
 /**
  * Manage form submissions schema.
  *
@@ -67,6 +65,7 @@ class FormSubmissionsSchema {
 			INDEX idx_created_at (created_at)
 		) $charset_collate;";
 
+		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 	}
 }

@@ -12,8 +12,6 @@
 
 namespace Mint\MRM\DataBase\Tables;
 
-require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
 /**
  * Manage email templates schema.
  *
@@ -74,6 +72,8 @@ class EmailTemplatesSchema{
             `updated_at` TIMESTAMP NULL,
             INDEX `template_id_index` (`id` ASC)
          ) $charset_collate;";
+
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         dbDelta($sql);
     }
 }
