@@ -13,7 +13,9 @@
 namespace Mint\MRM\Internal\Parser;
 
 use MailMintPro\Mint\Internal\AbandonedCart\Helper\Common;
-use MailMintPro\Mint\Internal\AbandonedCart\Helper\Model;
+use Mint\MRM\Internal\AbandonedCart\Helper\CartCommon;
+use Mint\MRM\Internal\AbandonedCart\Helper\CartModel;
+use Mint\MRM\API\Actions\ComplianceAction;
 use Mint\Utilities\Arr;
 use MailMintPro\App\Internal\EmailCustomization\Parser\EddMergeTagParser;
 use MailMintPro\App\Internal\EmailCustomization\Parser\LearnDashTagParser;
@@ -178,7 +180,7 @@ class MergeTagParser
 				break;
 			case 'cart':
 				$abandoned_id = isset($params['abandoned_id']) ? $params['abandoned_id'] : 0;
-				$value = $this->get_cart_abandonment_value($value_key, $default_value, $abandoned_id);
+				$value = $this->get_cart_abandonment_value($value_key, $default_value, $abandoned_id, $params);
 				break;
 			case 'edd':
 				if ( class_exists( EddMergeTagParser::class ) ) {
@@ -322,26 +324,63 @@ class MergeTagParser
 	 *
 	 * @since 1.14.4
 	 */
-	protected function get_cart_abandonment_value($value_key, $default_value, $abandoned_id){
-		// Check if the method exists in the Model class.
-		if (!method_exists(Model::class, 'get_cart_details_by_id')) {
+	protected function get_cart_abandonment_value($value_key, $default_value, $abandoned_id, $params = array()){
+		$cart_details = CartModel::get_cart_details_by_id( $abandoned_id );
+
+		if ( empty( $cart_details ) ) {
 			return $default_value;
 		}
-		$cart_details = Model::get_cart_details_by_id( $abandoned_id );
-		
+
 		switch ($value_key) {
 			case 'billing_email':
 				return !empty( $cart_details['email'] ) ? $cart_details['email'] : $default_value;
 			case 'items':
-				$cart_details = Common::get_abandoned_cart_totals($cart_details);
-				return Common::generate_cart_items_table_block_from_placeholder($cart_details);
+				$cart_details = CartCommon::get_abandoned_cart_totals($cart_details);
+				return CartCommon::generate_cart_items_table_block_from_placeholder($cart_details);
 			case 'recovery_url':
+				/*
+				 * Cart recovery is a Mail Mint Pro feature. Free tracks the cart but has no
+				 * handler for the recovery token, so the URL would be a dead link — resolve
+				 * the tag to its default instead of generating one.
+				 */
+				if ( ! class_exists( 'MailMintPro\\Mint\\Internal\\AbandonedCart\\Helper\\Common' ) ) {
+					return $default_value;
+				}
 				$automation_id = isset($cart_details['automation_id']) ? $cart_details['automation_id'] : '';
 				$checkout_id   = Common::get_woocommerce_checkout_page_id();
 				$cart_url      = Common::get_cart_recovery_url($cart_details, $automation_id, $checkout_id);
-				return !empty($cart_url) ? $cart_url : $default_value;
+
+				if ( empty( $cart_url ) ) {
+					return $default_value;
+				}
+
+				/*
+				 * Wrap the recovery URL for click tracking here rather than leaving it to
+				 * Helper::replace_url(). The automation send path rewrites links *before*
+				 * merge tags are parsed, so at rewrite time this href is still the literal
+				 * {{cart.recovery_url}} tag and never matches replace_url()'s `href="http`
+				 * pattern — the most-clicked link in the email would carry no tracking at
+				 * all. Reordering the send path instead would newly wrap everything the
+				 * parser emits, including the unsubscribe link, which must resolve without
+				 * a redirect hop.
+				 *
+				 * The email hash is only present on the body parse; subject and preview
+				 * parses deliberately omit it, since a tracked URL in a subject line is
+				 * meaningless.
+				 */
+				$email_hash = isset( $params['email_hash'] ) ? $params['email_hash'] : '';
+
+				if ( ! empty( $email_hash ) ) {
+					$cart_url = \MailMint\App\Helper::build_tracked_url(
+						$cart_url,
+						$email_hash,
+						ComplianceAction::get_click_tracking_mode()
+					);
+				}
+
+				return $cart_url;
 			case 'total':
-				$cart_details = Common::get_abandoned_cart_totals($cart_details);
+				$cart_details = CartCommon::get_abandoned_cart_totals($cart_details);
 				return !empty($cart_details['total']) ? $cart_details['total'] : $default_value;
 			case 'currency':
 				return get_woocommerce_currency_symbol();

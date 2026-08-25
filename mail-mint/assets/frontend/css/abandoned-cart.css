@@ -1,0 +1,18 @@
+.mint-form-control-wrapper {
+    display: block;
+    margin-top: 8px;
+    margin-bottom: 16px;
+}
+
+.mint-gdpr-consent-text {
+    display: block;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.mint_email_consent_no_thanks {
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: 6px;
+    color: inherit;
+}

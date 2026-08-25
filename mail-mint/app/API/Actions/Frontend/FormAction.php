@@ -493,7 +493,7 @@ class FormAction implements Action {
 		$current_date = date( 'd M Y' );  //phpcs:ignore
 		$current_time = ( new \DateTimeImmutable( 'now', wp_timezone() ) )->format( 'h:i A' ); //phpcs:ignore
 		$powered_by   = '';
-		if ( apply_filters( 'mail_mint_remove_email_footer_watermark', true ) ) {
+		if ( MrmCommon::is_footer_watermark() ) {
 			$powered_by = __( 'Powered by : Mail Mint', 'mrm' );
 		}
 		$info = "<br>----<br><br>Date : $current_date <br>Time : $current_time <br>$powered_by <br>";

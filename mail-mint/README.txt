@@ -3,9 +3,9 @@ Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
 Tags: woocommerce emails, email automation, email marketing, newsletter, email
 Requires at least: 5.8
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.30.1
+Stable tag:  1.31.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -574,6 +574,33 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.31.0 (2026-08-25) =
+* New: Abandoned cart tracking with recoverable, recovered, and lost cart list pages
+* New: Abandoned cart settings including GDPR consent, excluded user roles, and cool-off period
+* New: Carts are automatically marked as recovered based on configurable WooCommerce order statuses
+* New: Transactional contact status — reachable by transactional automation steps but excluded from campaigns
+* New: Recovered carts now record whether recovery was through an email link or the customer returning organically
+* New: Knowledge Base panel added to the admin header with documentation, video, and support links
+* New: AI Assistant is now a resizable drawer accessible from any page, with persistent chat history
+* New: AI Assistant can now write real email content directly into automation Send Email steps
+* New: License details (activation, deactivation, expiry) available under Settings → License (Pro)
+* New: Email blacklist to exclude specific addresses or domains from cart tracking (Pro)
+* Improvement: Redesigned Settings area with grouped navigation and consistent layout across all pages
+* Improvement: Cart details now open on a dedicated page instead of a popup
+* Improvement: AI Assistant now recognises all automation triggers, including abandoned cart triggers
+* Improvement: Cart analytics follow the same date filter as the rest of Analytics, with a per-product breakdown (Pro)
+* Improvement: Cart recovery link in automation emails is now included in click tracking (Pro)
+* Improvement: Cart details page now shows recovery emails with subject, status, and send time (Pro)
+* Security: Hardened filtered contacts query against SQL injection via status, search, and pagination parameters
+* Fix: Recovery emails could still send after a customer completed their purchase before the cart was marked abandoned
+* Fix: Recovery emails no longer continue for carts already marked as lost or after all open carts are purchased
+* Fix: Recovery emails are no longer sent to contacts who have unsubscribed, bounced, or reported spam
+* Fix: Abandoned cart no longer re-subscribes unsubscribed, bounced, or spam-reporting contacts
+* Fix: Incomplete email addresses entered at checkout are no longer saved as contacts
+* Fix: A Delay step no longer skips a transactional Send Email step for non-subscribed contacts
+* Fix: Saving a heavy email design as a template no longer fails with a request-too-large error
+* Fix: Email footer branding preference is now correctly ignored when Pro is inactive or unlicensed
 
 = 1.30.1 (2026-08-07) =
 * Improvement: Compatibility improvements with WPFunnels

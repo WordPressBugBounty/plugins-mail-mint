@@ -171,7 +171,7 @@ class Email {
 	 * @since 1.0.0
 	 */
 	public static function get_mail_template( $email_body = '', $domain_link = '', $hash = '', $preview_text = '' ) {
-		$is_watermark = apply_filters( 'mail_mint_remove_email_footer_watermark', true );
+		$is_watermark = MrmCommon::is_footer_watermark();
 
 		$watermark_text = '';
 

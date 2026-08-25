@@ -9,6 +9,7 @@ namespace MintMail\App\Internal\Automation;
 
 use DateTime;
 use Mint\MRM\DataBase\Models\FormModel;
+use Mint\MRM\Database\Enums\ContactStatus;
 use Mint\MRM\DataBase\Tables\AutomationSchema;
 use Mint\MRM\DataBase\Tables\AutomationStepMetaSchema;
 use Mint\MRM\DataBase\Tables\AutomationStepSchema;
@@ -1606,7 +1607,17 @@ class HelperFunctions { //phpcs:ignore
 
 
 	/**
-	 * Maybe site user
+	 * Whether a contact may be sent an automation email that is NOT marked transactional.
+	 *
+	 * Deliberately narrow: only `subscribed` clears this gate. SendMail evaluates it as
+	 * `$is_transactional_step || maybe_user( $email )`, so the two together give:
+	 *
+	 * - subscribed    — receives every Send Email step.
+	 * - transactional — receives only steps marked "Mark this email as Transactional".
+	 * - pending       — same as transactional; the held step resumes if they confirm.
+	 *
+	 * A blocked send is a *skip*, never a stop: SendMail falls through to the next step
+	 * either way, so a transactional contact still walks the whole automation.
 	 *
 	 * @param string $email Email.
 	 * @return bool
@@ -1614,10 +1625,46 @@ class HelperFunctions { //phpcs:ignore
 	 */
 	public static function maybe_user( $email ) {
 		$contact = ContactModel::get_contact_by_email( $email );
-		if ( isset( $contact['status'] ) && 'subscribed' === $contact['status'] ) {
+		if ( isset( $contact['status'] ) && ContactStatus::SUBSCRIBED === $contact['status'] ) {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Whether a mail-sending step will actually reach a contact.
+	 *
+	 * The same gate SendMail applies at send time — `$is_transactional_step || maybe_user()`
+	 * — but answerable *before* the step runs, so a preceding Delay can decide whether to
+	 * schedule the wait or skip ahead.
+	 *
+	 * Delay used to ask maybe_user() alone. That reads the contact's status without ever
+	 * looking at the step, so a Send Email marked "Mark this email as Transactional" was
+	 * skipped for exactly the contacts it exists to reach: the `transactional` ones, such as
+	 * every contact abandoned cart capture creates. The Delay then dropped its wait too and
+	 * ran the rest of the automation inline — no scheduled action, no email.
+	 *
+	 * Only `sendMail` carries a transactional flag. `sequence` has no per-step equivalent, so
+	 * it keeps falling through to the contact-status check.
+	 *
+	 * @param array  $step  A step array with at least `automation_id`, `step_id` and `key`,
+	 *                      as returned by get_next_step().
+	 * @param string $email Contact email address.
+	 * @return bool True when the step would send.
+	 * @since 1.31.0
+	 */
+	public static function maybe_send_step( $step, $email ) {
+		if ( self::maybe_user( $email ) ) {
+			return true;
+		}
+
+		if ( empty( $step['key'] ) || 'sendMail' !== $step['key'] || empty( $step['automation_id'] ) || empty( $step['step_id'] ) ) {
+			return false;
+		}
+
+		$step_data = self::get_step_data( $step['automation_id'], $step['step_id'] );
+
+		return ! empty( $step_data['settings']['message_data']['make_transactional'] );
 	}
 
 	/**

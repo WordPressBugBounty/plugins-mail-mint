@@ -13,6 +13,7 @@
 namespace Mint\MRM\Admin\API\Controllers;
 
 use Mint\MRM\API\Controllers\Traits\CrudControllerTrait;
+use Mint\MRM\Database\Enums\ContactStatus;
 use Mint\MRM\Database\Repositories\ContactRepository;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\Mrm\Internal\Traits\Singleton;
@@ -371,18 +372,20 @@ class ContactController extends AdminBaseController {
 		$pending_count     = ! empty( $total_contact['pending'] ) ? $total_contact['pending'] : 0;
 		$bounced_count     = ! empty( $total_contact['bounced'] ) ? $total_contact['bounced'] : 0;
 		$complained_count  = ! empty( $total_contact['complained'] ) ? $total_contact['complained'] : 0;
-		$inactive_count    = ! empty( $total_contact['inactive'] ) ? $total_contact['inactive'] : 0;
-		$total_status      = $subscriber_count + $unsubcriber_count + $pending_count + $bounced_count + $complained_count + $inactive_count;
+		$inactive_count      = ! empty( $total_contact['inactive'] ) ? $total_contact['inactive'] : 0;
+		$transactional_count = ! empty( $total_contact['transactional'] ) ? $total_contact['transactional'] : 0;
+		$total_status        = $subscriber_count + $unsubcriber_count + $pending_count + $bounced_count + $complained_count + $inactive_count + $transactional_count;
 
 		// Count contacts based on status.
 		$contacts_data['count_status'] = array(
-			'subscribed'   => $subscriber_count,
-			'unsubscribed' => $unsubcriber_count,
-			'pending'      => $pending_count,
-			'bounced'      => $bounced_count,
-			'complained'   => $complained_count,
-			'inactive'     => $inactive_count,
-			'total_status' => $total_status,
+			'subscribed'    => $subscriber_count,
+			'unsubscribed'  => $unsubcriber_count,
+			'pending'       => $pending_count,
+			'bounced'       => $bounced_count,
+			'complained'    => $complained_count,
+			'inactive'      => $inactive_count,
+			'transactional' => $transactional_count,
+			'total_status'  => $total_status,
 		);
 
 		$contacts_data['current_page'] = $page;
@@ -783,18 +786,20 @@ class ContactController extends AdminBaseController {
         $pending_count     = ! empty( $total_contact['pending'] ) ? $total_contact['pending'] : 0;
         $bounced_count     = ! empty( $total_contact['bounced'] ) ? $total_contact['bounced'] : 0;
         $complained_count  = ! empty( $total_contact['complained'] ) ? $total_contact['complained'] : 0;
-        $inactive_count    = ! empty( $total_contact['inactive'] ) ? $total_contact['inactive'] : 0;
-        $total_status      = $subscriber_count + $unsubcriber_count + $pending_count + $bounced_count + $complained_count + $inactive_count;
+        $inactive_count      = ! empty( $total_contact['inactive'] ) ? $total_contact['inactive'] : 0;
+        $transactional_count = ! empty( $total_contact['transactional'] ) ? $total_contact['transactional'] : 0;
+        $total_status        = $subscriber_count + $unsubcriber_count + $pending_count + $bounced_count + $complained_count + $inactive_count + $transactional_count;
 
 		// Count contacts based on status.
 		$contacts['count_status'] = array(
-			'subscribed'   => $subscriber_count,
-			'unsubscribed' => $unsubcriber_count,
-			'pending'      => $pending_count,
-			'bounced'      => $bounced_count,
-			'complained'   => $complained_count,
-			'inactive'     => $inactive_count,
-			'total_status' => $total_status,
+			'subscribed'    => $subscriber_count,
+			'unsubscribed'  => $unsubcriber_count,
+			'pending'       => $pending_count,
+			'bounced'       => $bounced_count,
+			'complained'    => $complained_count,
+			'inactive'      => $inactive_count,
+			'transactional' => $transactional_count,
+			'total_status'  => $total_status,
 		);
 
 		// Count contacts groups.
@@ -978,7 +983,10 @@ class ContactController extends AdminBaseController {
         if( ! $is_enable &&  empty( $params[ 'status' ][ 0 ] ) ) {
             $params['status'] = 'subscribed';
         } elseif( !is_array( $params['status'] ) ) {
-            $params['status'] = isset( $params[ 'status' ] ) && in_array( $params[ 'status' ], array( 'subscribed', 'unsubscribed', 'pending' ), true ) ? $params[ 'status' ] : 'pending';
+            // Validate against the canonical list, not a hardcoded subset: the Create Contact
+            // form offers every status, and a subset here silently rewrote the admin's choice
+            // to 'pending' (and would send a double opt-in email they never asked for).
+            $params['status'] = isset( $params[ 'status' ] ) && ContactStatus::isValid( $params[ 'status' ] ) ? $params[ 'status' ] : 'pending';
         } else {
             $params['status'] = isset( $params[ 'status' ][ 0 ] ) && ! empty( $params[ 'status' ][ 0 ] ) ? $params[ 'status' ][ 0 ] : 'pending';
         }
@@ -1052,6 +1060,16 @@ class ContactController extends AdminBaseController {
         // Check if contact IDs are empty.
         if ( empty( $contact_ids ) ) {
             return $this->get_error_response( __( 'Please select an item first.', 'mrm' ), 400 );
+        }
+
+        /*
+         * Validate against the canonical status list before writing. update_contact_status()
+         * writes whatever string it is handed straight into the column, so without this an
+         * arbitrary value lands in `status` — and every status-filtered query (campaign
+         * audiences, contact counts, segment filters) then silently skips those rows.
+         */
+        if ( ! ContactStatus::isValid( $status ) ) {
+            return $this->get_error_response( __( 'Invalid status provided.', 'mrm' ), 400 );
         }
 
         $response = ContactModel::update_contact_status( $contact_ids, $status );
@@ -1177,7 +1195,7 @@ class ContactController extends AdminBaseController {
         }
 
         // Validate status
-        $allowed_statuses = array('pending', 'subscribed', 'unsubscribed', 'complained', 'bounced', 'inactive');
+        $allowed_statuses = ContactStatus::all();
         if (! in_array($status, $allowed_statuses, true)) {
             return $this->get_error_response(__('Invalid status provided.', 'mrm'), 400);
         }

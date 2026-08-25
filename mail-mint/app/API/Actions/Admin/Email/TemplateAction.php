@@ -205,8 +205,12 @@ class TemplateAction implements Action {
         $html_content    = isset($params['html']) ? $params['html'] : '';
         $json_content    = isset($params['json_content']) ? $params['json_content'] : '';
         $editor_type     = isset($params['editor']) ? $params['editor'] : 'advanced-builder';
-        $thumbnail       = isset($params['thumbnail']) ? $this->upload_template_thumnail('advanced-builder' === $editor_type ? $params['thumbnail'] : '') : '';
-        $thumbnail_data  = isset($params['thumbnail']) ? $params['thumbnail'] : '';
+        $raw_thumbnail   = isset($params['thumbnail']) && 'advanced-builder' === $editor_type ? $params['thumbnail'] : '';
+        $thumbnail       = $this->upload_template_thumnail($raw_thumbnail);
+        $thumbnail       = empty($thumbnail) ? '' : $thumbnail;
+        // Keep the raw data URL only as a fallback for when the file could not be written.
+        // Storing both doubles the row size for an image that already lives on disk.
+        $thumbnail_data  = empty($thumbnail) ? $raw_thumbnail : '';
         $email_type      = isset($params['wooCommerce_email_type']) ? $params['wooCommerce_email_type'] : 'default';
         $customizable    = isset($params['wooCommerce_email_enable']) ? (int) $params['wooCommerce_email_enable'] : 0;
         $status          = isset($params['status']) ? $params['status'] : 'draft';
@@ -259,8 +263,19 @@ class TemplateAction implements Action {
 	 * @since 1.0.0
 	 */
 	private function upload_template_thumnail( $thumbnail_data ) {
+		$extension = 'png';
+
 		if ( ! empty( $thumbnail_data ) ) {
 			$thumbnail_data = explode( ',', $thumbnail_data );
+
+			// Derive the extension from the data URL header so the written file matches its contents.
+			$header = isset( $thumbnail_data[0] ) ? strtolower( $thumbnail_data[0] ) : '';
+			if ( false !== strpos( $header, 'image/jpeg' ) || false !== strpos( $header, 'image/jpg' ) ) {
+				$extension = 'jpg';
+			} elseif ( false !== strpos( $header, 'image/webp' ) ) {
+				$extension = 'webp';
+			}
+
 			$thumbnail_data = !empty( $thumbnail_data[1] ) ? base64_decode($thumbnail_data[1]) : '';
 
 			if ( '' === $thumbnail_data ) {
@@ -277,7 +292,7 @@ class TemplateAction implements Action {
 			wp_mkdir_p( $template_thumbnail_dir );
 		}
 
-		$image_name = rand( time(), time() + time() ) . '.png';
+		$image_name = rand( time(), time() + time() ) . '.' . $extension;
 		$image_dir = $template_thumbnail_dir . '/' . $image_name;
 		$image_url = $template_thumbnail_url . '/' . $image_name;
 

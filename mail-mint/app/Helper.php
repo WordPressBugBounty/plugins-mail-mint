@@ -37,50 +37,78 @@ class Helper {
 		$replaces = $urls[1];
 		$urls     = $urls[2];
 		foreach ( $urls as $index => $url ) {
-			$hash = '';
-			// Extract hash from URL.
-			$url_parts = wp_parse_url( $url );
-			if ( isset( $url_parts['fragment'] ) ) {
-				$hash = '#' . $url_parts['fragment'];
-			}
-			// Remove hash from URL fragment.
-			unset( $url_parts['fragment'] );
-
-			$scheme = isset( $url_parts['scheme'] ) ? $url_parts['scheme'] : '';
-			$host   = isset( $url_parts['host'] ) ? $url_parts['host'] : '';
-			$path   = isset( $url_parts['path'] ) ? $url_parts['path'] : '';
-
-			// Reconstruct the URL.
-			$reconstructed_url = $scheme . '://' . $host . $path;
-			if ( !empty( $url_parts['query'] ) ) {
-				$reconstructed_url .= '?' . $url_parts['query'];
-			}
-
-			// Generate HMAC signature to prevent forged tracking requests.
-			$signature = self::generate_tracking_signature( $email_hash, $reconstructed_url );
-
-			// Always bake the mode — including 'yes' — so changing the global setting later
-			// cannot retroactively affect emails already in recipients' inboxes.
-			$args = array(
-				'action' => 'mint_action',
-				'target' => $reconstructed_url,
-				'hash'   => $email_hash,
-				'mts'    => $signature,
-				'tmode'  => $tracking_mode,
-			);
-
-			$generated_url = add_query_arg( $args, MrmCommon::get_site_url_with_configured_scheme() );
-
-			// Append the extracted hash to the 'hash' query parameter.
-			if ( !empty( $hash ) ) {
-				$generated_url .= $hash;
-			}
-
-			$campaign_url = 'href="' . $generated_url . '"';
+			$campaign_url = 'href="' . self::build_tracked_url( $url, $email_hash, $tracking_mode ) . '"';
 			$string       = str_replace( $replaces[ $index ], $campaign_url, $string );
 		}
 
 		return $string;
+	}
+
+	/**
+	 * Wrap a single URL in the click-tracking redirect.
+	 *
+	 * Extracted from replace_url() so callers that already know the one URL they want
+	 * tracked can wrap it directly. replace_url() only sees hrefs that literally start
+	 * with "http", so a URL produced by a merge tag — {{cart.recovery_url}} being the
+	 * case that prompted this — is invisible to it and would otherwise never be tracked.
+	 *
+	 * @param string $url           The destination URL.
+	 * @param string $email_hash    The unique hash for this sent email.
+	 * @param string $tracking_mode Click tracking mode: yes, anonymous or no.
+	 *
+	 * @return string The wrapped URL, or the original when tracking is off or the URL is unusable.
+	 * @since 1.31.1
+	 */
+	public static function build_tracked_url( $url, $email_hash, $tracking_mode = 'yes' ) {
+		if ( empty( $url ) || empty( $email_hash ) || 'no' === $tracking_mode ) {
+			return $url;
+		}
+
+		$hash = '';
+		// Extract hash from URL.
+		$url_parts = wp_parse_url( $url );
+
+		if ( ! is_array( $url_parts ) || empty( $url_parts['host'] ) ) {
+			return $url;
+		}
+
+		if ( isset( $url_parts['fragment'] ) ) {
+			$hash = '#' . $url_parts['fragment'];
+		}
+		// Remove hash from URL fragment.
+		unset( $url_parts['fragment'] );
+
+		$scheme = isset( $url_parts['scheme'] ) ? $url_parts['scheme'] : '';
+		$host   = isset( $url_parts['host'] ) ? $url_parts['host'] : '';
+		$path   = isset( $url_parts['path'] ) ? $url_parts['path'] : '';
+
+		// Reconstruct the URL.
+		$reconstructed_url = $scheme . '://' . $host . $path;
+		if ( !empty( $url_parts['query'] ) ) {
+			$reconstructed_url .= '?' . $url_parts['query'];
+		}
+
+		// Generate HMAC signature to prevent forged tracking requests.
+		$signature = self::generate_tracking_signature( $email_hash, $reconstructed_url );
+
+		// Always bake the mode — including 'yes' — so changing the global setting later
+		// cannot retroactively affect emails already in recipients' inboxes.
+		$args = array(
+			'action' => 'mint_action',
+			'target' => $reconstructed_url,
+			'hash'   => $email_hash,
+			'mts'    => $signature,
+			'tmode'  => $tracking_mode,
+		);
+
+		$generated_url = add_query_arg( $args, MrmCommon::get_site_url_with_configured_scheme() );
+
+		// Append the extracted hash to the 'hash' query parameter.
+		if ( !empty( $hash ) ) {
+			$generated_url .= $hash;
+		}
+
+		return $generated_url;
 	}
 
 	/**

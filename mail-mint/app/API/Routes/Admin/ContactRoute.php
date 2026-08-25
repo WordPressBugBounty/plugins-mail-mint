@@ -12,6 +12,7 @@
 namespace Mint\MRM\Admin\API\Routes;
 
 use Mint\MRM\Admin\API\Controllers\ContactController;
+use Mint\MRM\Database\Enums\ContactStatus;
 use Mint\MRM\Utilities\Helper\PermissionManager;
 
 /**
@@ -159,7 +160,7 @@ class ContactRoute {
 						'status' => array(
 							'type'        => 'string',
 							'required'    => true,
-							'enum'        => array('pending', 'subscribed', 'unsubscribed', 'complained', 'bounced', 'inactive'),
+							'enum'        => ContactStatus::all(),
 							'description' => 'The new status for the contact',
 						),
 					),

@@ -80,6 +80,8 @@ class DatabaseMigrator {
 		add_action( 'mail_mint_sync_wc_customers', array( $this, 'sync_wc_customers_batch' ), 10, 1 );
 		add_action( 'mailmint_dedupe_broadcast_email_meta', array( $this, 'mm_update_1163_dedupe_broadcast_email_meta' ) );
 		add_action( 'init', array( $this, 'maybe_schedule_broadcast_email_meta_dedupe' ), 20 );
+		add_action( self::CART_INDEX_HOOK, array( $this, 'build_abandoned_cart_indexes' ) );
+		add_action( 'init', array( $this, 'maybe_schedule_abandoned_cart_indexes' ), 20 );
 		add_action( 'init', array( $this, 'install_actions' ) );
 
 		$this->update_db_versions = array(
@@ -112,12 +114,19 @@ class DatabaseMigrator {
 			'1.16.4' => array(
 				'maybe_create_unsubscribe_survey_page',
 			),
+			'1.18.0' => array(
+				'mm_update_1180_create_abandoned_cart_tables',
+			),
 		);
 
 		$this->current_db_version = get_option( 'mail_mint_db_version', null );
 		if ( ! is_null( $this->current_db_version ) ) {
 			$this->upgrade_database_tables();
 			$this->maybe_create_email_templates_table();
+			$this->maybe_create_abandoned_cart_tables();
+			// Must follow the table check above — it has nothing to alter until the
+			// tables exist.
+			$this->maybe_upgrade_abandoned_cart_columns();
 		}
 	}
 
@@ -641,6 +650,49 @@ class DatabaseMigrator {
 
 
 	/**
+	 * Ensure the abandoned cart tables exist.
+	 *
+	 * upgrade_database_tables() bumps the stored DB version whether or not its callbacks
+	 * succeeded, so a single failed dbDelta would otherwise leave a site permanently
+	 * without the cart tables while the tracking hooks keep firing. This guard is a no-op
+	 * once both tables exist, short-circuited by an option so the common path costs nothing.
+	 *
+	 * Also covers sites that had Pro (which used to own these tables), removed it, and
+	 * never ran a Free migration that created them.
+	 *
+	 * @return void
+	 * @since 1.31.0
+	 */
+	private function maybe_create_abandoned_cart_tables() {
+		if ( 'yes' === get_option( '_mrm_abandoned_cart_tables_ready' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$carts = $wpdb->prefix . \Mint\MRM\DataBase\Tables\AbandonedCartSchema::$table_name;
+		$meta  = $wpdb->prefix . \Mint\MRM\DataBase\Tables\AbandonedCartSchema::$meta_table_name;
+
+		$carts_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $carts ) ) === $carts;
+		$meta_exists  = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $meta ) ) === $meta;
+
+		if ( $carts_exists && $meta_exists ) {
+			update_option( '_mrm_abandoned_cart_tables_ready', 'yes', false );
+			return;
+		}
+
+		( new \Mint\MRM\DataBase\Tables\AbandonedCartSchema() )->get_sql();
+
+		$carts_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $carts ) ) === $carts;
+		$meta_exists  = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $meta ) ) === $meta;
+
+		if ( $carts_exists && $meta_exists ) {
+			update_option( '_mrm_abandoned_cart_tables_ready', 'yes', false );
+		}
+	}
+
+
+	/**
 	 * Upgrade all required database
 	 *
 	 * @return void
@@ -799,6 +851,21 @@ class DatabaseMigrator {
 		update_option( '_mrm_ai_tables_ready', 'yes', false );
 	}
 
+	/**
+	 * Create the abandoned cart tracking tables (v1.18.0).
+	 *
+	 * Cart tracking moved from Mail Mint Pro into Free in 1.31.0. Existing installs never
+	 * run Upgrade::upgrade_schema(), so this is the only path that reaches them. The schema
+	 * uses CREATE TABLE IF NOT EXISTS, making this a clean no-op on sites where Pro already
+	 * created the tables — their rows are left untouched.
+	 *
+	 * @return void
+	 * @since 1.31.0
+	 */
+	private function mm_update_1180_create_abandoned_cart_tables() {
+		( new \Mint\MRM\DataBase\Tables\AbandonedCartSchema() )->get_sql();
+	}
+
 	private function add_unique_key_to_contact_meta() {
 		global $wpdb;
 		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\ContactMetaSchema::$table_name;
@@ -943,6 +1010,418 @@ class DatabaseMigrator {
 				$index_name
 			)
 		);
+	}
+
+	/**
+	 * Option flag set once the abandoned carts table has the recovery columns.
+	 *
+	 * @var string
+	 */
+	const CART_COLUMNS_DONE = 'mailmint_abandoned_cart_columns_ready';
+
+	/**
+	 * How many times the synchronous column upgrade may be attempted, and where the count
+	 * is kept.
+	 *
+	 * The upgrade runs on every request until it succeeds, which is the right shape for a
+	 * transient failure and the wrong one for a permanent failure. A site whose DB user
+	 * lacks ALTER, or whose carts table is on a read-only replica, would otherwise re-run
+	 * an information_schema scan plus up to four failing ALTER statements on every
+	 * front-end page load, forever. A budget turns that into a bounded cost, and the
+	 * deferred index job keeps a slow-path retry alive afterwards so a site that fixes its
+	 * grants still converges without a manual nudge.
+	 *
+	 * @var string
+	 */
+	const CART_COLUMNS_ATTEMPTS = 'mailmint_abandoned_cart_columns_attempts';
+
+	/**
+	 * Synchronous attempts allowed before the work is left to the deferred job.
+	 *
+	 * @var int
+	 */
+	const CART_COLUMNS_MAX_ATTEMPTS = 5;
+
+	/**
+	 * Bring the abandoned carts table's columns up to date.
+	 *
+	 * Deliberately NOT a version-gated migration callback, for two independent reasons.
+	 *
+	 * AbandonedCartSchema uses CREATE TABLE IF NOT EXISTS, so dbDelta never alters a table
+	 * that already exists — and every site that had Mail Mint Pro up to 1.30.1 already has
+	 * these tables in their older shape. Those sites can arrive at any stored DB version,
+	 * so no single version gate reaches all of them.
+	 *
+	 * The abandoned cart feature also bumped MRM_DB_VERSION to 1.18.0 before release, so
+	 * machines that ran the feature branch already have 1.18.0 recorded and would skip a
+	 * callback registered under it. Self-healing covers them without inventing a version
+	 * number for work that ships in the same release.
+	 *
+	 * Columns only, and synchronously: they are instant DDL, and CartModel::has_column()
+	 * drops recovery_source from writes until they exist, so deferring them would silently
+	 * lose attribution on the first orders after an upgrade. Index creation is the part
+	 * that can be slow, and that stays in the deferred job — which also means the widening
+	 * here always runs first, so an index is never built against the narrow column and
+	 * then rebuilt.
+	 *
+	 * Synchronous, but not unconditionally so: see CART_COLUMNS_ATTEMPTS for why the
+	 * per-request retry is capped and where the work goes once the cap is reached.
+	 *
+	 * @return void
+	 * @since 1.31.1
+	 */
+	private function maybe_upgrade_abandoned_cart_columns() {
+		if ( 'yes' === get_option( self::CART_COLUMNS_DONE ) ) {
+			return;
+		}
+
+		if ( (int) get_option( self::CART_COLUMNS_ATTEMPTS, 0 ) >= self::CART_COLUMNS_MAX_ATTEMPTS ) {
+			return;
+		}
+
+		$this->upgrade_abandoned_cart_columns();
+	}
+
+	/**
+	 * Add the recovery columns and widen the narrow ones, recording the attempt.
+	 *
+	 * Split out from the per-request guard so the deferred index job can retry the work on
+	 * its own schedule after the synchronous budget is spent — a background retry costs a
+	 * store nothing, where a per-request one costs it every page view. Called directly, it
+	 * ignores that budget; the budget belongs to the caller that runs per request.
+	 *
+	 * The attempt is counted before the DDL runs, not after, so an ALTER that takes the
+	 * whole request down with it still consumes budget rather than looping.
+	 *
+	 * @return bool True once the columns are present.
+	 * @since 1.31.1
+	 */
+	private function upgrade_abandoned_cart_columns() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\AbandonedCartSchema::$table_name;
+
+		// Nothing to upgrade on a site that never had cart tracking. Leave the flag unset,
+		// and spend no budget, so the check runs again once the tables appear.
+		if ( ! $this->table_exists( $table ) ) {
+			return false;
+		}
+
+		update_option( self::CART_COLUMNS_ATTEMPTS, (int) get_option( self::CART_COLUMNS_ATTEMPTS, 0 ) + 1, false );
+
+		$columns = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT column_name, character_maximum_length
+				 FROM information_schema.columns
+				 WHERE table_schema = %s
+				   AND table_name   = %s",
+				DB_NAME,
+				$table
+			),
+			ARRAY_A
+		);
+
+		$existing = array();
+		foreach ( (array) $columns as $column ) {
+			$name              = isset( $column['column_name'] ) ? $column['column_name'] : ( isset( $column['COLUMN_NAME'] ) ? $column['COLUMN_NAME'] : '' );
+			$length            = isset( $column['character_maximum_length'] ) ? $column['character_maximum_length'] : ( isset( $column['CHARACTER_MAXIMUM_LENGTH'] ) ? $column['CHARACTER_MAXIMUM_LENGTH'] : null );
+			$existing[ $name ] = $length;
+		}
+
+		// How a cart came to be recovered: link, organic, fast_purchase or manual.
+		// Without it, a recovery driven by the email and a coincidental purchase are
+		// indistinguishable and the recovery rate cannot be defended to a store owner.
+		if ( ! array_key_exists( 'recovery_source', $existing ) ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN `recovery_source` VARCHAR(20) NULL DEFAULT NULL" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		// Attribution without a timestamp is half a feature: reporting needs to know when
+		// the recovery happened, not just that it did.
+		if ( ! array_key_exists( 'recovered_at', $existing ) ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN `recovered_at` TIMESTAMP NULL DEFAULT NULL" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		// token and session_key were sized to exactly the values they hold, leaving no
+		// headroom — and MySQL truncates rather than erroring outside strict mode. Staying
+		// inside 0-255 keeps the one-byte length prefix, so this is an INSTANT operation.
+		if ( array_key_exists( 'token', $existing ) && (int) $existing['token'] < 64 ) {
+			$wpdb->query( "ALTER TABLE {$table} MODIFY `token` VARCHAR(64)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		if ( array_key_exists( 'session_key', $existing ) && (int) $existing['session_key'] < 64 ) {
+			$wpdb->query( "ALTER TABLE {$table} MODIFY `session_key` VARCHAR(64)" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		// Confirm rather than assume: an ALTER can fail on a locked or corrupt table, and
+		// flagging done regardless would leave the column permanently missing.
+		$has_source = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*)
+				 FROM information_schema.columns
+				 WHERE table_schema = %s
+				   AND table_name   = %s
+				   AND column_name  = 'recovery_source'",
+				DB_NAME,
+				$table
+			)
+		);
+
+		if ( ! $has_source ) {
+			return false;
+		}
+
+		update_option( self::CART_COLUMNS_DONE, 'yes', false );
+		delete_option( self::CART_COLUMNS_ATTEMPTS );
+
+		return true;
+	}
+
+	/**
+	 * Hook and option names for the deferred abandoned cart index build.
+	 *
+	 * @var string
+	 */
+	const CART_INDEX_HOOK = 'mailmint_build_abandoned_cart_indexes';
+	const CART_INDEX_DONE = 'mailmint_abandoned_cart_indexed';
+
+	/**
+	 * Attempt budget for the deferred index build.
+	 *
+	 * The job used to flag itself done whether or not the ALTERs landed, which traded a
+	 * runaway queue for an index that silently never existed. It now retries, so it needs
+	 * its own ceiling: without one, an ALTER that kills the request every time would have
+	 * the scheduler enqueue a fresh action roughly once a minute forever. Bounded retries
+	 * give a genuinely slow table room to finish while keeping the queue finite.
+	 *
+	 * @var string
+	 */
+	const CART_INDEX_ATTEMPTS = 'mailmint_abandoned_cart_index_attempts';
+
+	/**
+	 * Deferred index-build attempts allowed before the job stops being re-enqueued.
+	 *
+	 * @var int
+	 */
+	const CART_INDEX_MAX_ATTEMPTS = 5;
+
+	/**
+	 * Enqueue the background index build for the abandoned carts table when needed.
+	 *
+	 * Same shape and rationale as maybe_schedule_broadcast_email_meta_dedupe(): hooked on
+	 * `init` after Action Scheduler is up rather than the synchronous upgrade path, and
+	 * self-healing rather than one-shot — upgrade_database_tables() bumps the stored
+	 * version whether or not its callbacks succeeded, so a one-shot enqueue tied to the
+	 * bump can be lost if the upgrade request dies. Re-checks each request until the
+	 * indexes exist, then costs nothing behind an autoloaded option flag.
+	 *
+	 * @return void
+	 * @since 1.31.1
+	 */
+	public function maybe_schedule_abandoned_cart_indexes() {
+		if ( get_option( self::CART_INDEX_DONE ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\AbandonedCartSchema::$table_name;
+
+		// No cart tables on this site — nothing to index, and nothing to keep checking.
+		if ( ! $this->table_exists( $table ) ) {
+			update_option( self::CART_INDEX_DONE, 'yes' );
+			return;
+		}
+
+		if ( $this->index_exists( $table, 'idx_ac_session_status' ) ) {
+			update_option( self::CART_INDEX_DONE, 'yes' );
+			return;
+		}
+
+		// Retries are bounded, so a build that can never succeed cannot keep enqueueing.
+		if ( (int) get_option( self::CART_INDEX_ATTEMPTS, 0 ) >= self::CART_INDEX_MAX_ATTEMPTS ) {
+			return;
+		}
+
+		if ( function_exists( 'as_schedule_single_action' ) && function_exists( 'as_next_scheduled_action' )
+			&& false === as_next_scheduled_action( self::CART_INDEX_HOOK ) ) {
+			as_schedule_single_action( time() + 60, self::CART_INDEX_HOOK, array(), 'mail-mint-db-updates' );
+		}
+	}
+
+	/**
+	 * Build the abandoned cart lookup indexes.
+	 *
+	 * Every hot query in CartModel filters on a key plus a status —
+	 * get_cart_details_by_key() and get_cart_details_by_key_and_status() are called on
+	 * every add-to-cart, coupon change and order transition — while the shipped schema
+	 * indexes `email` alone. These are the composites those queries actually want.
+	 *
+	 * All non-unique, deliberately. A UNIQUE key on session_key would be wrong rather
+	 * than merely strict: WC_Session_Handler keeps the session customer ID equal to the
+	 * WordPress user ID for logged-in shoppers, so uniqueness would permit each
+	 * registered customer exactly one cart row for the life of the store and silently
+	 * fail every insert after the first. The real invariant is "at most one *open* row
+	 * per session", which MySQL cannot express and CartModel::insert_or_update() already
+	 * enforces in application code. token stays non-unique too, since rows created by
+	 * older Pro versions can carry an empty string and MySQL treats repeated '' as
+	 * duplicate under UNIQUE.
+	 *
+	 * @return void
+	 * @since 1.31.1
+	 */
+	public function build_abandoned_cart_indexes() {
+		global $wpdb;
+
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\AbandonedCartSchema::$table_name;
+
+		if ( ! $this->table_exists( $table ) ) {
+			update_option( self::CART_INDEX_DONE, 'yes' );
+			return;
+		}
+
+		update_option( self::CART_INDEX_ATTEMPTS, (int) get_option( self::CART_INDEX_ATTEMPTS, 0 ) + 1, false );
+
+		/*
+		 * Background retry for the column work. The synchronous path in
+		 * maybe_upgrade_abandoned_cart_columns() gives up after a few requests so it cannot
+		 * tax every page load; this is where a site that has since been granted ALTER gets
+		 * to converge. It also preserves the ordering the prefixes below depend on.
+		 */
+		if ( 'yes' !== get_option( self::CART_COLUMNS_DONE ) ) {
+			$this->upgrade_abandoned_cart_columns();
+		}
+
+		$lengths = $this->cart_column_lengths( $table );
+
+		/*
+		 * Prefix lengths are clamped to what the column can actually offer rather than
+		 * hardcoded. Pro shipped `token` and `session_key` as VARCHAR(32); asking for a
+		 * 64-byte prefix of a 32-byte column is MySQL error 1089, which would take the
+		 * whole ALTER down. The widening above normally runs first and makes the point
+		 * moot, but "normally" is not a guarantee to build an index on — and a narrower
+		 * prefix still indexes correctly, where a failed statement indexes nothing.
+		 */
+		$indexes = array(
+			'idx_ac_session_status' => array(
+				array( 'session_key', 64 ),
+				array( 'status', 20 ),
+			),
+			'idx_ac_email_status'   => array(
+				// 150 rather than the 191 that WordPress uses for single-column keys: the
+				// 767-byte InnoDB limit that 191 is derived from applies to the whole
+				// composite, and 191 + 20 characters of utf8mb4 is 844 bytes. Pre-5.7
+				// installs — COMPACT row format, no innodb_large_prefix — reject that
+				// outright. 150 characters of an email address is far past the point where
+				// any real address stops being distinguishable.
+				array( 'email', 150 ),
+				array( 'status', 20 ),
+			),
+			'idx_ac_status_created' => array(
+				array( 'status', 20 ),
+				array( 'created_at', 0 ),
+			),
+			'idx_ac_token'          => array(
+				array( 'token', 64 ),
+			),
+		);
+
+		$built = 0;
+
+		foreach ( $indexes as $name => $parts ) {
+			if ( $this->index_exists( $table, $name ) ) {
+				++$built;
+				continue;
+			}
+
+			$columns = array();
+			foreach ( $parts as $part ) {
+				list( $column, $prefix ) = $part;
+
+				// A column the table does not have cannot be indexed, and guessing past it
+				// would build a differently-shaped index under the expected name.
+				if ( ! array_key_exists( $column, $lengths ) ) {
+					$columns = array();
+					break;
+				}
+
+				$available = (int) $lengths[ $column ];
+				$prefix    = $available > 0 ? min( (int) $prefix, $available ) : 0;
+				$columns[] = $prefix > 0 ? "`{$column}`({$prefix})" : "`{$column}`";
+			}
+
+			if ( empty( $columns ) ) {
+				continue;
+			}
+
+			$definition = '(' . implode( ', ', $columns ) . ')';
+			$wpdb->query( "ALTER TABLE {$table} ADD INDEX `{$name}` {$definition}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			if ( $this->index_exists( $table, $name ) ) {
+				++$built;
+			}
+		}
+
+		// Only flag done once every index is really there. Flagging unconditionally is what
+		// let a failed ALTER leave the hot cart queries on a table scan with nothing to
+		// signal it; the attempt budget, not an optimistic flag, is what bounds the retries.
+		if ( count( $indexes ) === $built ) {
+			update_option( self::CART_INDEX_DONE, 'yes' );
+			delete_option( self::CART_INDEX_ATTEMPTS );
+		}
+	}
+
+	/**
+	 * Character lengths of the abandoned carts table's columns, keyed by column name.
+	 *
+	 * Non-string columns report null in information_schema and are normalised to 0, which
+	 * reads naturally as "no prefix is applicable here".
+	 *
+	 * @param string $table Fully-prefixed table name.
+	 * @return array<string,int>
+	 * @since 1.31.1
+	 */
+	private function cart_column_lengths( $table ) {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT column_name, character_maximum_length
+				 FROM information_schema.columns
+				 WHERE table_schema = %s
+				   AND table_name   = %s",
+				DB_NAME,
+				$table
+			),
+			ARRAY_A
+		);
+
+		$lengths = array();
+
+		foreach ( (array) $rows as $row ) {
+			// MySQL 8 lower-cases these labels, MySQL 5.7 upper-cases them.
+			$name = isset( $row['column_name'] ) ? $row['column_name'] : ( isset( $row['COLUMN_NAME'] ) ? $row['COLUMN_NAME'] : '' );
+
+			if ( '' === $name ) {
+				continue;
+			}
+
+			$length = isset( $row['character_maximum_length'] ) ? $row['character_maximum_length'] : ( isset( $row['CHARACTER_MAXIMUM_LENGTH'] ) ? $row['CHARACTER_MAXIMUM_LENGTH'] : null );
+
+			$lengths[ $name ] = null === $length ? 0 : (int) $length;
+		}
+
+		return $lengths;
+	}
+
+	/**
+	 * Whether a table exists in the current database.
+	 *
+	 * @param string $table Fully-prefixed table name.
+	 * @return bool
+	 * @since 1.31.1
+	 */
+	private function table_exists( $table ) {
+		global $wpdb;
+		return (bool) $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) );
 	}
 
 	/**

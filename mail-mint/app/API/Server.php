@@ -113,6 +113,8 @@ class Server {
 			'settings-ai'      => 'AISettingRoute',
 			'ai-chat'          => 'AIChatRoute',
 			'segments'         => 'SegmentRoute',
+			'abandoned-cart'   => 'AbandonedCartRoute',
+			'abandoned-cart-setting' => 'AbandonedCartSettingRoute',
 		);
 		$frontend_routes = array(
 			'form'               => 'FormRoute',
@@ -121,7 +123,20 @@ class Server {
 			'bounce'             => 'BounceHandlerRoute',
 			'unsubscribe-survey' => 'UnsubscribeSurveyRoute',
 			'resubscribe'        => 'ResubscribeRoute',
+			'abandoned-cart'     => 'AbandonedCartRoute',
 		);
+
+		/*
+		 * An older Mail Mint Pro still owns cart tracking and registers these same paths
+		 * on the mrm/v1 namespace. Registering ours as well would shadow whichever
+		 * registration happens to run second.
+		 *
+		 * This runs on rest_api_init, so Pro's `is_mail_mint_pro_active` filter is
+		 * already in place by the time the check is made.
+		 */
+		if ( \Mint\MRM\Internal\AbandonedCart\AbandonedCart::is_owned_by_pro() ) {
+			unset( $admin_routes['abandoned-cart'], $admin_routes['abandoned-cart-setting'], $frontend_routes['abandoned-cart'] );
+		}
 
 		return apply_filters(
 			'mrm_rest_api_routes',

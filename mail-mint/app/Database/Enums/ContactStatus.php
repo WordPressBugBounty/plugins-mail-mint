@@ -12,12 +12,25 @@ namespace Mint\MRM\Database\Enums;
  */
 final class ContactStatus {
 
-	const PENDING      = 'pending';
-	const SUBSCRIBED   = 'subscribed';
-	const UNSUBSCRIBED = 'unsubscribed';
-	const COMPLAINED   = 'complained';
-	const BOUNCED      = 'bounced';
-	const INACTIVE     = 'inactive';
+	const PENDING       = 'pending';
+	const SUBSCRIBED    = 'subscribed';
+	const UNSUBSCRIBED  = 'unsubscribed';
+	const COMPLAINED    = 'complained';
+	const BOUNCED       = 'bounced';
+	const INACTIVE      = 'inactive';
+
+	/**
+	 * A contact who may only be sent transactional mail.
+	 *
+	 * Reachable by an automation Send Email step that is marked transactional, and by
+	 * nothing else — campaign audiences are built from `subscribed` alone, so a
+	 * transactional contact is never a broadcast recipient. Used for addresses captured
+	 * without a marketing opt-in (an abandoned checkout, an order) where the store still
+	 * has a legitimate reason to email about that specific transaction.
+	 *
+	 * @since 1.32.0
+	 */
+	const TRANSACTIONAL = 'transactional';
 
 	const ALL = [
 		self::PENDING,
@@ -26,6 +39,7 @@ final class ContactStatus {
 		self::COMPLAINED,
 		self::BOUNCED,
 		self::INACTIVE,
+		self::TRANSACTIONAL,
 	];
 
 	/**

@@ -12,6 +12,7 @@
 
 namespace Mint\MRM\Internal\Import;
 
+use Mint\MRM\Database\Enums\ContactStatus;
 use Mint\MRM\Database\Repositories\ContactRepository;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Models\ContactGroupModel;
@@ -495,7 +496,7 @@ class ImportService {
 		if ( ! $is_enable && empty( $params['status'][0] ) ) {
 			$params['status'] = 'subscribed';
 		} elseif ( ! is_array( $params['status'] ) ) {
-			$params['status'] = isset( $params['status'] ) && in_array( $params['status'], array( 'subscribed', 'unsubscribed', 'pending' ), true ) ? $params['status'] : 'pending';
+			$params['status'] = isset( $params['status'] ) && ContactStatus::isValid( $params['status'] ) ? $params['status'] : 'pending';
 		} else {
 			$params['status'] = isset( $params['status'][0] ) && ! empty( $params['status'][0] ) ? $params['status'][0] : 'pending';
 		}

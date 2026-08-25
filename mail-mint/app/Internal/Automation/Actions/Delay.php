@@ -60,8 +60,17 @@ class Delay extends AbstractAutomationAction {
 			$step_data = HelperFunctions::get_step_data( $data['automation_id'], $data['step_id'] );
 			$next_step = HelperFunctions::get_next_step( $data['automation_id'], $data['step_id'] );
 			$maybe_run = true;
+			/*
+			 * Look past the delay: if the step it is waiting for cannot send to this contact,
+			 * there is nothing to wait for, so skip it and carry on from the step after.
+			 *
+			 * Asks the same question SendMail asks at send time (maybe_send_step) rather than
+			 * the contact's status alone. Checking only the status skipped transactional Send
+			 * Email steps for `transactional` contacts — the abandoned cart case, where the
+			 * automation then ran to the end inline with no scheduled action and no email.
+			 */
 			if ( $next_step && isset( $next_step['key'] ) && ( 'sendMail' === $next_step['key'] || 'sequence' === $next_step['key'] ) ) {
-				if ( !HelperFunctions::maybe_user( $data['data']['user_email'] ) ) {
+				if ( !HelperFunctions::maybe_send_step( $next_step, $data['data']['user_email'] ) ) {
 					$next_step = HelperFunctions::get_next_step( $data['automation_id'], $next_step['step_id'] );
 					$maybe_run = false;
 				}

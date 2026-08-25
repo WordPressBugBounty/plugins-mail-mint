@@ -58,6 +58,7 @@ class Model {
 				'form_entry_details'            => 'FormEntryDetailsSchema',
 				'ai_conversations'              => 'AIConversationSchema',
 				'ai_messages'                   => 'AIMessageSchema',
+				'abandoned_cart'                => 'AbandonedCartSchema',
 			)
 		);
 	}

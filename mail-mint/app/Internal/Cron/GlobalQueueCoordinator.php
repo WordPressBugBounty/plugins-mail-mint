@@ -518,7 +518,7 @@ class GlobalQueueCoordinator {
 			$email_hash,
 			$preview_text,
 			$cached['editor_type'],
-			$cached['watermark']
+			CampaignEmailBuilderModel::get_email_footer_watermark()
 		);
 		$email_body = $personalizer->applyProProcessing( $email_body, $recipient_email );
 
@@ -550,7 +550,6 @@ class GlobalQueueCoordinator {
 			'email_subject'      => $email_subject,
 			'email_preview_text' => $email_preview_text,
 			'editor_type'        => $editor_type,
-			'watermark'          => CampaignEmailBuilderModel::get_email_footer_watermark(),
 		);
 	}
 

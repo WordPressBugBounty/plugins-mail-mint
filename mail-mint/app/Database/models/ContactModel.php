@@ -686,11 +686,23 @@ class ContactModel {
 
 		// Prepare sql results for list view.
 		try {
-			$tags     = implode( ',', array_map( 'intval', $tags_ids ) );
-			$lists    = implode( ',', array_map( 'intval', $lists_ids ) );
-			$statuses = implode( '","', $status );
+			$tags  = implode( ',', array_map( 'intval', $tags_ids ) );
+			$lists = implode( ',', array_map( 'intval', $lists_ids ) );
 
-			$status_arr = 'status IN ("' . $statuses . '")';
+			// Restrict statuses to a known allow-list and bind them as %s placeholders below.
+			// A request that asks only for unknown statuses must match nothing rather than
+			// falling through to the unfiltered branch.
+			$allowed_statuses = array( 'subscribed', 'pending', 'unsubscribed', 'bounced', 'complained', 'inactive', 'transactional' );
+			$requested_status = array_map( 'strval', array_filter( (array) $status, 'is_scalar' ) );
+			$status           = array_values( array_intersect( $requested_status, $allowed_statuses ) );
+
+			if ( ! empty( $requested_status ) && empty( $status ) ) {
+				$status = array( '' );
+			}
+
+			$status_arr = ! empty( $status )
+				? 'status IN (' . implode( ',', array_fill( 0, count( $status ), '%s' ) ) . ')'
+				: '';
 
 			$and = 'AND';
 
@@ -714,19 +726,26 @@ class ContactModel {
 				$contact_filter_query = "( $pivot_table.group_id IN ($tags) AND  tt1.group_id IN ($lists))";
 			}
 
-			$search = $wpdb->esc_like( $search );
-			// phpcs:disable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery
+			$search_like = '%' . $wpdb->esc_like( $search ) . '%';
+			$limit       = max( 1, (int) $limit );
+			$offset      = max( 0, (int) $offset );
+
+			// Placeholder arguments, in the order the placeholders appear in each query.
+			$select_args = array_merge( array_fill( 0, 8, $search_like ), $status, array( $offset, $limit ) );
+			$count_args  = array_merge( array_fill( 0, 7, $search_like ), $status );
+
 			$select_query = $wpdb->prepare(
 				"SELECT $contact_table.id, $contact_table.email, $contact_table.first_name, $contact_table.last_name, $contact_table.status, $contact_table.stage, $contact_table.source, $contact_table.scores, $contact_table.created_at, $contact_table.updated_at FROM $contact_table
             LEFT JOIN $pivot_table ON ($contact_table.id = $pivot_table.contact_id)
             LEFT JOIN $pivot_table AS tt1 ON ($contact_table.id = tt1.contact_id)
-            WHERE (`hash` LIKE '%%$search%%' OR `email` LIKE '%%$search%%' OR
-                 `first_name` LIKE '%%$search%%' OR `last_name` LIKE '%%$search%%' OR concat(`first_name`, ' ', `last_name`) LIKE '%%$search%%'
-                 OR `source` LIKE '%%$search%%' OR `status` LIKE '%%$search%%' OR 
-                 `stage` LIKE '%%$search%%') $and $contact_filter_query
+            WHERE (`hash` LIKE %s OR `email` LIKE %s OR
+                 `first_name` LIKE %s OR `last_name` LIKE %s OR concat(`first_name`, ' ', `last_name`) LIKE %s
+                 OR `source` LIKE %s OR `status` LIKE %s OR
+                 `stage` LIKE %s) $and $contact_filter_query
                  GROUP BY $contact_table.id
-                LIMIT $offset, $limit"
-			);
+                LIMIT %d, %d",
+				$select_args
+			); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			$query_results = $wpdb->get_results( $select_query, ARRAY_A ); // db call ok. ; no-cache ok.
 			$results       = array();
@@ -758,17 +777,17 @@ class ContactModel {
 
 			$count_query = $wpdb->prepare(
 				"SELECT COUNT(*) AS total FROM $contact_table
-            LEFT JOIN $pivot_table ON ($contact_table.id = $pivot_table.contact_id)  
+            LEFT JOIN $pivot_table ON ($contact_table.id = $pivot_table.contact_id)
             LEFT JOIN $pivot_table AS tt1 ON ($contact_table.id = tt1.contact_id)
-            WHERE 
-            (`hash` LIKE '%%$search%%' OR `email` LIKE '%%$search%%' OR
-                 `first_name` LIKE '%%$search%%' OR `last_name` LIKE '%%$search%%' 
-                 OR `source` LIKE '%%$search%%' OR `status` LIKE '%%$search%%' OR 
-                 `stage` LIKE '%%$search%%') $and $contact_filter_query
+            WHERE
+            (`hash` LIKE %s OR `email` LIKE %s OR
+                 `first_name` LIKE %s OR `last_name` LIKE %s
+                 OR `source` LIKE %s OR `status` LIKE %s OR
+                 `stage` LIKE %s) $and $contact_filter_query
                 GROUP BY $contact_table.id
-            "
-			);
-			// phpcs:enable WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery
+            ",
+				$count_args
+			); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			$count_result = $wpdb->get_results( $count_query ); // db call ok. ; no-cache ok.
 
@@ -833,8 +852,9 @@ class ContactModel {
             COUNT(CASE WHEN status = %s THEN 1 END) AS unsubscribed,
             COUNT(CASE WHEN status = %s THEN 1 END) AS bounced,
             COUNT(CASE WHEN status = %s THEN 1 END) AS complained,
-            COUNT(CASE WHEN status = %s THEN 1 END) AS inactive
-        FROM %1s', array( 'subscribed', 'pending', 'unsubscribed', 'bounced', 'complained', 'inactive', $table_name )), ARRAY_A);  //phpcs:ignore
+            COUNT(CASE WHEN status = %s THEN 1 END) AS inactive,
+            COUNT(CASE WHEN status = %s THEN 1 END) AS transactional
+        FROM %1s', array( 'subscribed', 'pending', 'unsubscribed', 'bounced', 'complained', 'inactive', 'transactional', $table_name )), ARRAY_A);  //phpcs:ignore
 		if ( !empty( $get_total ) ) {
 			return $get_total;
 		}
@@ -863,7 +883,7 @@ class ContactModel {
 		$tags_ids  = array_filter( array_map( 'intval', (array) $tags_ids ) );
 		$lists_ids = array_filter( array_map( 'intval', (array) $lists_ids ) );
 
-		$allowed_statuses = array( 'subscribed', 'pending', 'unsubscribed', 'bounced', 'complained', 'inactive' );
+		$allowed_statuses = array( 'subscribed', 'pending', 'unsubscribed', 'bounced', 'complained', 'inactive', 'transactional' );
 		$status            = array_values( array_intersect( (array) $status, $allowed_statuses ) );
 
 		$joins  = '';
@@ -910,12 +930,13 @@ class ContactModel {
 		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 
 		$counts = array(
-			'subscribed'   => 0,
-			'pending'      => 0,
-			'unsubscribed' => 0,
-			'bounced'      => 0,
-			'complained'   => 0,
-			'inactive'     => 0,
+			'subscribed'    => 0,
+			'pending'       => 0,
+			'unsubscribed'  => 0,
+			'bounced'       => 0,
+			'complained'    => 0,
+			'inactive'      => 0,
+			'transactional' => 0,
 		);
 
 		foreach ( (array) $rows as $row ) {

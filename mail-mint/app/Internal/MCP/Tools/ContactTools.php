@@ -89,7 +89,7 @@ class ContactTools {
                         'new_email'      => [ 'type' => 'string', 'format' => 'email', 'description' => 'When updating, change the contact\'s email to this address. Rejected if it collides with another contact.' ],
                         'first_name'     => [ 'type' => 'string' ],
                         'last_name'      => [ 'type' => 'string' ],
-                        'status'         => [ 'type' => 'string', 'enum' => [ 'pending', 'subscribed', 'unsubscribed', 'complained', 'bounced', 'inactive' ] ],
+                        'status'         => [ 'type' => 'string', 'enum' => [ 'pending', 'subscribed', 'unsubscribed', 'complained', 'bounced', 'inactive', 'transactional' ] ],
                         'contact_type'   => [ 'type' => 'string', 'enum' => [ 'lead', 'customer' ] ],
                         'add_tags'       => [ 'type' => 'array', 'items' => [ 'type' => 'integer' ], 'description' => 'Tag IDs to add.' ],
                         'remove_tags'    => [ 'type' => 'array', 'items' => [ 'type' => 'integer' ] ],

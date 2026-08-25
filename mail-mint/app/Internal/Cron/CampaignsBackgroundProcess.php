@@ -429,7 +429,7 @@ class CampaignsBackgroundProcess {
 						$email_hash,
 						$preview_text,
 						$cached['editor_type'],
-						$cached['watermark']
+						CampaignEmailBuilderModel::get_email_footer_watermark()
 					);
 
 					 // Apply Pro-specific post-processing (lead magnet tracking).
@@ -651,9 +651,13 @@ class CampaignsBackgroundProcess {
 	 * Build the email attribute cache for a campaign email step.
 	 *
 	 * Fetches email attributes via CampaignRepository, applies Pro
-	 * latest-content replacement, plain-text-editor conversion, and
-	 * fetches the watermark. The result is stored in a transient
-	 * keyed by campaign_id + email_id to avoid redundant DB queries.
+	 * latest-content replacement and plain-text-editor conversion. The
+	 * result is stored in a transient keyed by campaign_id + email_id to
+	 * avoid redundant DB queries.
+	 *
+	 * The footer watermark is deliberately NOT cached — Pro can be
+	 * deactivated or its license can expire inside the cache TTL, and the
+	 * branding has to come back on the very next send.
 	 *
 	 * @param int $campaign_id Campaign ID.
 	 * @param int $email_id    Campaign email step ID.
@@ -663,7 +667,6 @@ class CampaignsBackgroundProcess {
 	 *     @type string $email_preview_text  Preview/preheader text template.
 	 *     @type string $email_body          Pre-processed email body HTML.
 	 *     @type string $editor_type         Editor type identifier.
-	 *     @type string $watermark           Watermark HTML (already filtered).
 	 * }
 	 *
 	 * @since 1.20.0
@@ -676,9 +679,6 @@ class CampaignsBackgroundProcess {
 		$email_preview_text = ! empty( $email_attributes['email_preview_text'] ) ? $email_attributes['email_preview_text'] : '';
 		$editor_type        = ! empty( $email_attributes['editor_type'] ) ? $email_attributes['editor_type'] : 'advanced-builder';
 
-		// Fetch watermark (preserves mail_mint_remove_email_footer_watermark filter).
-		$watermark = CampaignEmailBuilderModel::get_email_footer_watermark();
-
 		// NOTE: email_body is intentionally excluded from the cache.
 		// It can contain large base64-encoded images (26KB+) which would bloat
 		// the wp_options transient and slow down every coordinator run.
@@ -687,7 +687,6 @@ class CampaignsBackgroundProcess {
 			'email_subject'      => $email_subject,
 			'email_preview_text' => $email_preview_text,
 			'editor_type'        => $editor_type,
-			'watermark'          => $watermark,
 		);
 	}
 

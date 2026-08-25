@@ -47,6 +47,9 @@ Rules:
 - Never invent a link destination. Every button url and every <a href> in email copy must be a URL you actually have: the site's own URL from get-crm-context (site.url) or a path under it, or a link the user gave you. Never write example.com, yourdomain.com, yoursite.com or any similar stand-in — those send recipients to a domain the site owner does not control. When you have no specific destination for a CTA, link to site.url and say in your summary which links the user should point at a real page.
 - Never invent an image URL for hero.image_url or a sections[] image src — a fabricated URL renders as a broken image for every recipient. Only pass one if you actually have it (e.g. the user gave you a link). Otherwise omit it: Mail Mint automatically fills a brand-colored gradient placeholder for the hero background and for any image section left without a src, so the email never ships with a broken image.
 - For bulk contact changes, run apply-segments-to-contacts with dry_run=true first and tell the user how many contacts will be affected.
+- Never tell a user Mail Mint lacks an automation trigger until find-automation-trigger has come back with no match. Mail Mint ships 80+ triggers (WooCommerce including abandoned cart, subscriptions, memberships, LMS, forms, funnels), and most are hidden on any given site because their integration is inactive. "Not listed for this site" means "needs Pro or another plugin", NOT "does not exist". When a trigger is unavailable, name it, say what it needs, and give the remedy — then offer to build what you can with an available trigger.
+- Every sendMail step you add to an automation MUST carry "subject", "preview_text" and structured "content" (the same shape compose-campaign-email takes) on the step itself. Do NOT hand-write HTML into settings.message_data.body — Mail Mint composes both the sent email and the editable builder design from "content", and raw HTML produces a step that looks empty in the automation builder. If you leave content out entirely, Mail Mint substitutes generic best-practice copy and returns emails_need_review — when that happens, tell the user which steps got filler and offer to rewrite them with compose-automation-email. Write real copy the first time instead. Use the trigger's merge tags: {{contact.first_name}} always, and for abandoned cart triggers {{cart.items}}, {{cart.total}} and {{cart.recovery_url}} (a cart email without the recovery link is broken).
+- To change ONE email in an existing automation, use compose-automation-email with that step's step_id. upsert-automation replaces every step, so use it only when the flow itself changes.
 - Automations: call get-automation-capabilities before upsert-automation. Its "branching" field tells you whether conditional branches are available on this site. If branching.available is true, you MAY build one level of conditional branching (a "condition" step with yes/no arms) — follow the branching_guide in that response. If branching.available is false, do NOT emit a condition step: tell the user plainly why using branching.message (either Mail Mint Pro is not installed, or the license is inactive), share branching.upsell_url, then build the linear part of what they asked for so they still get value. Never silently drop a branch the user asked for — always name the reason.
 - Setup & Onboarding Audit: When the user asks about setup, getting started, setup readiness, or what is required to use Mail Mint / an email marketing tool (e.g. "What should I set up first?", "What do I need to complete the setup?", "Is my setup ready to send emails?"):
   1. Always call mail-mint/check-setup-status to run a full diagnostic.
@@ -165,53 +168,71 @@ PROMPT;
 	}
 
 	/**
-	 * The site's real automation building blocks — every registered trigger
-	 * (grouped by connector) and action step key, pulled from the same runtime
-	 * registries get-automation-capabilities uses. Injected for the automation
-	 * assistant so it emits only valid keys; an unregistered key stores an
-	 * automation that shows "Unknown trigger" and never fires.
+	 * The site's automation building blocks: every trigger Mail Mint ships,
+	 * split into what this site can use now and what it could use after an
+	 * upgrade or plugin activation, plus the registered action step keys.
+	 *
+	 * Both halves are injected on purpose. The previous version listed only the
+	 * connector registry's triggers and instructed the model to treat anything
+	 * absent as an inactive plugin — so when the registry was missing a trigger
+	 * (it was missing 51 of them, abandoned cart included) the model confidently
+	 * told users Mail Mint had no such feature. Naming the unavailable triggers
+	 * and their reason is what makes that failure impossible.
 	 */
 	private static function automationCapabilitiesContext(): string {
-		$connector_class = '\MintMail\App\Internal\Automation\Connector';
-		$action_class    = '\MintMail\App\Internal\Automation\Action\AutomationAction';
-		if ( ! class_exists( $connector_class ) || ! class_exists( $action_class ) ) {
+		$catalog_class = '\MintMail\App\Internal\Automation\TriggerAvailability';
+		$action_class  = '\MintMail\App\Internal\Automation\Action\AutomationAction';
+		if ( ! class_exists( $catalog_class ) || ! class_exists( $action_class ) ) {
 			return '';
 		}
 
-		$triggers_by_connector = $connector_class::get_instance()->get_triggers();
-		$actions               = $action_class::get_instance()->supported_actions();
+		$catalog_helper = '\MintMail\App\Internal\Automation\TriggerCatalog';
+		$available      = array();
+		$blocked        = array();
 
-		$trigger_lines = array();
-		foreach ( (array) $triggers_by_connector as $connector => $triggers ) {
-			$seen  = array();
-			$items = array();
-			foreach ( (array) $triggers as $trigger ) {
-				$trigger = (array) $trigger;
-				$name    = $trigger['trigger_name'] ?? ( $trigger['key'] ?? '' );
-				if ( '' === $name || isset( $seen[ $name ] ) ) {
-					continue;
-				}
-				$seen[ $name ] = true;
-				$label         = $trigger['label'] ?? '';
-				$items[]       = '' !== $label ? sprintf( '%s (%s)', $name, $label ) : $name;
+		foreach ( $catalog_helper::all() as $key => $trigger ) {
+			$category = $catalog_helper::category_label( $trigger['category'] );
+			$verdict  = $catalog_class::for_trigger( $key );
+
+			if ( $verdict['available'] ) {
+				$available[ $category ][] = sprintf( '%s (%s)', $key, $trigger['label'] );
+				continue;
 			}
-			if ( $items ) {
-				$trigger_lines[] = '- ' . $connector . ': ' . implode( ', ', $items );
+			// Group by what is missing, so one line covers a whole integration.
+			$missing = 'not_dispatched' === $verdict['status']
+				? 'known bug — appears in the builder but nothing fires it; do not use'
+				: implode( ' + ', $verdict['missing'] );
+
+			$blocked[ $missing ][] = sprintf( '%s (%s)', $key, $trigger['label'] );
+		}
+
+		$lines = array();
+		if ( $available ) {
+			$lines[] = 'Triggers USABLE on this site now — pass the key as trigger.key:';
+			foreach ( $available as $category => $items ) {
+				$lines[] = '- ' . $category . ': ' . implode( ', ', $items );
+			}
+		}
+		if ( $blocked ) {
+			$lines[] = '';
+			$lines[] = 'Triggers that EXIST in Mail Mint but are not usable on this site yet. These are real features — if a user asks for one, confirm it exists, state what is missing, and offer the fix. NEVER answer that Mail Mint does not have it:';
+			foreach ( $blocked as $missing => $items ) {
+				$lines[] = '- needs ' . $missing . ': ' . implode( ', ', $items );
 			}
 		}
 
+		$actions      = $action_class::get_instance()->supported_actions();
 		$action_items = array();
 		foreach ( (array) $actions as $key => $label ) {
 			$action_items[] = ( is_string( $label ) && '' !== $label ) ? sprintf( '%s (%s)', $key, $label ) : (string) $key;
 		}
 
-		if ( empty( $trigger_lines ) && empty( $action_items ) ) {
+		if ( empty( $lines ) && empty( $action_items ) ) {
 			return '';
 		}
 
-		return "Automation building blocks registered on THIS site. Use these EXACT keys with upsert-automation — never invent, translate, or guess a trigger/action key. An unregistered key stores an automation that shows \"Unknown trigger — Trigger type not registered\" and never runs. If a user asks for a connector NOT listed here, its plugin is inactive: say so, don't substitute a key.\n"
-			. "Triggers — pass the key as trigger.key, grouped by connector:\n"
-			. implode( "\n", $trigger_lines ) . "\n"
+		return "Automation building blocks. Use these EXACT keys with upsert-automation — never invent, translate, or guess a trigger/action key. An unregistered key stores an automation that shows \"Unknown trigger — Trigger type not registered\" and never runs. If a trigger you need is not in either list below, call find-automation-trigger before concluding anything.\n"
+			. implode( "\n", $lines ) . "\n"
 			. "Action step keys — pass as each step's \"key\":\n"
 			. implode( ', ', $action_items );
 	}

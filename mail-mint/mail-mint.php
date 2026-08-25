@@ -15,7 +15,8 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.30.1
+ * Version:           1.31.0
+
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
  * License:           GPL-2.0+
@@ -36,9 +37,9 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.30.1' );
+define( 'MRM_VERSION', '1.31.0' );
 define( 'MAILMINT', 'mailmint' );
-define( 'MRM_DB_VERSION', '1.17.0' );
+define( 'MRM_DB_VERSION', '1.18.0' );
 define( 'MINT_DEV_MODE', false );
 define( 'MRM_PLUGIN_NAME', 'mrm' );
 define( 'MRM_FILE', __FILE__ );
@@ -68,6 +69,25 @@ if ( !defined( 'MAILMINT_SEND_SCHEDULED_EMAILS' ) ) {
 
 if ( ! defined( 'MRM_POSTHOG_API_KEY' ) ) {
 	define( 'MRM_POSTHOG_API_KEY', 'phc_rw2FnQu3QoGOkJs4r0uLGH7WQf8PTM1TscVUheNKB4U' );
+}
+
+/*
+ * Abandoned cart tracking.
+ *
+ * These values MUST stay byte-identical to the ones Mail Mint Pro defined up to 1.30.1.
+ * At update time a site can hold thousands of Action Scheduler jobs queued by Pro against
+ * these exact hook names and group; Free's handlers execute them after the handover.
+ */
+if ( !defined( 'ABANDONED_CART_SCHEDULER' ) ) {
+	define( 'ABANDONED_CART_SCHEDULER', 'mint_abandoned_cart_scheduler' );
+}
+
+if ( !defined( 'CART_CREATION_SCHEDULER' ) ) {
+	define( 'CART_CREATION_SCHEDULER', 'mint_cart_creation_scheduler' );
+}
+
+if ( !defined( 'MINT_ABANDONED_CART_GROUP' ) ) {
+	define( 'MINT_ABANDONED_CART_GROUP', 'mint_abandoned_cart' );
 }
 
 // Automation trigger actions.
@@ -127,6 +147,22 @@ function deactivate_mrm() {
 
 register_activation_hook( __FILE__, 'activate_mrm' );
 register_deactivation_hook( __FILE__, 'deactivate_mrm' );
+
+/**
+ * Declare compatibility with WooCommerce High-Performance Order Storage (HPOS).
+ *
+ * Order-touching code (abandoned-cart tracking's new-order cleanup) already reads
+ * orders through the CRUD API rather than raw postmeta, so it works under HPOS as-is;
+ * this just tells WooCommerce that was verified so the "not tested" notice doesn't show.
+ */
+add_action(
+	'before_woocommerce_init',
+	function () {
+		if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__ );
+		}
+	}
+);
 
 /**
  * Create Mail Mint tables and settings when a new subsite is added to the network.

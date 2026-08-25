@@ -12,7 +12,9 @@
 namespace Mint\MRM\Internal\Admin;
 
 use MailMintPro\App\Utilities\Helper\Integration;
+// Pro-only helpers (Twilio settings, custom date fields) still live on Pro's Common class.
 use MailMintPro\Mint\Internal\AbandonedCart\Helper\Common;
+use Mint\MRM\Internal\AbandonedCart\Helper\CartCommon;
 use Mint\MRM\Internal\Constants;
 use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Utilites\Helper\Email;
@@ -307,7 +309,12 @@ class AdminAssets {
                     'recaptcha_settings'             => get_option( '_mint_recaptcha_settings', $recaptcha_default ),
                     'exist_contact_field'            => Constants::get_exsiting_fields_array(),
                     'contact_general_fields'         => MrmCommon::get_contact_general_fields(),
-                    'cart_settings'                  => $wc_active && MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.5.0' ) ? Common::get_abandoned_cart_settings() : array(),
+                    'cart_settings'                  => $wc_active ? CartCommon::get_abandoned_cart_settings() : array(),
+                    'wc_order_statuses'              => $wc_active ? CartCommon::get_selectable_order_statuses() : array(),
+                    // Cart recovery emails never send to a pending contact, so the cart
+                    // settings screen needs to know whether double opt-in is on in order
+                    // to warn about it. See the notice in Settings/AbandonedCart.jsx.
+                    'is_double_optin_enabled'        => MrmCommon::is_double_optin_enable(),
                     'images_url'                     => plugins_url( 'Email-Templates/images', __FILE__ ) . '/',
                     'mint_page'                      => 'campaign',
                     'is_learndash_active'            => HelperFunctions::is_learndash_lms_active(),
@@ -390,7 +397,7 @@ class AdminAssets {
                     'open_ai_key'                    => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible('1.15.2') ? Integration::get_open_ai_secret_key() : array(),
                     'is_fluentform_active'           => HelperFunctions::is_fluentform_active(),
                     'contact_general_fields'         => MrmCommon::get_contact_general_fields(),
-                    'cart_settings'                  => $wc_active && MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.5.0' ) ? Common::get_abandoned_cart_settings() : array(),
+                    'cart_settings'                  => $wc_active ? CartCommon::get_abandoned_cart_settings() : array(),
                     'images_url'                     => plugins_url( 'Email-Templates/images', __FILE__ ) . '/',
                     'mint_page'                      => 'automation',
                     'is_contact_form_active'         => HelperFunctions::is_contact_form_7_active(),

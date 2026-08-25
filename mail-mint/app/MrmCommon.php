@@ -985,17 +985,26 @@ class MrmCommon {
 	}
 
 	/**
-	 * Check email footer watermark settings option.
+	 * Decide whether the "Powered by Mail Mint" email footer branding must be shown.
 	 *
-	 * @return bool
+	 * Hiding the branding is a licensed Pro capability. The stored
+	 * `_mrm_general_footer_watermark` preference is therefore only honoured while
+	 * Pro is active AND its license is valid; otherwise the branding is restored
+	 * regardless of what the user saved while they were licensed.
+	 *
+	 * @return bool True when the footer branding should be rendered.
+	 *
+	 * @since 1.0.0
 	 */
 	public static function is_footer_watermark() {
-		$condition = get_option( '_mrm_general_footer_watermark', 'yes' );
+		$show = apply_filters( 'mail_mint_remove_email_footer_watermark', true );
 
-		if ( 'yes' === $condition ) {
+		// Pro missing or license expired: the saved 'no' preference no longer applies.
+		if ( ! self::is_mailmint_pro_active() || ! self::is_mailmint_pro_license_active() ) {
 			return true;
 		}
-		return false;
+
+		return (bool) $show;
 	}
 
 

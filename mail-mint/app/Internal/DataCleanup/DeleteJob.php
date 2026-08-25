@@ -637,7 +637,7 @@ class DeleteJob {
 	 * Deletes a chunk of mint_abandoned_carts_meta rows (child of mint_abandoned_carts).
 	 *
 	 * Must be deleted BEFORE mint_abandoned_carts.
-	 * Filter: cart_id IN (eligible abandoned_carts with status IN ('recovered','lost') AND created_at < ref_date).
+	 * Filter: abandoned_cart_id IN (eligible abandoned_carts with status IN ('recovered','lost') AND created_at < ref_date).
 	 *
 	 * @since 1.0.0
 	 * @param string $ref_date Cutoff datetime string.
@@ -653,7 +653,7 @@ class DeleteJob {
 		$result = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE acm FROM {$meta_table} acm
-				INNER JOIN {$carts_table} ac ON acm.cart_id = ac.id
+				INNER JOIN {$carts_table} ac ON acm.abandoned_cart_id = ac.id
 				WHERE ac.status IN ('recovered', 'lost')
 				  AND ac.created_at < %s
 				LIMIT %d",

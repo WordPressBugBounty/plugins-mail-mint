@@ -246,6 +246,14 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Automation/Recipe/AutomationRecipe.php'
 	),
+	'MintMail\\App\\Internal\\Automation\\TriggerAvailability' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Automation/TriggerAvailability.php'
+	),
+	'MintMail\\App\\Internal\\Automation\\TriggerCatalog' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Automation/TriggerCatalog.php'
+	),
 	'Mint\\App\\Classes\\Mailer' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/DataStores/Mailer.php'
@@ -381,6 +389,14 @@ return array(
 	'Mint\\MRM\\Admin\\API\\Controllers\\AISettingController' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/AISettingController.php'
+	),
+	'Mint\\MRM\\Admin\\API\\Controllers\\AbandonedCartController' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/API/Controllers/Admin/AbandonedCartController.php'
+	),
+	'Mint\\MRM\\Admin\\API\\Controllers\\AbandonedCartSettingController' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/API/Controllers/Admin/AbandonedCartSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AdminBaseController' => array(
 		'version' => 'dev-master',
@@ -565,6 +581,14 @@ return array(
 	'Mint\\MRM\\Admin\\API\\Routes\\AISettingRoute' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/API/Routes/Admin/AISettingRoute.php'
+	),
+	'Mint\\MRM\\Admin\\API\\Routes\\AbandonedCartRoute' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/API/Routes/Admin/AbandonedCartRoute.php'
+	),
+	'Mint\\MRM\\Admin\\API\\Routes\\AbandonedCartSettingRoute' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/API/Routes/Admin/AbandonedCartSettingRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AdminRoute' => array(
 		'version' => 'dev-master',
@@ -762,6 +786,10 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Database/Schemas/AIMessage.php'
 	),
+	'Mint\\MRM\\DataBase\\Tables\\AbandonedCartSchema' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Database/Schemas/AbandonedCartSchema.php'
+	),
 	'Mint\\MRM\\DataBase\\Tables\\AutomationJobSchema' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Database/Schemas/Automation/AutomationJobs.php'
@@ -954,6 +982,10 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Database/Traits/CacheableTrait.php'
 	),
+	'Mint\\MRM\\Frontend\\API\\Controllers\\AbandonedCartController' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/API/Controllers/Frontend/AbandonedCartController.php'
+	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\BounceHandlerController' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/BounceHandlerController.php'
@@ -981,6 +1013,10 @@ return array(
 	'Mint\\MRM\\Frontend\\API\\Controllers\\UnsubscribeSurveyController' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/UnsubscribeSurveyController.php'
+	),
+	'Mint\\MRM\\Frontend\\API\\Routes\\AbandonedCartRoute' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/API/Routes/Frontend/AbandonedCartRoute.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\BounceHandlerRoute' => array(
 		'version' => 'dev-master',
@@ -1085,6 +1121,74 @@ return array(
 	'Mint\\MRM\\Internal\\AI\\ToolGateway' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/AI/ToolGateway.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\AbandonedCart' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/AbandonedCart.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Helper\\CartCommon' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Helper/CartCommon.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Helper\\CartGate' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Helper/CartGate.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Helper\\CartModel' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Helper/CartModel.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Helper\\CartRecovery' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Helper/CartRecovery.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceAddToCart' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceAddToCart.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCartItemRemoved' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCartItemRemoved.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCartItemRestored' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCartItemRestored.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCartItemSetQuantity' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCartItemSetQuantity.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCouponApplied' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCouponApplied.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCouponRemoved' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCouponRemoved.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceNewOrder' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceNewOrder.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceOrderStatusChanged' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceOrderStatusChanged.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceUserLogin' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceUserLogin.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Scheduler\\AbandonedCartRunScheduler' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Scheduler/AbandonedCartRunScheduler.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Scheduler\\AbandonedCartScheduler' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Scheduler/AbandonedCartScheduler.php'
+	),
+	'Mint\\MRM\\Internal\\AbandonedCart\\Scheduler\\CartGroupJanitor' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/AbandonedCart/Scheduler/CartGroupJanitor.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\AdminAssets' => array(
 		'version' => 'dev-master',
@@ -1214,6 +1318,10 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/FormBuilderHelper.php'
 	),
+	'Mint\\MRM\\Internal\\Frontend\\AbandonedCartAssets' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Frontend/AbandonedCartAssets.php'
+	),
 	'Mint\\MRM\\Internal\\Frontend\\WooCommerceCheckoutContact' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Frontend/WooCommerceCheckoutContact.php'
@@ -1229,6 +1337,10 @@ return array(
 	'Mint\\MRM\\Internal\\MCP\\Helpers\\EmailComposer' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/MCP/Helpers/EmailComposer.php'
+	),
+	'Mint\\MRM\\Internal\\MCP\\Helpers\\EmailPlaybooks' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/MCP/Helpers/EmailPlaybooks.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Helpers\\MCPHelper' => array(
 		'version' => 'dev-master',

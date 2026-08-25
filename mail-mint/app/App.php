@@ -26,6 +26,8 @@ use Mint\MRM\Internal\Admin\MrmPrivacyExporter;
 use Mint\MRM\Internal\Admin\MrmPrivacyEraser;
 use Mint\MRM\Internal\FormBuilder\FormBuilderHelper;
 use Mint\MRM\Internal\Frontend\FrontendAction;
+use Mint\MRM\Internal\AbandonedCart\AbandonedCart;
+use Mint\MRM\Internal\Frontend\AbandonedCartAssets;
 use Mint\MRM\Internal\Frontend\WooCommerceCheckoutContact;
 use Mint\MRM\Internal\Optin\OptinConfirmation;
 use Mint\MRM\Internal\ShortCode\ShortCode;
@@ -84,6 +86,9 @@ class App {
 			new CampaignArchiveView();
 
 			WooCommerceCheckoutContact::get_instance()->init();
+
+			// Abandoned cart storefront capture assets.
+			new AbandonedCartAssets();
 		}
 
 		HandleFrontendMenu::get_instance()->init();
@@ -126,6 +131,23 @@ class App {
 		}
 
 		DatabaseMigrator::get_instance()->init();
+
+		/*
+		 * Abandoned cart tracking: WooCommerce capture hooks and status schedulers.
+		 *
+		 * Deferred to plugins_loaded because the module asks whether an older Mail Mint Pro
+		 * still owns cart tracking, and that check goes through the `is_mail_mint_pro_active`
+		 * filter. WordPress loads mail-mint before mail-mint-pro, so at App::init() time Pro
+		 * has not registered that filter yet and the check would wrongly report "no Pro" —
+		 * leaving both plugins tracking the same carts.
+		 */
+		add_action(
+			'plugins_loaded',
+			function () {
+				new AbandonedCart();
+			},
+			200
+		);
 
 		// Register Data Cleanup Action Scheduler hooks.
 		( new DataCleanupScheduler() )->register_hooks();

@@ -56,6 +56,7 @@ class TransStrings
 			'Inactive' => __('Inactive', 'mrm'),
 			'Bounced' => __('Bounced', 'mrm'),
 			'Complained' => __('Complained', 'mrm'),
+			'Transactional' => __('Transactional', 'mrm'),
 			'ClickRate' => __('Click rate', 'mrm'),
 			'OpenRate' => __('Open rate', 'mrm'),
 			'NoDataFound' => __('No data Found', 'mrm'),
@@ -592,10 +593,12 @@ class TransStrings
 			'RedirectToAnExternalURL' => __('Redirect to an external URL', 'mrm'),
 			'EnterRedirectURL' => __('Enter Redirect URL', 'mrm'),
 
+			'License' => __('License', 'mrm'),
+
 			// General Settings
 			'General' => __('General', 'mrm'),
 			'PoweredByMailMintOnEmailFooter' => __('"Powered by Mail Mint" on Email Footer', 'mrm'),
-			'PoweredByMailMintOnEmailFooterToolTip' => __('Uncheck to remove "Powered by Mail Mint" from email footer.', 'mrm'),
+			'PoweredByMailMintOnEmailFooterToolTip' => __('Adds a small "Powered by Mail Mint" branding line to the bottom of your emails.', 'mrm'),
 			'UnsubscribePageSettings' => __('Unsubscribe Page Settings', 'mrm'),
 			'UnsubscribePageSettingsToolTip' => __('Set up the pages involved in allowing a contact to unsubscribe.', 'mrm'),
 			'ConfirmationPage' => __('Confirmation Page', 'mrm'),
@@ -621,7 +624,7 @@ class TransStrings
 			'AddCommentersToSpecificLists.' => __('Add commenters to specific lists.', 'mrm'),
 			'AssignSpecificTagsToCommenters.' => __('Assign specific tags to commenters.', 'mrm'),
 			'DeleteAllDataOnPluginDeletion' => __('Delete All Data on Plugin Deletion', 'mrm'),
-			'DeleteAllDataOnPluginDeletionToolTip' => __('Check this option to delete all the data from Mail Mint while deleting the plugin.', 'mrm'),
+			'DeleteAllDataOnPluginDeletionToolTip' => __('Enable this option to delete all the data from Mail Mint while deleting the plugin.', 'mrm'),
 
 			// Advanced Settings
 			'Advanced' => __('Advanced', 'mrm'),
@@ -645,7 +648,7 @@ class TransStrings
 			'DashboardPermissions' => __('Dashboard Permissions', 'mrm'),
 			'Granted' => __('Granted', 'mrm'),
 			'Assign' => __('Assign', 'mrm'),
-			
+
 
 			// WooCommerce Settings
 			'Settings' => __('Settings', 'mrm'),
@@ -666,6 +669,14 @@ class TransStrings
 			'ExcludePeriodToolTip'   => __('Mark the cart as Lost if the order is not made within the given days.', 'mrm'),
 			'DisableTracking'        => __('Disable Tracking', 'mrm'),
 			'DisableTrackingToolTip' => __('Choose the user roles for which you want to disable cart tracking.', 'mrm'),
+			'RecoveredStatuses'        => __('When WooCommerce Order Status Changes to:', 'mrm'),
+			'RecoveredStatusesHelp'    => __('Automatically mark a cart as recovered when the corresponding WooCommerce order status changes to the selected status.', 'mrm'),
+			'RecoveredStatusesToolTip' => __('Choose the WooCommerce order statuses that mark a tracked cart as recovered.', 'mrm'),
+			'CoolOffPeriod'            => __('Cool-Off Period', 'mrm'),
+			'CoolOffPeriodHelp'        => __('Set the number of days to skip abandoned cart tracking after a customer places an order.', 'mrm'),
+			'CoolOffPeriodToolTip'     => __('Set the number of days after a purchase during which the customer is not treated as having abandoned a new cart.', 'mrm'),
+			'NewContactStatus'         => __('Status for New Contacts', 'mrm'),
+			'NewContactStatusToolTip'  => __('Set the status for new contacts created from an abandoned cart who are not already in the Mail Mint database.', 'mrm'),
 			'GDPRConsent'          => __('GDPR Consent', 'mrm'),
 			'GDPRConsentToolTip'   => __("Ask for your customer's consent to send emails", 'mrm'),
 			'RequireConsent' => __('Require consent', 'mrm'),
@@ -676,6 +687,11 @@ class TransStrings
 			'WhenCartIsAbandoned' => __('When Cart is Abandoned', 'mrm'),
 			'AbandonedListToolTip' => __('Add your customers to a list after they have abandoned their cart', 'mrm'),
 			'AbandonedTagToolTip' => __('Assign a tag to your customers after they have abandoned their cart', 'mrm'),
+			'EnableBlacklist'            => __('Enable Blacklist', 'mrm'),
+			'EnableBlacklistToolTip'     => __('Prevent recovery emails from being sent to specific email addresses or domains.', 'mrm'),
+			'BlacklistEmails'            => __('Blacklisted Emails & Domains', 'mrm'),
+			'BlacklistEmailsToolTip'     => __('Enter one email address or domain per line. A domain (e.g. example.com) blocks every address at that domain.', 'mrm'),
+			'BlacklistEmailsPlaceholder' => __("john@example.com\nexample.com", 'mrm'),
 
 			// Contact Fields Settings
 			'DeleteCustomField' => __('Delete Custom Field', 'mrm'),
@@ -1463,7 +1479,7 @@ class TransStrings
 			],
 			'emailSetupWebHostLabel'   => __('Web Host', 'mrm'),
 			'emailSetupAmountLabel'    => __('Email Amount', 'mrm'),
-			'emailSetupTimeLabel'      => __('Time', 'mrm'), 
+			'emailSetupTimeLabel'      => __('Time', 'mrm'),
 			'emailSetupFormWarning'    => __("You may break the terms of your web host or provider by sending more than the recommended emails per day. Contact your host if you want to send more.", "mrm"),
 			'emailSetupButtonText'     => __("Continue", 'mrm'),
 			'emailSetupButtonTextPrev' => __('Previous Step', 'mrm'),
@@ -1558,6 +1574,32 @@ class TransStrings
 			'Downloads'      => __('Downloads', 'mrm'),
 			'Expires'         => __('Expires', 'mrm'),
 			'Download' 	  => __('Download', 'mrm'),
+			// Abandoned cart details page.
+			'CartDetails'         => __('Cart Details', 'mrm'),
+			'BillingAddress'      => __('Billing Address', 'mrm'),
+			'ShippingAddress'     => __('Shipping Address', 'mrm'),
+			'ShippingTax'         => __('Shipping Tax', 'mrm'),
+			'Discount'            => __('Discount', 'mrm'),
+			'Fee'                 => __('Fee', 'mrm'),
+			'Coupon'              => __('Coupon', 'mrm'),
+			'CartTotal'           => __('Cart Total', 'mrm'),
+			'NoCartDetailsFound'  => __('No cart details found', 'mrm'),
+			'EmailDetails'        => __('Email Details', 'mrm'),
+			'UserAddressDetails'  => __('User Address Details', 'mrm'),
+			'UserOrderDetails'    => __('User Order Details', 'mrm'),
+			'ScheduledAt'         => __('Scheduled At', 'mrm'),
+			'FullName'            => __('Full Name', 'mrm'),
+			'ContactNumber'       => __('Contact Number', 'mrm'),
+			'StreetAddress1'      => __('Street Address 1', 'mrm'),
+			'StreetAddress2'      => __('Street Address 2', 'mrm'),
+			'ZipCode'             => __('Zip Code', 'mrm'),
+			'CheckoutPage'        => __('Checkout Page', 'mrm'),
+			'LinkToCheckoutPage'  => __('Link to Checkout Page', 'mrm'),
+			'NoScheduledEmails'   => __('No scheduled emails for this cart', 'mrm'),
+			'PreviewNoticeTitle'  => __("You're seeing a preview - connect your live data.", 'mrm'),
+			'CartAnalyticsInfo'   => __('Upgrade to Mail Mint Pro to see real recovery revenue, recovery rate and cart trends from your own store.', 'mrm'),
+			'UpgradeToPro'        => __('Upgrade to Pro', 'mrm'),
+			'RecoveryEmailsInfo'  => __('Automatically email customers who leave a cart behind, and win the order back. Available in Mail Mint Pro.', 'mrm'),
 			'SMTPWarningMessage' => __('You do not have any SMTP setup on your website. Please note that your website is using the default WP sending service, which is not recommended for sending promotional emails.', 'mrm'),
 		);
 	}

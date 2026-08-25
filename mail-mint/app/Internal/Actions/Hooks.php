@@ -706,6 +706,10 @@ class Hooks {
 				color: #fff;
 				background-color: #ec5956;
 			}
+			.mintmrm-contact-profile .single-info.status .info-value.transactional {
+				color: #573bff;
+				background: rgba(87, 59, 255, 0.1);
+			}
 			.mintmrm-contact-profile .mrm-tags {
 				font-weight: 600;
 				font-size: 10px;

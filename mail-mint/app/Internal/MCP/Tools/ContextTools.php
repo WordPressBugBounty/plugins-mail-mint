@@ -219,7 +219,7 @@ class ContextTools {
 			),
 			'segments'             => self::buildSegmentsHint(),
 			'enums'                => array(
-				'contact_statuses'  => array( 'pending', 'subscribed', 'unsubscribed', 'complained', 'bounced', 'inactive' ),
+				'contact_statuses'  => array( 'pending', 'subscribed', 'unsubscribed', 'complained', 'bounced', 'inactive', 'transactional' ),
 				'campaign_types'    => array( 'regular', 'sequence', 'recurring', 'automation' ),
 				'campaign_statuses' => array( 'draft', 'active', 'schedule', 'archived', 'processing', 'processed' ),
 				'contact_types'     => array( 'lead', 'customer' ),

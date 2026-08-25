@@ -117,6 +117,16 @@ class SendMail extends AbstractAutomationAction {
 			do_action( 'mailmint_before_automation_send_mail', $data['automation_id'], $data['data']['user_email'] );
 			do_action( 'mint_before_automation_send_mail', $data['automation_id'], $data['data'] );
 
+			/*
+			 * The transactional gate. A step marked transactional sends regardless of the
+			 * contact's subscription status; an unmarked one needs a `subscribed` contact
+			 * (see HelperFunctions::maybe_user()). That is what makes the `transactional`
+			 * contact status work — such a contact receives transactional steps only.
+			 *
+			 * Failing this check skips the send, it does not stop the automation: the
+			 * next-step dispatch below runs either way, so a transactional contact still
+			 * progresses through delays, tags, lists and conditions.
+			 */
 			$transactional_email = isset($step_data['settings']['message_data']['make_transactional']) ? $step_data['settings']['message_data']['make_transactional']: false;
 			if (!empty($step_data['settings']['message_data']) &&
 				( $transactional_email || HelperFunctions::maybe_user($data['data']['user_email']))) {
@@ -247,6 +257,13 @@ class SendMail extends AbstractAutomationAction {
 						'booking_id'         => $booking_id,
 						'wp_user_id'         => $wp_user_id,
 						'funnel_id'          => $funnel_id,
+						/*
+						 * Body parse only. Merge tags that resolve to a URL — the cart
+						 * recovery link — need this to wrap themselves for click tracking,
+						 * because Helper::replace_url() above ran while the href was still
+						 * an unparsed merge tag and could not see it.
+						 */
+						'email_hash'         => $rand_hash,
 					)
 				);
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );

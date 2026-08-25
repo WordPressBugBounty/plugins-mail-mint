@@ -161,9 +161,12 @@ class FormBuilderHelper {
 			'mrmformfield/mrm-button-block',
 			'mrmformfield/country-block',
 			'mrmformfield/privacy-policy-block',
+			'mrmformfield/mrm-custom-field',
 		);
 
-		$allowed_blocks = apply_filters( 'mailmint_add_form_builder_blocks_support', $allowed_blocks_for_editor );
+		// Pro historically appended the custom field block through this filter, so
+		// de-duplicate to stay safe against older Pro versions still adding it.
+		$allowed_blocks = array_values( array_unique( apply_filters( 'mailmint_add_form_builder_blocks_support', $allowed_blocks_for_editor ) ) );
 
 		$settings      = array(
 			'disableCustomColors'         => get_theme_support( 'disable-custom-colors' ),
