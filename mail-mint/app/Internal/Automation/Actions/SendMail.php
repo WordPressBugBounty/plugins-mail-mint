@@ -193,6 +193,7 @@ class SendMail extends AbstractAutomationAction {
 					)
 				);
 				$preview   = Helper::replace_dynamic_coupon( $preview, $user_email );
+				$preview   = Helper::replace_dynamic_edd_coupon( $preview, $user_email );
 
 				$personalizer = new EmailPersonalizer();
 				$headers      = $personalizer->buildHeaders( $preview, $rand_hash, $headers );
@@ -233,6 +234,7 @@ class SendMail extends AbstractAutomationAction {
 					) 
 				);
 				$email_data['subject'] = Helper::replace_dynamic_coupon( $email_data['subject'], $email_data['receiver_email'] );
+				$email_data['subject'] = Helper::replace_dynamic_edd_coupon( $email_data['subject'], $email_data['receiver_email'] );
 				$click_tracking_mode = ComplianceAction::get_click_tracking_mode();
 				if ( 'no' !== $click_tracking_mode ) {
 					$email_data['body'] = Helper::replace_url( $email_data['body'], $rand_hash, $click_tracking_mode );
@@ -267,6 +269,7 @@ class SendMail extends AbstractAutomationAction {
 					)
 				);
 				$email_data['body']    = Helper::replace_dynamic_coupon( $email_data['body'], $email_data['receiver_email'] );
+				$email_data['body']    = Helper::replace_dynamic_edd_coupon( $email_data['body'], $email_data['receiver_email'] );
 
 				// Resolve {{link.view_in_browser}} merge tag.
 				$view_in_browser_url   = ! empty( $rand_hash ) ? Helper::get_view_in_browser_url( $rand_hash ) : '';

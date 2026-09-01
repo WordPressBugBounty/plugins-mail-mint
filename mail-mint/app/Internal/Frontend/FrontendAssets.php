@@ -96,7 +96,9 @@ class FrontendAssets {
 					'rest_api_url'       => get_rest_url(),
 					'form_cookies_time'  => apply_filters( 'mailmint_set_form_cookies_time', self::set_dissmiss_time() ),
 					'recaptcha_settings' => $recaptcha_public,
-
+					// Shown by the submit handler's catch block when the request
+					// fails or the response body is not valid JSON.
+					'error_message'      => __( 'Something went wrong. Please try again.', 'mrm' ),
 				)
 			);
 		}

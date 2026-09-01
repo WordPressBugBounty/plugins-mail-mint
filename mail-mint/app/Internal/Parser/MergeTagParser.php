@@ -1008,6 +1008,15 @@ class MergeTagParser
 			return $default_value;
 		}
 
+		// Re-issue a legacy md5( email ) token on this one row before it goes into a
+		// link. See MrmCommon::ensure_link_token() — this is the token migration,
+		// done per contact as mail is generated rather than as a full-table UPDATE.
+		$hash = MrmCommon::ensure_link_token(
+			isset($contact['id']) ? $contact['id'] : 0,
+			isset($contact['email']) ? $contact['email'] : '',
+			isset($contact['hash']) ? $contact['hash'] : ''
+		);
+
 		switch ($value_key) {
 			case 'subscribe':
 				return add_query_arg(
@@ -1015,7 +1024,7 @@ class MergeTagParser
 						array(
 							'mrm'   => 1,
 							'route' => 'confirmation',
-							'hash'  => $contact['hash'],
+							'hash'  => $hash,
 						)
 					),
 					MrmCommon::get_site_url_with_configured_scheme('/')
@@ -1030,7 +1039,7 @@ class MergeTagParser
 						array(
 							'mrm'   => 1,
 							'route' => 'confirmation',
-							'hash'  => $contact['hash'],
+							'hash'  => $hash,
 						)
 					),
 					MrmCommon::get_site_url_with_configured_scheme('/')
@@ -1043,7 +1052,7 @@ class MergeTagParser
 						array(
 							'mrm'   => 1,
 							'route' => 'unsubscribe',
-							'hash'  => $contact['hash'],
+							'hash'  => $hash,
 						)
 					),
 					MrmCommon::get_site_url_with_configured_scheme('/')
@@ -1058,7 +1067,7 @@ class MergeTagParser
 						array(
 							'mrm'   => 1,
 							'route' => 'unsubscribe',
-							'hash'  => $contact['hash'],
+							'hash'  => $hash,
 						)
 					),
 					MrmCommon::get_site_url_with_configured_scheme('/')
@@ -1071,7 +1080,7 @@ class MergeTagParser
 						array(
 							'mrm'   => 1,
 							'route' => 'mrm-preference',
-							'hash'  => $contact['hash'],
+							'hash'  => $hash,
 						)
 					),
 					MrmCommon::get_default_preference_page_id_title()
@@ -1086,7 +1095,7 @@ class MergeTagParser
 						array(
 							'mrm'   => 1,
 							'route' => 'mrm-preference',
-							'hash'  => $contact['hash'],
+							'hash'  => $hash,
 						)
 					),
 					MrmCommon::get_default_preference_page_id_title()

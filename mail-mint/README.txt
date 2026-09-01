@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, newsletter, email
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.0
+Stable tag:  1.31.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -335,19 +335,20 @@ For every activity within Mail Mint, you get real-time analytics to help you mak
 
 **More insight to fine-tune your strategy.**
 
-= 👉 ChatGPT Integration For AI Email Writing [Pro] =
+= 👉 AI Email Assistant To Create Complete Email Campaigns & Automation Workflows =
 
-Connect ChatGPT to Mail Mint and use AI to write highly effective emails for your campaigns.
+When you use Mail Mint’s AI Email Assistant (or as we call it, AI Email Engine), you no longer need to manually create an email campaign or automation workflow.
 
-<em>Simply give instructions and the AI email writer will get things ready.</em>
+<em>You can simply write what you want, and the plugin will build everything for you. All you need to do is review. Here's what AI will do for you:</em>
 
-* Generate subject line variations and preview texts to get a higher open rate.
-* Write persuasive email copies for campaigns or automated follow-ups.
-* Rewrite what you already wrote using AI for a better email copy.
+* Complete email campaign with subject line, preview text, design, and copy.
+* Set up full email automation workflows with necessary triggers, emails, delays, etc. 
+* Analyze campaign performance and get suggestions to improve your results. 
 
-You can do it all while you are creating your emails within Mail Mint. (No need to work on a separate window.)
+You can BYOK with ChatGPT, Claude, Gemini, or any AI model connected via WordPress AI Connector, or connect Mail Mint to your AI platform through an MCP server to execute instructions directly in Mail Mint.
 
-> Learn more about <a href="https://getwpfunnels.com/ai-email-writing/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-ai-email-writing" target="_blank">AI Email Writing in Mail Mint</a>
+
+> Learn more about <a href="https://getwpfunnels.com/introducing-ai-email-engine/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-ai-email-engine" target="_blank">Mail Mint’s AI Email Engine</a>
 
 = 👉 Customize WooCommerce Transactional Emails =
 
@@ -422,27 +423,23 @@ Edit and customize the default WooCommerce Transactional Emails (order confirmat
 
 
 == Join Our Facebook Community ==
-Join our active community and connect with thousands of WooCommerce store owners and online business owners. Take part in discussions, see how others are growing with email marketing automation.
-
-Join our active community to connect with thousands of WooCommerce store owners and online business owners. See how others are growing with email marketing automation.
+Connect with thousands of WooCommerce store owners growing their business with email marketing automation.
 
 [🤝 Join Now](https://www.facebook.com/groups/wpfunnels/)
 
-## Privacy Policy
-If you **opt in** to usage tracking, we collect telemetry data **via** PostHog with aims of improving plugin performance and troubleshooting issues.
+== Privacy Policy ==
+If you **opt in** to usage tracking, we collect telemetry via PostHog to improve performance and troubleshoot issues.
 
-### What Data is Collected?
-Only if you provide consent, the following information is gathered:
+= What Data is Collected? =
+Only with your consent:
 
 * **System Info:** WordPress version, PHP version, and active theme/plugin names.
 * **Plugin Details:** Mail Mint version and non-sensitive configuration settings.
 * **Usage Patterns:** Feature usage and in-plugin page views.
 * **Contact:** Site admin email address.
 
----
-
-### Request Data Removal
-You may revoke consent anytime. To delete your past data, contact us at: [support@getwpfunnels.com](mailto:support@getwpfunnels.com)
+= Request Data Removal =
+Revoke consent anytime. To delete past data, email [support@getwpfunnels.com](mailto:support@getwpfunnels.com)
 
 == Installation ==
 
@@ -560,6 +557,17 @@ Of Course! We have ChatGPT – OpenAI integration that lets you create unique em
 = 18. How can I report security bugs? =
 You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage, and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/mail-mint)
 
+= 19. Can I Use AI to Create Email Campaigns? =
+Yes. You will find an AI Assistant within Mail Mint where you can instruct what campaign you want to build, and AI will create the whole email campaign, including subject line, preview text, design, and copy. You simply have to review and send. Building a campaign will take less than 3-5 minutes.
+For this to work, you have to connect ChatGPT, Claude, or Gemini to Mail Mint, or allow the use of AI that you connected via WordPress AI Connector.
+
+= 20. What Do I Need To Do Manually When Using The AI Email Engine? =
+With Mail Mint's AI Email Engine, the only manual tasks you will have are to provide instructions on what campaign or automation workflow you want to create and review the output that was generated. 
+You don't have to manually build campaigns or set up the workflow from scratch.
+
+= 21. Will AI Make Changes Without My Approval? =
+No! The AI Assistant at Mail Mint will not push anything live or change anything existing without final approval from you. It will first generate and show it to you for review. If you approve, only then will they be applied.
+
 == Screenshots ==
 
 1. AI-powered dashboard — ask anything to create campaigns, build automations, and surface insights from a single prompt.
@@ -574,6 +582,17 @@ You can report security bugs through the Patchstack Vulnerability Disclosure Pro
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.31.1 (2026-09-01) =
+* New: Create Discount action for Easy Digital Downloads generates a unique coupon code per contact in automations (Pro)
+* Security: Contact action links now use unguessable tokens instead of email-derived ones, preventing link forgery
+* Security: Existing contact links are silently replaced with secure tokens on the next send
+* Security: Contact names on the preference page are now properly escaped before output
+* Security: Custom field submissions can no longer be used to instantiate arbitrary PHP objects
+* Fix: Diagnostic MCP line no longer written to the PHP error log on every REST API request
+* Fix: Starting an automation no longer fails with a "Failed to save" error
+* Fix: Form submit button no longer gets stuck loading on resubmission by an existing contact
+* Fix: Form submit button now shows an error message when a submission fails
 
 = 1.31.0 (2026-08-25) =
 * New: Abandoned cart tracking with recoverable, recovered, and lost cart list pages

@@ -14,7 +14,6 @@ namespace Mint\MRM\Internal\ShortCode;
 use Mint\MRM\DataBase\Models\ContactGroupModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Models\CustomFieldModel;
-use Mint\MRM\DataBase\Models\EmailModel;
 use MRM\Common\MrmCommon;
 
 /**
@@ -243,11 +242,9 @@ class PreferencePage {
 	 * @return mixed|string
 	 */
 	public function form_group_primary_filed( $fields, $hash, $html ) {
-		$contact    = EmailModel::get_contact_id_by_hash( $hash );
-		$contact_id = ! empty( $contact[ 'contact_id' ] ) ? $contact[ 'contact_id' ] : false;
-		if ( empty( $contact ) ) {
-			$contact    = ContactModel::get_by_hash( $hash );
-			$contact_id = ! empty( $contact[ 'id' ] ) ? $contact[ 'id' ] : false;
+		$contact_id = MrmCommon::resolve_contact_id_by_link_hash( $hash );
+		if ( ! $contact_id ) {
+			return $html;
 		}
 		$get_user_info = ContactModel::get( $contact_id );
 		$first_name    = ! empty( $get_user_info[ 'first_name' ] ) ? $get_user_info[ 'first_name' ] : '';
@@ -258,16 +255,21 @@ class PreferencePage {
 		foreach ( $fields as $key => $field ) {
 			if ( $field ) {
 				if ( 'first_name' === $key ) {
+					// SECURITY: contact names are attacker-controllable through the
+					// preference endpoint and opt-in forms, so they must be escaped
+					// before being interpolated into an attribute. wp_kses() on the
+					// caller strips event handlers, but that is a second line of
+					// defence, not this one.
 					$html .= '<div class="mrm-form-group mintmrm-first-name">
 								<label class="mrm-block-label" for="">'. __( 'First Name', 'mrm' ) . '</label>
-								<input placeholder="'. __( 'Enter first name', 'mrm' ) . '" type="text" name="first_name" value="' . $first_name . '">
+								<input placeholder="'. __( 'Enter first name', 'mrm' ) . '" type="text" name="first_name" value="' . esc_attr( $first_name ) . '">
 							  </div>';
 				}
 
 				if ( 'last_name' === $key ) {
 					$html .= '<div class="mrm-form-group mintmrm-last-name">
 								<label class="mrm-block-label" for="">'. __( 'Last Name', 'mrm' ) . '</label>
-								<input placeholder="'. __( 'Enter last name', 'mrm' ) . '" type="text" name="last_name" value="' . $last_name . '">
+								<input placeholder="'. __( 'Enter last name', 'mrm' ) . '" type="text" name="last_name" value="' . esc_attr( $last_name ) . '">
 							  </div>';
 				}
 				if ( 'status' === $key ) {
@@ -296,13 +298,7 @@ class PreferencePage {
 	 * @since 1.24.5
 	 */
 	private function get_contact_id_by_hash( $hash ) {
-		$contact    = EmailModel::get_contact_id_by_hash( $hash );
-		$contact_id = ! empty( $contact['contact_id'] ) ? $contact['contact_id'] : false;
-		if ( empty( $contact ) ) {
-			$contact    = ContactModel::get_by_hash( $hash );
-			$contact_id = ! empty( $contact['id'] ) ? $contact['id'] : false;
-		}
-		return $contact_id;
+		return MrmCommon::resolve_contact_id_by_link_hash( $hash );
 	}
 
 	/**
@@ -588,11 +584,9 @@ class PreferencePage {
 	 * @return array
 	 */
 	public function get_contact_assign_lists( $hash ) {
-		$contact    = EmailModel::get_contact_id_by_hash( $hash );
-		$contact_id = isset( $contact[ 'contact_id' ] ) ? $contact[ 'contact_id' ] : false;
-		if ( empty( $contact ) ) {
-			$contact    = ContactModel::get_by_hash( $hash );
-			$contact_id = isset( $contact[ 'id' ] ) ? $contact[ 'id' ] : false;
+		$contact_id = MrmCommon::resolve_contact_id_by_link_hash( $hash );
+		if ( ! $contact_id ) {
+			return array();
 		}
 		$contact      = ContactModel::get( $contact_id );
 		$contact_list = ContactGroupModel::get_lists_to_contact( $contact );

@@ -13,6 +13,7 @@ namespace Mint\MRM\Frontend\API\Controllers;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Models\EmailModel;
 use Mint\MRM\Internal\Optin\UnsubscribeReasons;
+use MRM\Common\MrmCommon;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -52,13 +53,10 @@ class UnsubscribeSurveyController {
 			);
 		}
 
-		// Resolve contact.
-		$contact_hash = EmailModel::get_contact_id_by_hash( $hash );
-		if ( empty( $contact_hash ) ) {
-			$contact      = ContactModel::get_by_hash( $hash );
-			$contact_hash = $contact;
-		}
-		$contact_id = isset( $contact_hash['contact_id'] ) ? (int) $contact_hash['contact_id'] : ( isset( $contact_hash['id'] ) ? (int) $contact_hash['id'] : 0 );
+		// Resolve contact through the shared validated helper.
+		// SECURITY: before 1.31.2 the token was md5( email ), so an unsubscribe reason
+		// could be attributed to any contact by anyone who knew their address.
+		$contact_id = MrmCommon::resolve_contact_id_by_link_hash( $hash );
 
 		if ( ! $contact_id ) {
 			return new WP_REST_Response(

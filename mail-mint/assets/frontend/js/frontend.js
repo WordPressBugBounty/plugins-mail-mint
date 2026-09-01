@@ -210,6 +210,20 @@ jQuery(document).ready(function ($) {
                 }
 
             })
+            .catch(function(){
+                // Network failure, or a response body that is not valid JSON —
+                // e.g. a PHP notice printed ahead of the REST payload. Without
+                // this the button stays disabled and spinning forever.
+                $(that).find(".mrm-submit-button").removeClass("show-loader");
+                $(that).find(".mrm-submit-button").removeAttr('disabled');
+                $(that).find(".response").addClass("mintmrm-error");
+                $(that).find(".response").removeClass("mintmrm-success");
+                $(that).find(".response").html(
+                    (window.MRM_Frontend_Vars && window.MRM_Frontend_Vars.error_message)
+                        ? window.MRM_Frontend_Vars.error_message
+                        : "Something went wrong. Please try again."
+                );
+            })
     })
 
     function modifyQueryString(input) {

@@ -17,7 +17,7 @@ use Mint\MRM\DataBase\Models\ContactGroupModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Models\ContactGroupPivotModel;
 use Mint\MRM\DataBase\Models\CustomFieldModel;
-use Mint\MRM\DataBase\Models\EmailModel;
+use MRM\Common\MrmCommon;
 
 
 /**
@@ -69,17 +69,15 @@ class PreferenceAction implements Action {
 
 		$list_ids = isset( $post_data['mrm_list'] ) ? $post_data['mrm_list'] : array();
 
-		$contact_id = 0;
-		if ( ! empty( $post_data[ 'contact_hash' ] ) ) {
-			$contact_id = EmailModel::get_contact_id_by_hash( $post_data[ 'contact_hash' ] );
-			if ( ! empty( $contact_id[ 'contact_id' ] ) ) {
-				$contact_id = $contact_id[ 'contact_id' ];
-			} else {
-				$contact_id = ContactModel::get_by_hash( $post_data[ 'contact_hash' ] );
-				if ( ! empty( $contact_id[ 'id' ] ) ) {
-					$contact_id = $contact_id[ 'id' ];
-				}
-			}
+		// SECURITY: the link token is the only credential on this endpoint, so it is
+		// validated and resolved through the shared helper rather than
+		// being handed straight to a query. Prior to 1.31.2 the token was md5( email ),
+		// which made every contact record forgeable by anyone who knew the address.
+		$contact_hash = isset( $post_data['contact_hash'] ) ? $post_data['contact_hash'] : '';
+		$contact_id   = MrmCommon::resolve_contact_id_by_link_hash( $contact_hash );
+
+		if ( ! $contact_id ) {
+			return $response;
 		}
 
 		if ( $contact_id ) {

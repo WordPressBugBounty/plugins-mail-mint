@@ -20,6 +20,7 @@ use Mint\MRM\DataBase\Models\ContactGroupModel;
 use Mint\MRM\DataBase\Models\ContactGroupPivotModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Models\CustomFieldModel;
+use Mint\MRM\DataBase\Models\EmailModel;
 use Mint\MRM\DataBase\Tables\ContactSchema;
 use Mint\MRM\Utilites\Helper\Import;
 use WC_Customer;
@@ -36,15 +37,230 @@ use WP_REST_Request;
 class MrmCommon {
 
 	/**
-	 * Returns alphanumeric hash
+	 * Returns an unguessable alphanumeric token for a contact.
 	 *
-	 * @param string $email get email .
-	 * @param mixed  $len  get lengh .
+	 * SECURITY: this value is the *only* credential protecting the contact-facing
+	 * links Mail Mint emails out — preference centre, unsubscribe, resubscribe,
+	 * unsubscribe survey and double opt-in confirmation. It must therefore be
+	 * unpredictable to anyone who does not already hold the link.
 	 *
-	 * @return string
+	 * Until 1.31.2 this returned `md5( $email )`, which meant anybody who knew a
+	 * contact's email address could compute their token offline and read or modify
+	 * that contact's record, unsubscribe them, or confirm their double opt-in.
+	 * The token is now drawn from a CSPRNG and carries no relationship to the email
+	 * address. The `$email` parameter is retained only for call-site compatibility
+	 * and is deliberately unused.
+	 *
+	 * @param string $email Unused. Kept so existing call sites keep working.
+	 * @param mixed  $len   Token length in characters (max 64, min 32).
+	 *
+	 * @return string Hex token of `$len` characters.
 	 */
-	public static function get_rand_hash( $email, $len = 32 ) {
-		return substr( md5( $email ), -$len );
+	public static function get_rand_hash( $email = '', $len = 32 ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+		$len = min( 64, max( 32, (int) $len ) );
+
+		// 32 bytes => 64 hex characters, enough to satisfy the maximum length.
+		return substr( bin2hex( self::random_bytes_compat( 32 ) ), 0, $len );
+	}
+
+
+	/**
+	 * Cryptographically secure random bytes with a graceful fallback.
+	 *
+	 * `random_bytes()` is available on every supported PHP version (7.4+), but it
+	 * throws when the platform has no usable entropy source. Fall back to
+	 * `openssl_random_pseudo_bytes()` and finally to WordPress' own salted
+	 * generator so token creation can never fatal a contact import.
+	 *
+	 * @param int $length Number of bytes required.
+	 *
+	 * @return string Raw bytes.
+	 * @since 1.31.2
+	 */
+	private static function random_bytes_compat( $length ) {
+		$length = max( 1, (int) $length );
+
+		try {
+			return random_bytes( $length );
+		} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+			// Fall through to the alternatives below.
+		} catch ( \Error $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement
+			// Fall through to the alternatives below.
+		}
+
+		if ( function_exists( 'openssl_random_pseudo_bytes' ) ) {
+			$strong = false;
+			$bytes  = openssl_random_pseudo_bytes( $length, $strong );
+			if ( $strong && false !== $bytes ) {
+				return $bytes;
+			}
+		}
+
+		// Last resort: wp_generate_password() seeds from wp_rand(), which itself
+		// prefers random_int(). Weaker than the above but never predictable from
+		// the contact's email address, which is the property that matters here.
+		return substr( hash( 'sha256', wp_generate_password( 64, true, true ) . microtime( true ), true ), 0, $length );
+	}
+
+
+	/**
+	 * Validate the shape of a contact/email link token before it is used in a lookup.
+	 *
+	 * Tokens are hex strings. Rejecting malformed input up front keeps obviously
+	 * bogus values (probes, fuzzing payloads) from reaching the database at all.
+	 *
+	 * @param mixed $hash Candidate token.
+	 *
+	 * @return bool
+	 * @since 1.31.2
+	 */
+	public static function is_valid_link_hash( $hash ) {
+		return is_string( $hash ) && (bool) preg_match( '/^[a-f0-9]{16,64}$/i', $hash );
+	}
+
+
+	/**
+	 * Whether a stored token is a legacy, forgeable one.
+	 *
+	 * Before 1.31.2 a contact's token was `md5( $email )` — computable offline by
+	 * anyone who knew the address. Recognising those at lookup time closes the hole
+	 * for every existing contact instantly and without a single write, which is why
+	 * Mail Mint does not rewrite the whole contacts table on upgrade: `hash` carries
+	 * no index, so a mass UPDATE would scan and rewrite every row on lists that can
+	 * run to hundreds of thousands of contacts.
+	 *
+	 * The cost is one md5() per lookup on a row already in memory.
+	 *
+	 * @param mixed  $hash  Stored token.
+	 * @param string $email The contact's email address.
+	 *
+	 * @return bool True when the token must be refused and re-issued.
+	 * @since 1.31.2
+	 */
+	public static function is_legacy_link_token( $hash, $email ) {
+		if ( ! is_string( $hash ) || '' === $hash ) {
+			return true;
+		}
+
+		$email = (string) $email;
+
+		// Both spellings were produced over the plugin's history.
+		return hash_equals( md5( $email ), $hash )
+			|| hash_equals( md5( strtolower( trim( $email ) ) ), $hash );
+	}
+
+
+	/**
+	 * Return a contact's link token, re-issuing it first if it is still a legacy one.
+	 *
+	 * This is the migration, spread out: instead of rewriting the whole contacts table
+	 * on upgrade, a contact's token is replaced on the single row, at the moment a link
+	 * is actually generated for them. Contacts who are never emailed are never written
+	 * to — and they are also never at risk, because is_legacy_link_token() already
+	 * refuses their old token at lookup.
+	 *
+	 * Costs one indexed UPDATE per contact, once, spread across normal sending.
+	 *
+	 * @param int    $contact_id Contact id. Pass 0 to resolve by `$email` instead.
+	 * @param string $email      Contact email, when the caller already has it.
+	 * @param string $hash       Current stored token, when the caller already has it.
+	 *
+	 * @return string A usable, unpredictable token, or '' when the contact is unknown.
+	 * @since 1.31.2
+	 */
+	public static function ensure_link_token( $contact_id, $email = null, $hash = null ) {
+		global $wpdb;
+
+		$contact_id = (int) $contact_id;
+		$table      = $wpdb->prefix . ContactSchema::$table_name;
+
+		if ( $contact_id <= 0 ) {
+			// Some senders build a contact array by hand (transactional automation mail)
+			// and carry no id. `email` is indexed, so recovering the row is cheap — and
+			// without it those messages would carry no unsubscribe link at all.
+			if ( empty( $email ) ) {
+				return '';
+			}
+
+			$row = $wpdb->get_row( $wpdb->prepare( "SELECT `id`, `email`, `hash` FROM {$table} WHERE `email` = %s", $email ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			if ( empty( $row['id'] ) ) {
+				return '';
+			}
+
+			$contact_id = (int) $row['id'];
+			$email      = isset( $row['email'] ) ? $row['email'] : '';
+			$hash       = isset( $row['hash'] ) ? $row['hash'] : '';
+		} elseif ( null === $email || null === $hash ) {
+			// Only query when the caller could not supply the row it already had in hand.
+			$row = $wpdb->get_row( $wpdb->prepare( "SELECT `email`, `hash` FROM {$table} WHERE `id` = %d", $contact_id ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			if ( empty( $row ) ) {
+				return '';
+			}
+			$email = isset( $row['email'] ) ? $row['email'] : '';
+			$hash  = isset( $row['hash'] ) ? $row['hash'] : '';
+		}
+
+		if ( ! self::is_legacy_link_token( $hash, $email ) ) {
+			return (string) $hash;
+		}
+
+		$token = self::get_rand_hash();
+
+		$updated = $wpdb->update(
+			$table,
+			array( 'hash' => $token ),
+			array( 'id' => $contact_id ),
+			array( '%s' ),
+			array( '%d' )
+		); // db call ok. ; no-cache ok.
+
+		// A failed write must not hand out a token the database does not hold, or the
+		// link would 404 for the recipient. Fall back to no link rather than a broken one.
+		return false === $updated ? '' : $token;
+	}
+
+
+	/**
+	 * Resolve a contact id from a link token, with format validation.
+	 *
+	 * Single entry point for every contact-facing link Mail Mint emails out — the
+	 * preference centre, unsubscribe, resubscribe, the unsubscribe survey and double
+	 * opt-in confirmation. Each of those had its own copy of the lookup, so a fix
+	 * applied to one did not reach the others.
+	 *
+	 * The token is checked against the per-send email token first (mint_emails.email_hash)
+	 * and falls back to the contact's own token (mint_contacts.hash), matching the
+	 * previous behaviour of every caller.
+	 *
+	 * Note the two token families age differently. A legacy `email_hash` was
+	 * `random16 . md5( email )16` — the leading half was always random, so the whole
+	 * 32 characters were never guessable and those tokens stay valid. Only the
+	 * contact's own `hash` was fully derived from the address; ContactModel::get_by_hash()
+	 * refuses those, so unsubscribe links in already-delivered *campaign* mail (which
+	 * carry the per-send token) keep working, while contact-token links do not.
+	 *
+	 * SECURITY: malformed tokens are rejected before any query runs, and legacy
+	 * derived tokens are refused at the model layer.
+	 *
+	 * @param mixed $hash Candidate token from the request.
+	 *
+	 * @return int Contact id, or 0 when the token does not resolve.
+	 * @since 1.31.2
+	 */
+	public static function resolve_contact_id_by_link_hash( $hash ) {
+		if ( ! self::is_valid_link_hash( $hash ) ) {
+			return 0;
+		}
+
+		$row        = EmailModel::get_contact_id_by_hash( $hash );
+		$contact_id = ! empty( $row['contact_id'] ) ? (int) $row['contact_id'] : 0;
+
+		if ( ! $contact_id ) {
+			$row        = ContactModel::get_by_hash( $hash );
+			$contact_id = ! empty( $row['id'] ) ? (int) $row['id'] : 0;
+		}
+
+		return $contact_id;
 	}
 
 
@@ -1835,7 +2051,10 @@ class MrmCommon {
 		$designation = isset( $contact['meta_fields']['designation'] ) ? $contact['meta_fields']['designation'] : '';
 		$address_1   = isset( $contact['meta_fields']['address_line_1'] ) ? $contact['meta_fields']['address_line_1'] : '';
 		$address_2   = isset( $contact['meta_fields']['address_line_2'] ) ? $contact['meta_fields']['address_line_2'] : '';
-		$hash        = isset( $contact['hash'] ) ? $contact['hash'] : '#';
+		// Re-issue a legacy md5( email ) token on this one row before embedding it in
+		// a link. See MrmCommon::ensure_link_token().
+		$hash        = self::ensure_link_token( $contact_id, $email, isset( $contact['hash'] ) ? $contact['hash'] : '' );
+		$hash        = $hash ? $hash : '#';
 		$meta_fields = !empty( $contact['meta_fields'] ) ? $contact['meta_fields'] : array();
 		$data        = Helper::replace_placeholder_email_body( $data, $first_name, $last_name, $email, $address_1, $address_2, $company, $designation, $meta_fields );
 		$data        = Helper::replace_placeholder_business_setting( $data, $hash );

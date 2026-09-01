@@ -1350,6 +1350,10 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/MCP/MCPInit.php'
 	),
+	'Mint\\MRM\\Internal\\MCP\\Observability\\MintMcpObservabilityHandler' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/MCP/Observability/MintMcpObservabilityHandler.php'
+	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\AutomationTools' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/AutomationTools.php'

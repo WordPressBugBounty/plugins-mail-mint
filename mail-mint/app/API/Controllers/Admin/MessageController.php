@@ -145,7 +145,9 @@ class MessageController extends AdminBaseController {
 	 */
 	public function send_message( $message, $contact_id, $email_hash ) {
 		$contact = ContactModel::get( $contact_id );
-		$hash    = isset( $contact['hash'] ) ? $contact['hash'] : '';
+		// Re-issue a legacy md5( email ) token on this one row before embedding it in
+		// a link. See MrmCommon::ensure_link_token().
+		$hash    = MrmCommon::ensure_link_token( $contact_id, isset( $contact['email'] ) ? $contact['email'] : '', isset( $contact['hash'] ) ? $contact['hash'] : '' );
 
 		$to      = $message->get_receiver_email();
 		$subject = $message->get_email_subject();
@@ -223,7 +225,8 @@ class MessageController extends AdminBaseController {
 		}
 		if ( $enable ) {
 			$to   = isset( $contact['email'] ) ? $contact['email'] : '';
-			$hash = isset( $contact['hash'] ) ? $contact['hash'] : '';
+			// Re-issue a legacy md5( email ) token before it goes into the opt-in email.
+			$hash = MrmCommon::ensure_link_token( isset( $contact['id'] ) ? $contact['id'] : 0, $to, isset( $contact['hash'] ) ? $contact['hash'] : '' );
 
 			$subscribe_url = MrmCommon::get_site_url_with_configured_scheme( '?mrm=1&route=confirmation&hash=' . $hash );
 			$preference_link = add_query_arg(

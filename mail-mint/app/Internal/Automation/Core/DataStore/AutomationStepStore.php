@@ -131,20 +131,32 @@ class AutomationStepModel {
 					$payload['settings']              = serialize( $settings ); //phpcs:ignore
 				}
 			}
+			// Callers hand over whole step objects that carry editor-only keys
+			// (`node_data`, `popover_type`, `enterance`, ...). Anything that is not a
+			// column would make MySQL reject the statement with "Unknown column".
+			$columns = self::table_columns( $automation_step_table );
+			$data    = $columns ? array_intersect_key( $payload, array_flip( $columns ) ) : $payload;
+			unset( $data['id'] );
+
 			$updated = $wpdb->update(
 				$automation_step_table,
-				$payload,
+				$data,
 				array( 'id' => $payload['id'] )
 			); // db call ok. ; no-cache ok.
 			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
 			// phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching
-			if ( $updated ) {
-				$updated_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $automation_step_table WHERE id = %d", $payload['id'] ) );
-				return $updated_id;
-			} else {
+			// `0` affected rows is not a failure: it means the step is already stored
+			// exactly as sent (a re-save with no edits, or two saves inside the same
+			// second). Only `false` is a real database error. Returning false here used
+			// to drop the step id, which for a conditional branch got written into the
+			// `conditional_node_step` meta in place of the real id.
+			if ( false === $updated ) {
 				return false;
 			}
+
+			$updated_id = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $automation_step_table WHERE id = %d", $payload['id'] ) );
+			return $updated_id;
 			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
 			// phpcs:enable WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -152,6 +164,25 @@ class AutomationStepModel {
 			return false;
 		}
 	}
+
+	/**
+	 * Column names of a table, cached per request.
+	 *
+	 * @param string $table Fully prefixed table name.
+	 * @return array Column names, empty when the lookup fails.
+	 * @since 1.31.1
+	 */
+	private static function table_columns( $table ) {
+		global $wpdb;
+		static $columns = array();
+
+		if ( ! isset( $columns[ $table ] ) ) {
+			$columns[ $table ] = $wpdb->get_col( "SHOW COLUMNS FROM `$table`" ); // phpcs:ignore
+		}
+
+		return is_array( $columns[ $table ] ) ? $columns[ $table ] : array();
+	}
+
 
 	/**
 	 * Delete step by id

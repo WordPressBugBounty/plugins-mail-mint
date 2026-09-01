@@ -478,38 +478,66 @@ class AutomationModel {
 			global $wpdb;
 			$automations_table = $wpdb->prefix . AutomationSchema::$table_name;
 
-			if ( isset( $payload['created_at'] ) ) {
-				unset( $payload['created_at'] );
-			}
-			if ( isset( $payload['steps'] ) ) {
-				unset( $payload['steps'] );
-			}
-			if ( isset( $payload['created_ago'] ) ) {
-				unset( $payload['created_ago'] );
-			}
-			if ( isset( $payload['_locale'] ) ) {
-				unset( $payload['_locale'] );
-			}
+			// The payload is the whole automation object as the editor holds it, merged
+			// with every request/query parameter (see MrmCommon::get_api_params_values).
+			// Anything that is not a real column of the table - `steps`, `created_ago`,
+			// `_locale`, `rest_route`, or a query arg appended by another plugin - makes
+			// MySQL reject the whole UPDATE with "Unknown column", so keep columns only.
+			$data = self::only_table_columns( $automations_table, $payload );
 
-			if ( isset( $payload['rest_route'] ) ) {
-				unset( $payload['rest_route'] );
-			}
+			// `created_at` is a column but must never be rewritten from the client.
+			unset( $data['created_at'] );
+			// The primary key belongs in the WHERE clause, not in the SET list.
+			unset( $data['id'] );
 
-			$payload['updated_at'] = current_time( 'mysql' );
-			$updated               = $wpdb->update(
+			$data['updated_at'] = current_time( 'mysql' );
+			$updated            = $wpdb->update(
 				$automations_table,
-				$payload,
-				array( 'ID' => $payload['id'] )
+				$data,
+				array( 'id' => $payload['id'] )
 			); // db call ok. ; no-cache ok.
 			do_action('mailmint_' . $payload['trigger_name'] . '_automation_updated', $payload['id']);
-			if ( $updated ) {
-				return true;
-			} else {
+
+			// Only a real database error means the save failed. `0` just means MySQL
+			// found nothing to change - two saves within the same second, or a save
+			// that re-sends the values already stored - and the row still holds exactly
+			// what the client asked for, so report success as long as the row exists.
+			if ( false === $updated ) {
 				return false;
 			}
+
+			return (bool) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM $automations_table WHERE id = %d", $payload['id'] ) ); // phpcs:ignore
 		} catch ( \Exception $e ) {
 			return false;
 		}
+	}
+
+	/**
+	 * Strip every key from a payload that is not a column of the given table.
+	 *
+	 * $wpdb->update()/insert() turn unknown keys into unknown columns and MySQL then
+	 * fails the whole statement, so callers that pass a request payload straight
+	 * through must filter it first.
+	 *
+	 * @param string $table   Fully prefixed table name.
+	 * @param array  $payload Payload to filter.
+	 * @return array Payload containing known columns only.
+	 * @since 1.31.1
+	 */
+	private static function only_table_columns( $table, array $payload ) {
+		global $wpdb;
+		static $columns = array();
+
+		if ( ! isset( $columns[ $table ] ) ) {
+			$columns[ $table ] = $wpdb->get_col( "SHOW COLUMNS FROM `$table`" ); // phpcs:ignore
+		}
+
+		// Never silently drop everything if the lookup failed.
+		if ( empty( $columns[ $table ] ) ) {
+			return $payload;
+		}
+
+		return array_intersect_key( $payload, array_flip( $columns[ $table ] ) );
 	}
 
 	/**

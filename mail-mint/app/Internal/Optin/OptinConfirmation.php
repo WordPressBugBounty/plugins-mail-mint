@@ -64,10 +64,18 @@ class OptinConfirmation {
 			$settings          = get_option( '_mrm_optin_settings', $default );
 			$confirmation_type = isset( $settings['confirmation_type'] ) ? $settings['confirmation_type'] : '';
 			// Get contact information by unique hash.
+			//
+			// SECURITY: this token confirms a double opt-in, i.e. it is the record of
+			// consent. Before 1.31.2 it was md5( email ), so anyone who knew an address
+			// could confirm that contact's opt-in on their behalf. The token is now
+			// random, and resolution goes through the shared validated helper.
+			// The previous `$hash === $contact['hash']` comparison also dereferenced
+			// $contact before checking it existed, warning on every unknown token.
 			$hash       = isset( $get['hash'] ) ? $get['hash'] : '';
-			$contact    = ContactModel::get_by_hash( $hash );
-			$contact_id = isset( $contact['id'] ) ? $contact['id'] : '';
-			if ( $hash === $contact['hash'] ) {
+			$contact_id = MrmCommon::resolve_contact_id_by_link_hash( $hash );
+			$contact    = $contact_id ? ContactModel::get( $contact_id ) : array();
+
+			if ( $contact_id && ! empty( $contact ) ) {
 				$args = array(
 					'contact_id' => $contact_id,
 					'status'     => 'subscribed',

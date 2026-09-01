@@ -107,19 +107,10 @@ class UnsubscribeConfirmation {
 	 * @since 1.14.0
 	 */
 	public function process_unsubscribe( $hash ){
-		// Get the contact ID associated with the hash.
-		$contact_hash = EmailModel::get_contact_id_by_hash( $hash );
-
-		if (empty($contact_hash)) {
-			$contact = ContactModel::get_by_hash($hash);
-			$contact_hash = $contact;
-		}
-
-		// Safely derive the contact id; a hash that resolves to no contact (stale link, deleted
-		// contact, legacy hash format) leaves $contact_hash null, so guard both offsets.
-		$contact_id = isset( $contact_hash['contact_id'] )
-			? $contact_hash['contact_id']
-			: ( isset( $contact_hash['id'] ) ? $contact_hash['id'] : 0 );
+		// SECURITY: resolve through the shared validated helper. Before
+		// 1.31.2 this token was md5( email ), so anyone who knew an address could
+		// unsubscribe that contact.
+		$contact_id = MrmCommon::resolve_contact_id_by_link_hash( $hash );
 
 		// Nothing to unsubscribe when the hash does not resolve to a contact.
 		if ( empty( $contact_id ) ) {
@@ -245,13 +236,12 @@ class UnsubscribeConfirmation {
 			exit( wp_redirect( home_url() ) ); //phpcs:ignore
 		}
 
-		$hash         = isset( $get['hash'] ) ? $get['hash'] : '';
-		$contact_hash = EmailModel::get_contact_id_by_hash( $hash );
-		if ( empty( $contact_hash ) ) {
-			$contact      = ContactModel::get_by_hash( $hash );
-			$contact_hash = $contact;
-		}
-		$contact_id = isset( $contact_hash['contact_id'] ) ? (int) $contact_hash['contact_id'] : ( isset( $contact_hash['id'] ) ? (int) $contact_hash['id'] : 0 );
+		$hash = isset( $get['hash'] ) ? $get['hash'] : '';
+
+		// SECURITY: forced re-subscription of a contact who opted out is the most
+		// damaging thing a forged token could do here, so this goes through the shared
+		// validated resolver. See MrmCommon::get_rand_hash().
+		$contact_id = MrmCommon::resolve_contact_id_by_link_hash( $hash );
 
 		if ( ! $contact_id ) {
 			exit( wp_redirect( home_url() ) ); //phpcs:ignore
@@ -296,13 +286,11 @@ class UnsubscribeConfirmation {
 			// get the contact's unique hash.
 			$hash = isset( $get[ 'hash' ] ) ? $get[ 'hash' ] : '';
 
-			// get the contact's ID by their unique hash.
-			$contact_id = EmailModel::get_contact_id_by_hash( $hash );
-			$contact_id = isset( $contact_id[ 'contact_id' ] ) ? $contact_id[ 'contact_id' ] : false;
+			// get the contact's ID by their unique hash (validated).
+			$contact_id = MrmCommon::resolve_contact_id_by_link_hash( $hash );
 
-			if ( empty( $contact_id ) ) {
-				$contact    = ContactModel::get_by_hash( $hash );
-				$contact_id = isset( $contact[ 'id' ] ) ? $contact[ 'id' ] : false;
+			if ( ! $contact_id ) {
+				exit( wp_redirect( home_url() ) ); //phpcs:ignore
 			}
 
 			// get the contact's information.

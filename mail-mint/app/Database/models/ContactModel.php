@@ -952,18 +952,37 @@ class ContactModel {
 	/**
 	 * Run SQL Query to get a single contact information by hash
 	 *
+	 * SECURITY: refuses to resolve a legacy token. Before 1.31.2 a contact's `hash`
+	 * was `md5( $email )`, which anybody who knew the address could compute offline —
+	 * and that token is the sole credential for the preference centre, unsubscribe,
+	 * resubscribe, the unsubscribe survey and double opt-in confirmation. Rather than
+	 * rewrite every row (a full-table UPDATE on an unindexed column, punishing on a
+	 * large list), a stored token is treated as expired the moment it is recognisable
+	 * as the email's own md5. Contacts are re-issued an unpredictable token one row at
+	 * a time by MrmCommon::ensure_link_token() as links are generated for them.
+	 *
+	 * Callers must not work around this by querying the column directly.
+	 *
 	 * @param mixed $hash Contact email address hash.
 	 *
-	 * @return object
+	 * @return array|null Contact row, or null when the token is unknown or legacy.
 	 * @since 1.0.0
 	 */
 	public static function get_by_hash( $hash ) {
 		global $wpdb;
 		$contacts_table = $wpdb->prefix . ContactSchema::$table_name;
 
-		return $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $contacts_table WHERE hash = %s", array( $hash ) ), ARRAY_A ); // db call ok. ; no-cache ok.
+		$contact = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $contacts_table WHERE hash = %s", array( $hash ) ), ARRAY_A ); // db call ok. ; no-cache ok.
 		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:enable WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( empty( $contact ) ) {
+			return $contact;
+		}
+
+		return MrmCommon::is_legacy_link_token( $contact['hash'], isset( $contact['email'] ) ? $contact['email'] : '' )
+			? null
+			: $contact;
 	}
 
 
@@ -1288,9 +1307,18 @@ class ContactModel {
 	}
 
 	/**
-	 * Summary: Insert form submission into contact meta table.
+	 * Summary: Record the form a contact submitted on the contact meta table.
 	 *
-	 * Description: This static method inserts a form submission record into the contact meta table.
+	 * Description: Writes the `_form_id` marker for the contact. The
+	 * `unique_contact_meta` (contact_id, meta_key) key added in 1.16.2 makes a
+	 * plain INSERT fail with a duplicate-entry error the second time a known
+	 * contact submits a form — which aborted the submission response — so the
+	 * row is upserted and tracks the most recently submitted form. Full
+	 * per-submission history is kept in `mint_form_submissions`.
+	 *
+	 * On installs where the unique key could not be created (the ALTER is
+	 * skipped when duplicate contact_id/meta_key pairs already exist) this
+	 * behaves exactly like the original INSERT.
 	 *
 	 * @access public
 	 *
@@ -1304,13 +1332,18 @@ class ContactModel {
 	public static function insert_form_submission( $contact_id, $form_id ) {
 		global $wpdb;
 		$table = $wpdb->prefix . ContactMetaSchema::$table_name;
-		$args  = array(
-			'contact_id' => $contact_id,
-			'meta_key'   => '_form_id',
-			'meta_value' => $form_id,
-			'created_at' => current_time( 'mysql' ),
-		);
-		return $wpdb->insert( $table, $args ); //phpcs:ignore
+		$now   = current_time( 'mysql' );
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		return $wpdb->query(
+			$wpdb->prepare(
+				"INSERT INTO {$table} ( contact_id, meta_key, meta_value, created_at, updated_at )
+				 VALUES ( %d, %s, %s, %s, %s )
+				 ON DUPLICATE KEY UPDATE meta_value = %s, created_at = %s, updated_at = %s",
+				array( $contact_id, '_form_id', $form_id, $now, $now, $form_id, $now, $now )
+			)
+		); // db call ok. ; no-cache ok.
+		// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.SlowDBQuery.slow_db_query_meta_key, WordPress.DB.SlowDBQuery.slow_db_query_meta_value
 	}
 
 	/**
@@ -1553,7 +1586,12 @@ class ContactModel {
 		if ( ! is_serialized( $value ) ) {
 			return $value;
 		}
-		$unserialized = maybe_unserialize( $value );
+		// allowed_classes => false is what actually prevents object injection: it stops
+		// PHP from instantiating any class, so no __wakeup()/__destruct() gadget can run.
+		// Checking the result afterwards is too late — destructors fire during unserialize().
+		// Mirrors maybe_unserialize() (@ + trim), which is_serialized() assumes: it
+		// trims before testing, so an untrimmed unserialize() would reject padded values.
+		$unserialized = @unserialize( trim( $value ), array( 'allowed_classes' => false ) ); // phpcs:ignore
 		return is_array( $unserialized ) ? $unserialized : $value;
 	}
 }

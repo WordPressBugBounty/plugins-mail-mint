@@ -341,7 +341,9 @@ class Helper {
 			$designation     = isset( $contact['meta_fields']['designation'] ) ? $contact['meta_fields']['designation'] : '';
 			$address_1       = isset( $contact['meta_fields']['address_line_1'] ) ? $contact['meta_fields']['address_line_1'] : '';
 			$address_2       = isset( $contact['meta_fields']['address_line_2'] ) ? $contact['meta_fields']['address_line_2'] : '';
-			$contact_hash    = isset( $contact['hash'] ) ? $contact['hash'] : '#';
+			// Re-issue a legacy md5( email ) token on this one row before embedding it.
+			$contact_hash    = MrmCommon::ensure_link_token( $contact_id, $email, isset( $contact['hash'] ) ? $contact['hash'] : '' );
+			$contact_hash    = $contact_hash ? $contact_hash : '#';
 			$unsubscribe_url = self::get_unsubscribed_url( $hash );
 			$preference_url  = self::get_preference_url( $contact_hash );
 			$meta_fields     = !empty( $contact['meta_fields'] ) ? $contact['meta_fields'] : array();
@@ -399,6 +401,76 @@ class Helper {
 				$data   = str_replace( '{{mint_wc_dynamic_coupon id=' . $dynamic_part . '}}', $code, $data );
 			}
 		}
+		return $data;
+	}
+
+	/**
+	 * Replace dynamic EDD discount placeholders with actual discount codes.
+	 *
+	 * Description: Replaces {{mint_edd_dynamic_coupon id=<step_id>}} placeholders with the
+	 * per-contact discount code that Mail Mint Pro's "Create Discount" automation step
+	 * generated for this recipient.
+	 *
+	 * Easy Digital Downloads stores discounts as rows in its own `edd_adjustments` table
+	 * rather than as posts, so this cannot share the WooCommerce lookup in
+	 * replace_dynamic_coupon(). The step id and contact email are matched against the
+	 * adjustment meta Pro writes at creation time.
+	 *
+	 * @param string $data  The data containing dynamic discount placeholders.
+	 * @param string $email The email associated with the discount.
+	 * @return string The data with replaced dynamic discount codes.
+	 * @access public
+	 * @since 1.32.0
+	 */
+	public static function replace_dynamic_edd_coupon( $data, $email ) {
+		$pattern = '/{{mint_edd_dynamic_coupon\s+id=([^\s}]+)}}/';
+
+		// Perform the search for all occurrences.
+		preg_match_all( $pattern, $data, $matches );
+
+		if ( empty( $matches[0] ) ) {
+			return $data;
+		}
+
+		$count = count( $matches[0] );
+
+		// Without EDD there is nothing to resolve. Strip the raw tags so they never
+		// reach the recipient.
+		if ( ! MrmCommon::is_edd_active() ) {
+			for ( $i = 0; $i < $count; $i++ ) {
+				$data = str_replace( $matches[0][ $i ], '', $data );
+			}
+			return $data;
+		}
+
+		global $wpdb;
+
+		// EDD registers both tables on $wpdb; fall back to the prefixed names defensively.
+		$adjustments     = isset( $wpdb->edd_adjustments ) ? $wpdb->edd_adjustments : $wpdb->prefix . 'edd_adjustments';
+		$adjustment_meta = isset( $wpdb->edd_adjustmentmeta ) ? $wpdb->edd_adjustmentmeta : $wpdb->prefix . 'edd_adjustmentmeta';
+
+		// Loop through each match.
+		for ( $i = 0; $i < $count; $i++ ) {
+			$dynamic_part = $matches[1][ $i ];
+
+			$query = $wpdb->prepare(
+				"SELECT a.code
+				FROM {$adjustments} AS a
+				JOIN {$adjustment_meta} AS m1 ON a.id = m1.edd_adjustment_id
+				JOIN {$adjustment_meta} AS m2 ON a.id = m2.edd_adjustment_id
+				WHERE a.type = %s AND ( m1.meta_key = %s AND m1.meta_value = %s ) AND ( m2.meta_key = %s AND m2.meta_value = %s ) ORDER BY a.id DESC LIMIT 1",
+				'discount',
+				'mailmint_step_id',
+				$dynamic_part,
+				'mailmint_customer_email',
+				$email
+			); //phpcs:ignore
+
+			$result = $wpdb->get_results( $query, ARRAY_A ); //phpcs:ignore
+			$code   = isset( $result[0]['code'] ) ? $result[0]['code'] : '';
+			$data   = str_replace( '{{mint_edd_dynamic_coupon id=' . $dynamic_part . '}}', $code, $data );
+		}
+
 		return $data;
 	}
 

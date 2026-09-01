@@ -11,7 +11,7 @@
 namespace Mint\MRM\Frontend\API\Controllers;
 
 use Mint\MRM\DataBase\Models\ContactModel;
-use Mint\MRM\DataBase\Models\EmailModel;
+use MRM\Common\MrmCommon;
 use WP_REST_Request;
 use WP_REST_Response;
 
@@ -62,11 +62,11 @@ class ResubscribeController {
 			);
 		}
 
-		$contact_hash = EmailModel::get_contact_id_by_hash( $hash );
-		if ( empty( $contact_hash ) ) {
-			$contact_hash = ContactModel::get_by_hash( $hash );
-		}
-		$contact_id = isset( $contact_hash['contact_id'] ) ? (int) $contact_hash['contact_id'] : ( isset( $contact_hash['id'] ) ? (int) $contact_hash['id'] : 0 );
+		// SECURITY: the token is the only credential here. Resolve it through the
+		// shared validated helper so a malformed value
+		// never reaches a query. Before 1.31.2 the token was md5( email ), which let
+		// anyone who knew an address re-subscribe a contact who had opted out.
+		$contact_id = MrmCommon::resolve_contact_id_by_link_hash( $hash );
 
 		if ( ! $contact_id ) {
 			return new WP_REST_Response(

@@ -1123,7 +1123,10 @@ class CampaignModel {
 		$country     = isset( $contact['meta_fields']['country'] ) ? $contact['meta_fields']['country'] : '';
 		$address_1   = isset( $contact['meta_fields']['address_line_1'] ) ? $contact['meta_fields']['address_line_1'] : '';
 		$address_2   = isset( $contact['meta_fields']['address_line_2'] ) ? $contact['meta_fields']['address_line_2'] : '';
-		$hash        = isset( $contact['hash'] ) ? $contact['hash'] : '#';
+		// Re-issue a legacy md5( email ) token on this one row before embedding it in
+		// a link. See MrmCommon::ensure_link_token().
+		$hash        = MrmCommon::ensure_link_token( $contact_id, $email, isset( $contact['hash'] ) ? $contact['hash'] : '' );
+		$hash        = $hash ? $hash : '#';
 		$meta_fields = !empty( $contact['meta_fields'] ) ? $contact['meta_fields'] : array();
 		$data        = Helper::replace_placeholder_email_subject_preview( $data, $first_name, $last_name, $email, $city, $state, $country, $company, $designation, $meta_fields );
 		$data        = Helper::replace_placeholder_email_body( $data, $first_name, $last_name, $email, $address_1, $address_2, $company, $designation, $meta_fields );

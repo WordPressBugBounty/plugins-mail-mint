@@ -401,6 +401,7 @@ class ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85
         'Mint\\MRM\\Internal\\MCP\\Helpers\\EmailPlaybooks' => __DIR__ . '/../..' . '/app/Internal/MCP/Helpers/EmailPlaybooks.php',
         'Mint\\MRM\\Internal\\MCP\\Helpers\\MCPHelper' => __DIR__ . '/../..' . '/app/Internal/MCP/Helpers/MCPHelper.php',
         'Mint\\MRM\\Internal\\MCP\\MCPInit' => __DIR__ . '/../..' . '/app/Internal/MCP/MCPInit.php',
+        'Mint\\MRM\\Internal\\MCP\\Observability\\MintMcpObservabilityHandler' => __DIR__ . '/../..' . '/app/Internal/MCP/Observability/MintMcpObservabilityHandler.php',
         'Mint\\MRM\\Internal\\MCP\\Tools\\AutomationTools' => __DIR__ . '/../..' . '/app/Internal/MCP/Tools/AutomationTools.php',
         'Mint\\MRM\\Internal\\MCP\\Tools\\CampaignTools' => __DIR__ . '/../..' . '/app/Internal/MCP/Tools/CampaignTools.php',
         'Mint\\MRM\\Internal\\MCP\\Tools\\ContactTools' => __DIR__ . '/../..' . '/app/Internal/MCP/Tools/ContactTools.php',

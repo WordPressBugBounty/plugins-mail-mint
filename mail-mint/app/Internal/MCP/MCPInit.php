@@ -16,6 +16,7 @@ namespace Mint\MRM\Internal\MCP;
 defined( 'ABSPATH' ) || exit;
 
 use Mint\MRM\Internal\MCP\Tools\ContextTools;
+use Mint\MRM\Internal\MCP\Observability\MintMcpObservabilityHandler;
 
 class MCPInit {
 
@@ -73,11 +74,11 @@ class MCPInit {
         $route     = apply_filters( 'mail_mint/mcp_server_route', 'mcp' );
 
         // Default audit logging: the Null handler records nothing, so for a surface that can
-        // delete contacts and send email we use the error-log observability handler. Override
-        // via the filter to plug in a richer audit sink.
+        // delete contacts and send email we log tool traffic by default. See the handler for
+        // why the adapter's own error-log sink is not used. Override via the filter.
         $observability = apply_filters(
             'mail_mint/mcp_observability_handler',
-            '\WP\MCP\Infrastructure\Observability\ErrorLogMcpObservabilityHandler'
+            MintMcpObservabilityHandler::class
         );
 
         $adapter->create_server(

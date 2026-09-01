@@ -336,6 +336,7 @@ return array(
     'Mint\\MRM\\Internal\\MCP\\Helpers\\EmailPlaybooks' => $baseDir . '/app/Internal/MCP/Helpers/EmailPlaybooks.php',
     'Mint\\MRM\\Internal\\MCP\\Helpers\\MCPHelper' => $baseDir . '/app/Internal/MCP/Helpers/MCPHelper.php',
     'Mint\\MRM\\Internal\\MCP\\MCPInit' => $baseDir . '/app/Internal/MCP/MCPInit.php',
+    'Mint\\MRM\\Internal\\MCP\\Observability\\MintMcpObservabilityHandler' => $baseDir . '/app/Internal/MCP/Observability/MintMcpObservabilityHandler.php',
     'Mint\\MRM\\Internal\\MCP\\Tools\\AutomationTools' => $baseDir . '/app/Internal/MCP/Tools/AutomationTools.php',
     'Mint\\MRM\\Internal\\MCP\\Tools\\CampaignTools' => $baseDir . '/app/Internal/MCP/Tools/CampaignTools.php',
     'Mint\\MRM\\Internal\\MCP\\Tools\\ContactTools' => $baseDir . '/app/Internal/MCP/Tools/ContactTools.php',

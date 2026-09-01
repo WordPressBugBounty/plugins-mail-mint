@@ -58,9 +58,20 @@ class FormAction implements Action {
 				} else {
 					$sanitized_key = sanitize_key( $key );
 					if ( ! empty( $sanitized_key ) ) {
-						$form_data['meta_fields'][ $sanitized_key ] = is_array( $value )
+						$sanitized_value = is_array( $value )
 							? array_map( 'sanitize_textarea_field', $value )
 							: sanitize_textarea_field( $value );
+
+						// Defence in depth: a genuine form field never submits a PHP-serialized
+						// string. Multi-value fields arrive as arrays and are serialized later,
+						// server-side. Rejecting these here keeps object-injection payloads out
+						// of the database entirely, rather than relying only on read-side guards.
+						$sanitized_value = self::reject_serialized_input( $sanitized_value );
+						if ( null === $sanitized_value ) {
+							continue;
+						}
+
+						$form_data['meta_fields'][ $sanitized_key ] = $sanitized_value;
 					}
 				}
 			}
@@ -515,6 +526,30 @@ class FormAction implements Action {
 			'From: ' . $email,
 			'Reply-To: ' . $email,
 		);
+	}
+
+	/**
+	 * Discard visitor-submitted values that look like PHP-serialized data.
+	 *
+	 * Contact meta written by the public form endpoint is stored verbatim, so a
+	 * serialized string submitted here would sit in the database as a ready-made
+	 * object-injection payload. No legitimate form field produces one.
+	 *
+	 * @param mixed $value Sanitized submitted value (string or array of strings).
+	 * @return mixed|null Filtered value, or null if the whole field is rejected.
+	 * @since 1.31.2
+	 */
+	private static function reject_serialized_input( $value ) {
+		if ( is_array( $value ) ) {
+			foreach ( $value as $item ) {
+				if ( is_string( $item ) && is_serialized( $item ) ) {
+					return null;
+				}
+			}
+			return $value;
+		}
+
+		return ( is_string( $value ) && is_serialized( $value ) ) ? null : $value;
 	}
 
 	/**
