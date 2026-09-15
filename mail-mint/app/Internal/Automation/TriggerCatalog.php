@@ -671,11 +671,10 @@ class TriggerCatalog {
 			'label'        => 'Downsell Accepted',
 			'description'  => 'Runs when a contact accepts a downsell offer.',
 			'category'     => 'wpfunnels',
-			'package'      => 'free',
+			'package'      => 'pro',
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_downsell_accepted',
 		),
 		'funnel_downsell_rejected' => array(
 			'label'        => 'Downsell Rejected',
@@ -685,7 +684,6 @@ class TriggerCatalog {
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_downsell_rejected',
 		),
 		'funnel_downsell_trigger' => array(
 			'label'        => 'Downsell Trigger',
@@ -695,17 +693,15 @@ class TriggerCatalog {
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_downsell_trigger',
 		),
 		'funnel_optin_submitted' => array(
 			'label'        => 'Optin Submitted',
 			'description'  => 'Triggers when a contact submits an optin form in your funnel.',
 			'category'     => 'wpfunnels',
-			'package'      => 'free',
+			'package'      => 'pro',
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_optin_submit',
 		),
 		'funnel_order_bump_accepted' => array(
 			'label'        => 'Order Bump Accepted',
@@ -715,7 +711,6 @@ class TriggerCatalog {
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_orderbump_accepted',
 		),
 		'funnel_order_bump_action' => array(
 			'label'        => 'Order Bump Action',
@@ -725,7 +720,6 @@ class TriggerCatalog {
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_orderbump_action',
 		),
 		'funnel_order_bump_rejected' => array(
 			'label'        => 'Order Bump Rejected',
@@ -735,7 +729,6 @@ class TriggerCatalog {
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_orderbump_rejected',
 		),
 		'funnel_upsell_accepted' => array(
 			'label'        => 'Upsell Accepted',
@@ -745,7 +738,6 @@ class TriggerCatalog {
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_upsell_accepted',
 		),
 		'funnel_upsell_rejected' => array(
 			'label'        => 'Upsell Rejected',
@@ -755,7 +747,6 @@ class TriggerCatalog {
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_upsell_rejected',
 		),
 		'funnel_upsell_trigger' => array(
 			'label'        => 'Upsell Trigger',
@@ -765,7 +756,6 @@ class TriggerCatalog {
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_upsell_trigger',
 		),
 		'wpf_order_placed' => array(
 			'label'        => 'Checkout Order Accepted',
@@ -780,11 +770,10 @@ class TriggerCatalog {
 			'label'        => 'CTA Triggered',
 			'description'  => 'Runs when a contact clicks a call-to-action in your funnel.',
 			'category'     => 'wpfunnels',
-			'package'      => 'free',
+			'package'      => 'pro',
 			'requires'     => array(
 				'wpfunnels',
 			),
-			'broken'       => 'wpf_cta_trigger',
 		),
 		'wpfunnels_funnel_created' => array(
 			'label'        => 'Funnel Created',

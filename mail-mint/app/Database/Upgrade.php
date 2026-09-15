@@ -29,14 +29,6 @@ class Upgrade {
 
 	use Singleton;
 
-	/**
-	 * Version
-	 *
-	 * @var string
-	 * @since 1.0.0
-	 */
-	private $version = null;
-
 
 	/**
 	 * Check if this is a new installation for MRM plugin,
@@ -125,7 +117,6 @@ class Upgrade {
 	 * @since 1.0.0
 	 */
 	public function flush_versions() {
-		$this->versions = null;
 		wp_cache_delete( 'mail_mint_db_version' );
 		wp_cache_delete( 'mail_mint_version' );
 	}

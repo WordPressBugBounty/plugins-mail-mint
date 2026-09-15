@@ -101,27 +101,15 @@ class GeneralSettingController extends SettingBaseController {
 		if ( isset( $settings['user_signup']['list_mapping'] ) && is_array( $settings['user_signup']['list_mapping'] ) ) {
 			$listis = $settings['user_signup']['list_mapping'];
 			foreach ( $listis as $key => $list ) {
-				if ( 'administrator' === $list['role'] ) {
-					$result = MrmCommon::is_list_exist( $list['list'], 'lists' );
-					$settings['user_signup']['list_mapping'][ $key ]['role'] = 'administrator';
-					$settings['user_signup']['list_mapping'][ $key ]['list'] = array_values( array_filter( $result ) );
-				}if ( 'editor' === $list['role'] ) {
-					$result = MrmCommon::is_list_exist( $list['list'], 'lists' );
-					$settings['user_signup']['list_mapping'][ $key ]['role'] = 'editor';
-					$settings['user_signup']['list_mapping'][ $key ]['list'] = array_values( array_filter( $result ) );
-				}if ( 'author' === $list['role'] ) {
-					$result = MrmCommon::is_list_exist( $list['list'], 'lists' );
-					$settings['user_signup']['list_mapping'][ $key ]['role'] = 'author';
-					$settings['user_signup']['list_mapping'][ $key ]['list'] = array_values( array_filter( $result ) );
-				}if ( 'contributor' === $list['role'] ) {
-					$result = MrmCommon::is_list_exist( $list['list'], 'lists' );
-					$settings['user_signup']['list_mapping'][ $key ]['role'] = 'contributor';
-					$settings['user_signup']['list_mapping'][ $key ]['list'] = array_values( array_filter( $result ) );
-				}if ( 'subscriber' === $list['role'] ) {
-					$result = MrmCommon::is_list_exist( $list['list'], 'lists' );
-					$settings['user_signup']['list_mapping'][ $key ]['role'] = 'subscriber';
-					$settings['user_signup']['list_mapping'][ $key ]['list'] = array_values( array_filter( $result ) );
+				$role = isset( $list['role'] ) ? $list['role'] : '';
+				if ( empty( $role ) ) {
+					continue;
 				}
+				$assigned = isset( $list['list'] ) && is_array( $list['list'] ) ? $list['list'] : array();
+				$result   = MrmCommon::is_list_exist( $assigned, 'lists' );
+
+				$settings['user_signup']['list_mapping'][ $key ]['role'] = $role;
+				$settings['user_signup']['list_mapping'][ $key ]['list'] = array_values( array_filter( $result ) );
 			}
 		}
 

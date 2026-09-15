@@ -330,8 +330,8 @@ class TransStrings
 			// Segment
 			'NewSegments' => __('Create segment', 'mrm'),
 			'Description' => __('Description', 'mrm'),
-			'ContactsInSegment' => __('Contacts in segment', 'mrm'),
-			'DateCreated' => __('Created On', 'mrm'),
+			'ContactsInSegment' => __('Contacts', 'mrm'),
+			'DateCreated' => __('Created', 'mrm'),
 			'Contains' => __('Contains', 'mrm'),
 			'DoesNotContain' => __('Does not contain', 'mrm'),
 			'StartsWith' => __('Starts with', 'mrm'),
@@ -367,23 +367,38 @@ class TransStrings
 			'AddNewContact' => __('Add New Contact', 'mrm'),
 			'SearchOrCreate' => __('Search or create', 'mrm'),
 			'SelectAllItems' => __('Select All Items', 'mrm'),
+			'CreateContact' => __('Create Contact', 'mrm'),
+			'CreateList' => __('Create List', 'mrm'),
+			'CreateTag' => __('Create Tag', 'mrm'),
 
 			// List Page
 			'NewList' => __('Create list', 'mrm'),
-			'CreateANewList' => __('Create A New List', 'mrm'),
+			'CreateANewList' => __('Add New List', 'mrm'),
+			'CreateANewListDesc' => __('Create a new list to organize your contacts.', 'mrm'),
 			'UpdateList' => __('Update List', 'mrm'),
+			'UpdateListDesc' => __('Update the list information below.', 'mrm'),
 			'ListName' => __('List Name', 'mrm'),
+			'ListNamePlaceholder' => __('Newsletter Subscribers', 'mrm'),
+			'ListNameTooltip' => __('A unique name to identify this list. Used for organizining and segmenting contacts.', 'mrm'),
 			'Update' => __('Update', 'mrm'),
 			'SortBy' => __('Sort By', 'mrm'),
-			'ContactsInList' => __('Contacts In List', 'mrm'),
+			'ContactsInList' => __('Contacts', 'mrm'),
 			'NoListFound' => __('No List Found ', 'mrm'),
+			'ListDescriptionTooltip' => __('Optional description to explain the purpose and criteria of this list.', 'mrm'),
+			'ListDescriptionPlaceholder' => __('Describe the purpose of this list...', 'mrm'),
 
 			// Tag Page
 			'NewTag' => __('Create tag', 'mrm'),
-			'CreateANewTag' => __('Create A New Tag', 'mrm'),
+			'CreateANewTag' => __('Add New Tag', 'mrm'),
+			'CreateANewTagDesc' => __('Create a new tag to categorize your contacts.', 'mrm'),
 			'UpdateTag' => __('Update Tag', 'mrm'),
+			'UpdateTagDesc' => __('Update the tag information below.', 'mrm'),
 			'TagName' => __('Tag Name', 'mrm'),
-			'ContactsWithTag' => __('Contact With Tag', 'mrm'), // 'Contacts With Tag'
+			'TagNamePlaceholder' => __('VIP Customer', 'mrm'),
+			'TagNameTooltip' => __('A unique name to identify this tag. Used for categorizing and filtering contacts.', 'mrm'),
+			'TagDescriptionTooltip' => __('Optional description to explain the purpose and criteria of this tag.', 'mrm'),
+			'TagDescriptionPlaceholder' => __('Describe the purpose of this tag...', 'mrm'),
+			'ContactsWithTag' => __('Contacts', 'mrm'), // 'Contacts With Tag'
 
 			// Campaign Listing Page
 			'NewCampaign' => __('New Campaign', 'mrm'),
@@ -1264,6 +1279,34 @@ class TransStrings
 			'DeleteACoupon' => __('Delete a coupon', 'mrm'),
 			'SelectCouponS' => __('Select coupon(s)', 'mrm'),
 			'SelectCouponTooltip' => __('Select the coupon(s) you want to delete', 'mrm'),
+
+			// Delete Coupon can target either the coupons this automation generated for the
+			// contact, or a coupon code typed by hand (which may contain merge tags).
+			'CouponSourceType' => __('Coupon Type', 'mrm'),
+			// Rendered inside .mintmrm-radiobtn, which capitalizes each word — keep these short
+			// so they read correctly as title case.
+			'DynamicCouponSource' => __('Dynamic coupon', 'mrm'),
+			'StaticCouponSource' => __('Static coupon', 'mrm'),
+			'StaticCouponCode' => __('Coupon Code', 'mrm'),
+			'StaticCouponCodeTooltip' => __('The exact coupon code to delete. Merge tags such as {{contact.firstName}} are resolved before the coupon is looked up.', 'mrm'),
+			'DynamicCouponSourceHint' => __('Delete the coupon a Create Coupon step in this automation generated for the contact.', 'mrm'),
+			'DeleteCouponScopeNote' => __('Only the coupon issued to this contact is affected. If other contacts share the coupon, their access is revoked and the coupon is kept.', 'mrm'),
+
+			// "Use existing coupon as template" mode for the WooCommerce Create Coupon action.
+			// In this mode every discount/restriction setting is read off the chosen coupon at
+			// send time, so the corresponding inputs are hidden rather than disabled.
+			'CouponConfigType' => __('Coupon Configuration Type', 'mrm'),
+			'ConfigureFromScratch' => __('Configure from scratch', 'mrm'),
+			'UseExistingCouponAsTemplate' => __('Use existing coupon as template', 'mrm'),
+			'SelectBaseCoupon' => __('Select your existing coupon', 'mrm'),
+			'SelectBaseCouponTooltip' => __('Every generated coupon copies the discount, restrictions and limits of this coupon, including settings added by other coupon plugins. Only the code itself is unique per contact.', 'mrm'),
+			'BaseCouponRequired' => __('Please select an existing coupon code.', 'mrm'),
+			'InheritedFromBaseCoupon' => __('These settings are inherited from the selected coupon.', 'mrm'),
+			'SearchForCoupon' => __('Search for a coupon', 'mrm'),
+			'NoCouponFound' => __('No coupon found.', 'mrm'),
+			'LimitUsageToXItems' => __('Limit Usage to X Items', 'mrm'),
+			'LimitUsageToXItemsTooltip' => __('The maximum number of individual items this coupon can apply to when using product discounts. Leave blank to apply to all qualifying items in the cart.', 'mrm'),
+			'AllItems' => __('All qualifying items', 'mrm'),
 
 			// EDD Create Discount action. EDD calls coupons "discounts", and its
 			// discount model differs from WooCommerce's, so these are separate strings

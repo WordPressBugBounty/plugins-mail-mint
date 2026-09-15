@@ -33,8 +33,16 @@ class AgentLoop {
 
     /**
      * Run one loop iteration for a conversation.
+     *
+     * @param int           $conversation_id Conversation to advance.
+     * @param callable|null $on_delta        When given, function( string $text_chunk ): void — the
+     *                                       model turn streams via ProviderInterface::chatStream()
+     *                                       instead of chat(), and this is invoked with assistant
+     *                                       text as it arrives. Persistence, tool execution, and the
+     *                                       return shape are otherwise IDENTICAL to the non-streaming
+     *                                       path — the SSE route is the only caller that passes this.
      */
-    public static function step( int $conversation_id ): array {
+    public static function step( int $conversation_id, ?callable $on_delta = null ): array {
         $conversation = ConversationStore::getConversation( $conversation_id );
         if ( ! $conversation ) {
             return self::errorState( 'Conversation not found.' );
@@ -54,6 +62,17 @@ class AgentLoop {
             return self::errorState( 'Conversation has no messages yet.' );
         }
 
+        // Failed turns are persisted so the thread keeps showing them, but they
+        // are UI artifacts — never real model output — so they are stripped
+        // before the history goes back to a provider. Replaying one leaves the
+        // history ending on an assistant turn, which Gemini rejects outright
+        // ("Requests ending with a model turn are not supported."), and feeds
+        // every provider an error string as if the model had said it.
+        $history = self::providerHistory( $messages );
+        if ( empty( $history ) ) {
+            return self::errorState( 'Conversation has no messages yet.' );
+        }
+
         // Turn budget: stop runaway loops gracefully.
         if ( ConversationStore::assistantStepsThisTurn( $messages ) >= self::MAX_STEPS_PER_TURN ) {
             $note = 'I hit the step limit for this request. Here is where things stand — tell me to continue if you want me to keep going.';
@@ -64,16 +83,34 @@ class AgentLoop {
 
         $provider = AIInit::activeProvider();
         if ( is_wp_error( $provider ) ) {
-            return self::errorState( $provider->get_error_message() );
+            return self::errorState( $provider->get_error_message(), 'ai_error', $conversation_id );
         }
 
         $system = SystemPrompt::build( (string) $conversation['context_type'], (int) $conversation['context_id'] );
         $tools  = ToolGateway::toolDefinitions();
 
-        $response = $provider->chat( $system, $messages, $tools );
+        $response = null !== $on_delta
+            ? $provider->chatStream( $system, $history, $tools, $on_delta )
+            : $provider->chat( $system, $history, $tools );
         if ( is_wp_error( $response ) ) {
-            // Surface rate limits etc. without poisoning the conversation.
-            return self::errorState( $response->get_error_message(), $response->get_error_code() );
+            // Persisted (not just returned) so the failure stays visible in the
+            // thread — retrying must not silently erase evidence it happened.
+            $error_data = $response->get_error_data();
+            return self::errorState(
+                $response->get_error_message(),
+                $response->get_error_code(),
+                $conversation_id,
+                is_array( $error_data ) ? ( $error_data['retry_after'] ?? null ) : null
+            );
+        }
+
+        $text       = trim( (string) ( $response['text'] ?? '' ) );
+        $tool_calls = (array) ( $response['tool_calls'] ?? [] );
+
+        // If the model returned empty text and no tool calls, provide a clear fallback
+        // so the user receives a helpful answer instead of an empty thread turn.
+        if ( '' === $text && empty( $tool_calls ) ) {
+            $text = __( "I couldn't generate a response for this prompt. Please try asking again or rephrasing your prompt.", 'mrm' );
         }
 
         // Persist the assistant message (with provider-raw payload for replay).
@@ -81,8 +118,8 @@ class AgentLoop {
             $conversation_id,
             'assistant',
             [
-                'text'       => $response['text'],
-                'tool_calls' => $response['tool_calls'],
+                'text'       => $text,
+                'tool_calls' => $tool_calls,
             ],
             [
                 'provider' => $provider->slug(),
@@ -91,18 +128,30 @@ class AgentLoop {
             ]
         );
 
-        if ( empty( $response['tool_calls'] ) ) {
+        if ( empty( $tool_calls ) ) {
             ConversationStore::updateConversation( $conversation_id, [ 'status' => 'idle' ] );
             return [
                 'status'  => 'done',
-                'message' => $response['text'],
+                'message' => $text,
             ];
         }
 
         // Execute safe calls now; queue destructive ones for confirmation.
-        $executed = [];
-        $pending  = [];
+        // Campaign tools created/composed earlier in this conversation (even
+        // within this same tool_calls batch) are bound here — a model that
+        // omits campaign_id on a later call must not spawn a second campaign.
+        $executed           = [];
+        $pending            = [];
+        $bound_campaign_id  = 'campaign' === $conversation['context_type'] ? (int) $conversation['context_id'] : 0;
         foreach ( $response['tool_calls'] as $call ) {
+            if (
+                $bound_campaign_id
+                && in_array( $call['name'], [ 'mail-mint/upsert-campaign', 'mail-mint/compose-campaign-email' ], true )
+                && empty( $call['arguments']['campaign_id'] )
+            ) {
+                $call['arguments']['campaign_id'] = $bound_campaign_id;
+            }
+
             if ( ToolGateway::requiresConfirmation( $call['name'] ) ) {
                 $pending[] = $call + [
                     'summary' => ToolGateway::describeCall( $call['name'], $call['arguments'] ),
@@ -123,7 +172,7 @@ class AgentLoop {
                 'tool'     => $call['name'],
                 'is_error' => $result['is_error'],
             ];
-            self::bindCampaignContext( $conversation_id, $call['name'], $result );
+            $bound_campaign_id = self::bindCampaignContext( $conversation_id, $call['name'], $result ) ?: $bound_campaign_id;
         }
 
         if ( ! empty( $pending ) ) {
@@ -212,17 +261,20 @@ class AgentLoop {
      * When the agent creates or composes a campaign, bind the conversation
      * to it — the copilot UI uses context_id to drive the live preview.
      */
-    private static function bindCampaignContext( int $conversation_id, string $tool_name, array $result ): void {
+    private static function bindCampaignContext( int $conversation_id, string $tool_name, array $result ): ?int {
         if ( $result['is_error'] || ! in_array( $tool_name, [ 'mail-mint/upsert-campaign', 'mail-mint/compose-campaign-email' ], true ) ) {
-            return;
+            return null;
         }
         $decoded = json_decode( (string) $result['content'], true );
         if ( ! empty( $decoded['campaign_id'] ) ) {
+            $campaign_id = (int) $decoded['campaign_id'];
             ConversationStore::updateConversation( $conversation_id, [
                 'context_type' => 'campaign',
-                'context_id'   => (int) $decoded['campaign_id'],
+                'context_id'   => $campaign_id,
             ] );
+            return $campaign_id;
         }
+        return null;
     }
 
     /**
@@ -252,11 +304,53 @@ class AgentLoop {
         );
     }
 
-    private static function errorState( string $message, string $code = 'ai_error' ): array {
+    /**
+     * The conversation history as a provider should see it: persisted failure
+     * turns (assistant messages flagged is_error) removed. They exist only so
+     * the thread can render what went wrong; replaying them would both end the
+     * history on an assistant turn — which Gemini rejects with HTTP 400,
+     * "Requests ending with a model turn are not supported" — and pass the
+     * error text off as something the model itself produced.
+     */
+    private static function providerHistory( array $messages ): array {
+        return array_values(
+            array_filter(
+                $messages,
+                static function ( $message ) {
+                    if ( 'assistant' !== ( $message['role'] ?? '' ) ) {
+                        return true;
+                    }
+                    $content = $message['content'] ?? [];
+                    if ( is_string( $content ) ) {
+                        $content = json_decode( $content, true );
+                    }
+                    return ! ( is_array( $content ) && ! empty( $content['is_error'] ) );
+                }
+            )
+        );
+    }
+
+    /**
+     * Build the error response. When $conversation_id is given (i.e. the
+     * conversation is in a state where a turn genuinely failed, not a
+     * pre-turn validation guard), the failure is also persisted as an
+     * assistant message so it stays in the thread's history — a later
+     * retry must not make it look like nothing went wrong.
+     */
+    private static function errorState( string $message, string $code = 'ai_error', int $conversation_id = 0, ?int $retry_after = null ): array {
+        if ( $conversation_id ) {
+            ConversationStore::appendMessage( $conversation_id, 'assistant', [
+                'text'       => $message,
+                'tool_calls' => [],
+                'is_error'   => true,
+            ] );
+            ConversationStore::updateConversation( $conversation_id, [ 'status' => 'idle' ] );
+        }
         return [
-            'status'  => 'error',
-            'code'    => $code,
-            'message' => $message,
+            'status'      => 'error',
+            'code'        => $code,
+            'message'     => $message,
+            'retry_after' => $retry_after,
         ];
     }
 }

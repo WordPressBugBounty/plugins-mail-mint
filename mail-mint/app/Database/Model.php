@@ -59,6 +59,7 @@ class Model {
 				'ai_conversations'              => 'AIConversationSchema',
 				'ai_messages'                   => 'AIMessageSchema',
 				'abandoned_cart'                => 'AbandonedCartSchema',
+				'wc_customers'                  => 'WCCustomerSchema',
 			)
 		);
 	}

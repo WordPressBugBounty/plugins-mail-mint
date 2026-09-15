@@ -556,6 +556,69 @@ class AutomationLogModel {
 	}
 
 	/**
+	 * Run SQL query to get a automation from automation database
+	 *
+	 * @param int    $id automation id.
+	 * @param string $filter Filter by Week/Month/Year.
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public static function get_automation_performance_analytics( $id, $filter ) {
+		try {
+			$performance_data  = HelperFunctions::count_performance_data( $id, $filter );
+			$performance_array = array();
+
+			if ( 'weekly' === $filter ) {
+				$week_start_end = get_weekstartend( current_time( 'mysql' ) );
+				$start_of_week  = date_i18n( 'Y-m-d', $week_start_end['start'] );
+
+				$week_days = array();
+				$interval  = 0;
+				while ( $interval < 7 ) {
+					$label               = gmdate( 'M d', strtotime( $start_of_week . '+' . $interval . 'day' ) );
+					$week_days[ $label ] = 0;
+					$interval++;
+				}
+
+				$performance_array = self::process_date_based_array( $id, $filter, $week_days, $performance_data );
+			} else {
+				$current_datetime    = current_datetime();
+				$current_month       = date_format( $current_datetime, 'n' );
+				$current_month_label = date_format( $current_datetime, 'M' );
+
+				if ( 2 === (int) $current_month ) {
+					$days = 28;
+				} elseif ( 8 === (int) $current_month || ( 0 !== (int) $current_month % 2 && 9 > (int) $current_month ) || ( 0 === (int) $current_month % 2 && 9 < (int) $current_month ) ) {
+					$days = 31;
+				} else {
+					$days = 30;
+				}
+
+				$monthly_days = array();
+
+				for ( $day = 1; $day <= $days; $day++ ) {
+					// Use sprintf to pad with 0 if needed.
+					$day_label = $current_month_label . ' ' . sprintf( '%02d', $day );
+
+					$monthly_days[ $day_label ] = 0;
+				}
+
+				$performance_array = self::process_date_based_array( $id, $filter, $monthly_days, $performance_data );
+			}
+			$response = array(
+				'performance' => $performance_array,
+			);
+
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			return array(
+				'data' => $response,
+			);
+		} catch ( \Exception $e ) {
+			return null;
+		}
+	}
+
+	/**
 	 * Process an associative array based on date data to create a performance array.
 	 *
 	 * This function processes the given associative array of date-based data and creates a performance array.
@@ -610,6 +673,34 @@ class AutomationLogModel {
 		}
 
 		return $performance_array;
+	}
+
+	/**
+	 * Run SQL query to get a automation from automation database
+	 *
+	 * @param int    $id automation id.
+	 * @param string $filter Filter by Week/Month/Year.
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public static function get_automation_overall_analytics( $id, $filter ) {
+		try {
+			$total_email_send     = HelperFunctions::count_total_email_sent( $id, $filter );
+			$subscriber_completed = HelperFunctions::count_completed_subscribers( $id, $filter );
+			$entrance             = HelperFunctions::count_total_entrance_with_filter( $id, $filter );
+
+			$overall_data = array(
+				'subscriber_completed' => $subscriber_completed,
+				'email_sent'           => $total_email_send['total_sent'],
+				'entrance'             => $entrance,
+			);
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			return array(
+				'data' => $overall_data,
+			);
+		} catch ( \Exception $e ) {
+			return null;
+		}
 	}
 
 	/**

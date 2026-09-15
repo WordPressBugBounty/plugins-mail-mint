@@ -607,6 +607,9 @@ class ToolGateway {
                 $schema[ $key ] = self::normalizeSchema( $value );
             }
         }
+        if ( isset( $schema['type'] ) && 'array' === $schema['type'] && ! isset( $schema['items'] ) ) {
+            $schema['items'] = [ 'type' => 'string' ];
+        }
         return $schema;
     }
 }

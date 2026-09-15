@@ -115,7 +115,15 @@ class TagController extends AdminBaseController {
 			$result['data'] = array_map(
 				function ( $row ) {
 					if ( isset( $row['created_at'] ) ) {
-						$row['created_at'] = MrmCommon::date_time_format_with_core( $row['created_at'] );
+						$created_at_raw = $row['created_at'];
+						// Timezone-annotated ISO copy: `created_at` below is a
+						// site-format string ("September 9, 2026") with no
+						// timezone marker, which a browser parses in its own
+						// local zone — wrong whenever that differs from the
+						// site's. The frontend uses this field instead to
+						// compute "time ago" correctly.
+						$row['created_at_iso'] = ( new \DateTimeImmutable( $created_at_raw, wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+						$row['created_at']     = MrmCommon::date_time_format_with_core( $created_at_raw );
 					}
 					return $row;
 				},

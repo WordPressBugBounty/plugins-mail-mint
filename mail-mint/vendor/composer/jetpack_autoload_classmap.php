@@ -210,13 +210,13 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/MintForm/ConnectorMintForm.php'
 	),
-	'MintMail\\App\\Internal\\Automation\\Connector\\ConnectorWPFunnels' => array(
-		'version' => 'dev-master',
-		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WPFunnels/ConnectorWPFunnels.php'
-	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\ConnectorWordPress' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WP/ConnectorWordpress.php'
+	),
+	'MintMail\\App\\Internal\\Automation\\Connector\\ConnectorWpfnlCore' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WpfnlCore/ConnectorWpfnlCore.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\trigger\\MintFormTriggers' => array(
 		'version' => 'dev-master',
@@ -226,13 +226,13 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WP/Triggers/PostPublishedTriggers.php'
 	),
-	'MintMail\\App\\Internal\\Automation\\Connector\\trigger\\WPFunnelsTriggers' => array(
-		'version' => 'dev-master',
-		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WPFunnels/Triggers/WPFunnelsTriggers.php'
-	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\trigger\\WordpressTriggers' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WP/Triggers/WordPressTriggers.php'
+	),
+	'MintMail\\App\\Internal\\Automation\\Connector\\trigger\\WpfnlCoreTriggers' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WpfnlCore/Triggers/WpfnlCoreTriggers.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\HelperFunctions' => array(
 		'version' => 'dev-master',
@@ -873,6 +873,10 @@ return array(
 	'Mint\\MRM\\DataBase\\Tables\\FormSubmissionsSchema' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Database/Schemas/FormSubmissionsSchema.php'
+	),
+	'Mint\\MRM\\DataBase\\Tables\\WCCustomerSchema' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Database/Schemas/WCCustomerSchema.php'
 	),
 	'Mint\\MRM\\DataBase\\Upgrade' => array(
 		'version' => 'dev-master',

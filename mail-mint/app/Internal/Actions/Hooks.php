@@ -880,17 +880,50 @@ class Hooks {
 	}
 
 	/**
+	 * Whether the mint_wc_customers table exists.
+	 *
+	 * Resolved once per request. Order status changes can fire many times in a single
+	 * request (bulk edits, importers, webhook batches), and the answer cannot change
+	 * mid-request in any way this code needs to react to.
+	 *
+	 * @return bool True if the table exists.
+	 * @since 1.31.2
+	 */
+	private static function wc_customers_table_exists(){
+		static $exists = null;
+
+		if (null !== $exists) {
+			return $exists;
+		}
+
+		global $wpdb;
+		$table  = $wpdb->prefix . 'mint_wc_customers';
+		$exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+
+		return $exists;
+	}
+
+	/**
 	 * Sync WooCommerce order data with the custom table.
-	 * 
+	 *
 	 * This function updates the custom table data for the customer associated with the order.
-	 * 
+	 *
 	 * @param WC_Order $order The WooCommerce order object.
 	 * @param bool $require_sync Whether the data should be updated.
-	 * 
+	 *
 	 * @return bool True if the data was successfully updated, false otherwise.
 	 * @since 1.16.5
 	 */
 	private function sync_woo_order($order, $require_sync = false){
+		// Bail before touching the database if the aggregate table is missing. This runs on
+		// every order status change, so on a site that lacks the table it would otherwise
+		// write two "table doesn't exist" errors into debug.log per order, forever.
+		// WCCustomerSchema creates it at activation and
+		// DatabaseMigrator::maybe_create_wc_customers_table() repairs older installs.
+		if (!self::wc_customers_table_exists()) {
+			return false;
+		}
+
 		$customer = Helper::getDbCustomerFromOrder($order);
 		if (!$customer) {
 			return false;

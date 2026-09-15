@@ -152,9 +152,24 @@ class AutomationTools {
                                     ],
                                     'style'        => [ 'type' => 'object', 'description' => 'sendMail only: {preset} plus optional colour overrides, same as compose-campaign-email.' ],
                                     'ref'          => [ 'type' => 'string', 'description' => 'Optional stable label for this step (e.g. "welcome_email"). A condition rule can reference this step\'s email by ref instead of an id — see branching_guide.' ],
-                                    'condition'    => [ 'type' => 'array', 'description' => 'Only for key="condition": the rule set (array of OR-groups, each an array of AND-rules). See branching_guide.' ],
-                                    'yes'          => [ 'type' => 'array', 'description' => 'Only for key="condition": ordered action steps run when the condition matches. Same shape as steps items (no nested conditions).' ],
-                                    'no'           => [ 'type' => 'array', 'description' => 'Only for key="condition": ordered action steps run when the condition does NOT match.' ],
+                                    'condition'    => [
+                                        'type'        => 'array',
+                                        'description' => 'Only for key="condition": the rule set (array of OR-groups, each an array of AND-rules). See branching_guide.',
+                                        'items'       => [
+                                            'type'  => 'array',
+                                            'items' => [ 'type' => 'object' ],
+                                        ],
+                                    ],
+                                    'yes'          => [
+                                        'type'        => 'array',
+                                        'description' => 'Only for key="condition": ordered action steps run when the condition matches. Same shape as steps items (no nested conditions).',
+                                        'items'       => [ 'type' => 'object' ],
+                                    ],
+                                    'no'           => [
+                                        'type'        => 'array',
+                                        'description' => 'Only for key="condition": ordered action steps run when the condition does NOT match.',
+                                        'items'       => [ 'type' => 'object' ],
+                                    ],
                                 ],
                             ],
                         ],

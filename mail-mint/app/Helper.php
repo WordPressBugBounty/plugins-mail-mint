@@ -355,6 +355,68 @@ class Helper {
 	}
 
 	/**
+	 * Resolve contact merge tags inside a short, standalone string.
+	 *
+	 * Unlike self::replace_placeholder(), this skips the business-settings, footer and
+	 * tracking-URL passes and only swaps the contact-scoped tags — {{contact.*}},
+	 * {{first_name}} and friends, {{custom.*}}, including their {{tag|fallback}} form.
+	 * It exists for short strings such as an automation coupon prefix, where running the
+	 * whole email pipeline would be inappropriate.
+	 *
+	 * Tags for a contact that cannot be found resolve to an empty string, matching how
+	 * the email pipeline treats an unknown recipient.
+	 *
+	 * @param string $text  String that may contain merge tags.
+	 * @param string $email Email address of the contact to resolve the tags against.
+	 * @return string The string with contact merge tags resolved.
+	 * @since 1.31.3
+	 */
+	public static function replace_contact_merge_tags( $text, $email ) {
+		if ( ! is_string( $text ) ) {
+			return '';
+		}
+
+		// Nothing to resolve — skip the contact lookup entirely.
+		if ( false === strpos( $text, '{{' ) ) {
+			return $text;
+		}
+
+		$contact_email = '';
+		$first_name    = '';
+		$last_name     = '';
+		$city          = '';
+		$state         = '';
+		$country       = '';
+		$company       = '';
+		$designation   = '';
+		$address_1     = '';
+		$address_2     = '';
+		$meta_fields   = array();
+
+		if ( $email && ContactModel::is_contact_exist( $email ) ) {
+			$contact_data = ContactModel::get_contact_by_email( $email );
+			$contact      = isset( $contact_data['id'] ) ? ContactModel::get( $contact_data['id'] ) : array();
+
+			$contact_email = isset( $contact['email'] ) ? $contact['email'] : '';
+			$first_name    = isset( $contact['first_name'] ) ? $contact['first_name'] : '';
+			$last_name     = isset( $contact['last_name'] ) ? $contact['last_name'] : '';
+			$city          = isset( $contact['meta_fields']['city'] ) ? $contact['meta_fields']['city'] : '';
+			$state         = isset( $contact['meta_fields']['state'] ) ? $contact['meta_fields']['state'] : '';
+			$country       = isset( $contact['meta_fields']['country'] ) ? $contact['meta_fields']['country'] : '';
+			$company       = isset( $contact['meta_fields']['company'] ) ? $contact['meta_fields']['company'] : '';
+			$designation   = isset( $contact['meta_fields']['designation'] ) ? $contact['meta_fields']['designation'] : '';
+			$address_1     = isset( $contact['meta_fields']['address_line_1'] ) ? $contact['meta_fields']['address_line_1'] : '';
+			$address_2     = isset( $contact['meta_fields']['address_line_2'] ) ? $contact['meta_fields']['address_line_2'] : '';
+			$meta_fields   = !empty( $contact['meta_fields'] ) ? $contact['meta_fields'] : array();
+		}
+
+		$text = self::replace_placeholder_email_subject_preview( $text, $first_name, $last_name, $contact_email, $city, $state, $country, $company, $designation, $meta_fields );
+		$text = self::replace_placeholder_email_body( $text, $first_name, $last_name, $contact_email, $address_1, $address_2, $company, $designation, $meta_fields );
+
+		return $text;
+	}
+
+	/**
 	 * Replace dynamic coupon placeholders with actual coupon codes.
 	 *
 	 * Description: Replaces dynamic coupon placeholders in the provided data with actual coupon codes.

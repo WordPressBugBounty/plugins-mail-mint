@@ -25,8 +25,17 @@ class AISettings {
     public const DEFAULT_MODELS = [
         'anthropic'     => 'claude-opus-4-8',
         'openai'        => 'gpt-4o',
-        'gemini'        => 'gemini-2.0-flash',
+        'gemini'        => 'gemini-3.6-flash',
         'wordpress_ai'  => 'auto',
+    ];
+
+    /**
+     * Retired Gemini model ids mapped to their replacement, so sites that
+     * connected before a Google deprecation don't keep sending a dead model id.
+     */
+    public const RETIRED_MODELS = [
+        'gemini-2.0-flash'      => 'gemini-3.6-flash',
+        'gemini-2.0-flash-lite' => 'gemini-3.6-flash-lite',
     ];
 
     /**
@@ -51,11 +60,11 @@ class AISettings {
             [ 'id' => 'o3',           'label' => 'o3' ],
         ],
         'gemini' => [
-            [ 'id' => 'gemini-2.0-flash',      'label' => 'Gemini 2.0 Flash (Default)' ],
+            [ 'id' => 'gemini-3.6-flash',      'label' => 'Gemini 3.6 Flash (Default)' ],
             [ 'id' => 'gemini-2.5-flash',      'label' => 'Gemini 2.5 Flash' ],
             [ 'id' => 'gemini-2.5-pro',        'label' => 'Gemini 2.5 Pro' ],
             [ 'id' => 'gemini-2.5-flash-lite', 'label' => 'Gemini 2.5 Flash Lite' ],
-            [ 'id' => 'gemini-2.0-flash-lite', 'label' => 'Gemini 2.0 Flash Lite' ],
+            [ 'id' => 'gemini-3.6-flash-lite', 'label' => 'Gemini 3.6 Flash Lite' ],
         ],
         'wordpress_ai' => [
             [ 'id' => 'auto', 'label' => 'WordPress Default Model' ],
@@ -104,7 +113,8 @@ class AISettings {
     public static function getModel( string $provider ): string {
         $settings = self::all();
         $model    = $settings['providers'][ $provider ]['model'] ?? '';
-        return is_string( $model ) && '' !== $model ? $model : ( self::DEFAULT_MODELS[ $provider ] ?? '' );
+        $model    = is_string( $model ) && '' !== $model ? $model : ( self::DEFAULT_MODELS[ $provider ] ?? '' );
+        return self::RETIRED_MODELS[ $model ] ?? $model;
     }
 
     /**

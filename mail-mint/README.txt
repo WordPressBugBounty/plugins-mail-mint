@@ -1,20 +1,20 @@
-=== Mail Mint - Email Marketing, Newsletter, Email Automation & WooCommerce Emails ===
+=== Mail Mint - Email Marketing, Automation & WooCommerce Emails with AI Assistance ===
 Contributors: coderexltd, getwpfunnels, coderexco
 Donate link: https://getwpfunnels.com/
-Tags: woocommerce emails, email automation, email marketing, newsletter, email
+Tags: woocommerce emails, email automation, email marketing, AI, email, newsletter 
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.1
+Stable tag:  1.31.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-The easiest email marketing automation plugin for WordPress & WooCommerce - capture leads, send email campaigns, and automate your newsletters.
+AI-powered email marketing automation plugin for WordPress & WooCommerce - capture leads, create campaigns, and automate workflows with AI assistance.
 
 == Description ==
 If you are looking to increase sales and repeat purchases using email marketing automation, then we introduce you to Mail Mint!
 
-**The self hosted email marketing plugin for WordPress and WooCommerce stores.**
+**The self hosted, AI email marketing plugin for WordPress and WooCommerce stores.**
 
 ✅ Capture unlimited leads & subscribers
 ✅ Run targeted email campaigns
@@ -22,10 +22,11 @@ If you are looking to increase sales and repeat purchases using email marketing 
 ✅ Design and send newsletter emails
 ✅ Promote WooCommerce products via emails
 ✅ Set up Behavior-based automation workflows (Pro)
+✅ Get everything done for you with AI assistance
 
 Mail Mint is built to work seamlessly with WooCommerce and traditional WordPress sites without having to leave your dashboard.
 
-Unlike SaaS email marketing tools, with Mail Mint, you get full ownership of data and more room to scale up without growing fees or any tech-overwhelm.
+Unlike SaaS email marketing tools, with Mail Mint, you get full ownership of data and scale up without growing fees or any tech-overwhelm.
 
 > No need to pay those hefty monthly fees or get tied to contact limits of SaaS tools.
 
@@ -43,7 +44,7 @@ Use a visual drag-and-drop email builder to design conversion-optimized emails e
 Get dedicated products block to display WooCommerce products on your email campaigns and get more sales.
 
 **Visual Email Automation Workflows**
-Set up well-planned email automation flows on based leads collection, order status (Pro) or customer behavior (Pro) to trigger more conversions.
+Set up email automation flows on based leads collection, order status (Pro) or customer behavior (Pro) to trigger more conversions.
 
 **Customize Default WooCommerce Emails**
 Update the boring default emails by WooCommerce upon order placement, completion, etc., using our visual email builder.
@@ -70,9 +71,9 @@ But most solutions are incomplete. You need multiple tools pull it off.
 
 **Mail Mint let's you do all of that.. No extra plugins needed!**
 
-* For starters, the plugin has its **<a href="https://getwpfunnels.com/lead-capture-form/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-lead-capture-form-1" target="_blank">lead form builder</a>**, which will allow you to collect leads from anywhere on your website.
+* For starters, the plugin has its **<a href="https://getwpfunnels.com/lead-capture-form/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-lead-capture-form-1" target="_blank">lead form builder</a>**, which allow you to collect leads from anywhere on your website.
 
-* You can then *segment your leads* and organize them to run targeted **email marketing campaigns**.
+* You can *segment your leads* and organize them to run targeted **email marketing campaigns**.
 
 Moreover, it has direct integration with 
 
@@ -83,7 +84,7 @@ Moreover, it has direct integration with
 
 So, you get lead management, email campaigns, and automation workflows, all in a single tool.
 
-Plus, you may **combine Mail Mint with WPFunnels**, the easiest funnel builder in WordPress, to plan and craft well-planned funnel journeys for WooCommerce, including custom checkout, order bump and upsell offers, and email automation flows, on a single visual canvas.
+Plus, you may **combine Mail Mint with WPFunnels**, the easiest funnel builder in WordPress, to plan and craft funnel journeys for WooCommerce, including custom checkout, order bump and upsell offers, and email automation flows, on a single visual canvas.
 
 > No more juggling multiple tools!
 
@@ -120,7 +121,7 @@ Additionally, you get a full **<a href="https://youtu.be/8xhrIX1TX2s?si=q5XxjLdV
 
 = 👉 Email Marketing Campaigns =
 
-Once you have leads, you can craft effective email marketing campaigns to interact with your contacts easily.
+Once you have leads, you can run email marketing campaigns to interact with your contacts. 
 
 * Regular Email Campaigns
 * Scheduled Email Campaigns
@@ -136,15 +137,15 @@ Once you have leads, you can craft effective email marketing campaigns to intera
 * Post-Purchase Email Campaigns
 … and many more.
 
-Whether you are a WooCommerce store owner, blogger, or funnel agency, Mail Mint will help you run effective email marketing campaigns for lead nurturing or promotional offers.
+Whether you are a WooCommerce store owner, blogger, or funnel agency, Mail Mint help you run effective email marketing campaigns for lead nurturing or promotional offers.
 
-<em>You will also get tons of niche-specific **email templates** to easily create email campaigns, newsletters, email automation workflows, abandoned cart recovery campaigns, etc., in just a few minutes.</em>
+<em>You will get niche-specific email templates, or use AI-powered assistance to create email campaigns, newsletters, email automation workflows, abandoned cart recovery campaigns, etc., in just a few minutes.</em>
 
 > Learn More about <a href="https://getwpfunnels.com/email-marketing-campaigns/?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-email-campaigns" target="_blank">Mail Mint's Email Campaigns</a>
 
 = 👉 Visual Drag And Drop Email Builder =
 
-You will love the simple drag and drop email builder to design your emails in Mail Mint.
+You will love the drag and drop email builder to design your emails in Mail Mint.
 
 * Drag and drop blocks
 * Full control over design and layout
@@ -157,11 +158,11 @@ You will love the simple drag and drop email builder to design your emails in Ma
 Watch the visual email builder in action:
 [youtube https://youtu.be/FqKNzjVsmQE?feature=shared]
 
-Alternatively, you may also use a classic editor or plain text editor instead.
+You may also use a classic editor or plain text editor instead.
 
 = 👉 Self-Hosted and GDPR-Ready =
 
-Mail Mint runs entirely inside your WordPress installation. So all contacts and campaign data stay in your own server's database, not on a third-party platform.
+Mail Mint runs entirely inside your WordPress installation. So all contacts and campaign data stay on your own server's database, not on a third-party platform.
 
 And it comes with GDPR compliance features:
 * Double opt-in email confirmation 
@@ -173,7 +174,7 @@ And it comes with GDPR compliance features:
 
 Mail Mint comes with a powerful visual automation workflow builder.
 
-Automate email marketing and lead management for several triggers to reduce your efforts while getting more results from your marketing campaigns.
+Automate email marketing and lead management for several triggers to reduce effort while getting more results from your campaigns.
 
 * Visual automation workflow builder
 * Pre-built automation recipes
@@ -209,7 +210,7 @@ Watch Mail Mint's Automation Workflows in action:
 
 👉**Other Integrated Automation Triggers**
 
-You will also be able to use email marketing automation for several other plugins that Mail Mint integrates with, including:
+You can use email marketing automation for several other plugins that Mail Mint integrates with, including:
 
 – Easy Digital Downloads 
 – Gravity Form 
@@ -244,7 +245,7 @@ Whether it’s creating the **welcome email**, **onboarding process**, running *
 
 = 👉 Custom Lead Forms To Capture Emails =
 
-Mail Mint has its own lead form builder to let you collect leads from anywhere on your website. You can then use segmentation and send out targeted email campaigns or newsletters to get more results.
+Mail Mint has its own lead form builder to collect leads from anywhere on your website. You can use segmentation and send targeted email campaigns to get more results.
 
 * Visual Form Builder (using Gutenberg)
 * 10+ Lead Form Templates
@@ -265,7 +266,7 @@ See how Darrel Wilson created a free lead generation funnel using WPFunnels and 
 
 [youtube https://www.youtube.com/watch?v=rEcChDYV2e8&t=4046s]
 
-<em>Plus, you can directly use Mail Mint forms on your funnel landing page through your WPFunnels opt-in widget.</em>
+<em>Plus, you can directly use Mail Mint forms on your funnel landing page through WPFunnels opt-in widget.</em>
 
 > Learn how to create a <a href="https://getwpfunnels.com/free-lead-generation-funnel-in-wordpress-video//?utm_source=repo-cta&utm_medium=wp-repo&utm_campaign=mm-wpf-free-lead-gen" target="_blank">free lead generation funnel in WordPress</a>.
 
@@ -274,7 +275,7 @@ https://youtu.be/iEe_aW0o4UY?si=YH1dn5fFQQlggJO5
 
 = **👉 WPFunnels Integration For Marketing Funnel Automation [Pro] ** =
 
-If you use WPFunnels and Mail Mint together, then you can **set up email automation workflows based on user actions in different stages of your funnel journey!**
+If you use WPFunnels and Mail Mint together, you can **set up email automation workflows based on user actions in different stages of your funnel journey!**
 
 * Create a funnel in WPFunnels
 * Define conditions
@@ -282,7 +283,7 @@ If you use WPFunnels and Mail Mint together, then you can **set up email automat
 
 [youtube https://youtu.be/y2X4bDZzmsU]
 
-It will help you actively use personalzied email marketing for your buyers within your funnels and increase conversions.
+It will help you use personalized email marketing for your buyers within your funnels and increase conversions.
 
 You may create email marketing automation for
 * Lead generation funnels
@@ -296,7 +297,7 @@ or any other funnel of your choice.
 
 = 👉 WooCommerce Abandoned Cart Recovery [Pro] =
 
-Mail Mint is a powerful plugin for WooCommerce cart abandonment recovery to help you win back lost sales on autopilot.
+Mail Mint is a powerful plugin for WooCommerce cart abandonment recovery to win back lost sales on autopilot.
 
 * Automatic abandoned cart tracking
 * Cart details for abandoned customers
@@ -314,15 +315,15 @@ When you collect leads, it is important to keep them nurtured and engaged via em
 
 With Mail Mint, you can set up automatic recurring email campaigns to be sent every week, month, or specific days of the week.
 
-You may send the latest posts, offer courses, send newsletters, or simply send monthly digests to your subscribers automatically.
+You may send the latest posts, offer courses, send newsletters, or send monthly digests to subscribers automatically.
 
 [youtube https://youtu.be/yly2w6CtGPU?feature=shared]
 
-So, besides being a great email marketing tool, Mail Mint is also a reliable WordPress newsletter plugin.
+So, besides being a email marketing tool, Mail Mint is also a reliable WordPress newsletter plugin.
 
 = 👉 Detailed Email Analytics =
 
-For every activity within Mail Mint, you get real-time analytics to help you make data-driven decisions and optimize email campaigns.
+For every activity within Mail Mint, you get real-time analytics to make data-driven decisions and optimize email campaigns.
 
 – Leads Growth Rate
 – Email Open Rate
@@ -339,11 +340,11 @@ For every activity within Mail Mint, you get real-time analytics to help you mak
 
 When you use Mail Mint’s AI Email Assistant (or as we call it, AI Email Engine), you no longer need to manually create an email campaign or automation workflow.
 
-<em>You can simply write what you want, and the plugin will build everything for you. All you need to do is review. Here's what AI will do for you:</em>
+<em>You can command what you want, and the plugin will build everything for you. All you need to do is review. Here's what AI will do for you:</em>
 
 * Complete email campaign with subject line, preview text, design, and copy.
 * Set up full email automation workflows with necessary triggers, emails, delays, etc. 
-* Analyze campaign performance and get suggestions to improve your results. 
+* Analyze campaign performance and get suggestions to improve results. 
 
 You can BYOK with ChatGPT, Claude, Gemini, or any AI model connected via WordPress AI Connector, or connect Mail Mint to your AI platform through an MCP server to execute instructions directly in Mail Mint.
 
@@ -366,7 +367,7 @@ Edit and customize the default WooCommerce Transactional Emails (order confirmat
 * Regular Email Campaigns
 * Email Sequences (Pro)
 * Pre-made Email Templates
-* AI Email Writing (via ChatGPT)
+* AI Email Writing (via ChatGPT, Gemini, Claude)
 * Drag and drop Email Builder
 * Layout, Typography, & Color Customization
 * Classic Text Editor
@@ -393,11 +394,13 @@ Edit and customize the default WooCommerce Transactional Emails (order confirmat
 * Dynamic Segmentation (Pro)
 * Import contacts
 * Double Opt-in Email Confirmation
+* AI Analysis For Contact Details
 ... and more.
 
 **Automation Workflows**
 
 * Visual Automation Workflow Builder
+* AI Email Automation Generation
 * Automation Triggers (Form Submission, WordPress, etc.)
 * Post Notification Triggers (Pro)
 * Automation Triggers Pabbly Connect, 4+ Form Builders & 3+ LMS Tools (Pro)
@@ -502,64 +505,64 @@ Its visual integration with WPFunnels is a feature that never existed till now. 
 
 So besides making it super easy for funnel creators, Mail Mint is creating a new era for crafting funnels in general.
 
-= 5. How many contacts can I store? =
+= 5. Can I Use AI to Create Email Campaigns? =
+Yes. You will find an AI Assistant within Mail Mint where you can instruct what campaign you want to build, and AI will create the whole email campaign, including subject line, preview text, design, and copy. You simply have to review and send. Building a campaign will take less than 3-5 minutes.
+For this to work, you have to connect ChatGPT, Claude, or Gemini to Mail Mint, or allow the use of AI that you connected via WordPress AI Connector.
+
+= 6. Can I Use AI to Prepare My Email Copies? =
+Of Course! We have ChatGPT – OpenAI integration that lets you create unique email copies for your business.
+
+= 7. How many contacts can I store? =
 There is no limit. You may store as many contacts as you want.
 
-= 6. How can I import my existing contacts list? =
+= 8. How can I import my existing contacts list? =
 You may import your contacts manually (one by one), or you may use a CSV file to bulk upload your contacts. You may also paste raw data in the right format to import contacts.
 
 To import WordPress users and WooCommerce customers, you will find a 3-click option to import the users and customers into the Mail Mint contacts list.
 
 You can also migrate your MailChimp Contacts to Mail Mint within just a few clicks.
 
-= 7. How many email marketing campaigns can I run? =
+= 9. How many email marketing campaigns can I run? =
 You may run as many email marketing campaigns as you want. There's no limitation to this.
 
-= 8. How are the emails sent? =
+= 10. How are the emails sent? =
 Mail Mint will use the default SMTP that you have set up for your WordPress site to send emails. We do not provide delivery service of our own.
 
-= 9. Is Mail Mint GDPR compliant? =
+= 11. Is Mail Mint GDPR compliant? =
 Yes, you will get all the necessary features to meet GDPR compliances, such as double opt-in email, email preference, unsubscribe link, anonymizing IP, and the option to request the removal of data.
 
-= 10. Where are the contacts stored? Is it self-hosted? =
+= 12. Where are the contacts stored? Is it self-hosted? =
 All contacts are stored in your WordPress database, i.e., yes, it is 100% self-hosted. We do not have access to your contacts and contact details.
 
-= 11. How can I use Mail Mint with WooCommerce? =
+= 13. How can I use Mail Mint with WooCommerce? =
 You may import WooCommerce customers as contacts in just a few clicks.
 
 Then you may set up email automation workflows based on triggers in your WooCommerce store such as order placed, the order failed, target status changed, first order placed, etc.
 
-= 11. Does Mail Mint Have an Abandoned Cart Recovery Feature? =
+= 14. Does Mail Mint Have an Abandoned Cart Recovery Feature? =
 Yes! Mail Mint has its own WooCommerce Abandoned Cart Recovery feature that will let you bring back customers who left their cart and didn't complete their purchase.
 
 Then you may set up email automation workflows based on triggers such as Cart Abandoned, Cart Lost, or Cart Recovered. You'll also get advanced analytics for this.
 
-= 13. How do I collect leads? =
+= 15. How do I collect leads? =
 Mail Mint has its own form builder, which you may use to design custom forms and use anywhere on your website to collect leads.
 
 There are also pre-built email templates that will let you use forms easily without any extra effort.
 
-= 14. How can I customize my emails? =
+= 16. How can I customize my emails? =
 You may import our beautiful email templates or create one from scratch.
 You will have access to our advanced email builder which will help you design your email body easily using drag-and-drop blocks.
 
 Plus, you will have full control over the design and typography of your emails.
 
-= 15. Can I use dynamic, personalized contact details in my email? =
+= 17. Can I use dynamic, personalized contact details in my email? =
 Yes, you may use any customer's data as placeholders or merge tags in your email body (such as name, company name, custom fields, etc.) to make it more personalized.
 
-= 16. Do you have integration with any form builder? =
+= 18. Do you have integration with any form builder? =
 Right now, we have integration with Gravity Forms, Fluent Forms, Elementor Form, and JetFormBuilder. And we are planning to integrate with many more form builders soon.
 
-= 16. Can I Use AI to Prepare My Email Copies? =
-Of Course! We have ChatGPT – OpenAI integration that lets you create unique email copies for your business.
-
-= 18. How can I report security bugs? =
+= 19. How can I report security bugs? =
 You can report security bugs through the Patchstack Vulnerability Disclosure Program. The Patchstack team helps validate, triage, and handle any security vulnerabilities. [Report a security vulnerability.](https://patchstack.com/database/vdp/mail-mint)
-
-= 19. Can I Use AI to Create Email Campaigns? =
-Yes. You will find an AI Assistant within Mail Mint where you can instruct what campaign you want to build, and AI will create the whole email campaign, including subject line, preview text, design, and copy. You simply have to review and send. Building a campaign will take less than 3-5 minutes.
-For this to work, you have to connect ChatGPT, Claude, or Gemini to Mail Mint, or allow the use of AI that you connected via WordPress AI Connector.
 
 = 20. What Do I Need To Do Manually When Using The AI Email Engine? =
 With Mail Mint's AI Email Engine, the only manual tasks you will have are to provide instructions on what campaign or automation workflow you want to create and review the output that was generated. 
@@ -582,6 +585,32 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.31.2 (2026-09-15) =
+* Improvement: AI Assistant replies now stream live as they are written so you see results instantly.
+* Improvement: Search AI conversation history to quickly pick up any past chat.
+* Improvement: Add contacts, tags, and lists from a quick side panel without leaving the page.
+* Improvement: Add descriptions to tags so your team knows what each tag is for.
+* Improvement: Create Coupon step can now use an existing coupon as a template and limit it to a set number of items (Pro).
+* Improvement: Redesigned Lists, Tags, and Segments tables, now sortable by contact count.
+* Improvement: Redesigned Automation Recipes page with a searchable library of video guides.
+* Improvement: Easier AI setup with a redesigned provider connection screen and a one-click connection refresh.
+* Improvement: AI Assistant now shows what it is working on while thinking, and the drawer can be resized in both directions.
+* Improvement: Gemini now defaults to Gemini 2.5 Flash, and sites using retired models are switched automatically.
+* Improvement: Signup role mapping now lists every WordPress role on your site including custom roles.
+* Improvement: Form validation messages and preference page text are now fully translatable.
+* Fix: Gemini conversations no longer stop working after a failed reply.
+* Fix: AI now shows the real reason when your provider account is out of quota or billing is inactive.
+* Fix: AI chats no longer show an error before the response finishes or when the model returns an empty reply.
+* Fix: WPFunnels "Funnel Created" trigger no longer disappears from automations when Mail Mint Pro is active.
+* Fix: Fatal error when WPFunnels Pro loads Mail Mint automation analytics.
+* Fix: WooCommerce customer data table is now created correctly on new installations so segment filters and automation conditions return the correct contacts.
+* Fix: Sync Now on the WooCommerce settings page now reports an error instead of success when the customer table cannot be created.
+* Fix: Repeated database errors no longer fill the debug log on every WooCommerce order status change.
+* Fix: Segments can no longer be saved without a name.
+* Fix: Segment created dates now follow your site's timezone.
+* Fix: PHP 8.2+ deprecation notice during plugin upgrades.
+* Fix: Broken settings panel layout in the Delete Coupon automation step (Pro).
 
 = 1.31.1 (2026-09-01) =
 * New: Create Discount action for Easy Digital Downloads generates a unique coupon code per contact in automations (Pro)

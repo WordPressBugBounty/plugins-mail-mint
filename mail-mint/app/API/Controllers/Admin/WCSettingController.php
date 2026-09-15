@@ -116,7 +116,12 @@ class WCSettingController extends SettingBaseController {
 	/**
 	 * Trigger a background sync of WooCommerce order data into the mint_wc_customers table.
 	 *
-	 * Cancels any pending sync, then schedules the first batch. The batch processor
+	 * Creates the table up front, synchronously, so the response reflects whether it actually
+	 * exists rather than only whether a job was queued — the batch processor cannot report a
+	 * failed CREATE back to the user, and a site whose Action Scheduler queue is stalled would
+	 * otherwise see a success message and no table.
+	 *
+	 * Then cancels any pending sync and schedules the first batch. The batch processor
 	 * (DatabaseMigrator::sync_wc_customers_batch) handles subsequent batches automatically
 	 * via Action Scheduler until all orders are processed.
 	 *
@@ -127,6 +132,20 @@ class WCSettingController extends SettingBaseController {
 	public function sync_customers( WP_REST_Request $request ) {
 		if ( ! MrmCommon::is_wc_active() ) {
 			return $this->get_error_response( __( 'WooCommerce is not active.', 'mrm' ) );
+		}
+
+		global $wpdb;
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\WCCustomerSchema::$table_name;
+
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
+			( new \Mint\MRM\DataBase\Tables\WCCustomerSchema() )->get_sql();
+
+			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
+				return $this->get_error_response(
+					/* translators: %s: database table name. */
+					sprintf( __( 'Could not create the %s database table. Please check that your database user has CREATE TABLE permission.', 'mrm' ), $table )
+				);
+			}
 		}
 
 		as_unschedule_all_actions( 'mail_mint_sync_wc_customers', array(), 'mail-mint-wc-sync' );

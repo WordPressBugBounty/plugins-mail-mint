@@ -26,6 +26,39 @@ class ContactGroupRepository extends AbstractRepository {
 	use CacheableTrait;
 
 	/**
+	 * Sort key that orders rows by how many contacts they hold.
+	 *
+	 * Not a column on the groups table — it is derived, so it takes the
+	 * dedicated query path in listOrderedByContactCount().
+	 *
+	 * @since 1.31.2
+	 *
+	 * @var string
+	 */
+	public const ORDER_BY_CONTACT_COUNT = 'total_contacts';
+
+	/**
+	 * Sort keys the list endpoint accepts.
+	 *
+	 * Anything else falls back to 'id'. Without this an unknown key reaches
+	 * MySQL as a bare column name and the query fails, blanking the table.
+	 *
+	 * @since 1.31.2
+	 *
+	 * @var string[]
+	 */
+	private const SORTABLE = array( 'id', 'title', 'type', 'created_at', 'updated_at', self::ORDER_BY_CONTACT_COUNT );
+
+	/**
+	 * Contact <-> group pivot table, without the site prefix.
+	 *
+	 * @since 1.31.2
+	 *
+	 * @var string
+	 */
+	protected const PIVOT_TABLE = 'mint_contact_group_relationship';
+
+	/**
 	 * Group type: 'lists' or 'tags'.
 	 *
 	 * @var string
@@ -70,7 +103,7 @@ class ContactGroupRepository extends AbstractRepository {
 	public function create( array $data ): int {
 		$data['type'] = $this->type;
 		$id           = parent::create( $data );
-		$this->invalidateCache( "contact_group_{$this->type}_list" );
+		$this->invalidateListCaches();
 		return $id;
 	}
 
@@ -87,7 +120,7 @@ class ContactGroupRepository extends AbstractRepository {
 	public function update( int $id, array $data ): int {
 		$data['type'] = $this->type;
 		$result       = parent::update( $id, $data );
-		$this->invalidateCache( "contact_group_{$this->type}_list" );
+		$this->invalidateListCaches();
 		return $result;
 	}
 
@@ -105,7 +138,7 @@ class ContactGroupRepository extends AbstractRepository {
 			$this->deleteRelationships( array( $id ) );
 			return parent::destroy( $id );
 		} );
-		$this->invalidateCache( "contact_group_{$this->type}_list" );
+		$this->invalidateListCaches();
 		return $result;
 	}
 
@@ -126,7 +159,7 @@ class ContactGroupRepository extends AbstractRepository {
 			$this->deleteRelationships( $ids );
 			return parent::destroyMany( $ids );
 		} );
-		$this->invalidateCache( "contact_group_{$this->type}_list" );
+		$this->invalidateListCaches();
 		return $result;
 	}
 
@@ -146,8 +179,12 @@ class ContactGroupRepository extends AbstractRepository {
 		$page     = isset( $params['page'] ) && (int) $params['page'] > 0 ? (int) $params['page'] : 1;
 		$per_page = isset( $params['per_page'] ) && (int) $params['per_page'] > 0 ? (int) $params['per_page'] : 10;
 		$search   = isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '';
-		$order_by = isset( $params['order_by'] ) ? $params['order_by'] : 'id';
+		$order_by = isset( $params['order_by'] ) ? (string) $params['order_by'] : 'id';
 		$order    = isset( $params['order'] ) ? strtoupper( $params['order'] ) : 'DESC';
+
+		if ( ! in_array( $order_by, self::SORTABLE, true ) ) {
+			$order_by = 'id';
+		}
 
 		/**
 		 * Filters the list query parameters before building the query.
@@ -159,14 +196,18 @@ class ContactGroupRepository extends AbstractRepository {
 		 */
 		$params = apply_filters( 'mailmint_repository_list_query', $params, $this->entityName() );
 
-		$query = QueryBuilder::table( $this->prefixedTable() )
-			->where( 'type', '=', $this->type );
-
-		if ( ! empty( $search ) ) {
-			$query->where( 'title', 'LIKE', '%' . $search . '%' );
+		if ( self::ORDER_BY_CONTACT_COUNT === $order_by ) {
+			return $this->listOrderedByContactCount(
+				array(
+					'page'     => $page,
+					'per_page' => $per_page,
+					'search'   => $search,
+					'order'    => $order,
+				)
+			);
 		}
 
-		$query->orderBy( $order_by, $order );
+		$query = $this->baseListQuery( $search )->orderBy( $order_by, $order );
 
 		$result = $query->paginate( $page, $per_page );
 
@@ -174,30 +215,111 @@ class ContactGroupRepository extends AbstractRepository {
 		$ids   = array_map( 'intval', array_column( $result['data'], 'id' ) );
 		$stats = ! empty( $ids ) ? $this->withStatsQuery( $ids ) : array();
 
-		// Merge stats into rows.
-		if ( ! empty( $stats ) ) {
-			$stats_by_id = array();
-			foreach ( $stats as $stat ) {
-				if ( isset( $stat['id'] ) ) {
-					$stats_by_id[ $stat['id'] ] = $stat;
-				}
-			}
-			foreach ( $result['data'] as &$row ) {
-				if ( isset( $row['id'], $stats_by_id[ $row['id'] ] ) ) {
-					$row = array_merge( $row, $stats_by_id[ $row['id'] ] );
-				} else {
-					$row['total_contacts'] = 0;
-				}
-			}
-			unset( $row );
-		} else {
-			foreach ( $result['data'] as &$row ) {
-				$row['total_contacts'] = 0;
-			}
-			unset( $row );
-		}
+		$result['data'] = $this->mergeStats( $result['data'], $stats );
 
 		return $result;
+	}
+
+	/**
+	 * List a page of rows ordered by how many contacts each one holds.
+	 *
+	 * Lists and tags keep their membership in the pivot table, so the count is
+	 * computed inside the same query as a correlated subquery and sorted on.
+	 * Doing it in SQL rather than post-sorting the page is what makes the
+	 * ordering span the whole result set instead of just the rows on screen.
+	 *
+	 * Pro overrides this for segments, whose counts come from filter rules
+	 * rather than the pivot table.
+	 *
+	 * @since 1.31.2
+	 *
+	 * @param array $args Normalised query args: page, per_page, search, order.
+	 *
+	 * @return array Paginated result in the same shape QueryBuilder::paginate() returns.
+	 */
+	protected function listOrderedByContactCount( array $args ): array {
+		global $wpdb;
+
+		$table = $this->prefixedTable();
+		$pivot = $wpdb->prefix . self::PIVOT_TABLE;
+
+		$count_column = "( SELECT COUNT(DISTINCT rel.contact_id) FROM {$pivot} AS rel WHERE rel.group_id = {$table}.id ) as total_contacts";
+
+		$rows = $this->baseListQuery( $args['search'] )
+			->select( '*', $count_column )
+			->orderBy( self::ORDER_BY_CONTACT_COUNT, $args['order'] )
+			// Counts tie constantly (every empty list holds zero), so without a
+			// stable tiebreaker rows drift between pages.
+			->thenOrderBy( 'id', 'DESC' )
+			->limit( $args['per_page'] )
+			->offset( ( $args['page'] - 1 ) * $args['per_page'] )
+			->get();
+
+		foreach ( $rows as &$row ) {
+			$row['total_contacts'] = isset( $row['total_contacts'] ) ? (int) $row['total_contacts'] : 0;
+		}
+		unset( $row );
+
+		$total = $this->baseListQuery( $args['search'] )->count();
+
+		return array(
+			'data'        => $rows,
+			'total'       => $total,
+			'page'        => $args['page'],
+			'per_page'    => $args['per_page'],
+			'total_pages' => (int) ceil( $total / $args['per_page'] ),
+		);
+	}
+
+	/**
+	 * Build the shared SELECT scaffold for a list query: type scope + search.
+	 *
+	 * @since 1.31.2
+	 *
+	 * @param string $search Optional title search term.
+	 *
+	 * @return QueryBuilder
+	 */
+	protected function baseListQuery( string $search = '' ): QueryBuilder {
+		$query = QueryBuilder::table( $this->prefixedTable() )
+			->where( 'type', '=', $this->type );
+
+		if ( '' !== $search ) {
+			$query->where( 'title', 'LIKE', '%' . $search . '%' );
+		}
+
+		return $query;
+	}
+
+	/**
+	 * Merge batch-loaded stats into a page of rows, defaulting missing counts to 0.
+	 *
+	 * @since 1.31.2
+	 *
+	 * @param array $rows  Rows from the list query.
+	 * @param array $stats Stat rows keyed by an 'id' member.
+	 *
+	 * @return array Rows with stats merged in.
+	 */
+	private function mergeStats( array $rows, array $stats ): array {
+		$stats_by_id = array();
+		foreach ( $stats as $stat ) {
+			if ( isset( $stat['id'] ) ) {
+				$stats_by_id[ $stat['id'] ] = $stat;
+			}
+		}
+
+		foreach ( $rows as &$row ) {
+			if ( isset( $row['id'], $stats_by_id[ $row['id'] ] ) ) {
+				$row = array_merge( $row, $stats_by_id[ $row['id'] ] );
+			}
+			// COUNT() comes back from $wpdb as a string; cast so both this path
+			// and listOrderedByContactCount() hand the API the same type.
+			$row['total_contacts'] = isset( $row['total_contacts'] ) ? (int) $row['total_contacts'] : 0;
+		}
+		unset( $row );
+
+		return $rows;
 	}
 
 	/**
@@ -217,7 +339,7 @@ class ContactGroupRepository extends AbstractRepository {
 		}
 
 		global $wpdb;
-		$pivot_table = $wpdb->prefix . 'mint_contact_group_relationship';
+		$pivot_table = $wpdb->prefix . self::PIVOT_TABLE;
 
 		return QueryBuilder::table( $pivot_table )
 			->select( 'group_id as id', 'COALESCE(COUNT(DISTINCT contact_id), 0) as total_contacts' )
@@ -257,6 +379,20 @@ class ContactGroupRepository extends AbstractRepository {
 	}
 
 	/**
+	 * Drop the caches that a write to this group type invalidates.
+	 *
+	 * Subclasses override it to add their own derived caches — Pro's segment
+	 * repository also caches per-segment contact counts.
+	 *
+	 * @since 1.31.2
+	 *
+	 * @return void
+	 */
+	protected function invalidateListCaches(): void {
+		$this->invalidateCache( "contact_group_{$this->type}_list" );
+	}
+
+	/**
 	 * Delete pivot rows from mint_contact_group_relationship.
 	 *
 	 * @since 1.19.5
@@ -270,7 +406,7 @@ class ContactGroupRepository extends AbstractRepository {
 			return;
 		}
 		global $wpdb;
-		QueryBuilder::table( $wpdb->prefix . 'mint_contact_group_relationship' )
+		QueryBuilder::table( $wpdb->prefix . self::PIVOT_TABLE )
 			->whereIn( 'group_id', $group_ids )
 			->delete();
 	}

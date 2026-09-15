@@ -1,5 +1,16 @@
 jQuery(document).ready(function ($) {
     /**
+     * Translated strings, localized from
+     * /app/Internal/Frontend/FrontendAssets.php::enqueue_form_assets().
+     * The English literal is kept as a fallback so the form still renders
+     * readable text if the localized data is missing.
+     */
+    function mrmText(key, fallback) {
+        var strings = (window.MRM_Frontend_Vars && window.MRM_Frontend_Vars.i18n) || {};
+        return strings[key] || fallback;
+    }
+
+    /**
      * Inline Validation System
      */
     function initFormValidation($form) {
@@ -15,7 +26,7 @@ jQuery(document).ready(function ($) {
 
             // Add error message container if not exists
             if ($formGroup.length && !$formGroup.find('.mrm-validation-error').length) {
-                $formGroup.append('<span class="mrm-validation-error">This field is required</span>');
+                $formGroup.append($('<span class="mrm-validation-error"></span>').text(mrmText('required', 'This field is required')));
             }
 
             // Override browser default validation tooltip
@@ -55,19 +66,19 @@ jQuery(document).ready(function ($) {
         var field = $field[0];
         
         if (field.validity.valueMissing) {
-            return 'This field is required';
+            return mrmText('required', 'This field is required');
         }
         if (field.validity.typeMismatch) {
             if (field.type === 'email') {
-                return 'Please enter a valid email address';
+                return mrmText('invalidEmail', 'Please enter a valid email address');
             }
-            return 'Please enter a valid value';
+            return mrmText('invalidValue', 'Please enter a valid value');
         }
         if (field.validity.patternMismatch) {
-            return 'Please match the requested format';
+            return mrmText('patternMismatch', 'Please match the requested format');
         }
-        
-        return 'Please fill out this field correctly';
+
+        return mrmText('invalidField', 'Please fill out this field correctly');
     }
 
     function validateForm($form) {
@@ -157,8 +168,8 @@ jQuery(document).ready(function ($) {
                             }, 2000);
                         } else {
                             setTimeout(function () {
-                                $(that).find(".response").html(
-                                    "Redirect URL not found"
+                                $(that).find(".response").text(
+                                    mrmText('redirectNotFound', 'Redirect URL not found')
                                 );
                             }, 2000);
                         }
@@ -517,13 +528,17 @@ jQuery(document).ready(function ($) {
             $checkedCheckboxes.each(function() {
                 const title = $(this).next('label').text();
                 $dropdownButton.append(
-                    `<span class="single-list mintmrm-tag-list">${title}
-                        <span class="close-list" title="Delete">&#10005;</span>
-                    </span>`
+                    $('<span class="single-list mintmrm-tag-list"></span>')
+                        .text(title)
+                        .append(
+                            $('<span class="close-list"></span>')
+                                .attr('title', mrmText('delete', 'Delete'))
+                                .html('&#10005;')
+                        )
                 );
             });
         } else {
-            $dropdownButton.text('Select Tag');
+            $dropdownButton.text(mrmText('selectTag', 'Select Tag'));
         }
     };
 
@@ -574,7 +589,7 @@ jQuery(document).ready(function ($) {
         // Show "No items found" if no matches
         if (!hasMatch) {
             if (!$('.no-items-found').length) {
-                $('.option-section').append('<div class="no-items-found">No items found</div>');
+                $('.option-section').append($('<div class="no-items-found"></div>').text(mrmText('noItemsFound', 'No items found')));
             }
         } else {
             $('.no-items-found').remove();

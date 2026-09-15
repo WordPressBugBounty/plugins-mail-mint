@@ -49,6 +49,11 @@ class SchemaTranslator {
                 $clean['items'] = self::forGemini( $value );
                 continue;
             }
+            if ( 'enum' === $key && is_array( $value ) ) {
+                // Gemini requires enum values to be strings regardless of the declared type.
+                $clean['enum'] = array_map( 'strval', $value );
+                continue;
+            }
             $clean[ $key ] = $value;
         }
 

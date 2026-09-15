@@ -99,6 +99,19 @@ class FrontendAssets {
 					// Shown by the submit handler's catch block when the request
 					// fails or the response body is not valid JSON.
 					'error_message'      => __( 'Something went wrong. Please try again.', 'mrm' ),
+					// Strings rendered by /assets/frontend/js/frontend.js. Passed through
+					// here so they are extracted into languages/mrm.pot and translatable.
+					'i18n'               => array(
+						'required'          => __( 'This field is required', 'mrm' ),
+						'invalidEmail'      => __( 'Please enter a valid email address', 'mrm' ),
+						'invalidValue'      => __( 'Please enter a valid value', 'mrm' ),
+						'patternMismatch'   => __( 'Please match the requested format', 'mrm' ),
+						'invalidField'      => __( 'Please fill out this field correctly', 'mrm' ),
+						'redirectNotFound'  => __( 'Redirect URL not found', 'mrm' ),
+						'selectTag'         => __( 'Select Tag', 'mrm' ),
+						'noItemsFound'      => __( 'No items found', 'mrm' ),
+						'delete'            => __( 'Delete', 'mrm' ),
+					),
 				)
 			);
 		}

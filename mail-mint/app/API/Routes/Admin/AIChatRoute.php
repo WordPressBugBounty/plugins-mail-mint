@@ -89,6 +89,18 @@ class AIChatRoute {
 
         register_rest_route(
             $this->namespace,
+            '/' . $this->rest_base . '/conversations/(?P<conversation_id>[\d]+)/step-stream',
+            [
+                [
+                    'methods'             => \WP_REST_Server::CREATABLE,
+                    'callback'            => [ $controller, 'step_stream' ],
+                    'permission_callback' => $permission,
+                ],
+            ]
+        );
+
+        register_rest_route(
+            $this->namespace,
             '/' . $this->rest_base . '/campaign-preview/(?P<campaign_id>[\d]+)',
             [
                 [

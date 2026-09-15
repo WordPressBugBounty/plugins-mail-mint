@@ -70,9 +70,12 @@ class Connector {
 			$connector_class = 'creatorlms' === $key ? $connector['class_name'] : 'MintMail\\App\\Internal\\Automation\\Connector\\' . $connector['class_name'];
 			if ( class_exists( $connector_class ) ) {
 				$connector_class::get_instance();
-				$connector_name                    = $connector_class::get_instance()->get_name();
-				$triggers                          = $connector_class::get_instance()->get_triggers();
-				$this->triggers[ $connector_name ] = $triggers;
+				$connector_name = $connector_class::get_instance()->get_name();
+				$triggers       = $connector_class::get_instance()->get_triggers();
+				// Merge, don't overwrite: Free and Pro both report the name 'WPFunnels',
+				// and assigning would drop whichever registered first.
+				$existing                          = isset( $this->triggers[ $connector_name ] ) ? $this->triggers[ $connector_name ] : array();
+				$this->triggers[ $connector_name ] = array_merge( $existing, (array) $triggers );
 			}
 		}
 	}
@@ -92,8 +95,10 @@ class Connector {
 			'mintform'  => array(
 				'class_name' => 'ConnectorMintForm',
 			),
-			'wpfunnels' => array(
-				'class_name' => 'ConnectorWPFunnels',
+			// Key is 'wpfnl_core', not 'wpfunnels': Pro registers its own 'wpfunnels' entry
+			// through this filter, which would otherwise replace this one.
+			'wpfnl_core' => array(
+				'class_name' => 'ConnectorWpfnlCore',
 			),
 		);
 		return apply_filters( 'mrm_automation_connectors', $default_connectors );

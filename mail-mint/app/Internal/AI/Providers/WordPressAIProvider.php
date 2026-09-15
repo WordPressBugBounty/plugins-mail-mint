@@ -112,6 +112,22 @@ class WordPressAIProvider implements ProviderInterface {
         }
     }
 
+    /**
+     * WordPressAIProvider implements ProviderInterface directly rather than
+     * extending AbstractProvider, so it must satisfy chatStream() itself —
+     * the underlying AI Services / native WP AI Client APIs this class wraps
+     * don't expose a streaming transport uniformly across backends, so this
+     * mirrors AbstractProvider::chatStream()'s default degradation: run the
+     * normal request and deliver the whole reply as a single delta.
+     */
+    public function chatStream( string $system, array $messages, array $tools, callable $on_delta ) {
+        $response = $this->chat( $system, $messages, $tools );
+        if ( ! is_wp_error( $response ) && '' !== (string) ( $response['text'] ?? '' ) ) {
+            $on_delta( (string) $response['text'] );
+        }
+        return $response;
+    }
+
     // -----------------------------------------------------------------------
     // Internal helpers
     // -----------------------------------------------------------------------

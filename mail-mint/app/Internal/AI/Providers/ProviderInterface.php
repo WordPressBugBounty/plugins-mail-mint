@@ -43,6 +43,30 @@ interface ProviderInterface {
     public function chat( string $system, array $messages, array $tools );
 
     /**
+     * Run one model turn, delivering assistant TEXT to $on_delta as it
+     * becomes available instead of only after the full reply is ready.
+     *
+     * $on_delta may be called any number of times (zero, once, or many) with
+     * successive chunks of assistant-visible text — never tool arguments or
+     * other provider-internal payloads. It is called synchronously, on the
+     * same thread, before this method returns.
+     *
+     * The return value is the SAME normalized shape as chat() — {text,
+     * tool_calls, stop_reason, raw, usage} — with `text` holding the full
+     * accumulated reply. A provider that has no real streaming transport (or
+     * one this codebase isn't confident it can parse correctly) may simply
+     * run chat() and hand the whole reply to $on_delta once; see
+     * AbstractProvider::chatStream() for that default.
+     *
+     * @param string   $system   System prompt.
+     * @param array    $messages Normalized message list (each: role, content, meta).
+     * @param array    $tools    Normalized tool defs: [ {name, description, input_schema} ].
+     * @param callable $on_delta function( string $text_chunk ): void.
+     * @return array|\WP_Error Normalized response, same shape as chat().
+     */
+    public function chatStream( string $system, array $messages, array $tools, callable $on_delta );
+
+    /**
      * Cheap live credential check.
      *
      * @return true|\WP_Error

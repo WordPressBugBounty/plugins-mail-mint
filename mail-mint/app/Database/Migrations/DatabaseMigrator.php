@@ -124,6 +124,7 @@ class DatabaseMigrator {
 			$this->upgrade_database_tables();
 			$this->maybe_create_email_templates_table();
 			$this->maybe_create_abandoned_cart_tables();
+			$this->maybe_create_wc_customers_table();
 			// Must follow the table check above — it has nothing to alter until the
 			// tables exist.
 			$this->maybe_upgrade_abandoned_cart_columns();
@@ -317,30 +318,9 @@ class DatabaseMigrator {
 		// Check if WooCommerce is active.
 		if ( MrmCommon::is_wc_active() ) {
 			// Create custom WooCommerce orders table if it doesn't exist.
-			$new_table_name = $wpdb->prefix . 'mint_wc_customers';
-			if ( $wpdb->get_var( "SHOW TABLES LIKE '$new_table_name'" ) != $new_table_name ) {
-				$charset_collate = $wpdb->get_charset_collate();
-				$create_table_query = "
-					CREATE TABLE $new_table_name (
-						id int(12) unsigned AUTO_INCREMENT PRIMARY KEY,
-						email_address varchar(255),
-						l_order_date datetime,
-						f_order_date datetime,
-						total_order_count int(7),
-						total_order_value double,
-						aov double,
-						purchased_products longtext NULL,
-						purchased_products_cats longtext NULL,
-						purchased_products_tags longtext NULL,
-						used_coupons longtext NULL,
-						INDEX (email_address),
-						INDEX (l_order_date),
-						INDEX (f_order_date),
-						INDEX (total_order_count),
-						INDEX (total_order_value) 
-					) $charset_collate;";
-				require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-				dbDelta( $create_table_query );
+			$new_table_name = $wpdb->prefix . \Mint\MRM\DataBase\Tables\WCCustomerSchema::$table_name;
+			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $new_table_name ) ) !== $new_table_name ) {
+				( new \Mint\MRM\DataBase\Tables\WCCustomerSchema() )->get_sql();
 			}
 
 			// Batch processing setup.
@@ -688,6 +668,48 @@ class DatabaseMigrator {
 
 		if ( $carts_exists && $meta_exists ) {
 			update_option( '_mrm_abandoned_cart_tables_ready', 'yes', false );
+		}
+	}
+
+
+	/**
+	 * Ensure the WooCommerce customers table exists.
+	 *
+	 * `mint_wc_customers` was created only by mm_update_1140_migrate_woocommerce_order_custom_table(),
+	 * gated on the stored DB version being `< 1.14.0`. The commit that added that migration also raised
+	 * MRM_DB_VERSION to 1.14.0, and Upgrade::install() stamps MRM_DB_VERSION into mail_mint_db_version
+	 * at activation — so on a fresh install the gate compares 1.14.0 against itself and never opens.
+	 * Every site installed fresh since then has run without the table, silently emptying the WooCommerce
+	 * segmentation filters and the Pro WooCommerce automation conditions, and erroring on every order
+	 * status change through Hooks::sync_woo_order().
+	 *
+	 * Registering WCCustomerSchema in Model::get_tables() fixes new activations; this guard is what
+	 * repairs the installs that already missed it. Deliberately not version gated, and deliberately not
+	 * conditional on WooCommerce being active — MrmCommon::is_wc_active() reads `active_plugins`, which
+	 * is false under network activation, and a site that installs WooCommerce later would otherwise stay
+	 * broken. A no-op once the table exists, short-circuited by an option so the common path costs nothing.
+	 *
+	 * @return void
+	 * @since 1.31.2
+	 */
+	private function maybe_create_wc_customers_table() {
+		if ( 'yes' === get_option( '_mrm_wc_customers_table_ready' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\WCCustomerSchema::$table_name;
+
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
+			update_option( '_mrm_wc_customers_table_ready', 'yes', false );
+			return;
+		}
+
+		( new \Mint\MRM\DataBase\Tables\WCCustomerSchema() )->get_sql();
+
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
+			update_option( '_mrm_wc_customers_table_ready', 'yes', false );
 		}
 	}
 
@@ -1640,31 +1662,17 @@ class DatabaseMigrator {
 		}
 
 		global $wpdb;
-		$new_table_name = $wpdb->prefix . 'mint_wc_customers';
+		$new_table_name = $wpdb->prefix . \Mint\MRM\DataBase\Tables\WCCustomerSchema::$table_name;
 
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '$new_table_name'" ) != $new_table_name ) {
-			$charset_collate        = $wpdb->get_charset_collate();
-			$create_table_query     = "
-				CREATE TABLE $new_table_name (
-					id int(12) unsigned AUTO_INCREMENT PRIMARY KEY,
-					email_address varchar(255),
-					l_order_date datetime,
-					f_order_date datetime,
-					total_order_count int(7),
-					total_order_value double,
-					aov double,
-					purchased_products longtext NULL,
-					purchased_products_cats longtext NULL,
-					purchased_products_tags longtext NULL,
-					used_coupons longtext NULL,
-					INDEX (email_address),
-					INDEX (l_order_date),
-					INDEX (f_order_date),
-					INDEX (total_order_count),
-					INDEX (total_order_value)
-				) $charset_collate;";
-			require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-			dbDelta( $create_table_query );
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $new_table_name ) ) !== $new_table_name ) {
+			( new \Mint\MRM\DataBase\Tables\WCCustomerSchema() )->get_sql();
+
+			// Without the table there is nothing to write into, and TRUNCATE below would
+			// error. Bail instead of processing the whole order history into a void.
+			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $new_table_name ) ) !== $new_table_name ) {
+				self::cleanup_sync_wc_customers_actions();
+				return;
+			}
 		}
 
 		$batch_size     = 200;

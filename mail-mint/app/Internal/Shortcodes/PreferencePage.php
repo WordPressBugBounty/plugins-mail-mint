@@ -463,7 +463,7 @@ class PreferencePage {
 							if ($this->is_checked_list($field['id'], $get_assign_list)) {
 								$is_at_least_one_list_checked = true;
 								$html .= '<span class="single-list mintmrm-tag-list">' . esc_html($field['title']) . '
-										<span class="close-list" title="Delete">
+										<span class="close-list" title="' . esc_attr__( 'Delete', 'mrm' ) . '">
 											&#10005;
 										</span>
 									</span>';
@@ -482,15 +482,15 @@ class PreferencePage {
 										<path fill="#C5C7D3" fill-rule="evenodd" d="M6.75 2.423c-2.9 0-5.25 2.28-5.25 5.091 0 2.812 2.35 5.091 5.25 5.091S12 10.325 12 7.515c0-2.812-2.35-5.092-5.25-5.092zM0 7.514C0 3.9 3.022.97 6.75.97S13.5 3.9 13.5 7.515c0 3.615-3.022 6.546-6.75 6.546S0 11.13 0 7.514z" clip-rule="evenodd"></path>
 										<path fill="#C5C7D3" fill-rule="evenodd" d="M10.72 11.363a.767.767 0 011.06 0l3 2.91a.712.712 0 010 1.028.767.767 0 01-1.06 0l-3-2.91a.712.712 0 010-1.028z" clip-rule="evenodd"></path>
 									</svg>
-									<input type="search" name="column-search" id="mintmrm-search-input placeholder="Search or create" value="">
+									<input type="search" name="column-search" id="mintmrm-search-input" placeholder="' . esc_attr__( 'Search or create', 'mrm' ) . '" value="">
 								</span>
 							</div>
-							<div class="list-title mintmrm-dropdown-list">CHOOSE LIST</div>
+							<div class="list-title mintmrm-dropdown-list">' . esc_html__( 'CHOOSE LIST', 'mrm' ) . '</div>
 							<div class="option-section">
 								<div class="single-column mintmrm-dropdown-list">
 									<div class="mintmrm-checkbox">
 										<input type="checkbox" name="all-items" id="all-items-create" ' . ( $is_all_lists_checked ? 'checked' : '' ) . '>
-										<label for="all-items-create" class="mrm-custom-select-label">Select All Items</label>
+										<label for="all-items-create" class="mrm-custom-select-label">' . esc_html__( 'Select All Items', 'mrm' ) . '</label>
 									</div>
 								</div>';
 			foreach ( $fields as $field ) {
@@ -530,7 +530,7 @@ class PreferencePage {
 							if ($this->is_checked_list($field['id'], $get_assign_list)) {
 								$is_at_least_one_list_checked = true;
 								$html .= '<span class="single-list mintmrm-tag-list">' . esc_html($field['title']) . '
-										<span class="close-list" title="Delete">
+										<span class="close-list" title="' . esc_attr__( 'Delete', 'mrm' ) . '">
 											&#10005;
 										</span>
 									</span>';
@@ -549,15 +549,15 @@ class PreferencePage {
 										<path fill="#C5C7D3" fill-rule="evenodd" d="M6.75 2.423c-2.9 0-5.25 2.28-5.25 5.091 0 2.812 2.35 5.091 5.25 5.091S12 10.325 12 7.515c0-2.812-2.35-5.092-5.25-5.092zM0 7.514C0 3.9 3.022.97 6.75.97S13.5 3.9 13.5 7.515c0 3.615-3.022 6.546-6.75 6.546S0 11.13 0 7.514z" clip-rule="evenodd"></path>
 										<path fill="#C5C7D3" fill-rule="evenodd" d="M10.72 11.363a.767.767 0 011.06 0l3 2.91a.712.712 0 010 1.028.767.767 0 01-1.06 0l-3-2.91a.712.712 0 010-1.028z" clip-rule="evenodd"></path>
 									</svg>
-									<input type="search" name="column-search" id="mintmrm-search-input placeholder="Search or create" value="">
+									<input type="search" name="column-search" id="mintmrm-search-input" placeholder="' . esc_attr__( 'Search or create', 'mrm' ) . '" value="">
 								</span>
 							</div>
-							<div class="list-title mintmrm-dropdown-list">CHOOSE LIST</div>
+							<div class="list-title mintmrm-dropdown-list">' . esc_html__( 'CHOOSE LIST', 'mrm' ) . '</div>
 							<div class="option-section">
 								<div class="single-column mintmrm-dropdown-list">
 									<div class="mintmrm-checkbox">
 										<input type="checkbox" name="all-items" id="all-items-create" ' . ( $is_all_lists_checked ? 'checked' : '' ) . '>
-										<label for="all-items-create" class="mrm-custom-select-label">Select All Items</label>
+										<label for="all-items-create" class="mrm-custom-select-label">' . esc_html__( 'Select All Items', 'mrm' ) . '</label>
 									</div>
 								</div>';
 			foreach ( $fields as $field ) {

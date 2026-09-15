@@ -71,18 +71,13 @@ class QueryBuilder {
 	private $joins = array();
 
 	/**
-	 * ORDER BY column.
+	 * ORDER BY clauses, in precedence order.
 	 *
-	 * @var string|null
-	 */
-	private $order_by = null;
-
-	/**
-	 * ORDER BY direction.
+	 * Each entry is `array( 'col' => <sanitized identifier>, 'dir' => 'ASC'|'DESC' )`.
 	 *
-	 * @var string
+	 * @var array
 	 */
-	private $order_dir = 'DESC';
+	private $orders = array();
 
 	/**
 	 * GROUP BY column.
@@ -237,8 +232,28 @@ class QueryBuilder {
 	 * @return $this
 	 */
 	public function orderBy( string $col, string $dir = 'DESC' ): self {
-		$this->order_by  = $this->sanitize_identifier( $col );
-		$this->order_dir = strtoupper( $dir ) === 'ASC' ? 'ASC' : 'DESC';
+		$this->orders = array();
+		return $this->thenOrderBy( $col, $dir );
+	}
+
+	/**
+	 * Append a secondary ORDER BY clause after the ones already set.
+	 *
+	 * Use it to break ties on the primary sort column — without a tiebreaker
+	 * MySQL is free to return equal-ranking rows in any order, which makes
+	 * paginated results shuffle between pages.
+	 *
+	 * @since 1.31.2
+	 *
+	 * @param string $col Column name.
+	 * @param string $dir Direction (ASC or DESC).
+	 * @return $this
+	 */
+	public function thenOrderBy( string $col, string $dir = 'DESC' ): self {
+		$this->orders[] = array(
+			'col' => $this->sanitize_identifier( $col ),
+			'dir' => strtoupper( $dir ) === 'ASC' ? 'ASC' : 'DESC',
+		);
 		return $this;
 	}
 
@@ -316,16 +331,21 @@ class QueryBuilder {
 		$saved_columns = $this->columns;
 		$saved_limit   = $this->limit_val;
 		$saved_offset  = $this->offset_val;
+		$saved_orders  = $this->orders;
 
 		$this->columns    = array( 'COUNT(*) as cnt' );
 		$this->limit_val  = null;
 		$this->offset_val = null;
+		// ORDER BY is meaningless for a scalar count, and referencing a SELECT
+		// alias there breaks once COUNT(*) replaces the column list.
+		$this->orders = array();
 
 		$sql = $this->build_select_sql();
 
 		$this->columns    = $saved_columns;
 		$this->limit_val  = $saved_limit;
 		$this->offset_val = $saved_offset;
+		$this->orders     = $saved_orders;
 
 		if ( ! empty( $this->bindings ) ) {
 			$sql = $wpdb->prepare( $sql, $this->bindings ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
@@ -578,8 +598,12 @@ class QueryBuilder {
 			$sql .= ' GROUP BY ' . $this->group_by;
 		}
 
-		if ( null !== $this->order_by ) {
-			$sql .= ' ORDER BY ' . $this->order_by . ' ' . $this->order_dir;
+		if ( ! empty( $this->orders ) ) {
+			$order_parts = array();
+			foreach ( $this->orders as $order ) {
+				$order_parts[] = $order['col'] . ' ' . $order['dir'];
+			}
+			$sql .= ' ORDER BY ' . implode( ', ', $order_parts );
 		}
 
 		if ( null !== $this->limit_val ) {

@@ -1897,6 +1897,33 @@ class MrmCommon {
 	}
 
 	/**
+	 * Retrieves every registered WordPress user role.
+	 *
+	 * Returns all roles registered on the site — including roles added by themes
+	 * and other plugins — so role based settings screens are not limited to the
+	 * five WordPress defaults.
+	 *
+	 * @access public
+	 *
+	 * @return array Array of roles, each as an array with `role` and `name` keys.
+	 * @since 1.31.2
+	 */
+	public static function get_wp_user_roles() {
+		$roles     = array();
+		$wp_roles  = wp_roles();
+		$all_names = $wp_roles ? $wp_roles->get_names() : array();
+
+		foreach ( $all_names as $role => $name ) {
+			$roles[] = array(
+				'role' => $role,
+				'name' => translate_user_role( $name ),
+			);
+		}
+
+		return $roles;
+	}
+
+	/**
 	 * Retrieves the general contact fields.
 	 *
 	 * Retrieves the general contact fields from the options or default values and formats them into an array.
