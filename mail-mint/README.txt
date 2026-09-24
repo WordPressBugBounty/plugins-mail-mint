@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, AI, email, newslett
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.2
+Stable tag:  1.31.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -585,6 +585,17 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.31.3 (2026-09-24) =
+* Improvement: Redesigned the contacts page with a cleaner UI.
+* Improvement: List and tag dropdowns on contact pages now load on demand, page through results and support search.
+* Improvement: Redesigned the Incoming Webhook page with cards, a side panel for creating webhooks and search.
+* Improvement: Redesigned the Send a Test Email modal.
+* Fix: Automations can no longer be activated without a trigger or an action.
+* Fix: The AI panel in automations no longer crashes.
+* Fix: Fixed the Outgoing Webhook settings panel and added test and background sending controls.
+* Fix: Outgoing Webhook now shows the right category and docs link.
+
 
 = 1.31.2 (2026-09-15) =
 * Improvement: AI Assistant replies now stream live as they are written so you see results instantly.

@@ -58,6 +58,18 @@ class AutomationController extends AdminBaseController {
 	 */
 	public function create_or_update( WP_REST_Request $request ) {
 		$params           = MrmCommon::get_api_params_values( $request );
+
+		// A half-built automation may be saved as a draft, but never activated.
+		if ( isset( $params['status'] ) && 'active' === strtolower( $params['status'] ) ) {
+			$activation_error = $this->get_activation_error(
+				isset( $params['trigger_name'] ) ? $params['trigger_name'] : '',
+				isset( $params['steps'] ) ? $params['steps'] : array()
+			);
+			if ( $activation_error ) {
+				return $this->get_error_response( $activation_error, 400 );
+			}
+		}
+
 		$get_at_most_date = isset( $params['atMostDate'] ) ? $params['atMostDate'] : '';
 		$stat             = !empty( $params['showAnalyticsStat'] ) ? $params['showAnalyticsStat'] : false;
 		unset( $params['atMostDate'] );
@@ -99,6 +111,13 @@ class AutomationController extends AdminBaseController {
 
 		$status = isset( $params['status'] ) ? strtolower( $params['status'] ) : '';
 
+		if ( $automation_id && 'active' === $status ) {
+			$activation_error = $this->get_activation_error( '', HelperFunctions::get_all_step_by_automation_id( $automation_id ) );
+			if ( $activation_error ) {
+				return $this->get_error_response( $activation_error, 400 );
+			}
+		}
+
 		if ( $automation_id ) {
 			HelperFunctions::update_status( $automation_id, $status );
 			$data = array(
@@ -107,6 +126,48 @@ class AutomationController extends AdminBaseController {
 			return $this->get_success_response( __( 'Automation status been saved successfully', 'mrm' ), 201, $data );
 		}
 		return $this->get_error_response( __( 'Failed to save', 'mrm' ), 400 );
+	}
+
+
+	/**
+	 * Check whether an automation is complete enough to be activated.
+	 *
+	 * An automation without a trigger is never entered, and one without an
+	 * action does nothing once entered, so neither may go live.
+	 *
+	 * @param string $trigger_name Trigger key stored on the automation. May be empty when
+	 *                             the steps themselves are the source of truth.
+	 * @param array  $steps        Automation steps, the trigger step included.
+	 * @return string Empty string when the automation may be activated, the reason otherwise.
+	 * @since 1.0.0
+	 */
+	private function get_activation_error( $trigger_name, $steps ) {
+		$steps       = is_array( $steps ) ? $steps : array();
+		$has_trigger = !empty( $trigger_name );
+		$has_action  = false;
+
+		foreach ( $steps as $step ) {
+			$type = isset( $step['type'] ) ? $step['type'] : '';
+
+			if ( 'trigger' === $type ) {
+				$has_trigger = true;
+				continue;
+			}
+
+			if ( !empty( $type ) ) {
+				$has_action = true;
+			}
+		}
+
+		if ( !$has_trigger ) {
+			return __( 'A trigger is required to activate this automation.', 'mrm' );
+		}
+
+		if ( !$has_action ) {
+			return __( 'At least one action is required to activate this automation.', 'mrm' );
+		}
+
+		return '';
 	}
 
 

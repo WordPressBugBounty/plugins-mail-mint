@@ -337,15 +337,21 @@ class ContactController extends AdminBaseController {
 		if ( isset( $result['data'] ) ) {
 			$result['data'] = array_map(
 				function( $contact ) {
-					if ( isset( $contact['created_at'] ) ) {
-						$contact['created_at'] = MrmCommon::date_time_format_with_core( $contact['created_at'] );
+					if ( isset( $contact['created_at'] ) && $contact['created_at'] ) {
+						// Timezone-annotated ISO copy, mirroring ListController::get_all():
+						// `created_at` below becomes a site-format string with no timezone
+						// marker, which the frontend's RelativeDate can't safely parse for
+						// "time ago" math — it uses this field instead.
+						$contact['created_at_iso'] = ( new \DateTimeImmutable( $contact['created_at'], wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+						$contact['created_at']     = MrmCommon::date_time_format_with_core( $contact['created_at'] );
 					}
 
-					if ( isset( $contact['updated_at'] ) ) {
-						$time                  = new \DateTimeImmutable( $contact['updated_at'], wp_timezone() );
-						$date_format           = get_option( 'date_format' );
-						$time_format           = get_option( 'time_format' );
-						$contact['updated_at'] = $time->format( $date_format . ' ' . $time_format );
+					if ( isset( $contact['updated_at'] ) && $contact['updated_at'] ) {
+						$time                      = new \DateTimeImmutable( $contact['updated_at'], wp_timezone() );
+						$date_format               = get_option( 'date_format' );
+						$time_format               = get_option( 'time_format' );
+						$contact['updated_at_iso'] = $time->format( \DateTimeImmutable::ATOM );
+						$contact['updated_at']     = $time->format( $date_format . ' ' . $time_format );
 					}
 					return $contact;
 				},
@@ -777,9 +783,14 @@ class ContactController extends AdminBaseController {
         $lists_ids  = isset( $params['lists_ids'] ) ? $params['lists_ids'] : array();
         $status_arr = isset( $params['status'] ) ? $params['status'] : array();
 
-        $contacts = ContactModel::get_filtered_contacts( $status_arr, $tags_ids, $lists_ids, $per_page, $offset, $search );
+        $order_by     = isset( $params['order_by'] ) ? sanitize_text_field( $params['order_by'] ) : 'id';
+        $order        = isset( $params['order'] ) ? sanitize_text_field( $params['order'] ) : 'DESC';
+        $updated_from = isset( $params['updated_from'] ) ? sanitize_text_field( $params['updated_from'] ) : '';
+        $updated_to   = isset( $params['updated_to'] ) ? sanitize_text_field( $params['updated_to'] ) : '';
 
-        $total_contact = ContactModel::get_filtered_contact_total( $status_arr, $tags_ids, $lists_ids, $search );
+        $contacts = ContactModel::get_filtered_contacts( $status_arr, $tags_ids, $lists_ids, $per_page, $offset, $search, $order_by, $order, $updated_from, $updated_to );
+
+        $total_contact = ContactModel::get_filtered_contact_total( $status_arr, $tags_ids, $lists_ids, $search, $updated_from, $updated_to );
 
         $subscriber_count  = ! empty( $total_contact['subscribed'] ) ? $total_contact['subscribed'] : 0;
         $unsubcriber_count = ! empty( $total_contact['unsubscribed'] ) ? $total_contact['unsubscribed'] : 0;
@@ -815,6 +826,24 @@ class ContactController extends AdminBaseController {
                 function( $contact ) {
                     $contact = ContactGroupModel::get_tags_to_contact( $contact );
                     $contact = ContactGroupModel::get_lists_to_contact( $contact );
+
+                    // Unlike get_all(), this path returns raw MySQL datetimes with no
+                    // WP-locale formatting or ISO copy — add both here to match, so the
+                    // "Last Update" column's relative-time display is correct whether or
+                    // not a Lists/Tags/Status filter or search is active.
+                    if ( isset( $contact['created_at'] ) && $contact['created_at'] ) {
+                        $contact['created_at_iso'] = ( new \DateTimeImmutable( $contact['created_at'], wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+                        $contact['created_at']     = MrmCommon::date_time_format_with_core( $contact['created_at'] );
+                    }
+
+                    if ( isset( $contact['updated_at'] ) && $contact['updated_at'] ) {
+                        $time                      = new \DateTimeImmutable( $contact['updated_at'], wp_timezone() );
+                        $date_format               = get_option( 'date_format' );
+                        $time_format               = get_option( 'time_format' );
+                        $contact['updated_at_iso'] = $time->format( \DateTimeImmutable::ATOM );
+                        $contact['updated_at']     = $time->format( $date_format . ' ' . $time_format );
+                    }
+
                     return $contact;
                 },
                 $contacts['data']

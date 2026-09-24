@@ -322,11 +322,13 @@ class ContactRepository extends AbstractRepository {
 			}
 		}
 
-		$page     = isset( $params['page'] ) && (int) $params['page'] > 0 ? (int) $params['page'] : 1;
-		$per_page = isset( $params['per_page'] ) && (int) $params['per_page'] > 0 ? (int) $params['per_page'] : 10;
-		$search   = isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '';
-		$order_by = isset( $params['order_by'] ) ? sanitize_text_field( $params['order_by'] ) : 'id';
-		$order    = isset( $params['order'] ) && in_array( strtoupper( $params['order'] ), array( 'ASC', 'DESC' ), true ) ? strtoupper( $params['order'] ) : 'DESC';
+		$page         = isset( $params['page'] ) && (int) $params['page'] > 0 ? (int) $params['page'] : 1;
+		$per_page     = isset( $params['per_page'] ) && (int) $params['per_page'] > 0 ? (int) $params['per_page'] : 10;
+		$search       = isset( $params['search'] ) ? sanitize_text_field( $params['search'] ) : '';
+		$order_by     = isset( $params['order_by'] ) ? sanitize_text_field( $params['order_by'] ) : 'id';
+		$order        = isset( $params['order'] ) && in_array( strtoupper( $params['order'] ), array( 'ASC', 'DESC' ), true ) ? strtoupper( $params['order'] ) : 'DESC';
+		$updated_from = isset( $params['updated_from'] ) ? sanitize_text_field( $params['updated_from'] ) : '';
+		$updated_to   = isset( $params['updated_to'] ) ? sanitize_text_field( $params['updated_to'] ) : '';
 
 		/**
 		 * Filters the list query parameters before building the query.
@@ -342,9 +344,10 @@ class ContactRepository extends AbstractRepository {
 
 		$table = $this->prefixedTable();
 
-		// Build the WHERE clause for search.
-		$where_sql = '';
-		$bindings  = array();
+		// Build the WHERE clause for search and the optional "Updated" date range,
+		// composed as separate AND-joined clauses so either can be present alone.
+		$where_clauses = array();
+		$bindings      = array();
 
 		if ( ! empty( $search ) ) {
 			$like_value  = '%' . $wpdb->esc_like( $search ) . '%';
@@ -360,8 +363,21 @@ class ContactRepository extends AbstractRepository {
 			$like_parts[] = "CONCAT(`first_name`, ' ', `last_name`) LIKE %s";
 			$bindings[]   = $like_value;
 
-			$where_sql = 'WHERE (' . implode( ' OR ', $like_parts ) . ')';
+			$where_clauses[] = '(' . implode( ' OR ', $like_parts ) . ')';
 		}
+
+		if ( '' !== $updated_from && '' !== $updated_to ) {
+			$where_clauses[] = '`updated_at` BETWEEN %s AND %s';
+			$bindings        = array_merge( $bindings, array( $updated_from, $updated_to ) );
+		} elseif ( '' !== $updated_from ) {
+			$where_clauses[] = '`updated_at` >= %s';
+			$bindings[]      = $updated_from;
+		} elseif ( '' !== $updated_to ) {
+			$where_clauses[] = '`updated_at` <= %s';
+			$bindings[]      = $updated_to;
+		}
+
+		$where_sql = ! empty( $where_clauses ) ? 'WHERE ' . implode( ' AND ', $where_clauses ) : '';
 
 		// Whitelist order_by column against table columns to prevent injection.
 		$allowed_order_columns = array_merge( array( 'id', 'created_at', 'updated_at' ), $this->fillable(), $this->searchable() );

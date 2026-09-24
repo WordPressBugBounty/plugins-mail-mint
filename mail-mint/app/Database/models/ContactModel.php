@@ -675,11 +675,15 @@ class ContactModel {
 	 * @param int    $limit limit.
 	 * @param int    $offset offset.
 	 * @param string $search search.
+	 * @param string $order_by Column to sort by. Whitelisted against a known set of columns.
+	 * @param string $order    Sort direction, ASC or DESC.
+	 * @param string $date_from Restrict to contacts updated on/after this date (Y-m-d). Optional.
+	 * @param string $date_to   Restrict to contacts updated on/before this date (Y-m-d). Optional.
 	 *
 	 * @return array|bool
 	 * @since 1.0.0
 	 */
-	public static function get_filtered_contacts( $status, $tags_ids, $lists_ids, $limit = 10, $offset = 0, $search = '' ) {
+	public static function get_filtered_contacts( $status, $tags_ids, $lists_ids, $limit = 10, $offset = 0, $search = '', $order_by = 'id', $order = 'DESC', $date_from = '', $date_to = '' ) {
 		global $wpdb;
 		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
 		$pivot_table   = $wpdb->prefix . ContactGroupPivotSchema::$table_name;
@@ -730,9 +734,33 @@ class ContactModel {
 			$limit       = max( 1, (int) $limit );
 			$offset      = max( 0, (int) $offset );
 
+			// Whitelist order_by column against known contact columns to prevent injection;
+			// column names can't be bound as query placeholders, so this must be validated
+			// before being interpolated into the SQL string below.
+			$allowed_order_columns = array( 'id', 'email', 'first_name', 'last_name', 'created_at', 'updated_at' );
+			if ( ! in_array( $order_by, $allowed_order_columns, true ) ) {
+				$order_by = 'id';
+			}
+			$order = in_array( strtoupper( (string) $order ), array( 'ASC', 'DESC' ), true ) ? strtoupper( $order ) : 'DESC';
+
+			// Optional "Updated" date-range filter, appended as an extra AND clause after the
+			// existing tags/lists/status/search filter so it composes with every branch above.
+			$date_filter_query = '';
+			$date_filter_args  = array();
+			if ( '' !== $date_from && '' !== $date_to ) {
+				$date_filter_query = " AND $contact_table.updated_at BETWEEN %s AND %s";
+				$date_filter_args  = array( $date_from, $date_to );
+			} elseif ( '' !== $date_from ) {
+				$date_filter_query = " AND $contact_table.updated_at >= %s";
+				$date_filter_args  = array( $date_from );
+			} elseif ( '' !== $date_to ) {
+				$date_filter_query = " AND $contact_table.updated_at <= %s";
+				$date_filter_args  = array( $date_to );
+			}
+
 			// Placeholder arguments, in the order the placeholders appear in each query.
-			$select_args = array_merge( array_fill( 0, 8, $search_like ), $status, array( $offset, $limit ) );
-			$count_args  = array_merge( array_fill( 0, 7, $search_like ), $status );
+			$select_args = array_merge( array_fill( 0, 8, $search_like ), $status, $date_filter_args, array( $offset, $limit ) );
+			$count_args  = array_merge( array_fill( 0, 7, $search_like ), $status, $date_filter_args );
 
 			$select_query = $wpdb->prepare(
 				"SELECT $contact_table.id, $contact_table.email, $contact_table.first_name, $contact_table.last_name, $contact_table.status, $contact_table.stage, $contact_table.source, $contact_table.scores, $contact_table.created_at, $contact_table.updated_at FROM $contact_table
@@ -741,8 +769,9 @@ class ContactModel {
             WHERE (`hash` LIKE %s OR `email` LIKE %s OR
                  `first_name` LIKE %s OR `last_name` LIKE %s OR concat(`first_name`, ' ', `last_name`) LIKE %s
                  OR `source` LIKE %s OR `status` LIKE %s OR
-                 `stage` LIKE %s) $and $contact_filter_query
+                 `stage` LIKE %s) $and $contact_filter_query $date_filter_query
                  GROUP BY $contact_table.id
+                ORDER BY `{$order_by}` {$order}
                 LIMIT %d, %d",
 				$select_args
 			); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
@@ -783,7 +812,7 @@ class ContactModel {
             (`hash` LIKE %s OR `email` LIKE %s OR
                  `first_name` LIKE %s OR `last_name` LIKE %s
                  OR `source` LIKE %s OR `status` LIKE %s OR
-                 `stage` LIKE %s) $and $contact_filter_query
+                 `stage` LIKE %s) $and $contact_filter_query $date_filter_query
                 GROUP BY $contact_table.id
             ",
 				$count_args
@@ -871,11 +900,13 @@ class ContactModel {
 	 * @param array  $tags_ids  Tag group ids.
 	 * @param array  $lists_ids List group ids.
 	 * @param string $search    Search keyword.
+	 * @param string $date_from Restrict to contacts updated on/after this date (Y-m-d). Optional.
+	 * @param string $date_to   Restrict to contacts updated on/before this date (Y-m-d). Optional.
 	 *
 	 * @return array
 	 * @since 1.20.0
 	 */
-	public static function get_filtered_contact_total( $status = array(), $tags_ids = array(), $lists_ids = array(), $search = '' ) {
+	public static function get_filtered_contact_total( $status = array(), $tags_ids = array(), $lists_ids = array(), $search = '', $date_from = '', $date_to = '' ) {
 		global $wpdb;
 		$contact_table = $wpdb->prefix . ContactSchema::$table_name;
 		$pivot_table   = $wpdb->prefix . ContactGroupPivotSchema::$table_name;
@@ -914,6 +945,17 @@ class ContactModel {
 			$like     = '%' . $wpdb->esc_like( trim( (string) $search ) ) . '%';
 			$wheres[] = "( `hash` LIKE %s OR `email` LIKE %s OR `first_name` LIKE %s OR `last_name` LIKE %s OR CONCAT(`first_name`, ' ', `last_name`) LIKE %s OR `source` LIKE %s OR `status` LIKE %s OR `stage` LIKE %s )";
 			$params    = array_merge( $params, array_fill( 0, 8, $like ) );
+		}
+
+		if ( '' !== $date_from && '' !== $date_to ) {
+			$wheres[] = "$contact_table.updated_at BETWEEN %s AND %s";
+			$params   = array_merge( $params, array( $date_from, $date_to ) );
+		} elseif ( '' !== $date_from ) {
+			$wheres[] = "$contact_table.updated_at >= %s";
+			$params[] = $date_from;
+		} elseif ( '' !== $date_to ) {
+			$wheres[] = "$contact_table.updated_at <= %s";
+			$params[] = $date_to;
 		}
 
 		$where_sql = ! empty( $wheres ) ? 'WHERE ' . implode( ' AND ', $wheres ) : '';

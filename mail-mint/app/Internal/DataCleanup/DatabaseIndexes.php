@@ -71,6 +71,11 @@ class DatabaseIndexes {
 			'name'    => 'idx_used_expires_created',
 			'columns' => 'is_used, expires_at, created_at',
 		),
+		array(
+			'table'   => 'mint_contacts',
+			'name'    => 'idx_updated_at',
+			'columns' => 'updated_at',
+		),
 	);
 
 	/**

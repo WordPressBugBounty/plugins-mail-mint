@@ -773,6 +773,17 @@ class TransStrings
 			'AssignedTags' => __('Assigned Tags', 'mrm'),
 			'AssignedLists' => __('Assigned Lists', 'mrm'),
 			'NoWebhookFound' => __('No webhook found.', 'mrm'),
+			'IncomingWebhook' => __( 'Incoming Webhook', 'mrm' ),
+			'IncomingWebhooks' => __( 'Incoming Webhooks', 'mrm' ),
+			'AddIncomingWebhook' => __( 'Add Incoming Webhook', 'mrm' ),
+			'EditIncomingWebhook' => __( 'Edit Incoming Webhook', 'mrm' ),
+			'CreateWebhook' => __( 'Create Webhook', 'mrm' ),
+			'SearchWebhooks' => __( 'Search webhooks...', 'mrm' ),
+			'WebhookEmptyDesc' => __( 'Let Zapier, Make, or any external app push data straight into Mail Mint — incoming contacts land in your lists and tags automatically, no code needed', 'mrm' ),
+			'CreateWebhookDesc' => __( 'Name the webhook and pick the lists or tags its contacts should land in.', 'mrm' ),
+			'WebhookURLCopied' => __( 'Webhook URL copied to clipboard.', 'mrm' ),
+			'WebhookSetupGuide' => __( 'Setup guide', 'mrm' ),
+			'NoData' => __( 'No Data', 'mrm' ),
 
 			// Email Builder Custom Block
 			'Recent_posts' => __('Recent posts', 'mrm'),
