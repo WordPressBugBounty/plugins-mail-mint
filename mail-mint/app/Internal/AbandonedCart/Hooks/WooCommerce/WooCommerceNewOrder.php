@@ -84,7 +84,9 @@ class WooCommerceNewOrder {
 		 * The order exists but has not reached a status the store counts as a sale — an
 		 * offline gateway, an off-site redirect that has not called back, a declined card.
 		 * Leave the status alone and let WooCommerceOrderStatusChanged recover the cart if
-		 * and when payment lands. CartGate stops the emails in the meantime, which is why
+		 * and when payment lands. CartGate decides what to send in the meantime — it holds
+		 * emails for a committed order (on-hold) or a payment still in flight (pending,
+		 * within its grace window), and lets them go for a declined card — which is why
 		 * this method no longer needs to do anything destructive.
 		 *
 		 * It previously deleted the row outright when the order arrived inside the wait

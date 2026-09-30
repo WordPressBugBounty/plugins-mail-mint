@@ -1462,6 +1462,10 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Templates/TemplateHandler.php'
 	),
+	'Mint\\MRM\\Internal\\Tracking\\ActivityTrail' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Tracking/ActivityTrail.php'
+	),
 	'Mint\\MRM\\Internal\\Tracking\\EventTracker' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Tracking/EventTracker.php'

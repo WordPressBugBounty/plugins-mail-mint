@@ -189,21 +189,32 @@ class EmailHistoryController extends AdminBaseController {
 				? $row->avatar_url
 				: 'https://www.gravatar.com/avatar/' . md5( strtolower( trim( $row->email_address ) ) ) . '?d=mp&s=40';
 
+			// Same date fields as the Automations/Campaigns tables: a site-format display
+			// string plus a timezone-annotated ISO copy for the "time ago" label.
+			$sending_time_iso       = '';
+			$sending_time_formatted = '';
+			if ( ! empty( $row->created_at ) && '0000-00-00 00:00:00' !== $row->created_at ) {
+				$sending_time_iso       = ( new \DateTimeImmutable( $row->created_at, wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+				$sending_time_formatted = MrmCommon::date_time_format_with_core( $row->created_at );
+			}
+
 			$items[] = array(
-				'id'             => (int) $row->id,
-				'contact_id'     => $row->contact_id ? (int) $row->contact_id : null,
-				'email_address'  => $row->email_address,
-				'first_name'     => $row->first_name ?: '',
-				'last_name'      => $row->last_name ?: '',
-				'avatar_url'     => $avatar_url,
-				'subject'        => $subject ?: __( '(No Subject)', 'mrm' ),
-				'source'         => ( empty( $row->email_type ) || 'regular' === $row->email_type ) ? __( 'Admin', 'mrm' ) : ( $source_name ?: '' ),
-				'type'           => ( empty( $row->email_type ) || 'regular' === $row->email_type ) ? 'Direct Message' : $row->email_type,
-				'status'         => $row->status,
-				'contact_status' => $row->contact_status ?: '',
-				'sending_time'   => $row->created_at,
-				'campaign_id'    => $row->campaign_id ? (int) $row->campaign_id : null,
-				'automation_id'  => $row->automation_id ? (int) $row->automation_id : null,
+				'id'                     => (int) $row->id,
+				'contact_id'             => $row->contact_id ? (int) $row->contact_id : null,
+				'email_address'          => $row->email_address,
+				'first_name'             => $row->first_name ?: '',
+				'last_name'              => $row->last_name ?: '',
+				'avatar_url'             => $avatar_url,
+				'subject'                => $subject ?: __( '(No Subject)', 'mrm' ),
+				'source'                 => ( empty( $row->email_type ) || 'regular' === $row->email_type ) ? __( 'Admin', 'mrm' ) : ( $source_name ?: '' ),
+				'type'                   => ( empty( $row->email_type ) || 'regular' === $row->email_type ) ? 'Direct Message' : $row->email_type,
+				'status'                 => $row->status,
+				'contact_status'         => $row->contact_status ?: '',
+				'sending_time'           => $row->created_at,
+				'sending_time_iso'       => $sending_time_iso,
+				'sending_time_formatted' => $sending_time_formatted,
+				'campaign_id'            => $row->campaign_id ? (int) $row->campaign_id : null,
+				'automation_id'          => $row->automation_id ? (int) $row->automation_id : null,
 			);
 		}
 

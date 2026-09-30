@@ -128,6 +128,7 @@ class AbandonedCartController extends BaseController {
 		}
 
 		$cart_id       = isset( $cart_details['id'] ) ? $cart_details['id'] : null;
+		$page_id       = isset( $params['checkout_page_id'] ) ? absint( $params['checkout_page_id'] ) : 0;
 		$checkout_data = maybe_serialize(
 			array(
 				'fields' => isset( $params['checkout_fields_data'] ) ? json_decode( $params['checkout_fields_data'], true ) : array(),
@@ -169,7 +170,7 @@ class AbandonedCartController extends BaseController {
 				);
 			}
 
-			$this->store_cart_meta( $cart_id, $meta_details );
+			$this->store_cart_meta( $cart_id, $meta_details, $page_id );
 			CartModel::schedule_cart_jobs( $cart_id, $cart_email, $session_key );
 
 			return rest_ensure_response(
@@ -187,7 +188,7 @@ class AbandonedCartController extends BaseController {
 		$cart_details['checkout_data'] = $checkout_data;
 
 		CartModel::update( $cart_details, $cart_id );
-		$this->store_cart_meta( $cart_id, $meta_details );
+		$this->store_cart_meta( $cart_id, $meta_details, $page_id );
 
 		return rest_ensure_response(
 			array(
@@ -249,18 +250,46 @@ class AbandonedCartController extends BaseController {
 	 *
 	 * @param int   $cart_id      Abandoned cart ID.
 	 * @param array $meta_details Serialisable cart meta (coupons, fees, shipping, tax).
+	 * @param int   $page_id      Checkout page ID reported by the storefront script.
 	 *
 	 * @return void
 	 * @since 1.31.0
 	 */
-	private function store_cart_meta( $cart_id, $meta_details ) {
+	private function store_cart_meta( $cart_id, $meta_details, $page_id = 0 ) {
 		CartModel::update_cart_meta( $cart_id, 'abandoned_cart_meta', maybe_serialize( $meta_details ) );
+		CartModel::update_cart_meta( $cart_id, 'checkout_page_id', $this->resolve_checkout_page_id( $page_id ) );
+	}
 
-		$checkout_page_id = isset( $_COOKIE['mint_checkout_page_id'] )
-			? absint( $_COOKIE['mint_checkout_page_id'] )
-			: wc_get_page_id( 'checkout' );
+	/**
+	 * Resolve the page the recovery link should send the customer back to.
+	 *
+	 * Prefers the page the storefront script reports the customer checking out on. The
+	 * `mint_checkout_page_id` cookie is only a fallback: Mail Mint Pro sets it while the
+	 * checkout form renders, after output has started, so on hosts without output
+	 * buffering it never reaches the browser and a funnel checkout step was recorded as
+	 * the default Checkout page.
+	 *
+	 * The ID comes from the request, so it is only trusted when it names a published,
+	 * publicly viewable post; the recovery link redirects to its permalink.
+	 *
+	 * @param int $page_id Checkout page ID reported by the storefront script.
+	 *
+	 * @return int
+	 * @since 1.31.4
+	 */
+	private function resolve_checkout_page_id( $page_id ) {
+		$candidates = array(
+			absint( $page_id ),
+			isset( $_COOKIE['mint_checkout_page_id'] ) ? absint( $_COOKIE['mint_checkout_page_id'] ) : 0,
+		);
 
-		CartModel::update_cart_meta( $cart_id, 'checkout_page_id', $checkout_page_id );
+		foreach ( $candidates as $candidate ) {
+			if ( $candidate && 'publish' === get_post_status( $candidate ) && is_post_publicly_viewable( $candidate ) ) {
+				return $candidate;
+			}
+		}
+
+		return wc_get_page_id( 'checkout' );
 	}
 
 	/**

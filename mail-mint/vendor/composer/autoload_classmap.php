@@ -364,6 +364,7 @@ return array(
     'Mint\\MRM\\Internal\\ShortCode\\UnsubscribeConfirmation' => $baseDir . '/app/Internal/Shortcodes/UnsubscribeConfirmation.php',
     'Mint\\MRM\\Internal\\ShortCode\\UnsubscribeSurvey' => $baseDir . '/app/Internal/Shortcodes/UnsubscribeSurvey.php',
     'Mint\\MRM\\Internal\\Templates\\TemplateHandler' => $baseDir . '/app/Internal/Templates/TemplateHandler.php',
+    'Mint\\MRM\\Internal\\Tracking\\ActivityTrail' => $baseDir . '/app/Internal/Tracking/ActivityTrail.php',
     'Mint\\MRM\\Internal\\Tracking\\EventTracker' => $baseDir . '/app/Internal/Tracking/EventTracker.php',
     'Mint\\MRM\\Internal\\UsageReport\\UsageReportScheduler' => $baseDir . '/app/Internal/UsageReport/UsageReportScheduler.php',
     'Mint\\MRM\\Scheduler\\AbstractActionScheduler' => $baseDir . '/app/Scheduler/AbstractActionScheduler.php',

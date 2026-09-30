@@ -429,6 +429,7 @@ class ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85
         'Mint\\MRM\\Internal\\ShortCode\\UnsubscribeConfirmation' => __DIR__ . '/../..' . '/app/Internal/Shortcodes/UnsubscribeConfirmation.php',
         'Mint\\MRM\\Internal\\ShortCode\\UnsubscribeSurvey' => __DIR__ . '/../..' . '/app/Internal/Shortcodes/UnsubscribeSurvey.php',
         'Mint\\MRM\\Internal\\Templates\\TemplateHandler' => __DIR__ . '/../..' . '/app/Internal/Templates/TemplateHandler.php',
+        'Mint\\MRM\\Internal\\Tracking\\ActivityTrail' => __DIR__ . '/../..' . '/app/Internal/Tracking/ActivityTrail.php',
         'Mint\\MRM\\Internal\\Tracking\\EventTracker' => __DIR__ . '/../..' . '/app/Internal/Tracking/EventTracker.php',
         'Mint\\MRM\\Internal\\UsageReport\\UsageReportScheduler' => __DIR__ . '/../..' . '/app/Internal/UsageReport/UsageReportScheduler.php',
         'Mint\\MRM\\Scheduler\\AbstractActionScheduler' => __DIR__ . '/../..' . '/app/Scheduler/AbstractActionScheduler.php',

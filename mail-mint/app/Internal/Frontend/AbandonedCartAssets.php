@@ -84,6 +84,9 @@ class AbandonedCartAssets {
 				'nonce'             => wp_create_nonce( 'wp_rest' ),
 				'abandoned_setting' => $settings,
 				'is_checkout_block' => CartCommon::is_checkout_block(),
+				// The page the shopper is checking out on, so the recovery link can send them
+				// back to it — a funnel checkout step rather than the default Checkout page.
+				'checkout_page_id'  => is_checkout() ? get_queried_object_id() : 0,
 			)
 		);
 	}

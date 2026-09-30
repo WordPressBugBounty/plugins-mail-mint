@@ -247,6 +247,12 @@ class AutomationController extends AdminBaseController {
 						$automation_id = isset( $automation['id'] ) ? $automation['id'] : '';
 
 						$automation['created_ago'] = human_time_diff( strtotime( $created_at ), current_time( 'timestamp' ) ); //phpcs:disable
+						if ( $created_at ) {
+							// Same date fields as the Tags/Lists tables: a site-format display
+							// string plus a timezone-annotated ISO copy for the "time ago" label.
+							$automation['created_at_iso']       = ( new \DateTimeImmutable( $created_at, wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+							$automation['created_at_formatted'] = MrmCommon::date_time_format_with_core( $created_at );
+						}
 						$automation['enterance']   = HelperFunctions::count_total_enterance( $automation_id );
 						$automation['completed']   = HelperFunctions::count_completed_automation( $automation_id );
 						$automation['processing']  = $automation['enterance'] - $automation['completed'];

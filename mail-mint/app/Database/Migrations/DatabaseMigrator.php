@@ -1035,11 +1035,19 @@ class DatabaseMigrator {
 	}
 
 	/**
-	 * Option flag set once the abandoned carts table has the recovery columns.
+	 * Option flag set once the abandoned carts table has every column the schema defines
+	 * beyond Pro's original shape.
+	 *
+	 * Versioned: the first flag (`mailmint_abandoned_cart_columns_ready`) was set on sites
+	 * whose table still lacked `currency`, because the upgrade never added it. A new name
+	 * makes those sites run the upgrade once more. Bump the suffix again whenever a column
+	 * is added to upgrade_abandoned_cart_columns().
 	 *
 	 * @var string
+	 * @since 1.31.1
+	 * @since 1.31.4 Versioned, and covers `currency`.
 	 */
-	const CART_COLUMNS_DONE = 'mailmint_abandoned_cart_columns_ready';
+	const CART_COLUMNS_DONE = 'mailmint_abandoned_cart_columns_ready_v2';
 
 	/**
 	 * How many times the synchronous column upgrade may be attempted, and where the count
@@ -1055,7 +1063,7 @@ class DatabaseMigrator {
 	 *
 	 * @var string
 	 */
-	const CART_COLUMNS_ATTEMPTS = 'mailmint_abandoned_cart_columns_attempts';
+	const CART_COLUMNS_ATTEMPTS = 'mailmint_abandoned_cart_columns_attempts_v2';
 
 	/**
 	 * Synchronous attempts allowed before the work is left to the deferred job.
@@ -1105,7 +1113,7 @@ class DatabaseMigrator {
 	}
 
 	/**
-	 * Add the recovery columns and widen the narrow ones, recording the attempt.
+	 * Add the columns Pro's table lacks and widen the narrow ones, recording the attempt.
 	 *
 	 * Split out from the per-request guard so the deferred index job can retry the work on
 	 * its own schedule after the synchronous budget is spent — a background retry costs a
@@ -1163,6 +1171,13 @@ class DatabaseMigrator {
 			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN `recovered_at` TIMESTAMP NULL DEFAULT NULL" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 
+		// The currency the cart was captured in. Pro's table never had it, and 1.31.0 began
+		// writing it on every capture — so on a site that inherited Pro's table every cart
+		// insert failed with "Unknown column 'currency'" until this ran.
+		if ( ! array_key_exists( 'currency', $existing ) ) {
+			$wpdb->query( "ALTER TABLE {$table} ADD COLUMN `currency` VARCHAR(10) NULL DEFAULT NULL AFTER `provider`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
 		// token and session_key were sized to exactly the values they hold, leaving no
 		// headroom — and MySQL truncates rather than erroring outside strict mode. Staying
 		// inside 0-255 keeps the one-byte length prefix, so this is an INSTANT operation.
@@ -1176,19 +1191,19 @@ class DatabaseMigrator {
 
 		// Confirm rather than assume: an ALTER can fail on a locked or corrupt table, and
 		// flagging done regardless would leave the column permanently missing.
-		$has_source = $wpdb->get_var(
+		$added = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*)
 				 FROM information_schema.columns
 				 WHERE table_schema = %s
 				   AND table_name   = %s
-				   AND column_name  = 'recovery_source'",
+				   AND column_name IN ( 'recovery_source', 'recovered_at', 'currency' )",
 				DB_NAME,
 				$table
 			)
 		);
 
-		if ( ! $has_source ) {
+		if ( 3 !== $added ) {
 			return false;
 		}
 

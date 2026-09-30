@@ -62,6 +62,7 @@ var MintAbandonedCart;
         checkout_fields_data: {},
         checkout_fields: [],
         updateCheckout: 0,
+        gdpr_opted_out: false,
 
         /**
          * Initializes the MintAbandonedCart module.
@@ -190,6 +191,7 @@ var MintAbandonedCart;
             var data = new FormData();
             data.append("email", email);
             data.append("checkout_fields_data", JSON.stringify(MintAbandonedCart.checkout_fields_data));
+            data.append("checkout_page_id", window.MintFrontendVars?.checkout_page_id || 0);
             data.append("wp_nonce", window.MintFrontendVars?.nonce);
             fetch((window.MintFrontendVars?.rest_url || "/wp-json/") + "mint-mail/v1/abandoned-cart/update-checkout", {
                 method: "POST",
@@ -272,35 +274,82 @@ var MintAbandonedCart;
                 const emailConsentHtml = '<input type="hidden" id="mint_email_gdpr_consent" value="1" />';
                 mint_email_gdpr_consent_message += emailConsentHtml;
                 $('.wc-block-components-address-form__email').after('<span class="form-row form-row-wide mint-form-control-wrapper mint-col-full">' + mint_email_gdpr_consent_message + '</span>');
-                $(".mint_email_consent_no_thanks").on('click',function (){
-
-                    var email = $('#billing_email').val();
-                    if (!email) {
-                        email = $('#email').val();
-                    }
-                    
-                    var data = new FormData();
-                    var that = $(this)
-                    data.append("email", email);
-                    data.append("wp_nonce", window.MintFrontendVars?.nonce);
-                    fetch((window.MintFrontendVars?.rest_url || "/wp-json/") + "mint-mail/v1/abandoned-cart/skip-track", {
-                        method: "POST",
-                        headers: {
-                            'Access-Control-Allow-Origin': '*',
-                            'X-WP-Nonce': window.MintFrontendVars?.nonce
-                        },
-                        body: data
-                    })
-                        .then(function (res) {
-                            return res.json();
-                        })
-                        .then(function (response) {
-                            $('#mint_email_gdpr_consent').val('0');
-                            that.parent().fadeOut("slow");
-                        });
-
-                })
+                MintAbandonedCart.bind_skip_tracking();
             }
+        },
+
+        /**
+         * Adds the GDPR consent notice below the classic checkout email field.
+         *
+         * Safe to call repeatedly. Checkouts that rebuild the customer details on every
+         * update_order_review (WPFunnels does) replace the email field and drop the notice
+         * with it, so this runs again after each update and puts it back unless the
+         * shopper has already opted out.
+         */
+        add_classic_gdpr_message: function () {
+            if (!window.MintFrontendVars?.abandoned_setting.enable || 'require' !== window.MintFrontendVars?.abandoned_setting.gdpr_consent) {
+                return;
+            }
+            if (MintAbandonedCart.gdpr_opted_out || $('.mint-form-control-wrapper').length) {
+                return;
+            }
+            var mint_no_thanks = window.MintFrontendVars?.abandoned_setting.consent_text
+            var mint_no_thanks_text = 'Your email and cart are saved so we can send you email reminders about this order'
+            var mint_no_thanks_link_text = 'No Thanks'
+            var mint_no_thanks_array = mint_no_thanks.split('{{')
+            if( 2 === mint_no_thanks_array. length ){
+                mint_no_thanks_text  = mint_no_thanks_array[0]
+                mint_no_thanks_link_text = mint_no_thanks_array[1];
+                mint_no_thanks_link_text= mint_no_thanks_link_text.match(/label="([^"]+)"/)[1];
+            }
+            const text_link = "<a class='mint_email_consent_no_thanks' style='text-decoration:underline;cursor: pointer;'>" +mint_no_thanks_link_text + "</a>";
+            var mint_email_gdpr_consent_message = '<span>' + mint_no_thanks_text + text_link +'</span>';
+            const emailConsentHtml = '<input type="hidden" id="mint_email_gdpr_consent" value="1" />';
+            mint_email_gdpr_consent_message += emailConsentHtml;
+
+            $('#billing_email_field .woocommerce-input-wrapper #billing_email').after('<span class="form-row form-row-wide mint-form-control-wrapper mint-col-full">' + mint_email_gdpr_consent_message + '</span>');
+            MintAbandonedCart.bind_skip_tracking();
+        },
+
+        /**
+         * Binds the "No Thanks" link directly.
+         *
+         * Not delegated from the document: WooCommerce stops click propagation on
+         * .woocommerce-input-wrapper, which is where the classic notice lives.
+         */
+        bind_skip_tracking: function () {
+            $('.mint_email_consent_no_thanks').off('click.mintSkipTrack').on('click.mintSkipTrack', MintAbandonedCart.skip_tracking);
+        },
+
+        /**
+         * Opts the shopper out of cart tracking when they click "No Thanks".
+         */
+        skip_tracking: function () {
+            var email = $('#billing_email').val();
+            if (!email) {
+                email = $('#email').val();
+            }
+
+            var data = new FormData();
+            var that = $(this)
+            data.append("email", email);
+            data.append("wp_nonce", window.MintFrontendVars?.nonce);
+            fetch((window.MintFrontendVars?.rest_url || "/wp-json/") + "mint-mail/v1/abandoned-cart/skip-track", {
+                method: "POST",
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
+                    'X-WP-Nonce': window.MintFrontendVars?.nonce
+                },
+                body: data
+            })
+                .then(function (res) {
+                    return res.json();
+                })
+                .then(function (response) {
+                    MintAbandonedCart.gdpr_opted_out = true;
+                    $('#mint_email_gdpr_consent').val('0');
+                    that.parent().fadeOut("slow");
+                });
         },
     };
 
@@ -317,9 +366,14 @@ var MintAbandonedCart;
     MintAbandonedCart.init();
 
     /**
-     * Event handlers
+     * Binds the checkout listeners.
+     *
+     * Runs once the window has loaded. Script optimisers that delay JavaScript until the
+     * first interaction (LiteSpeed, Perfmatters, FlyingPress, ...) execute this file after
+     * the load event has already fired, and jQuery does not replay a missed load event —
+     * so binding only inside $(window).on('load') would leave the email field unwatched.
      */
-    $(window).on('load', function () {
+    function mint_bind_checkout_listeners() {
         MintAbandonedCart.abandoned_cart();
         if(!MintAbandonedCart.checkout_form.length){
             setTimeout(()=>{
@@ -340,11 +394,21 @@ var MintAbandonedCart;
         MintAbandonedCart.checkout_form.on('blur change', '.input-text', MintAbandonedCart.mint_captureCheckoutField);
         MintAbandonedCart.checkout_form.on('focusout', '.input-text', MintAbandonedCart.mint_captureCheckoutField);
         $(document).on('blur change', '#billing_email, #email, .input-text,.input-checkbox', MintAbandonedCart.mint_get_checkout_data);
-    });
+    }
+
+    /**
+     * Event handlers
+     */
+    if ('complete' === document.readyState) {
+        mint_bind_checkout_listeners();
+    } else {
+        $(window).on('load', mint_bind_checkout_listeners);
+    }
 
     $(document).on('updated_checkout', function () {
         // Update Checkout is triggered
         MintAbandonedCart.updateCheckout = 1;
+        MintAbandonedCart.add_classic_gdpr_message();
         MintAbandonedCart.mint_captureCheckoutField();
         var email = $('#billing_email').val();
 		if( !email ){
@@ -354,52 +418,8 @@ var MintAbandonedCart;
             MintAbandonedCart.mint_process_email(email);
         }
     });
-    
-    if( window.MintFrontendVars?.abandoned_setting.enable && 'require' === window.MintFrontendVars?.abandoned_setting.gdpr_consent){
-        var mint_no_thanks = window.MintFrontendVars?.abandoned_setting.consent_text
-        var mint_no_thanks_text = 'Your email and cart are saved so we can send you email reminders about this order'
-        var mint_no_thanks_link_text = 'No Thanks'
-        var mint_no_thanks_array = mint_no_thanks.split('{{')
-        if( 2 === mint_no_thanks_array. length ){
-            mint_no_thanks_text  = mint_no_thanks_array[0]
-            mint_no_thanks_link_text = mint_no_thanks_array[1];
-            mint_no_thanks_link_text= mint_no_thanks_link_text.match(/label="([^"]+)"/)[1];
-        }
-        const text_link = "<a class='mint_email_consent_no_thanks' style='text-decoration:underline;cursor: pointer;'>" +mint_no_thanks_link_text + "</a>";
-        var mint_email_gdpr_consent_message = '<span>' + mint_no_thanks_text + text_link +'</span>';
-        const emailConsentHtml = '<input type="hidden" id="mint_email_gdpr_consent" value="1" />';
-        mint_email_gdpr_consent_message += emailConsentHtml;
 
-        $('#billing_email_field .woocommerce-input-wrapper #billing_email').after('<span class="form-row form-row-wide mint-form-control-wrapper mint-col-full">' + mint_email_gdpr_consent_message + '</span>');
-        $(".mint_email_consent_no_thanks").on('click',function (){
-            var email = $('#billing_email').val();
-			if (!email) {
-				email = $('#email').val();
-			}
-            
-            var data = new FormData();
-            var that = $(this)
-            data.append("email", email);
-            data.append("wp_nonce", window.MintFrontendVars?.nonce);
-            fetch((window.MintFrontendVars?.rest_url || "/wp-json/") + "mint-mail/v1/abandoned-cart/skip-track", {
-                method: "POST",
-                headers: {
-                    'Access-Control-Allow-Origin': '*',
-                    'X-WP-Nonce': window.MintFrontendVars?.nonce
-                },
-                body: data
-            })
-                .then(function (res) {
-                    return res.json();
-                })
-                .then(function (response) {
-                    $('#mint_email_gdpr_consent').val('0');
-                    that.parent().fadeOut("slow");
-                });
-
-        })
-
-    }
+    MintAbandonedCart.add_classic_gdpr_message();
 
 })(jQuery);
 

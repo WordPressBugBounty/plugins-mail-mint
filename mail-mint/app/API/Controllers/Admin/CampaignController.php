@@ -2123,6 +2123,16 @@ class CampaignController extends AdminBaseController {
 			$campaign['total_recipients'] = isset( $stats['meta'][ $cid ] ) ? $stats['meta'][ $cid ] : 0;
 		}
 
+		// Same date fields as the Tags/Automations tables: a site-format display string
+		// plus a timezone-annotated ISO copy for the "time ago" label. Built from the raw
+		// values before scheduled_at/updated_at are replaced with display strings below.
+		foreach ( array( 'created_at', 'updated_at', 'scheduled_at' ) as $date_field ) {
+			if ( ! empty( $campaign[ $date_field ] ) && '0000-00-00 00:00:00' !== $campaign[ $date_field ] ) {
+				$campaign[ $date_field . '_iso' ]       = ( new \DateTimeImmutable( $campaign[ $date_field ], wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+				$campaign[ $date_field . '_formatted' ] = MrmCommon::date_time_format_with_core( $campaign[ $date_field ] );
+			}
+		}
+
 		$campaign['scheduled_at'] = MrmCommon::format_campaign_date_time( 'scheduled_at', $campaign );
 		$campaign['updated_at']   = MrmCommon::format_campaign_date_time( 'updated_at', $campaign );
 

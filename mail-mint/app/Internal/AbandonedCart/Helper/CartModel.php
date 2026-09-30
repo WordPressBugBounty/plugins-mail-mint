@@ -269,6 +269,12 @@ class CartModel {
 		if ( empty( $data ) || !is_array( $data ) ) {
 			return false;
 		}
+
+		$data = self::only_existing_columns( $data );
+		if ( empty( $data ) ) {
+			return false;
+		}
+
 		global $wpdb;
         $inserted =  $wpdb->insert( self::get_table_name(), $data ); //phpcs:ignore
 		if ( $inserted ) {
@@ -287,6 +293,11 @@ class CartModel {
 	 * @since 1.5.0
 	 */
 	public static function update( $data, $id ) {
+		$data = is_array( $data ) ? self::only_existing_columns( $data ) : array();
+		if ( empty( $data ) ) {
+			return false;
+		}
+
 		global $wpdb;
 		return $wpdb->update( //phpcs:ignore
 			self::get_table_name(),
@@ -336,11 +347,7 @@ class CartModel {
 			return false;
 		}
 
-		foreach ( array_keys( $data ) as $column ) {
-			if ( ! self::has_column( $column ) ) {
-				unset( $data[ $column ] );
-			}
-		}
+		$data = self::only_existing_columns( $data );
 
 		if ( empty( $data ) ) {
 			return false;
@@ -348,6 +355,32 @@ class CartModel {
 
 		global $wpdb;
 		return $wpdb->update( self::get_table_name(), $data, $condition ); //phpcs:ignore
+	}
+
+	/**
+	 * Drop the keys the carts table has no column for.
+	 *
+	 * Every write goes through this. The tables are created with CREATE TABLE IF NOT
+	 * EXISTS, so a site that inherited them from Mail Mint Pro keeps Pro's older shape
+	 * until DatabaseMigrator catches up — and a migration can fail outright on a host
+	 * whose DB user lacks ALTER. Writing a column that is not there fails the whole
+	 * statement, and on the capture path that meant no cart was tracked at all (1.31.0
+	 * started writing `currency`, which Pro's table never had). Losing one optional
+	 * column is always better than losing the cart.
+	 *
+	 * @param array $data Column => value pairs.
+	 *
+	 * @return array
+	 * @since 1.31.4
+	 */
+	protected static function only_existing_columns( $data ) {
+		foreach ( array_keys( $data ) as $column ) {
+			if ( ! self::has_column( $column ) ) {
+				unset( $data[ $column ] );
+			}
+		}
+
+		return $data;
 	}
 
 	/**

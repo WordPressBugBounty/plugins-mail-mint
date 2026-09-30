@@ -265,7 +265,8 @@ class CartCommon {
 			return false;
 		}
 
-		$cool_off_since = current_time( 'timestamp' ) - $days * DAY_IN_SECONDS; // phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
+		// wc_get_orders() reads a numeric date as a real (UTC) timestamp.
+		$cool_off_since = time() - $days * DAY_IN_SECONDS;
 
 		return self::customer_has_order( $email, 0, $cool_off_since, self::get_recovered_statuses() );
 	}
@@ -276,12 +277,10 @@ class CartCommon {
 	 * A wider set than the recovered statuses on purpose: the two questions are
 	 * different. "Should we count this as a recovery?" answers to the store owner's
 	 * configured win statuses. "Should we stop telling this customer they left something
-	 * behind?" answers to whether they have an order at all — a bank transfer sitting at
-	 * pending, an off-site gateway that has not called back yet, or a card that was
-	 * declined are all cases where the customer has been through checkout and a cart
-	 * nudge would be wrong.
+	 * behind?" answers to whether they have committed to an order — an on-hold bank
+	 * transfer or cheque, a paid order, even a refunded one.
 	 *
-	 * Two statuses are excluded, and both matter:
+	 * Three statuses are excluded, and all of them matter:
 	 *
 	 * `checkout-draft` is created by the WooCommerce Checkout Block as soon as a customer
 	 * starts filling the form, before they have committed to anything. Treating it as a
@@ -290,15 +289,23 @@ class CartCommon {
 	 * `cancelled` means the customer or the shop abandoned the order deliberately, so
 	 * chasing that cart again is legitimate.
 	 *
+	 * `failed` means the payment was declined or errored. The customer tried to buy and
+	 * did not — the most recoverable cart there is, and the one every major cart-recovery
+	 * tool chases.
+	 *
+	 * `pending` stays in the set but only suppresses for a grace window; see
+	 * has_order_since() and get_pending_order_grace_minutes().
+	 *
 	 * @return array List of status slugs, without the `wc-` prefix.
 	 * @since 1.31.1
+	 * @since 1.31.4 `failed` no longer suppresses.
 	 */
 	public static function get_suppressing_order_statuses() {
 		if ( ! function_exists( 'wc_get_order_statuses' ) ) {
 			return array();
 		}
 
-		$excluded = array( 'cancelled', 'checkout-draft' );
+		$excluded = array( 'cancelled', 'checkout-draft', 'failed' );
 		$statuses = array();
 
 		foreach ( wc_get_order_statuses() as $slug => $label ) {
@@ -347,10 +354,53 @@ class CartCommon {
 		 * bought once a year ago would never receive a cart email again — a total feature
 		 * kill that in the field is indistinguishable from "abandoned cart is broken".
 		 */
-		$created_at = ! empty( $cart['created_at'] ) ? strtotime( $cart['created_at'] ) : 0;
+		// created_at is stored in site time; wc_get_orders() reads a numeric date as UTC.
+		$created_at = ! empty( $cart['created_at'] ) ? strtotime( get_gmt_from_date( $cart['created_at'] ) ) : 0;
 		$since      = $created_at ? $created_at - 5 * MINUTE_IN_SECONDS : 0;
+		$statuses   = self::get_suppressing_order_statuses();
+		$settled    = array_values( array_diff( $statuses, array( 'pending' ) ) );
 
-		return self::customer_has_order( $email, $user_id, $since, self::get_suppressing_order_statuses() );
+		if ( self::customer_has_order( $email, $user_id, $since, $settled ) ) {
+			return true;
+		}
+
+		if ( ! in_array( 'pending', $statuses, true ) ) {
+			return false;
+		}
+
+		/*
+		 * A pending order is a payment in flight — an off-site gateway, a 3-D Secure
+		 * challenge, a wallet popup. Hold the nudge while it could still land, then treat
+		 * it as the abandoned payment it has become.
+		 */
+		$grace_since = time() - self::get_pending_order_grace_minutes() * MINUTE_IN_SECONDS;
+
+		return self::customer_has_order( $email, $user_id, max( $since, $grace_since ), array( 'pending' ) );
+	}
+
+	/**
+	 * How long a pending order keeps holding back cart emails, in minutes.
+	 *
+	 * Follows WooCommerce's "Hold stock" setting when it is set: that is how long the
+	 * store itself waits for an unpaid order before cancelling it, so it is also the
+	 * point at which the payment should be treated as abandoned. Falls back to an hour
+	 * when stock holding is disabled.
+	 *
+	 * @return int Minutes. 0 means pending orders never hold emails back.
+	 * @since 1.31.4
+	 */
+	public static function get_pending_order_grace_minutes() {
+		$hold_stock = (int) get_option( 'woocommerce_hold_stock_minutes', 0 );
+		$minutes    = $hold_stock > 0 ? $hold_stock : 60;
+
+		/**
+		 * Filters how long a pending order holds back abandoned cart emails.
+		 *
+		 * @param int $minutes Grace window in minutes.
+		 *
+		 * @since 1.31.4
+		 */
+		return max( 0, (int) apply_filters( 'mint_abandoned_cart_pending_order_grace_minutes', $minutes ) );
 	}
 
 	/**

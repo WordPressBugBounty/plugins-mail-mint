@@ -36,7 +36,7 @@ class AbandonedCartController extends AdminBaseController {
 	 */
 	public function get_recoverable_carts( WP_REST_Request $request ) {
 		$params = MrmCommon::get_api_params_values( $request );
-		$result = CartModel::get_all_abandoned_cart( $params, 'pending,abandoned' );
+		$result = $this->with_display_dates( CartModel::get_all_abandoned_cart( $params, 'pending,abandoned' ) );
 
 		/**
 		 * Fires after the recoverable carts have been queried.
@@ -63,7 +63,7 @@ class AbandonedCartController extends AdminBaseController {
 	 */
 	public function get_recovered_carts( WP_REST_Request $request ) {
 		$params = MrmCommon::get_api_params_values( $request );
-		$result = CartModel::get_all_abandoned_cart( $params, 'recovered' );
+		$result = $this->with_display_dates( CartModel::get_all_abandoned_cart( $params, 'recovered' ) );
 
 		if ( isset( $result ) ) {
 			return $this->get_success_response( __( 'Query Successful.', 'mrm' ), 200, $result );
@@ -82,7 +82,7 @@ class AbandonedCartController extends AdminBaseController {
 	 */
 	public function get_losts_carts( WP_REST_Request $request ) {
 		$params = MrmCommon::get_api_params_values( $request );
-		$result = CartModel::get_all_abandoned_cart( $params, 'lost' );
+		$result = $this->with_display_dates( CartModel::get_all_abandoned_cart( $params, 'lost' ) );
 
 		if ( isset( $result ) ) {
 			return $this->get_success_response( __( 'Query Successful.', 'mrm' ), 200, $result );
@@ -159,5 +159,41 @@ class AbandonedCartController extends AdminBaseController {
 		}
 
 		return $this->get_error_response( __( 'Failed to delete.', 'mrm' ), 400 );
+	}
+
+	/**
+	 * Add the list table's date fields to every cart row.
+	 *
+	 * Same fields as the Automations / Tags lists: a site-format display string
+	 * plus a timezone-annotated ISO copy for the "time ago" label. `created_at`
+	 * is left untouched.
+	 *
+	 * @param array $result Result of `CartModel::get_all_abandoned_cart()`.
+	 *
+	 * @return array
+	 * @since 1.31.0
+	 */
+	private function with_display_dates( $result ) {
+		if ( empty( $result['abandoned_data'] ) || ! is_array( $result['abandoned_data'] ) ) {
+			return $result;
+		}
+
+		$result['abandoned_data'] = array_map(
+			function ( $cart ) {
+				$created_at = isset( $cart['created_at'] ) ? $cart['created_at'] : '';
+				if ( $created_at ) {
+					try {
+						$cart['created_at_iso']       = ( new \DateTimeImmutable( $created_at, wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+						$cart['created_at_formatted'] = MrmCommon::date_time_format_with_core( $created_at );
+					} catch ( \Exception $e ) {
+						// Unparseable date: the table falls back to the raw `created_at`.
+					}
+				}
+				return $cart;
+			},
+			$result['abandoned_data']
+		);
+
+		return $result;
 	}
 }

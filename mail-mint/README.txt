@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, AI, email, newslett
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.3
+Stable tag:  1.31.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -585,6 +585,23 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
+
+= 1.31.4 (2026-09-30) =
+* Improvement: Redesigned the list tables with column sorting, header filters and a cleaner row actions menu.
+* Improvement: Dates in list tables now show as relative time with your site's date format on hover.
+* Improvement: Empty search or filter results now explain why nothing matched and let you clear them in one click.
+* Improvement: Sortable and filterable column headers now highlight on hover.
+* Improvement: Exporting forms and automations is now available in the free version.
+* Improvement: Cart analytics now open on the last 7 days including today.
+* Fix: Abandoned carts are tracked again on sites that upgraded from Pro's cart tracking.
+* Fix: Cart recovery links now take customers to the correct checkout page.
+* Fix: Failed orders no longer stop abandoned cart emails from being sent.
+* Fix: Recovering an abandoned cart now resumes failed orders as well as pending ones.
+* Fix: Checkout pages no longer trigger a "headers already sent" warning when remembering the page for cart recovery.
+* Fix: Abandoned cart emails now match orders correctly on sites in timezones ahead of UTC.
+* Fix: The GDPR notice on classic checkout no longer disappears after the checkout updates.
+* Fix: Selecting a file for a lead magnet no longer throws an error.
+
 
 = 1.31.3 (2026-09-24) =
 * Improvement: Redesigned the contacts page with a cleaner UI.

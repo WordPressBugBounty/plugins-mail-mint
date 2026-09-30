@@ -168,6 +168,10 @@ class FormController extends AdminBaseController {
 				function( $form ) {
 					if ( isset( $form['created_at'] ) ) {
 						$form['created_ago'] = human_time_diff( strtotime( $form['created_at'] ), current_time( 'timestamp' ) );
+						// Same date fields as the Tags/Lists tables: a site-format display
+						// string plus a timezone-annotated ISO copy for the "time ago" label.
+						$form['created_at_iso']       = ( new \DateTimeImmutable( $form['created_at'], wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+						$form['created_at_formatted'] = MrmCommon::date_time_format_with_core( $form['created_at'] );
 					}
 					$form['group_ids'] = isset( $form['group_ids'] ) ? $this->decode_group_ids( $form['group_ids'] ) : array();
 					return $form;
@@ -445,6 +449,34 @@ class FormController extends AdminBaseController {
 
 		// Return error response if form duplication failed.
 		return $this->get_error_response(__('Failed to duplicate form data.', 'mrm'), 400);
+	}
+
+	/**
+	 * Exports a single form as JSON.
+	 *
+	 * Same payload as the Pro export (`form` key) so the Pro import accepts it.
+	 *
+	 * @param WP_REST_Request $request The REST API request object.
+	 *
+	 * @return WP_REST_Response
+	 * @since 1.31.4
+	 */
+	public function export_form( WP_REST_Request $request ) {
+		$params  = MrmCommon::get_api_params_values( $request );
+		$form_id = isset( $params['id'] ) ? absint( $params['id'] ) : 0;
+		$form    = FormModel::get( $form_id );
+
+		if ( empty( $form ) ) {
+			return $this->get_error_response( __( 'Failed to retrieve form data.', 'mrm' ), 400 );
+		}
+
+		return rest_ensure_response(
+			array(
+				'form'    => $form,
+				'status'  => 'success',
+				'message' => __( 'Form has been exported successfully.', 'mrm' ),
+			)
+		);
 	}
 
 	/**

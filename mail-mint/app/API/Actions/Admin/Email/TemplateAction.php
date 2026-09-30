@@ -85,7 +85,14 @@ class TemplateAction implements Action {
             if (isset($result['json_content'])) {
                 $result['json_content'] = maybe_unserialize($result['json_content']);
             }
+            if ( ! empty( $result['created_at'] ) ) {
+                // Same date fields as the Automations/Tags tables: a site-format display
+                // string plus a timezone-annotated ISO copy for the "time ago" label.
+                $result['created_at_iso']       = ( new \DateTimeImmutable( $result['created_at'], wp_timezone() ) )->format( \DateTimeImmutable::ATOM );
+                $result['created_at_formatted'] = MrmCommon::date_time_format_with_core( $result['created_at'] );
+            }
         }
+        unset( $result );
 
         // Define the count query.
         $count_query = "

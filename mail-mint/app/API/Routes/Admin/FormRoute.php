@@ -416,6 +416,27 @@ class FormRoute {
 		);
 
 		/**
+		 * Route to export a form as JSON
+		 *
+		 * @return void
+		 * @since 1.31.4
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<id>[\d]+)/export',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->controller,
+						'export_form',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_forms_export'),
+				),
+			)
+		);
+
+		/**
 		 * Route to save unsaved form state for preview (transient-based, like MailPoet).
 		 *
 		 * @return void

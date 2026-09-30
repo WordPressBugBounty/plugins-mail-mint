@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.31.3
+ * Version:           1.31.4
 
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
@@ -37,7 +37,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.31.3' );
+define( 'MRM_VERSION', '1.31.4' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.18.0' );
 define( 'MINT_DEV_MODE', false );
@@ -319,6 +319,30 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 							return array( 'source' => $source, 'count' => (int) $count );
 						},
 					),
+					// Retention signals — low-frequency, admin- or AI-driven actions.
+					// one_off_email_sent — a single email sent to one contact (AI copilot / MCP email tool).
+					'one_off_email_sent'           => array(
+						'hook' => 'mailmint_one_off_email_sent',
+					),
+					// ai_conversation_started — the AI assistant was opened for real work.
+					'ai_conversation_started'      => array(
+						'hook'     => 'mailmint_ai_conversation_started',
+						'callback' => function ( $conversation_id, $context_type = '' ) {
+							return array( 'context_type' => sanitize_key( (string) $context_type ) );
+						},
+					),
+					// split_test_created — A/B test campaign created (Pro).
+					'split_test_created'           => array(
+						'hook' => 'mailmint_pro_split_test_created',
+					),
+					// custom_field_added — contact data model extended.
+					'custom_field_added'           => array(
+						'hook' => 'mailmint_custom_field_added',
+					),
+					// recurring_campaign_scheduled — a recurring campaign saved or resumed in the admin.
+					'recurring_campaign_scheduled' => array(
+						'hook' => 'mailmint_process_recurring_campaign',
+					),
 					/*
 					 * NOTE: High-frequency feature_used events fire on concurrent public
 					 * requests (form submissions, contact saves, cart abandonment) and would
@@ -357,8 +381,21 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 		$send_weekly_feature_used = function ( $feature, $option_key, $properties ) use ( $client ) {
 			global $wpdb;
 
+			// These hooks sit on hot public paths (email opens/clicks, form submits).
+			// Bail before touching the database when the site hasn't opted in:
+			// track_feature_used() would drop the event anyway.
+			if ( 'yes' !== $client->get_optin_state() ) {
+				return;
+			}
+
 			$now       = time();
 			$threshold = $now - WEEK_IN_SECONDS;
+
+			// Fast path: already sent this week. Skips the write for almost every call;
+			// a stale read just falls through to the atomic claim below.
+			if ( (int) get_option( $option_key, 0 ) >= $threshold ) {
+				return;
+			}
 
 			// Ensure the row exists so the conditional UPDATE below has something to
 			// claim. add_option is a no-op (returns false) if it already exists, so any
@@ -445,6 +482,86 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 			1
 		);
 
+		/*
+		 * Weekly "value delivered" signals for retention: is Mail Mint actually
+		 * producing results on this site this week? All fire on subscriber or
+		 * cron traffic, so they share the weekly gate. No contact data is sent.
+		 */
+
+		// email_opened — a subscriber opened a Mail Mint email.
+		add_action(
+			'mailmint_after_email_open',
+			function () use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used( 'email_opened', 'mail-mint_telemetry_email_opened_last_sent', array() );
+			}
+		);
+
+		// email_clicked — a subscriber clicked a link in a Mail Mint email.
+		add_action(
+			'mailmint_after_email_click',
+			function () use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used( 'email_clicked', 'mail-mint_telemetry_email_clicked_last_sent', array() );
+			}
+		);
+
+		// cart_recovered — an abandoned WooCommerce cart turned into an order.
+		// Free (1.31+) passes ( $cart, $order, $source, $closed ); older Pro passes ( $data ).
+		add_action(
+			'mailmint_after_abandoned_cart_recovered',
+			function ( ...$args ) use ( $send_weekly_feature_used ) {
+				$source = isset( $args[2] ) && is_string( $args[2] ) ? sanitize_key( $args[2] ) : 'unknown';
+				$send_weekly_feature_used( 'cart_recovered', 'mail-mint_telemetry_cart_recovered_last_sent', array( 'source' => $source ) );
+			},
+			10,
+			4
+		);
+
+		// automation_email_sent — an automation delivered an email (only when the send succeeded).
+		add_action(
+			'mailmint_after_automation_send_mail',
+			function ( $automation_id, $email = '', $is_sent = false ) use ( $send_weekly_feature_used ) {
+				if ( ! $is_sent ) {
+					return;
+				}
+				$send_weekly_feature_used( 'automation_email_sent', 'mail-mint_telemetry_automation_email_sent_last_sent', array() );
+			},
+			10,
+			3
+		);
+
+		// double_optin_confirmed — a contact confirmed their subscription.
+		add_action(
+			'mailmint_after_confirm_double_optin',
+			function () use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used( 'double_optin_confirmed', 'mail-mint_telemetry_double_optin_confirmed_last_sent', array() );
+			}
+		);
+
+		// recurring_campaign_run — a scheduled recurring campaign occurrence ran (Pro, Action Scheduler).
+		// Literal hook name: Pro defines MAILMINT_RECURRING_CAMPAIGN_SCHEDULE after Free loads.
+		add_action(
+			'mailmint_recurring_schedule',
+			function () use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used( 'recurring_campaign_run', 'mail-mint_telemetry_recurring_campaign_run_last_sent', array() );
+			}
+		);
+
+		// link_triggered — a Pro link trigger was clicked by a known contact.
+		add_action(
+			'mailmint_link_triggered',
+			function () use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used( 'link_triggered', 'mail-mint_telemetry_link_triggered_last_sent', array() );
+			}
+		);
+
+		// incoming_webhook_received — a Pro incoming webhook created or updated a contact.
+		add_action(
+			'mint_after_incoming_webhook',
+			function () use ( $send_weekly_feature_used ) {
+				$send_weekly_feature_used( 'incoming_webhook_received', 'mail-mint_telemetry_incoming_webhook_received_last_sent', array() );
+			}
+		);
+
 		/**
 		 * Sync consent state independently when user accepts tracking consent.
 		 *
@@ -476,6 +593,12 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 				$client->set_optin_state( $state );
 			}
 		);
+
+		/*
+		 * Product activity trail: every screen and REST action, sent daily for
+		 * opted-in sites and at deactivation for every site.
+		 */
+		\Mint\MRM\Internal\Tracking\ActivityTrail::init( $client );
 
 		// Replace generic SDK deactivation reasons with mail mint specific ones.
         add_filter( 'mail-mint_telemetry_deactivation_reasons', function( $reasons ) {

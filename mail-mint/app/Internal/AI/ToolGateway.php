@@ -81,12 +81,15 @@ class ToolGateway {
 
         $ability = wp_get_ability( $tool_name );
         if ( ! $ability || ! str_starts_with( $tool_name, 'mail-mint/' ) ) {
+            do_action( 'mailmint_ai_tool_failed', $tool_name, 'unknown_tool' );
             return [ 'content' => sprintf( 'Unknown tool "%s".', $tool_name ), 'is_error' => true ];
         }
 
         $result = $ability->execute( $arguments );
 
         if ( is_wp_error( $result ) ) {
+            do_action( 'mailmint_ai_tool_failed', $tool_name, $result->get_error_code() );
+
             return [
                 'content'  => wp_json_encode( [
                     'error'   => $result->get_error_code(),
