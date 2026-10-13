@@ -32,6 +32,7 @@ use Mint\MRM\Internal\Frontend\WooCommerceCheckoutContact;
 use Mint\MRM\Internal\Optin\OptinConfirmation;
 use Mint\MRM\Internal\ShortCode\ShortCode;
 use Mint\Mrm\Internal\Traits\Singleton;
+use Mint\MRM\Internal\Cron\AsyncQueueRunnerGuard;
 use Mint\MRM\Internal\Cron\CampaignsBackgroundProcess;
 use Mint\MRM\Internal\UsageReport\UsageReportScheduler;
 use Mint\MRM\Internal\Optin\UnsubscribeConfirmation;
@@ -97,6 +98,9 @@ class App {
 		UserAssignContact::get_instance();
 
 		CampaignsBackgroundProcess::get_instance()->init();
+
+		// Keep Action Scheduler's async runner alive on LiteSpeed (automation steps after a Delay).
+		AsyncQueueRunnerGuard::get_instance()->init();
 
 		UsageReportScheduler::init();
 

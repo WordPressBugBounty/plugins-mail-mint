@@ -1200,3 +1200,7 @@ add_action( 'init', function () {
 	}
 	( new \Mint\MRM\Internal\MCP\MCPInit() )->init();
 }, 5 );
+
+// One-click OAuth connect for MCP clients. Booted at plugin load, not on init, because the
+// Bearer token filter runs on determine_current_user, which WordPress fires before init.
+\Mint\MRM\Internal\MCP\OAuth\OAuthServer::boot();

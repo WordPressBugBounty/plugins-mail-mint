@@ -439,6 +439,78 @@ class ContactRoute {
 		);
 
 		/**
+		 * Contact import endpoint for MailerLite subscribers
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/import/mailerlite',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'import_contacts_mailerlite' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import endpoint for Drip subscribers
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/import/drip',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'import_contacts_drip' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import endpoint for ActiveCampaign contacts
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/import/activecampaign',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'import_contacts_activecampaign' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import endpoint for Kit subscribers
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/import/kit',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'import_contacts_kit' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
 		 * Send double optin message to multiple contacts
 		 *
 		 * @return void

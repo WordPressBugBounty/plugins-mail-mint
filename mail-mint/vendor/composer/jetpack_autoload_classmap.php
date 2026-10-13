@@ -1278,6 +1278,10 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Constants.php'
 	),
+	'Mint\\MRM\\Internal\\Cron\\AsyncQueueRunnerGuard' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Cron/AsyncQueueRunnerGuard.php'
+	),
 	'Mint\\MRM\\Internal\\Cron\\CampaignsBackgroundProcess' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Cron/CampaignsBackgroundProcess.php'
@@ -1353,6 +1357,26 @@ return array(
 	'Mint\\MRM\\Internal\\MCP\\MCPInit' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/MCP/MCPInit.php'
+	),
+	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthAuthorize' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthAuthorize.php'
+	),
+	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthClients' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthClients.php'
+	),
+	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthRoutes' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthRoutes.php'
+	),
+	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthServer' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthServer.php'
+	),
+	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthTokens' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthTokens.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Observability\\MintMcpObservabilityHandler' => array(
 		'version' => 'dev-master',

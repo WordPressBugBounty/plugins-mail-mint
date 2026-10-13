@@ -4,67 +4,67 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85
+class ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7
 {
     public static $files = array (
         'aed659f3655c497c30e044c41fa917c6' => __DIR__ . '/..' . '/linno/telemetry/src/helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'c' =>
+        'c' => 
         array (
             'cweagans\\Composer\\' => 18,
         ),
-        'W' =>
+        'W' => 
         array (
             'WP\\McpSchema\\' => 13,
             'WP\\MCP\\' => 7,
         ),
-        'P' =>
+        'P' => 
         array (
             'PostHog\\' => 8,
         ),
-        'M' =>
+        'M' => 
         array (
             'Mint\\MRM\\' => 9,
         ),
-        'L' =>
+        'L' => 
         array (
             'LinnoSDK\\Telemetry\\' => 19,
         ),
-        'A' =>
+        'A' => 
         array (
             'Automattic\\Jetpack\\Autoloader\\' => 30,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'cweagans\\Composer\\' =>
+        'cweagans\\Composer\\' => 
         array (
             0 => __DIR__ . '/..' . '/cweagans/composer-patches/src',
         ),
-        'WP\\McpSchema\\' =>
+        'WP\\McpSchema\\' => 
         array (
             0 => __DIR__ . '/..' . '/wordpress/php-mcp-schema/src',
         ),
-        'WP\\MCP\\' =>
+        'WP\\MCP\\' => 
         array (
             0 => __DIR__ . '/..' . '/wordpress/mcp-adapter/includes',
         ),
-        'PostHog\\' =>
+        'PostHog\\' => 
         array (
             0 => __DIR__ . '/..' . '/posthog/posthog-php/lib',
         ),
-        'Mint\\MRM\\' =>
+        'Mint\\MRM\\' => 
         array (
             0 => __DIR__ . '/../..' . '/app',
             1 => __DIR__ . '/../..' . '/includes',
         ),
-        'LinnoSDK\\Telemetry\\' =>
+        'LinnoSDK\\Telemetry\\' => 
         array (
             0 => __DIR__ . '/..' . '/linno/telemetry/src',
         ),
-        'Automattic\\Jetpack\\Autoloader\\' =>
+        'Automattic\\Jetpack\\Autoloader\\' => 
         array (
             0 => __DIR__ . '/..' . '/automattic/jetpack-autoloader/src',
         ),
@@ -383,6 +383,7 @@ class ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85
         'Mint\\MRM\\Internal\\Admin\\WooCommerceOrderDetails' => __DIR__ . '/../..' . '/app/Internal/Admin/WooCommerce-Order/WooCommerceOrderDetails.php',
         'Mint\\MRM\\Internal\\Campaign\\EmailPersonalizer' => __DIR__ . '/../..' . '/app/Internal/Campaign/EmailPersonalizer.php',
         'Mint\\MRM\\Internal\\Constants' => __DIR__ . '/../..' . '/app/Internal/Constants.php',
+        'Mint\\MRM\\Internal\\Cron\\AsyncQueueRunnerGuard' => __DIR__ . '/../..' . '/app/Internal/Cron/AsyncQueueRunnerGuard.php',
         'Mint\\MRM\\Internal\\Cron\\CampaignsBackgroundProcess' => __DIR__ . '/../..' . '/app/Internal/Cron/CampaignsBackgroundProcess.php',
         'Mint\\MRM\\Internal\\Cron\\GlobalQueueCoordinator' => __DIR__ . '/../..' . '/app/Internal/Cron/GlobalQueueCoordinator.php',
         'Mint\\MRM\\Internal\\Cron\\Traits\\ActionSchedulerTrait' => __DIR__ . '/../..' . '/app/Internal/Cron/Traits/ActionSchedulerTrait.php',
@@ -402,6 +403,11 @@ class ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85
         'Mint\\MRM\\Internal\\MCP\\Helpers\\EmailPlaybooks' => __DIR__ . '/../..' . '/app/Internal/MCP/Helpers/EmailPlaybooks.php',
         'Mint\\MRM\\Internal\\MCP\\Helpers\\MCPHelper' => __DIR__ . '/../..' . '/app/Internal/MCP/Helpers/MCPHelper.php',
         'Mint\\MRM\\Internal\\MCP\\MCPInit' => __DIR__ . '/../..' . '/app/Internal/MCP/MCPInit.php',
+        'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthAuthorize' => __DIR__ . '/../..' . '/app/Internal/MCP/OAuth/OAuthAuthorize.php',
+        'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthClients' => __DIR__ . '/../..' . '/app/Internal/MCP/OAuth/OAuthClients.php',
+        'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthRoutes' => __DIR__ . '/../..' . '/app/Internal/MCP/OAuth/OAuthRoutes.php',
+        'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthServer' => __DIR__ . '/../..' . '/app/Internal/MCP/OAuth/OAuthServer.php',
+        'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthTokens' => __DIR__ . '/../..' . '/app/Internal/MCP/OAuth/OAuthTokens.php',
         'Mint\\MRM\\Internal\\MCP\\Observability\\MintMcpObservabilityHandler' => __DIR__ . '/../..' . '/app/Internal/MCP/Observability/MintMcpObservabilityHandler.php',
         'Mint\\MRM\\Internal\\MCP\\Tools\\AutomationTools' => __DIR__ . '/../..' . '/app/Internal/MCP/Tools/AutomationTools.php',
         'Mint\\MRM\\Internal\\MCP\\Tools\\CampaignTools' => __DIR__ . '/../..' . '/app/Internal/MCP/Tools/CampaignTools.php',
@@ -727,9 +733,9 @@ class ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitf74ff75ff060171dfddfab5bd0301c85::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7::$classMap;
 
         }, null, ClassLoader::class);
     }

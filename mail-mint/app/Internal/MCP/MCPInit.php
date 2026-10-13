@@ -28,6 +28,11 @@ class MCPInit {
         add_action( 'wp_abilities_api_init',            [ $this, 'registerAbilities' ] );
         add_action( 'mcp_adapter_init',                 [ $this, 'registerCustomServer' ] );
 
+        // Start the adapter ourselves. Without this, mcp_adapter_init only fires when another
+        // plugin (WooCommerce, WPFunnels, ...) happens to boot it, and /mrm/mcp is missing
+        // everywhere else. instance() is a singleton, so sharing it with those plugins is safe.
+        $this->bootAdapter();
+
         // Cache invalidation for get-crm-context
         $invalidate = [ ContextTools::class, 'invalidateCache' ];
         foreach ( [
@@ -36,6 +41,21 @@ class MCPInit {
             'mailmint_custom_field_added', 'mailmint_custom_field_updated', 'mailmint_custom_field_deleted',
         ] as $hook ) {
             add_action( $hook, $invalidate );
+        }
+    }
+
+    /**
+     * Ask the MCP adapter for its singleton so it schedules its own bootstrap on rest_api_init.
+     */
+    private function bootAdapter(): void {
+        if ( ! class_exists( '\WP\MCP\Core\McpAdapter' ) ) {
+            return;
+        }
+
+        try {
+            \WP\MCP\Core\McpAdapter::instance();
+        } catch ( \Throwable $e ) {
+            error_log( 'Mail Mint MCP: adapter failed to start: ' . $e->getMessage() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
         }
     }
 

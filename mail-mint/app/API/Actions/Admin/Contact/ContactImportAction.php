@@ -116,6 +116,444 @@ class ContactImportAction implements Action {
 	}
 
     /**
+     * Summary: Fetches MailerLite groups and contact attributes.
+     *
+     * Description: Verifies the MailerLite API key, then returns the account's groups and the contact fields to map to.
+     *
+     * @access public
+     *
+     * @param string $key The MailerLite API key.
+     * @return array Returns MailerLite groups, headers and contact attributes, or an error array with 'status' and 'message'.
+     * @since 1.32.0
+     */
+    public function fetch_mailerlite_groups_and_contact_attributes( $key ){
+        $groups = Import::get_mailerlite_groups( $key );
+
+        if( isset( $groups['status'] ) && 401 === $groups['status'] ){
+            return $groups;
+        }
+
+        // The total of every subscriber, for importing without picking a group.
+        $response = Import::get_mailerlite_response( $key, 'subscribers', array( 'limit' => 0 ) );
+        $total    = isset( $response['total'] ) ? (int) $response['total'] : 0;
+
+        $contacts_attrs = Import::get_contact_general_fields();
+        $contacts_attrs = apply_filters( 'mint_contacts_attrs', $contacts_attrs );
+
+        return array(
+            'mailerlite_groups' => $groups,
+            'total_subscribers' => $total,
+            'headers'           => array(),
+            'fields'            => $contacts_attrs,
+        );
+    }
+
+    /**
+     * Summary: Retrieves MailerLite subscriber headers.
+     * Description: Returns the subscriber columns (email plus every MailerLite field) and the batch plan for a group.
+     *
+     * @access public
+     *
+     * @param array $params The parameters including group ID ("all" for every subscriber), API key and member count.
+     *
+     * @return array Returns the total, batch count, batch size, headers and header labels, or an error array.
+     * @since 1.32.0
+     */
+    public function get_mailerlite_member_headers( $params ){
+        $group_id = isset( $params['group_id'] ) ? (string) $params['group_id'] : '';
+        if( '' === $group_id ){
+            return array();
+        }
+
+        $key          = isset( $params['key'] ) ? $params['key'] : '';
+        $member_count = isset( $params['member_count'] ) ? (int) $params['member_count'] : 0;
+        $batch_size   = 100;
+
+        $response = Import::get_mailerlite_response( $key, 'fields', array( 'limit' => 100 ) );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return $response;
+        }
+
+        $fields = isset( $response['data'] ) && is_array( $response['data'] ) ? $response['data'] : array();
+
+        $headers       = array( 'email' );
+        $header_labels = array( 'email' => __( 'Email', 'mrm' ) );
+
+        foreach ( $fields as $field ) {
+            if ( empty( $field['key'] ) ) {
+                continue;
+            }
+            $headers[]                      = $field['key'];
+            $header_labels[ $field['key'] ] = isset( $field['name'] ) ? $field['name'] : $field['key'];
+        }
+
+        // MailerLite's "name" field holds the first name.
+        if ( isset( $header_labels['name'] ) ) {
+            $header_labels['name'] = __( 'First Name', 'mrm' );
+        }
+
+        return array (
+            'total'        => $member_count,
+            'total_batch'  => ceil( $member_count / $batch_size ),
+            'per_batch'    => $batch_size,
+            'headers'      => $headers,
+            'headerLabels' => $header_labels,
+        );
+	}
+
+    /**
+     * Summary: Fetches Drip accounts, tags and contact attributes.
+     *
+     * Description: Verifies the Drip API token, then returns its accounts, the chosen account's tags,
+     * its active subscriber total and the contact fields to map to.
+     *
+     * @access public
+     *
+     * @param string $token      The Drip API token.
+     * @param string $account_id Optional. The account to read; the first account when empty or unknown.
+     * @return array Returns Drip accounts, tags, totals and contact attributes, or an error array with 'status' and 'message'.
+     * @since 1.32.0
+     */
+    public function fetch_drip_accounts_and_contact_attributes( $token, $account_id = '' ){
+        $accounts = Import::get_drip_accounts( $token );
+
+        if( isset( $accounts['status'] ) && 401 === $accounts['status'] ){
+            return $accounts;
+        }
+
+        if( empty( $accounts ) ){
+            return array(
+                'status'  => 401,
+                'message' => __( 'No Drip account was found for this API token.', 'mrm' ),
+            );
+        }
+
+        $account_ids = array_column( $accounts, 'id' );
+        if( ! in_array( (string) $account_id, $account_ids, true ) ){
+            $account_id = $account_ids[0];
+        }
+
+        $response = Import::get_drip_response( $token, rawurlencode( $account_id ) . '/tags' );
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return $response;
+        }
+        $tags = isset( $response['tags'] ) && is_array( $response['tags'] ) ? array_values( array_filter( $response['tags'], 'is_string' ) ) : array();
+
+        // The total of every active subscriber, for importing without picking a tag.
+        $total = Import::get_drip_subscriber_total( $token, $account_id );
+        if( is_array( $total ) ){
+            return $total;
+        }
+
+        $contacts_attrs = Import::get_contact_general_fields();
+        $contacts_attrs = apply_filters( 'mint_contacts_attrs', $contacts_attrs );
+
+        return array(
+            'drip_accounts'     => $accounts,
+            'account_id'        => $account_id,
+            'drip_tags'         => $tags,
+            'total_subscribers' => $total,
+            'headers'           => array(),
+            'fields'            => $contacts_attrs,
+        );
+    }
+
+    /**
+     * Summary: Retrieves Drip subscriber headers.
+     * Description: Returns the subscriber columns (standard Drip fields plus every custom field) and the batch plan
+     * for an account, optionally narrowed to one tag.
+     *
+     * @access public
+     *
+     * @param array $params The parameters including API token, account ID and tag ("all" for every subscriber).
+     *
+     * @return array Returns the total, batch count, batch size, headers and header labels, or an error array.
+     * @since 1.32.0
+     */
+    public function get_drip_member_headers( $params ){
+        $token      = isset( $params['token'] ) ? $params['token'] : '';
+        $account_id = isset( $params['account_id'] ) ? (string) $params['account_id'] : '';
+        $tag        = isset( $params['tag'] ) && 'all' !== $params['tag'] ? (string) $params['tag'] : '';
+        $batch_size = 100;
+
+        if( '' === $account_id ){
+            return array(
+                'status'  => 401,
+                'message' => __( 'Please select a Drip account to import.', 'mrm' ),
+            );
+        }
+
+        $total = Import::get_drip_subscriber_total( $token, $account_id, $tag );
+        if( is_array( $total ) ){
+            return $total;
+        }
+
+        if( 0 === $total ){
+            return array(
+                'status'  => 401,
+                'message' => '' === $tag
+                    ? __( 'This Drip account has no active subscribers to import.', 'mrm' )
+                    : __( 'No active subscribers have this tag.', 'mrm' ),
+            );
+        }
+
+        $headers       = array( 'email', 'first_name', 'last_name', 'address1', 'address2', 'city', 'state', 'zip', 'country', 'phone' );
+        $header_labels = array(
+            'email'      => __( 'Email', 'mrm' ),
+            'first_name' => __( 'First Name', 'mrm' ),
+            'last_name'  => __( 'Last Name', 'mrm' ),
+            'address1'   => __( 'Address Line 1', 'mrm' ),
+            'address2'   => __( 'Address Line 2', 'mrm' ),
+            'city'       => __( 'City', 'mrm' ),
+            'state'      => __( 'State', 'mrm' ),
+            'zip'        => __( 'Postal Code', 'mrm' ),
+            'country'    => __( 'Country', 'mrm' ),
+            'phone'      => __( 'Phone', 'mrm' ),
+        );
+
+        $response = Import::get_drip_response( $token, rawurlencode( $account_id ) . '/custom_field_identifiers' );
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return $response;
+        }
+
+        $identifiers = isset( $response['custom_field_identifiers'] ) && is_array( $response['custom_field_identifiers'] ) ? $response['custom_field_identifiers'] : array();
+        foreach ( $identifiers as $identifier ) {
+            if ( ! is_string( $identifier ) || '' === $identifier ) {
+                continue;
+            }
+            // Custom fields live under "custom_fields" in Drip, so they get a prefix to never clash with the standard ones.
+            $headers[]                                      = 'custom_fields.' . $identifier;
+            $header_labels[ 'custom_fields.' . $identifier ] = $identifier;
+        }
+
+        return array (
+            'total'        => $total,
+            'total_batch'  => ceil( $total / $batch_size ),
+            'per_batch'    => $batch_size,
+            'headers'      => $headers,
+            'headerLabels' => $header_labels,
+        );
+	}
+
+    /**
+     * Summary: Fetches ActiveCampaign lists and contact attributes.
+     *
+     * Description: Verifies the ActiveCampaign API URL and key, then returns the account's lists and the contact fields to map to.
+     *
+     * @access public
+     *
+     * @param string $api_url The ActiveCampaign API URL.
+     * @param string $key     The ActiveCampaign API key.
+     * @return array Returns ActiveCampaign lists and contact attributes, or an error array with 'status' and 'message'.
+     * @since 1.32.0
+     */
+    public function fetch_activecampaign_lists_and_contact_attributes( $api_url, $key ){
+        $lists = Import::get_activecampaign_lists( $api_url, $key );
+
+        if( isset( $lists['status'] ) && 401 === $lists['status'] ){
+            return $lists;
+        }
+
+        $contacts_attrs = Import::get_contact_general_fields();
+        $contacts_attrs = apply_filters( 'mint_contacts_attrs', $contacts_attrs );
+
+        return array(
+            'activecampaign_lists' => $lists,
+            'headers'              => array(),
+            'fields'               => $contacts_attrs,
+        );
+    }
+
+    /**
+     * Summary: Retrieves ActiveCampaign contact headers.
+     * Description: Returns the contact columns (standard fields plus every custom field) and the batch plan for a list.
+     *
+     * @access public
+     *
+     * @param array $params The parameters including API URL, API key and list ID.
+     *
+     * @return array Returns the total, batch count, batch size, headers and header labels, or an error array.
+     * @since 1.32.0
+     */
+    public function get_activecampaign_member_headers( $params ){
+        $api_url    = isset( $params['api_url'] ) ? $params['api_url'] : '';
+        $key        = isset( $params['key'] ) ? $params['key'] : '';
+        $list_id    = isset( $params['list_id'] ) ? (string) $params['list_id'] : '';
+        $batch_size = 100;
+
+        if( '' === $list_id ){
+            return array(
+                'status'  => 401,
+                'message' => __( 'Please select an ActiveCampaign list to import.', 'mrm' ),
+            );
+        }
+
+        $total = Import::get_activecampaign_contact_total( $api_url, $key, $list_id );
+        if( is_array( $total ) ){
+            return $total;
+        }
+
+        if( 0 === $total ){
+            return array(
+                'status'  => 401,
+                'message' => __( 'This list has no active contacts to import.', 'mrm' ),
+            );
+        }
+
+        $headers       = array( 'email', 'firstName', 'lastName', 'phone' );
+        $header_labels = array(
+            'email'     => __( 'Email', 'mrm' ),
+            'firstName' => __( 'First Name', 'mrm' ),
+            'lastName'  => __( 'Last Name', 'mrm' ),
+            'phone'     => __( 'Phone', 'mrm' ),
+        );
+
+        $offset = 0;
+        do {
+            $response = Import::get_activecampaign_response( $api_url, $key, 'fields', array( 'limit' => 100, 'offset' => $offset ) );
+            if( isset( $response['status'] ) && 401 === $response['status'] ){
+                return $response;
+            }
+
+            $fields = isset( $response['fields'] ) && is_array( $response['fields'] ) ? $response['fields'] : array();
+            foreach ( $fields as $field ) {
+                if ( empty( $field['id'] ) ) {
+                    continue;
+                }
+                // Custom field values are matched by field ID, so the column key carries it.
+                $headers[]                                = 'field.' . $field['id'];
+                $header_labels[ 'field.' . $field['id'] ] = isset( $field['title'] ) ? $field['title'] : (string) $field['id'];
+            }
+
+            $fields_total = isset( $response['meta']['total'] ) ? (int) $response['meta']['total'] : 0;
+            $offset      += 100;
+        } while ( $offset < $fields_total && ! empty( $fields ) );
+
+        return array (
+            'total'        => $total,
+            'total_batch'  => ceil( $total / $batch_size ),
+            'per_batch'    => $batch_size,
+            'headers'      => $headers,
+            'headerLabels' => $header_labels,
+        );
+	}
+
+    /**
+     * Summary: Fetches Kit tags and contact attributes.
+     *
+     * Description: Verifies the Kit v4 API key, then returns its tags, the active subscriber total and the contact fields to map to.
+     *
+     * @access public
+     *
+     * @param string $key The Kit v4 API key.
+     * @return array Returns Kit tags, the total and contact attributes, or an error array with 'status' and 'message'.
+     * @since 1.32.0
+     */
+    public function fetch_kit_tags_and_contact_attributes( $key ){
+        $tags = Import::get_kit_tags( $key );
+
+        if( isset( $tags['status'] ) && 401 === $tags['status'] ){
+            return $tags;
+        }
+
+        // The total of every active subscriber, for importing without picking a tag.
+        $total = Import::get_kit_subscriber_total( $key, 'all' );
+        if( is_array( $total ) ){
+            return $total;
+        }
+
+        $contacts_attrs = Import::get_contact_general_fields();
+        $contacts_attrs = apply_filters( 'mint_contacts_attrs', $contacts_attrs );
+
+        return array(
+            'kit_tags'          => $tags,
+            'total_subscribers' => $total,
+            'headers'           => array(),
+            'fields'            => $contacts_attrs,
+        );
+    }
+
+    /**
+     * Summary: Retrieves Kit subscriber headers.
+     * Description: Returns the subscriber columns (email, first name and every custom field) and the batch plan
+     * for every subscriber or one tag.
+     *
+     * @access public
+     *
+     * @param array $params The parameters including API key and tag ID ("all" for every subscriber).
+     *
+     * @return array Returns the total, batch count, batch size, headers and header labels, or an error array.
+     * @since 1.32.0
+     */
+    public function get_kit_member_headers( $params ){
+        $key        = isset( $params['key'] ) ? $params['key'] : '';
+        $tag_id     = isset( $params['tag_id'] ) ? (string) $params['tag_id'] : '';
+        $batch_size = 100;
+
+        if( '' === $tag_id ){
+            return array(
+                'status'  => 401,
+                'message' => __( 'Please select a Kit tag to import.', 'mrm' ),
+            );
+        }
+
+        $total = Import::get_kit_subscriber_total( $key, $tag_id );
+        if( is_array( $total ) ){
+            return $total;
+        }
+
+        if( 0 === $total ){
+            return array(
+                'status'  => 401,
+                'message' => 'all' === $tag_id
+                    ? __( 'This Kit account has no active subscribers to import.', 'mrm' )
+                    : __( 'No active subscribers have this tag.', 'mrm' ),
+            );
+        }
+
+        $headers       = array( 'email_address', 'first_name' );
+        $header_labels = array(
+            'email_address' => __( 'Email', 'mrm' ),
+            'first_name'    => __( 'First Name', 'mrm' ),
+        );
+
+        $after = '';
+        do {
+            $query = array( 'per_page' => 1000 );
+            if ( '' !== $after ) {
+                $query['after'] = $after;
+            }
+
+            $response = Import::get_kit_response( $key, 'custom_fields', $query );
+            if( isset( $response['status'] ) && 401 === $response['status'] ){
+                return $response;
+            }
+
+            $fields = isset( $response['custom_fields'] ) && is_array( $response['custom_fields'] ) ? $response['custom_fields'] : array();
+            foreach ( $fields as $field ) {
+                if ( empty( $field['key'] ) ) {
+                    continue;
+                }
+                // Custom field values sit under "fields" on each subscriber, so the column key carries the prefix.
+                $headers[]                                  = 'fields.' . $field['key'];
+                $header_labels[ 'fields.' . $field['key'] ] = isset( $field['label'] ) ? $field['label'] : $field['key'];
+            }
+
+            $has_next = ! empty( $response['pagination']['has_next_page'] ) && ! empty( $response['pagination']['end_cursor'] );
+            $after    = $has_next ? (string) $response['pagination']['end_cursor'] : '';
+        } while ( $has_next && ! empty( $fields ) );
+
+        return array (
+            'total'        => $total,
+            'total_batch'  => ceil( $total / $batch_size ),
+            'per_batch'    => $batch_size,
+            'headers'      => $headers,
+            'headerLabels' => $header_labels,
+        );
+	}
+
+    /**
      * Process contact attribute import using provided parameters.
      *
      * This function processes the contact attribute import based on the provided parameters.
@@ -607,6 +1045,8 @@ class ContactImportAction implements Action {
             }
         }
 
+		$contact_args = $this->remove_non_overwritable_fields( $contact_args, $params );
+
 		$contact_id = ContactModel::get_id_by_email($contact_email);
 		ContactModel::update($contact_args, $contact_id);
 	
@@ -618,6 +1058,24 @@ class ContactImportAction implements Action {
 		$exists++;
         return compact('skipped', 'exists', 'imported');
 	}
+
+    /**
+     * Drop mapped fields that should not overwrite an existing contact's data.
+     *
+     * A mapping opts out with `'overwrite' => false`; mappings without the flag
+     * keep overwriting, so older import screens behave as before.
+     *
+     * @access private
+     *
+     * @param array $contact_args Prepared contact arguments.
+     * @param array $params       Import request parameters containing the field map.
+     * @return array Contact arguments without the non-overwritable fields.
+     *
+     * @since 1.31.5
+     */
+    private function remove_non_overwritable_fields( $contact_args, $params ) {
+        return Import::remove_non_overwritable_fields( $contact_args, $params );
+    }
 
     /**
      * Get WordPress Roles with Formatting.
@@ -945,6 +1403,16 @@ class ContactImportAction implements Action {
         $total_users = (int) $wp_users['total_users'];
 
         /**
+         * Filter the LearnDash student columns offered on the Map Columns step.
+         *
+         * @param array $headers Keys of the formatted user data (user fields and user meta).
+         * @return array
+         *
+         * @since 1.31.5
+         */
+        $headers = apply_filters( 'mint_learndash_user_import_headers', $this->get_lms_user_import_headers() );
+
+        /**
          * Get the import batch limit per operation.
          *
          * @param int $per_batch The default import batch limit per operation.
@@ -962,6 +1430,7 @@ class ContactImportAction implements Action {
                             'total'            => $total_users,
                             'isImportByCourse' => $params['isImportByCourse'],
                             'selectedCourses'  => $params['selectedCourses'],
+                            'headers'          => $headers,
                         ),
             'message' => __('Data retrieval and processing completed successfully.', 'mrm')
         );
@@ -1006,9 +1475,17 @@ class ContactImportAction implements Action {
         }
 
         $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
+        $mappings = isset( $params['map'] ) && is_array( $params['map'] ) ? $params['map'] : array();
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_user_to_insert($wp_user, $params, 'LearnDash');
+            $result = $this->insert_lms_user( $wp_user, $params, $mappings, 'LearnDash' );
+
+            if ( ! is_array( $result ) ) {
+                return array(
+                    'status'  => 'failed',
+                    'message' => __( 'The email field is required.', 'mrm' ),
+                );
+            }
 
             $skipped += $result['skipped'];
             $exists += $result['exists'];
@@ -1035,6 +1512,53 @@ class ContactImportAction implements Action {
     }
 
     /**
+     * Default user columns offered on the Map Columns step for LMS and membership imports.
+     *
+     * They are keys of the formatted user data (see format_contact_data_from_wp_user()).
+     *
+     * @access private
+     *
+     * @return array
+     * @since 1.31.5
+     */
+    private function get_lms_user_import_headers() {
+        return array(
+            'user_email',
+            'first_name',
+            'last_name',
+            'user_login',
+            'nickname',
+            'user_registered',
+            'id',
+        );
+    }
+
+    /**
+     * Insert or update one LMS student or membership member as a contact.
+     *
+     * The new import screen sends a field map, which is applied like a WordPress
+     * user import (with per-field Overwrite); the legacy screens send none and keep
+     * the fixed email/name import.
+     *
+     * @access private
+     *
+     * @param array  $wp_user  Formatted user data.
+     * @param array  $params   Import request parameters.
+     * @param array  $mappings Field map from the request, or an empty array.
+     * @param string $source   Contact source label.
+     * @return array|string Import counts, or 'failed' when no column maps to the email.
+     * @since 1.31.5
+     */
+    private function insert_lms_user( $wp_user, $params, $mappings, $source ) {
+        if ( empty( $mappings ) ) {
+            return $this->process_individual_user_to_insert( $wp_user, $params, $source );
+        }
+
+        $wp_user['ID'] = isset( $wp_user['id'] ) ? $wp_user['id'] : null;
+        return $this->process_individual_wordpress_user_to_insert( $wp_user, $params, $mappings, $source );
+    }
+
+    /**
      * Retrieve contacts associated with Tutor LMS.
      *
      * Description: Retrieves contacts associated with LearnDash based on the provided parameters.
@@ -1048,6 +1572,16 @@ class ContactImportAction implements Action {
         $wp_users    = Import::get_wp_users_by_tutorlms_with_limit_offset( $params['selectedCourses'], 5 );
         $contacts    = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
         $total_users = (int) $wp_users['total_users'];
+
+        /**
+         * Filter the Tutor LMS student columns offered on the Map Columns step.
+         *
+         * @param array $headers Keys of the formatted user data (user fields and user meta).
+         * @return array
+         *
+         * @since 1.31.5
+         */
+        $headers = apply_filters( 'mint_tutorlms_user_import_headers', $this->get_lms_user_import_headers() );
 
         /**
          * Get the import batch limit per operation.
@@ -1067,6 +1601,7 @@ class ContactImportAction implements Action {
                             'total'            => $total_users,
                             'isImportByCourse' => $params['isImportByCourse'],
                             'selectedCourses'  => $params['selectedCourses'],
+                            'headers'          => $headers,
                         ),
             'message' => __('Data retrieval and processing completed successfully.', 'mrm')
         );
@@ -1111,9 +1646,17 @@ class ContactImportAction implements Action {
         }
 
         $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
+        $mappings = isset( $params['map'] ) && is_array( $params['map'] ) ? $params['map'] : array();
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_user_to_insert($wp_user, $params, 'Tutor LMS');
+            $result = $this->insert_lms_user( $wp_user, $params, $mappings, 'Tutor LMS' );
+
+            if ( ! is_array( $result ) ) {
+                return array(
+                    'status'  => 'failed',
+                    'message' => __( 'The email field is required.', 'mrm' ),
+                );
+            }
 
             $skipped += $result['skipped'];
             $exists += $result['exists'];
@@ -1155,6 +1698,16 @@ class ContactImportAction implements Action {
         $total_users = (int) $wp_users['total_users'];
 
         /**
+         * Filter the MemberPress member columns offered on the Map Columns step.
+         *
+         * @param array $headers Keys of the formatted user data (user fields and user meta).
+         * @return array
+         *
+         * @since 1.31.5
+         */
+        $headers = apply_filters( 'mint_memberpress_user_import_headers', $this->get_lms_user_import_headers() );
+
+        /**
          * Get the import batch limit per operation.
          *
          * @param int $per_batch The default import batch limit per operation.
@@ -1172,6 +1725,7 @@ class ContactImportAction implements Action {
                             'total'           => $total_users,
                             'isImportByLevel' => $params['isImportByLevel'],
                             'selectedLevels'  => $params['selectedLevels'],
+                            'headers'         => $headers,
                         ),
             'message' => __('Data retrieval and processing completed successfully.', 'mrm')
         );
@@ -1216,9 +1770,17 @@ class ContactImportAction implements Action {
         }
 
         $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
+        $mappings = isset( $params['map'] ) && is_array( $params['map'] ) ? $params['map'] : array();
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_user_to_insert($wp_user, $params, 'MemberPress');
+            $result = $this->insert_lms_user( $wp_user, $params, $mappings, 'MemberPress' );
+
+            if ( ! is_array( $result ) ) {
+                return array(
+                    'status'  => 'failed',
+                    'message' => __( 'The email field is required.', 'mrm' ),
+                );
+            }
 
             $skipped += $result['skipped'];
             $exists += $result['exists'];
@@ -1260,6 +1822,16 @@ class ContactImportAction implements Action {
         $total_users = (int) $wp_users['total_users'];
 
         /**
+         * Filter the LifterLMS student columns offered on the Map Columns step.
+         *
+         * @param array $headers Keys of the formatted user data (user fields and user meta).
+         * @return array
+         *
+         * @since 1.31.5
+         */
+        $headers = apply_filters( 'mint_lifterlms_user_import_headers', $this->get_lms_user_import_headers() );
+
+        /**
          * Get the import batch limit per operation.
          *
          * @param int $per_batch The default import batch limit per operation.
@@ -1277,6 +1849,7 @@ class ContactImportAction implements Action {
                             'total'            => $total_users,
                             'isImportType'     => $params['isImportType'],
                             'selectedCourses'  => $params['selectedCourses'],
+                            'headers'          => $headers,
                         ),
             'message' => __('Data retrieval and processing completed successfully.', 'mrm')
         );
@@ -1321,9 +1894,17 @@ class ContactImportAction implements Action {
         }
 
         $wp_users = array_map(array($this, 'format_contact_data_from_wp_user'), $wp_users['formatted_users']);
+        $mappings = isset( $params['map'] ) && is_array( $params['map'] ) ? $params['map'] : array();
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_user_to_insert($wp_user, $params, 'LifterLMS');
+            $result = $this->insert_lms_user( $wp_user, $params, $mappings, 'LifterLMS' );
+
+            if ( ! is_array( $result ) ) {
+                return array(
+                    'status'  => 'failed',
+                    'message' => __( 'The email field is required.', 'mrm' ),
+                );
+            }
 
             $skipped += $result['skipped'];
             $exists += $result['exists'];
@@ -1369,6 +1950,16 @@ class ContactImportAction implements Action {
         $total_users = (int) $wp_users['total_users'];
 
         /**
+         * Filter the BuddyPress member columns offered on the Map Columns step.
+         *
+         * @param array $headers Keys of the formatted user data (user fields and user meta).
+         * @return array
+         *
+         * @since 1.31.5
+         */
+        $headers = apply_filters( 'mint_buddypress_user_import_headers', $this->get_lms_user_import_headers() );
+
+        /**
          * Get the import batch limit per operation.
          *
          * @param int $per_batch The default import batch limit per operation.
@@ -1386,6 +1977,7 @@ class ContactImportAction implements Action {
                             'total'       => $total_users,
                             'importType'  => $import_type,
                             'selection'   => $selection,
+                            'headers'     => $headers,
                         ),
             'message' => __( 'Data retrieval and processing completed successfully.', 'mrm' ),
         );
@@ -1433,9 +2025,17 @@ class ContactImportAction implements Action {
         }
 
         $wp_users = array_map( array( $this, 'format_contact_data_from_wp_user' ), $wp_users['formatted_users'] );
+        $mappings = isset( $params['map'] ) && is_array( $params['map'] ) ? $params['map'] : array();
 
         foreach ( $wp_users as $wp_user ) {
-            $result = $this->process_individual_user_to_insert( $wp_user, $params, 'BuddyPress' );
+            $result = $this->insert_lms_user( $wp_user, $params, $mappings, 'BuddyPress' );
+
+            if ( ! is_array( $result ) ) {
+                return array(
+                    'status'  => 'failed',
+                    'message' => __( 'The email field is required.', 'mrm' ),
+                );
+            }
 
             $skipped  += $result['skipped'];
             $exists   += $result['exists'];
@@ -1640,11 +2240,10 @@ class ContactImportAction implements Action {
             } else {
                 if (!empty($params['skip_existing'])) {
                     $skipped++;
-                    $exists_counts++;
                     continue;
                 }
                 $contact_id = ContactModel::get_id_by_email($contact_email);
-                ContactModel::update($contact_args, $contact_id);
+                ContactModel::update(Import::remove_non_overwritable_fields($contact_args, $params), $contact_id);
                 if ($contact_args['status'] === 'pending' && !empty($params['optin_confirmation'])) {
                     MessageController::get_instance()->send_double_opt_in($contact_id);
                 }
@@ -1657,7 +2256,6 @@ class ContactImportAction implements Action {
                     ContactGroupModel::set_lists_to_contact($params['lists'], $contact_id);
                 }
 
-                $skipped++;
                 $exists_counts++;
             }
         }

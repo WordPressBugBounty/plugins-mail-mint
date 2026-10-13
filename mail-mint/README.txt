@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, AI, email, newslett
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.4
+Stable tag:  1.31.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -585,6 +585,14 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
+= 1.31.5 (2026-10-13) =
+* New: Import contacts from MailerLite, Drip, and Kit.
+* New: Import contacts from LearnDash, LifterLMS, MemberPress, Easy Digital Downloads, BuddyPress and Fluent Booking.
+* New: Connect AI clients to Mail Mint with one-click OAuth sign-in.
+* Improvement: Redesigned contact import journey.
+* Fix: Automations keep running in the background on LiteSpeed servers.
+* Fix: The pause icon in the campaign row actions menu no longer renders oversized.
+* Fix: Segment filters now handle contact field values more safely.
 
 = 1.31.4 (2026-09-30) =
 * Improvement: Redesigned the list tables with column sorting, header filters and a cleaner row actions menu.

@@ -717,6 +717,146 @@ class ContactController extends AdminBaseController {
         }
     }
 
+    /**
+     * Import one batch of MailerLite subscribers.
+     *
+     * @param WP_REST_Request $request Request object used to generate the response.
+     *
+     * @return WP_REST_Response
+     * @since 1.32.0
+     */
+    public function import_contacts_mailerlite( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+
+        try {
+            $service = new ImportService( $this->repository() );
+            $result  = $service->importFromMailerlite( $params );
+
+            if ( isset( $result['error'] ) ) {
+                return new WP_REST_Response( array(
+                    'status'  => 'failed',
+                    'message' => $result['error'],
+                ) );
+            }
+
+            return new WP_REST_Response( array(
+                'status'  => 'success',
+                'data'    => $result,
+                'message' => __( 'Import contact from MailerLite has been successful.', 'mrm' ),
+            ) );
+        } catch ( Exception $e ) {
+            return new WP_REST_Response( array(
+                'status'  => 'failed',
+                'message' => __( 'Import contact from MailerLite has not been successful.', 'mrm' ),
+            ) );
+        }
+    }
+
+    /**
+     * Import one batch of Drip subscribers.
+     *
+     * @param WP_REST_Request $request Request object used to generate the response.
+     *
+     * @return WP_REST_Response
+     * @since 1.32.0
+     */
+    public function import_contacts_drip( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+
+        try {
+            $service = new ImportService( $this->repository() );
+            $result  = $service->importFromDrip( $params );
+
+            if ( isset( $result['error'] ) ) {
+                return new WP_REST_Response( array(
+                    'status'  => 'failed',
+                    'message' => $result['error'],
+                ) );
+            }
+
+            return new WP_REST_Response( array(
+                'status'  => 'success',
+                'data'    => $result,
+                'message' => __( 'Import contact from Drip has been successful.', 'mrm' ),
+            ) );
+        } catch ( Exception $e ) {
+            return new WP_REST_Response( array(
+                'status'  => 'failed',
+                'message' => __( 'Import contact from Drip has not been successful.', 'mrm' ),
+            ) );
+        }
+    }
+
+    /**
+     * Import one batch of ActiveCampaign contacts.
+     *
+     * @param WP_REST_Request $request Request object used to generate the response.
+     *
+     * @return WP_REST_Response
+     * @since 1.32.0
+     */
+    public function import_contacts_activecampaign( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+
+        try {
+            $service = new ImportService( $this->repository() );
+            $result  = $service->importFromActiveCampaign( $params );
+
+            if ( isset( $result['error'] ) ) {
+                return new WP_REST_Response( array(
+                    'status'  => 'failed',
+                    'message' => $result['error'],
+                ) );
+            }
+
+            return new WP_REST_Response( array(
+                'status'  => 'success',
+                'data'    => $result,
+                'message' => __( 'Import contact from ActiveCampaign has been successful.', 'mrm' ),
+            ) );
+        } catch ( Exception $e ) {
+            return new WP_REST_Response( array(
+                'status'  => 'failed',
+                'message' => __( 'Import contact from ActiveCampaign has not been successful.', 'mrm' ),
+            ) );
+        }
+    }
+
+    /**
+     * Import one batch of Kit subscribers.
+     *
+     * @param WP_REST_Request $request Request object used to generate the response.
+     *
+     * @return WP_REST_Response
+     * @since 1.32.0
+     */
+    public function import_contacts_kit( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+
+        try {
+            $service = new ImportService( $this->repository() );
+            $result  = $service->importFromKit( $params );
+
+            if ( isset( $result['error'] ) ) {
+                return new WP_REST_Response( array(
+                    'status'  => 'failed',
+                    'message' => $result['error'],
+                ) );
+            }
+
+            return new WP_REST_Response( array(
+                'status'  => 'success',
+                'data'    => $result,
+                'message' => __( 'Import contact from Kit has been successful.', 'mrm' ),
+            ) );
+        } catch ( Exception $e ) {
+            return new WP_REST_Response( array(
+                'status'  => 'failed',
+                'message' => __( 'Import contact from Kit has not been successful.', 'mrm' ),
+            ) );
+        }
+    }
+
 	/**
      * Import contacts from woocommerce customers
      *

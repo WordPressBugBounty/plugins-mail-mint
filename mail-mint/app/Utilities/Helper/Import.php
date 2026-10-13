@@ -532,6 +532,576 @@ class Import
 	}
 
 	/**
+	 * Summary: Retrieves a MailerLite API response.
+	 * Description: Calls the MailerLite API (connect.mailerlite.com) with the given API token, endpoint and query.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_key  The MailerLite API token.
+	 * @param string $endpoint The MailerLite API endpoint, e.g. "groups".
+	 * @param array  $query    Optional. Query arguments such as limit, page or cursor.
+	 *
+	 * @return array Returns the decoded MailerLite response or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_mailerlite_response( string $api_key, string $endpoint, array $query = array() ) {
+		$api_key = trim( $api_key );
+		if ( empty( $api_key ) ) {
+			return array(
+				'status'  => 401,
+				'message' => __( 'Please enter your MailerLite API key.', 'mrm' ),
+			);
+		}
+
+		$url = 'https://connect.mailerlite.com/api/' . $endpoint;
+		if ( ! empty( $query ) ) {
+			$url .= '?' . http_build_query( $query );
+		}
+
+		$response = wp_remote_get(
+			esc_url_raw( $url ),
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Authorization' => 'Bearer ' . $api_key,
+					'Accept'        => 'application/json',
+					'Content-Type'  => 'application/json',
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'status'  => 401,
+				'message' => $response->get_error_message(),
+			);
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 === $code && is_array( $body ) ) {
+			return $body;
+		}
+
+		if ( 401 === $code ) {
+			$message = __( 'Your MailerLite API key is invalid.', 'mrm' );
+		} else {
+			$message = isset( $body['message'] ) ? $body['message'] : __( 'Unable to connect to MailerLite.', 'mrm' );
+		}
+
+		return array(
+			'status'  => 401,
+			'message' => $message,
+		);
+	}
+
+	/**
+	 * Summary: Retrieves every MailerLite group.
+	 * Description: Walks the page-based groups endpoint and formats each group with name, ID and active subscriber count.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_key The MailerLite API token.
+	 * @return array Returns the formatted groups, or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_mailerlite_groups( string $api_key ) {
+		$groups = array();
+		$page   = 1;
+
+		do {
+			$response = self::get_mailerlite_response(
+				$api_key,
+				'groups',
+				array(
+					'limit' => 100,
+					'page'  => $page,
+				)
+			);
+
+			if ( isset( $response['status'] ) && 401 === $response['status'] ) {
+				return $response;
+			}
+
+			$data = isset( $response['data'] ) && is_array( $response['data'] ) ? $response['data'] : array();
+			foreach ( $data as $group ) {
+				$groups[] = array(
+					'name'         => isset( $group['name'] ) ? $group['name'] : '',
+					'id'           => isset( $group['id'] ) ? (string) $group['id'] : '',
+					'member_count' => isset( $group['active_count'] ) ? (int) $group['active_count'] : 0,
+				);
+			}
+
+			$last_page = isset( $response['meta']['last_page'] ) ? (int) $response['meta']['last_page'] : $page;
+			$page++;
+		} while ( $page <= $last_page && ! empty( $data ) );
+
+		return $groups;
+	}
+
+	/**
+	 * Summary: Retrieves a Drip API response.
+	 * Description: Calls the Drip REST API v2 (api.getdrip.com) with the given API token, endpoint and query.
+	 * Drip authenticates with HTTP Basic: the token is the username and the password is blank.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_token The Drip API token.
+	 * @param string $endpoint  The Drip API endpoint, e.g. "accounts" or "{account_id}/subscribers".
+	 * @param array  $query     Optional. Query arguments such as page, per_page or tags.
+	 *
+	 * @return array Returns the decoded Drip response or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_drip_response( string $api_token, string $endpoint, array $query = array() ) {
+		$api_token = trim( $api_token );
+		if ( empty( $api_token ) ) {
+			return array(
+				'status'  => 401,
+				'message' => __( 'Please enter your Drip API token.', 'mrm' ),
+			);
+		}
+
+		$url = 'https://api.getdrip.com/v2/' . $endpoint;
+		if ( ! empty( $query ) ) {
+			$url .= '?' . http_build_query( $query );
+		}
+
+		$response = wp_remote_get(
+			esc_url_raw( $url ),
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Authorization' => 'Basic ' . base64_encode( $api_token . ':' ), // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+					'Accept'        => 'application/json',
+					// Drip rejects requests without a User-Agent.
+					'User-Agent'    => 'Mail Mint (' . home_url() . ')',
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'status'  => 401,
+				'message' => $response->get_error_message(),
+			);
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 === $code && is_array( $body ) ) {
+			return $body;
+		}
+
+		if ( 401 === $code ) {
+			$message = __( 'Your Drip API token is invalid.', 'mrm' );
+		} elseif ( 429 === $code ) {
+			$message = __( 'Drip\'s hourly API limit has been reached. Please try again later.', 'mrm' );
+		} else {
+			$message = isset( $body['errors'][0]['message'] ) ? $body['errors'][0]['message'] : __( 'Unable to connect to Drip.', 'mrm' );
+		}
+
+		return array(
+			'status'  => 401,
+			'message' => $message,
+		);
+	}
+
+	/**
+	 * Summary: Retrieves every Drip account the API token can access.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_token The Drip API token.
+	 * @return array Returns the accounts as [{id, name}], or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_drip_accounts( string $api_token ) {
+		$response = self::get_drip_response( $api_token, 'accounts' );
+
+		if ( isset( $response['status'] ) && 401 === $response['status'] ) {
+			return $response;
+		}
+
+		$accounts = array();
+		$data     = isset( $response['accounts'] ) && is_array( $response['accounts'] ) ? $response['accounts'] : array();
+		foreach ( $data as $account ) {
+			if ( empty( $account['id'] ) ) {
+				continue;
+			}
+			$accounts[] = array(
+				'id'   => (string) $account['id'],
+				'name' => isset( $account['name'] ) ? $account['name'] : (string) $account['id'],
+			);
+		}
+
+		return $accounts;
+	}
+
+	/**
+	 * Summary: Counts the active subscribers of a Drip account, optionally with one tag.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_token  The Drip API token.
+	 * @param string $account_id The Drip account ID.
+	 * @param string $tag        Optional. Only count subscribers with this tag.
+	 *
+	 * @return array|int Returns the subscriber count, or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_drip_subscriber_total( string $api_token, string $account_id, string $tag = '' ) {
+		$query = array(
+			'status'   => 'active',
+			'per_page' => 1,
+		);
+		if ( '' !== $tag ) {
+			$query['tags'] = $tag;
+		}
+
+		$response = self::get_drip_response( $api_token, rawurlencode( $account_id ) . '/subscribers', $query );
+
+		if ( isset( $response['status'] ) && 401 === $response['status'] ) {
+			return $response;
+		}
+
+		return isset( $response['meta']['total_count'] ) ? (int) $response['meta']['total_count'] : 0;
+	}
+
+	/**
+	 * Summary: Normalizes an ActiveCampaign API URL.
+	 * Description: Trims it and drops a trailing slash or "/api/3", so both the bare account URL and
+	 * the full API URL work. Only https URLs are accepted.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_url The API URL from ActiveCampaign → Settings → Developer.
+	 * @return string Returns the base URL, or an empty string when it is not a valid https URL.
+	 * @since 1.32.0
+	 */
+	public static function normalize_activecampaign_url( string $api_url ) {
+		$api_url = untrailingslashit( trim( $api_url ) );
+		$api_url = preg_replace( '#/api/3$#i', '', $api_url );
+		$api_url = untrailingslashit( $api_url );
+
+		if ( 'https' !== wp_parse_url( $api_url, PHP_URL_SCHEME ) || ! wp_http_validate_url( $api_url ) ) {
+			return '';
+		}
+
+		return $api_url;
+	}
+
+	/**
+	 * Summary: Retrieves an ActiveCampaign API response.
+	 * Description: Calls the ActiveCampaign API v3 of the given account with the given key, endpoint and query.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_url  The ActiveCampaign API URL, e.g. https://account.api-us1.com.
+	 * @param string $api_key  The ActiveCampaign API key.
+	 * @param string $endpoint The API endpoint, e.g. "lists" or "contacts".
+	 * @param array  $query    Optional. Query arguments such as limit, offset or listid.
+	 *
+	 * @return array Returns the decoded ActiveCampaign response or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_activecampaign_response( string $api_url, string $api_key, string $endpoint, array $query = array() ) {
+		$api_url = self::normalize_activecampaign_url( $api_url );
+		if ( '' === $api_url ) {
+			return array(
+				'status'  => 401,
+				'message' => __( 'Please enter a valid ActiveCampaign API URL (https://…).', 'mrm' ),
+			);
+		}
+
+		$api_key = trim( $api_key );
+		if ( empty( $api_key ) ) {
+			return array(
+				'status'  => 401,
+				'message' => __( 'Please enter your ActiveCampaign API key.', 'mrm' ),
+			);
+		}
+
+		$url = $api_url . '/api/3/' . $endpoint;
+		if ( ! empty( $query ) ) {
+			$url .= '?' . http_build_query( $query );
+		}
+
+		// The URL comes from the user, so the safe variant blocks local and private hosts.
+		$response = wp_safe_remote_get(
+			esc_url_raw( $url ),
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'Api-Token' => $api_key,
+					'Accept'    => 'application/json',
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'status'  => 401,
+				'message' => $response->get_error_message(),
+			);
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 === $code && is_array( $body ) ) {
+			return $body;
+		}
+
+		if ( 401 === $code || 403 === $code ) {
+			$message = __( 'Your ActiveCampaign API URL or key is invalid.', 'mrm' );
+		} elseif ( 429 === $code ) {
+			$message = __( 'ActiveCampaign\'s API limit has been reached. Please try again in a moment.', 'mrm' );
+		} elseif ( 404 === $code ) {
+			$message = __( 'No ActiveCampaign API was found at this URL.', 'mrm' );
+		} else {
+			$message = isset( $body['message'] ) ? $body['message'] : __( 'Unable to connect to ActiveCampaign.', 'mrm' );
+		}
+
+		return array(
+			'status'  => 401,
+			'message' => $message,
+		);
+	}
+
+	/**
+	 * Summary: Retrieves every ActiveCampaign list.
+	 * Description: Walks the offset-based lists endpoint and formats each list with name and ID.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_url The ActiveCampaign API URL.
+	 * @param string $api_key The ActiveCampaign API key.
+	 * @return array Returns the lists as [{id, name}], or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_activecampaign_lists( string $api_url, string $api_key ) {
+		$lists  = array();
+		$offset = 0;
+
+		do {
+			$response = self::get_activecampaign_response(
+				$api_url,
+				$api_key,
+				'lists',
+				array(
+					'limit'  => 100,
+					'offset' => $offset,
+				)
+			);
+
+			if ( isset( $response['status'] ) && 401 === $response['status'] ) {
+				return $response;
+			}
+
+			$data = isset( $response['lists'] ) && is_array( $response['lists'] ) ? $response['lists'] : array();
+			foreach ( $data as $list ) {
+				if ( empty( $list['id'] ) ) {
+					continue;
+				}
+				$lists[] = array(
+					'id'   => (string) $list['id'],
+					'name' => isset( $list['name'] ) ? $list['name'] : (string) $list['id'],
+				);
+			}
+
+			$total   = isset( $response['meta']['total'] ) ? (int) $response['meta']['total'] : 0;
+			$offset += 100;
+		} while ( $offset < $total && ! empty( $data ) );
+
+		return $lists;
+	}
+
+	/**
+	 * Summary: Counts the contacts that are active on an ActiveCampaign list.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_url The ActiveCampaign API URL.
+	 * @param string $api_key The ActiveCampaign API key.
+	 * @param string $list_id The ActiveCampaign list ID.
+	 *
+	 * @return array|int Returns the contact count, or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_activecampaign_contact_total( string $api_url, string $api_key, string $list_id ) {
+		$response = self::get_activecampaign_response(
+			$api_url,
+			$api_key,
+			'contacts',
+			array(
+				'listid' => $list_id,
+				'status' => 1,
+				'limit'  => 1,
+			)
+		);
+
+		if ( isset( $response['status'] ) && 401 === $response['status'] ) {
+			return $response;
+		}
+
+		return isset( $response['meta']['total'] ) ? (int) $response['meta']['total'] : 0;
+	}
+
+	/**
+	 * Summary: Retrieves a Kit API response.
+	 * Description: Calls the Kit API v4 (api.kit.com) with the given v4 API key, endpoint and query.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_key  The Kit v4 API key.
+	 * @param string $endpoint The Kit API endpoint, e.g. "tags" or "subscribers".
+	 * @param array  $query    Optional. Query arguments such as per_page, after or status.
+	 *
+	 * @return array Returns the decoded Kit response or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_kit_response( string $api_key, string $endpoint, array $query = array() ) {
+		$api_key = trim( $api_key );
+		if ( empty( $api_key ) ) {
+			return array(
+				'status'  => 401,
+				'message' => __( 'Please enter your Kit API key.', 'mrm' ),
+			);
+		}
+
+		$url = 'https://api.kit.com/v4/' . $endpoint;
+		if ( ! empty( $query ) ) {
+			$url .= '?' . http_build_query( $query );
+		}
+
+		$response = wp_remote_get(
+			esc_url_raw( $url ),
+			array(
+				'timeout' => 30,
+				'headers' => array(
+					'X-Kit-Api-Key' => $api_key,
+					'Accept'        => 'application/json',
+				),
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'status'  => 401,
+				'message' => $response->get_error_message(),
+			);
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		if ( 200 === $code && is_array( $body ) ) {
+			return $body;
+		}
+
+		if ( 401 === $code ) {
+			$message = __( 'Your Kit API key is invalid. Please use a v4 API key.', 'mrm' );
+		} elseif ( 429 === $code ) {
+			$message = __( 'Kit\'s API limit has been reached. Please try again shortly.', 'mrm' );
+		} else {
+			$message = isset( $body['errors'][0] ) && is_string( $body['errors'][0] ) ? $body['errors'][0] : __( 'Unable to connect to Kit.', 'mrm' );
+		}
+
+		return array(
+			'status'  => 401,
+			'message' => $message,
+		);
+	}
+
+	/**
+	 * Summary: Retrieves every Kit tag.
+	 * Description: Walks the cursor-based tags endpoint and formats each tag with name and ID.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_key The Kit v4 API key.
+	 * @return array Returns the tags as [{id, name}], or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_kit_tags( string $api_key ) {
+		$tags  = array();
+		$after = '';
+
+		do {
+			$query = array( 'per_page' => 1000 );
+			if ( '' !== $after ) {
+				$query['after'] = $after;
+			}
+
+			$response = self::get_kit_response( $api_key, 'tags', $query );
+			if ( isset( $response['status'] ) && 401 === $response['status'] ) {
+				return $response;
+			}
+
+			$data = isset( $response['tags'] ) && is_array( $response['tags'] ) ? $response['tags'] : array();
+			foreach ( $data as $tag ) {
+				if ( empty( $tag['id'] ) ) {
+					continue;
+				}
+				$tags[] = array(
+					'id'   => (string) $tag['id'],
+					'name' => isset( $tag['name'] ) ? $tag['name'] : (string) $tag['id'],
+				);
+			}
+
+			$has_next = ! empty( $response['pagination']['has_next_page'] ) && ! empty( $response['pagination']['end_cursor'] );
+			$after    = $has_next ? (string) $response['pagination']['end_cursor'] : '';
+		} while ( $has_next && ! empty( $data ) );
+
+		return $tags;
+	}
+
+	/**
+	 * Summary: Builds the Kit subscribers endpoint for "all" or one tag.
+	 *
+	 * @access public
+	 *
+	 * @param string $tag_id The Kit tag ID, or "all" (or empty) for every subscriber.
+	 * @return string Returns the endpoint path.
+	 * @since 1.32.0
+	 */
+	public static function get_kit_subscribers_endpoint( string $tag_id ) {
+		return ( '' === $tag_id || 'all' === $tag_id ) ? 'subscribers' : 'tags/' . rawurlencode( $tag_id ) . '/subscribers';
+	}
+
+	/**
+	 * Summary: Counts the active Kit subscribers, optionally with one tag.
+	 *
+	 * @access public
+	 *
+	 * @param string $api_key The Kit v4 API key.
+	 * @param string $tag_id  The Kit tag ID, or "all" for every subscriber.
+	 *
+	 * @return array|int Returns the subscriber count, or an error array with 'status' and 'message'.
+	 * @since 1.32.0
+	 */
+	public static function get_kit_subscriber_total( string $api_key, string $tag_id ) {
+		$response = self::get_kit_response(
+			$api_key,
+			self::get_kit_subscribers_endpoint( $tag_id ),
+			array(
+				'status'              => 'active',
+				'per_page'            => 1,
+				'include_total_count' => 'true',
+			)
+		);
+
+		if ( isset( $response['status'] ) && 401 === $response['status'] ) {
+			return $response;
+		}
+
+		return isset( $response['pagination']['total_count'] ) ? (int) $response['pagination']['total_count'] : 0;
+	}
+
+	/**
 	 * Validate the uploaded CSV file.
 	 *
 	 * This function checks whether the uploaded file is a valid CSV file.
@@ -695,6 +1265,45 @@ class Import
 		);
 
 		return $formatted_users;
+	}
+
+	/**
+	 * Drop mapped fields that should not overwrite an existing contact's data.
+	 *
+	 * A mapping opts out with `'overwrite' => false`; mappings without the flag
+	 * keep overwriting, so older import screens behave as before.
+	 *
+	 * @access public
+	 *
+	 * @param array $contact_args Prepared contact arguments.
+	 * @param array $params       Import request parameters containing the field map.
+	 * @return array Contact arguments without the non-overwritable fields.
+	 *
+	 * @since 1.31.5
+	 */
+	public static function remove_non_overwritable_fields( $contact_args, $params ) {
+		$mappings = isset( $params['map'] ) && is_array( $params['map'] ) ? $params['map'] : array();
+
+		foreach ( $mappings as $map ) {
+			if ( ! isset( $map['overwrite'] ) || rest_sanitize_boolean( $map['overwrite'] ) ) {
+				continue;
+			}
+
+			$target = isset( $map['target'] ) ? $map['target'] : '';
+
+			if ( in_array( $target, array( 'email', 'lists', 'tags' ), true ) ) {
+				continue;
+			}
+
+			// Status is a top-level contact field when mapped (MailPoet import).
+			if ( in_array( $target, array( 'first_name', 'last_name', 'status' ), true ) ) {
+				unset( $contact_args[ $target ] );
+			} else {
+				unset( $contact_args['meta_fields'][ $target ] );
+			}
+		}
+
+		return $contact_args;
 	}
 
 	/**
@@ -1162,7 +1771,7 @@ class Import
 	 * @param int    $offset      The offset for batch processing (default is 0).
 	 * @return array An array containing formatted user data and the total number of users.
 	 * @access public
-	 * @since 1.20.0
+	 * @since 1.32.0
 	 */
 	public static function get_wp_users_by_buddypress_with_limit_offset( $import_type, $selection, $number = 5, $offset = 0 ) {
 		if ( ! HelperFunctions::is_buddypress_active() ) {
@@ -1226,7 +1835,7 @@ class Import
 	 * @param int   $offset The offset for batch processing.
 	 * @return array An array containing 'user_ids' and 'total'.
 	 * @access private
-	 * @since 1.20.0
+	 * @since 1.32.0
 	 */
 	private static function get_buddypress_user_ids_by_groups( $groups, $number, $offset ) {
 		global $wpdb;
@@ -1257,7 +1866,7 @@ class Import
 	 * @param int   $offset       The offset for batch processing.
 	 * @return array An array containing 'user_ids' and 'total'.
 	 * @access private
-	 * @since 1.20.0
+	 * @since 1.32.0
 	 */
 	private static function get_buddypress_user_ids_by_member_types( $member_types, $number, $offset ) {
 		$type_slugs = array_column( $member_types, 'value' );

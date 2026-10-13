@@ -41,6 +41,69 @@ class SegmentFilterService {
 	);
 
 	/**
+	 * Filter conditions that may be dispatched from a segment filter rule.
+	 *
+	 * @var array
+	 * @since 1.31.5
+	 */
+	private static $filter_conditions = array(
+		'are_exactly_in',
+		'are_not_in',
+		'contains',
+		'does_not_contain',
+		'starts_with',
+		'does_not_start_with',
+		'ends_with',
+		'does_not_end_with',
+		'have_been_entered',
+		'have_not_been_entered',
+		'email_subscription_status_is_equal',
+		'email_subscription_status_is_not_equal',
+		'greater_than',
+		'less_than',
+		'equal',
+		'does_not_equal',
+		'before',
+		'after',
+		'in_the_date',
+		'in_the_between_dates',
+		'groups_includes_in',
+		'groups_does_not_include_in',
+		'custom_field_includes_in',
+		'custom_field_does_not_include_in',
+		'is_exist',
+		'is_not_exist',
+		'wc_select_field_includes_in',
+		'wc_select_field_does_not_include_in',
+		'opened_campaign',
+		'not_opened_campaign',
+		'email_was_sent',
+		'email_not_sent',
+		'email_bounced',
+		'clicked_any_link',
+		'not_clicked_any_link',
+		'opened_email',
+		'clicked_link',
+		'total_opens_count',
+		'total_clicks_count',
+		'emails_received_count',
+		'engagement_score',
+	);
+
+	/**
+	 * WooCommerce select fields that map to a filter method.
+	 *
+	 * @var array
+	 * @since 1.31.5
+	 */
+	private static $wc_select_fields = array(
+		'purchased_products',
+		'purchased_tags',
+		'purchased_categories',
+		'used_coupons',
+	);
+
+	/**
 	 * Build WHERE clause from segment filters using sequential accumulation.
 	 *
 	 * Traverses every filter in order. Each filter's logical connector joins it
@@ -104,7 +167,7 @@ class SegmentFilterService {
 					: array( sanitize_text_field( $filter['value'] ) );
 				$full_filter      = $filter;
 
-				if ( ! method_exists( $this, $filter_condition ) ) {
+				if ( ! $this->is_filter_condition( $filter_condition ) ) {
 					$is_first_in_group = false;
 					continue;
 				}
@@ -174,7 +237,7 @@ class SegmentFilterService {
 				}
 			}
 
-			if ( ! method_exists( $this, $filter_condition ) ) {
+			if ( ! $this->is_filter_condition( $filter_condition ) ) {
 				continue;
 			}
 
@@ -220,7 +283,7 @@ class SegmentFilterService {
 				: array( sanitize_text_field( $filter['value'] ) );
 			$full_filter      = $filter;
 
-			if ( ! method_exists( $this, $filter_condition ) ) {
+			if ( ! $this->is_filter_condition( $filter_condition ) ) {
 				continue;
 			}
 
@@ -241,6 +304,17 @@ class SegmentFilterService {
 		}
 
 		return $accumulated;
+	}
+
+	/**
+	 * Check whether a filter condition is a known filter operator.
+	 *
+	 * @param string $filter_condition Filter condition name.
+	 * @return bool
+	 * @since 1.31.5
+	 */
+	private function is_filter_condition( $filter_condition ) {
+		return in_array( $filter_condition, self::$filter_conditions, true ) && method_exists( $this, $filter_condition );
 	}
 
 	/**
@@ -361,7 +435,7 @@ class SegmentFilterService {
 			return $wpdb->prepare( 'c1.%i IN (%s) ', $filter_name, $filter_value );
 		}
 
-		return $this->get_meta_join_query( $filter_name, "('$filter_value')", 'IN' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, 'IN' );
 	}
 
 	private function are_not_in( $filter_name, $filter_value ) {
@@ -372,7 +446,7 @@ class SegmentFilterService {
 			return $wpdb->prepare( 'c1.%i NOT IN (%s) ', $filter_name, $filter_value );
 		}
 
-		return $this->get_meta_join_query( $filter_name, "('$filter_value')", 'NOT IN' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, 'NOT IN' );
 	}
 
 	private function contains( $filter_name, $filter_value ) {
@@ -385,7 +459,7 @@ class SegmentFilterService {
 				$query .= $wpdb->prepare( "c1.%i LIKE %s ", $filter_name, '%' . $wpdb->esc_like( $value ) . '%' );
 				$query .= $filter_size > 1 ? 'OR ' : '';
 			} else {
-				$query .= $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', '%' . $wpdb->esc_like( $value ) . '%' ), 'LIKE' );
+				$query .= $this->get_meta_join_query( $filter_name, '%' . $wpdb->esc_like( $value ) . '%', 'LIKE' );
 				$query .= $filter_size > 1 ? 'OR ' : '';
 			}
 		}
@@ -403,7 +477,7 @@ class SegmentFilterService {
 				$query .= $wpdb->prepare( "c1.%i NOT LIKE %s ", $filter_name, '%' . $wpdb->esc_like( $value ) . '%' );
 				$query .= $filter_size > 1 ? 'OR ' : '';
 			} else {
-				$query .= $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', '%' . $wpdb->esc_like( $value ) . '%' ), 'NOT LIKE' );
+				$query .= $this->get_meta_join_query( $filter_name, '%' . $wpdb->esc_like( $value ) . '%', 'NOT LIKE' );
 				$query .= $filter_size > 1 ? 'OR ' : '';
 			}
 		}
@@ -419,7 +493,7 @@ class SegmentFilterService {
 			return $wpdb->prepare( "c1.%i LIKE %s ", $filter_name, $wpdb->esc_like( $filter_value ) . '%' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', $wpdb->esc_like( $filter_value ) . '%' ), 'LIKE' );
+		return $this->get_meta_join_query( $filter_name, $wpdb->esc_like( $filter_value ) . '%', 'LIKE' );
 	}
 
 	private function does_not_start_with( $filter_name, $filter_value ) {
@@ -430,7 +504,7 @@ class SegmentFilterService {
 			return $wpdb->prepare( "c1.%i NOT LIKE %s ", $filter_name, $wpdb->esc_like( $filter_value ) . '%' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', $wpdb->esc_like( $filter_value ) . '%' ), 'NOT LIKE' );
+		return $this->get_meta_join_query( $filter_name, $wpdb->esc_like( $filter_value ) . '%', 'NOT LIKE' );
 	}
 
 	private function ends_with( $filter_name, $filter_value ) {
@@ -441,7 +515,7 @@ class SegmentFilterService {
 			return $wpdb->prepare( "c1.%i LIKE %s ", $filter_name, '%' . $wpdb->esc_like( $filter_value ) );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', '%' . $wpdb->esc_like( $filter_value ) ), 'LIKE' );
+		return $this->get_meta_join_query( $filter_name, '%' . $wpdb->esc_like( $filter_value ), 'LIKE' );
 	}
 
 	private function does_not_end_with( $filter_name, $filter_value ) {
@@ -452,7 +526,7 @@ class SegmentFilterService {
 			return $wpdb->prepare( "c1.%i NOT LIKE %s ", $filter_name, '%' . $wpdb->esc_like( $filter_value ) );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', '%' . $wpdb->esc_like( $filter_value ) ), 'NOT LIKE' );
+		return $this->get_meta_join_query( $filter_name, '%' . $wpdb->esc_like( $filter_value ), 'NOT LIKE' );
 	}
 
 	private function have_been_entered( $filter_name ) {
@@ -462,7 +536,7 @@ class SegmentFilterService {
 			return $wpdb->prepare( "c1.%i <> '' ", $filter_name );
 		}
 
-		return $this->get_meta_join_query( $filter_name, "''", '<>' );
+		return $this->get_meta_join_query( $filter_name, '', '<>' );
 	}
 
 	private function have_not_been_entered( $filter_name ) {
@@ -472,7 +546,7 @@ class SegmentFilterService {
 			return $wpdb->prepare( "c1.%i = '' ", $filter_name );
 		}
 
-		return $this->get_meta_join_query( $filter_name, "''", '=' );
+		return $this->get_meta_join_query( $filter_name, '', '=' );
 	}
 
 	private function email_subscription_status_is_equal( $filter_name, $filter_value ) {
@@ -497,7 +571,7 @@ class SegmentFilterService {
 			return $this->$filter_name( $filter_value, '>' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $filter_value, '>' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, '>', true );
 	}
 
 	private function less_than( $filter_name, $filter_value ) {
@@ -508,7 +582,7 @@ class SegmentFilterService {
 			return $this->$filter_name( $filter_value, '<' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $filter_value, '<' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, '<', true );
 	}
 
 	private function equal( $filter_name, $filter_value ) {
@@ -519,7 +593,7 @@ class SegmentFilterService {
 			return $this->$filter_name( $filter_value, '=' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $filter_value, '=' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, '=', true );
 	}
 
 	private function does_not_equal( $filter_name, $filter_value ) {
@@ -530,7 +604,7 @@ class SegmentFilterService {
 			return $this->$filter_name( $filter_value, '<>' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $filter_value, '<>' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, '<>', true );
 	}
 
 	private function before( $filter_name, $filter_value ) {
@@ -541,7 +615,7 @@ class SegmentFilterService {
 			return $this->$filter_name( $filter_value, '<' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', $filter_value ), '<' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, '<' );
 	}
 
 	private function after( $filter_name, $filter_value ) {
@@ -552,7 +626,7 @@ class SegmentFilterService {
 			return $this->$filter_name( $filter_value, '>' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', $filter_value ), '>' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, '>' );
 	}
 
 	private function in_the_date( $filter_name, $filter_value ) {
@@ -563,7 +637,7 @@ class SegmentFilterService {
 			return $this->$filter_name( $filter_value, '=' );
 		}
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', $filter_value ), '=' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, '=' );
 	}
 
 	private function in_the_between_dates( $filter_name, $start_date, $end_date ) {
@@ -591,7 +665,7 @@ class SegmentFilterService {
 			return $query;
 		}
 
-		return $this->get_meta_join_query( $filter_name, "IN ('$filter_value')", '' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, 'IN' );
 	}
 
 	private function groups_does_not_include_in( $filter_name, $filter_value ) {
@@ -609,21 +683,21 @@ class SegmentFilterService {
 			return $query;
 		}
 
-		return $this->get_meta_join_query( $filter_name, "NOT IN ('$filter_value')", '' );
+		return $this->get_meta_join_query( $filter_name, $filter_value, 'NOT IN' );
 	}
 
 	private function custom_field_includes_in( $filter_name, $filter_value ) {
 		global $wpdb;
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', '%' . $wpdb->esc_like( $filter_value ) . '%' ), 'LIKE' );
+		return $this->get_meta_join_query( $filter_name, '%' . $wpdb->esc_like( $filter_value ) . '%', 'LIKE' );
 	}
 
 	private function custom_field_does_not_include_in( $filter_name, $filter_value ) {
 		global $wpdb;
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
 
-		return $this->get_meta_join_query( $filter_name, $wpdb->prepare( '%s', '%' . $wpdb->esc_like( $filter_value ) . '%' ), 'NOT LIKE' );
+		return $this->get_meta_join_query( $filter_name, '%' . $wpdb->esc_like( $filter_value ) . '%', 'NOT LIKE' );
 	}
 
 	// ========================================
@@ -695,7 +769,7 @@ class SegmentFilterService {
 	}
 
 	private function wc_select_field_includes_in( $filter_name, $filter_value ) {
-		if ( empty( $filter_value ) ) {
+		if ( empty( $filter_value ) || ! in_array( $filter_name, self::$wc_select_fields, true ) ) {
 			return '';
 		}
 
@@ -703,7 +777,7 @@ class SegmentFilterService {
 	}
 
 	private function wc_select_field_does_not_include_in( $filter_name, $filter_value ) {
-		if ( empty( $filter_value ) ) {
+		if ( empty( $filter_value ) || ! in_array( $filter_name, self::$wc_select_fields, true ) ) {
 			return '';
 		}
 
@@ -785,16 +859,42 @@ class SegmentFilterService {
 	// Helper Methods
 	// ========================================
 
-	private function get_meta_join_query( $filter_name, $filter_value, $operator ) {
+	/**
+	 * Build a contact meta sub-query for a custom field filter.
+	 *
+	 * The value is always bound through $wpdb->prepare(); pass it raw, never pre-quoted.
+	 *
+	 * @param string $filter_name Meta key.
+	 * @param string $filter_value Raw value to compare against.
+	 * @param string $operator SQL comparison operator.
+	 * @param bool   $numeric Whether a numeric value should be compared as a number.
+	 * @return string SQL snippet.
+	 * @since 1.25.0
+	 */
+	private function get_meta_join_query( $filter_name, $filter_value, $operator, $numeric = false ) {
 		global $wpdb;
 		$contact_table      = $wpdb->prefix . ContactSchema::$table_name;
 		$contact_meta_table = $wpdb->prefix . ContactMetaSchema::$table_name;
+
+		if ( ! in_array( $operator, array( '=', '<>', '>', '<', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN' ), true ) || ! is_scalar( $filter_value ) ) {
+			return '1=0 ';
+		}
+
+		$placeholder = '%s';
+		if ( $numeric && is_numeric( $filter_value ) ) {
+			$placeholder  = '%f';
+			$filter_value = (float) $filter_value;
+		}
+
+		if ( 'IN' === $operator || 'NOT IN' === $operator ) {
+			$placeholder = "({$placeholder})";
+		}
 
 		$query  = $wpdb->prepare( 'c1.id IN (SELECT c4.id FROM %i AS c4 ', $contact_table );
 		$query .= $wpdb->prepare( 'JOIN %i AS cm1 ', $contact_meta_table );
 		$query .= 'ON c4.id = cm1.contact_id ';
 		$query .= $wpdb->prepare( 'WHERE cm1.meta_key = %s ', $filter_name );
-		$query .= "AND cm1.meta_value {$operator} {$filter_value}) ";
+		$query .= $wpdb->prepare( "AND cm1.meta_value {$operator} {$placeholder}) ", $filter_value );
 
 		return $query;
 	}

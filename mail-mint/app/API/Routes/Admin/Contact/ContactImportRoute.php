@@ -90,6 +90,150 @@ class ContactImportRoute extends AdminRoute {
 		);
 
 		/**
+		 * Contact import MailerLite groups and attrs endpoint
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/mailerlite/attrs',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'get_mailerlite_groups_attributes' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import MailerLite subscriber headers endpoint
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/mailerlite/members',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'handle_mailerlite_member_headers' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import Drip accounts, tags and attrs endpoint
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/drip/attrs',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'get_drip_accounts_attributes' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import Drip subscriber headers endpoint
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/drip/members',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'handle_drip_member_headers' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import ActiveCampaign lists and attrs endpoint
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/activecampaign/attrs',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'get_activecampaign_lists_attributes' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import ActiveCampaign contact headers endpoint
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/activecampaign/members',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'handle_activecampaign_member_headers' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import Kit tags and attrs endpoint
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/kit/attrs',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'get_kit_tags_attributes' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
+		 * Contact import Kit subscriber headers endpoint
+		 *
+		 * @return void
+		 * @since 1.32.0
+		*/
+		register_rest_route(
+			$this->namespace,
+			$this->rest_base . '/kit/members',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'handle_kit_member_headers' ),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_contacts'),
+				),
+			)
+		);
+
+		/**
 		 * Customers count endpoint for EDD
 		 *
 		 * @return void

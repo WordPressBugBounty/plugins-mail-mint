@@ -120,7 +120,279 @@ class ContactImportController extends AdminBaseController {
 			'status'  => 'success',
 			'data'    => $response,
 			'message' => __('MailChimp headers have been retrieved successfully.', 'mrm'),
-		]); 
+		]);
+	}
+
+    /**
+	 * Summary: Retrieves MailerLite groups and contact attributes.
+     *
+     * Description: Verifies the MailerLite API key and returns its groups and the contact fields to map to.
+     *
+     * @access public
+	 *
+	 * @param WP_REST_Request $request Request object used to generate the response.
+     *
+	 * @return WP_REST_Response Returns a REST response containing the status, data, and message.
+	 * @since 1.32.0
+	 */
+	public function get_mailerlite_groups_attributes( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+        $key    = isset( $params['key'] ) ? sanitize_text_field( $params['key'] ) : '';
+
+        $response = $this->action->fetch_mailerlite_groups_and_contact_attributes( $key );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return new WP_REST_Response([
+				'status'  => 'failed',
+				'message' => $response['message'],
+			]);
+        }
+
+        return new WP_REST_Response([
+			'status'  => 'success',
+			'data'    => $response,
+			'message' => __('MailerLite groups have been retrieved successfully.', 'mrm'),
+		]);
+	}
+
+    /**
+     * Summary: Handles MailerLite subscriber headers.
+     * Description: Returns the MailerLite subscriber columns and batch plan for the chosen group.
+     *
+     * @access public
+     *
+     * @param WP_REST_Request $request The REST request object.
+     *
+     * @return WP_REST_Response Returns the MailerLite subscriber headers.
+     * @since 1.32.0
+     */
+	public function handle_mailerlite_member_headers( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+        $params = filter_var_array( $params );
+
+        $response = $this->action->get_mailerlite_member_headers( $params );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return new WP_REST_Response([
+                'status'  => 'failed',
+                'message' => $response['message'],
+            ]);
+        }
+
+        if( empty( $response ) ) {
+            return new WP_REST_Response([
+                'status'  => 'failed',
+                'message' => __('MailerLite headers have not been retrieved successfully.', 'mrm'),
+            ]);
+        }
+
+        return new WP_REST_Response([
+			'status'  => 'success',
+			'data'    => $response,
+			'message' => __('MailerLite headers have been retrieved successfully.', 'mrm'),
+		]);
+	}
+
+    /**
+	 * Summary: Retrieves Drip accounts, tags and contact attributes.
+     *
+     * Description: Verifies the Drip API token and returns its accounts, the chosen account's tags and the contact fields to map to.
+     *
+     * @access public
+	 *
+	 * @param WP_REST_Request $request Request object used to generate the response.
+     *
+	 * @return WP_REST_Response Returns a REST response containing the status, data, and message.
+	 * @since 1.32.0
+	 */
+	public function get_drip_accounts_attributes( WP_REST_Request $request ) {
+        $params     = MrmCommon::get_api_params_values( $request );
+        $token      = isset( $params['token'] ) ? sanitize_text_field( $params['token'] ) : '';
+        $account_id = isset( $params['account_id'] ) ? sanitize_text_field( $params['account_id'] ) : '';
+
+        $response = $this->action->fetch_drip_accounts_and_contact_attributes( $token, $account_id );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return new WP_REST_Response([
+				'status'  => 'failed',
+				'message' => $response['message'],
+			]);
+        }
+
+        return new WP_REST_Response([
+			'status'  => 'success',
+			'data'    => $response,
+			'message' => __('Drip accounts have been retrieved successfully.', 'mrm'),
+		]);
+	}
+
+    /**
+     * Summary: Handles Drip subscriber headers.
+     * Description: Returns the Drip subscriber columns and batch plan for the chosen account and tag.
+     *
+     * @access public
+     *
+     * @param WP_REST_Request $request The REST request object.
+     *
+     * @return WP_REST_Response Returns the Drip subscriber headers.
+     * @since 1.32.0
+     */
+	public function handle_drip_member_headers( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+        $params = array(
+            'token'      => isset( $params['token'] ) ? sanitize_text_field( $params['token'] ) : '',
+            'account_id' => isset( $params['account_id'] ) ? sanitize_text_field( $params['account_id'] ) : '',
+            'tag'        => isset( $params['tag'] ) ? sanitize_text_field( $params['tag'] ) : '',
+        );
+
+        $response = $this->action->get_drip_member_headers( $params );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return new WP_REST_Response([
+                'status'  => 'failed',
+                'message' => $response['message'],
+            ]);
+        }
+
+        return new WP_REST_Response([
+			'status'  => 'success',
+			'data'    => $response,
+			'message' => __('Drip headers have been retrieved successfully.', 'mrm'),
+		]);
+	}
+
+    /**
+	 * Summary: Retrieves ActiveCampaign lists and contact attributes.
+     *
+     * Description: Verifies the ActiveCampaign API URL and key and returns its lists and the contact fields to map to.
+     *
+     * @access public
+	 *
+	 * @param WP_REST_Request $request Request object used to generate the response.
+     *
+	 * @return WP_REST_Response Returns a REST response containing the status, data, and message.
+	 * @since 1.32.0
+	 */
+	public function get_activecampaign_lists_attributes( WP_REST_Request $request ) {
+        $params  = MrmCommon::get_api_params_values( $request );
+        $api_url = isset( $params['api_url'] ) ? esc_url_raw( trim( $params['api_url'] ) ) : '';
+        $key     = isset( $params['key'] ) ? sanitize_text_field( $params['key'] ) : '';
+
+        $response = $this->action->fetch_activecampaign_lists_and_contact_attributes( $api_url, $key );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return new WP_REST_Response([
+				'status'  => 'failed',
+				'message' => $response['message'],
+			]);
+        }
+
+        return new WP_REST_Response([
+			'status'  => 'success',
+			'data'    => $response,
+			'message' => __('ActiveCampaign lists have been retrieved successfully.', 'mrm'),
+		]);
+	}
+
+    /**
+     * Summary: Handles ActiveCampaign contact headers.
+     * Description: Returns the ActiveCampaign contact columns and batch plan for the chosen list.
+     *
+     * @access public
+     *
+     * @param WP_REST_Request $request The REST request object.
+     *
+     * @return WP_REST_Response Returns the ActiveCampaign contact headers.
+     * @since 1.32.0
+     */
+	public function handle_activecampaign_member_headers( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+        $params = array(
+            'api_url' => isset( $params['api_url'] ) ? esc_url_raw( trim( $params['api_url'] ) ) : '',
+            'key'     => isset( $params['key'] ) ? sanitize_text_field( $params['key'] ) : '',
+            'list_id' => isset( $params['list_id'] ) ? sanitize_text_field( $params['list_id'] ) : '',
+        );
+
+        $response = $this->action->get_activecampaign_member_headers( $params );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return new WP_REST_Response([
+                'status'  => 'failed',
+                'message' => $response['message'],
+            ]);
+        }
+
+        return new WP_REST_Response([
+			'status'  => 'success',
+			'data'    => $response,
+			'message' => __('ActiveCampaign headers have been retrieved successfully.', 'mrm'),
+		]);
+	}
+
+    /**
+	 * Summary: Retrieves Kit tags and contact attributes.
+     *
+     * Description: Verifies the Kit v4 API key and returns its tags and the contact fields to map to.
+     *
+     * @access public
+	 *
+	 * @param WP_REST_Request $request Request object used to generate the response.
+     *
+	 * @return WP_REST_Response Returns a REST response containing the status, data, and message.
+	 * @since 1.32.0
+	 */
+	public function get_kit_tags_attributes( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+        $key    = isset( $params['key'] ) ? sanitize_text_field( $params['key'] ) : '';
+
+        $response = $this->action->fetch_kit_tags_and_contact_attributes( $key );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return new WP_REST_Response([
+				'status'  => 'failed',
+				'message' => $response['message'],
+			]);
+        }
+
+        return new WP_REST_Response([
+			'status'  => 'success',
+			'data'    => $response,
+			'message' => __('Kit tags have been retrieved successfully.', 'mrm'),
+		]);
+	}
+
+    /**
+     * Summary: Handles Kit subscriber headers.
+     * Description: Returns the Kit subscriber columns and batch plan for the chosen tag.
+     *
+     * @access public
+     *
+     * @param WP_REST_Request $request The REST request object.
+     *
+     * @return WP_REST_Response Returns the Kit subscriber headers.
+     * @since 1.32.0
+     */
+	public function handle_kit_member_headers( WP_REST_Request $request ) {
+        $params = MrmCommon::get_api_params_values( $request );
+        $params = array(
+            'key'    => isset( $params['key'] ) ? sanitize_text_field( $params['key'] ) : '',
+            'tag_id' => isset( $params['tag_id'] ) ? sanitize_text_field( $params['tag_id'] ) : '',
+        );
+
+        $response = $this->action->get_kit_member_headers( $params );
+
+        if( isset( $response['status'] ) && 401 === $response['status'] ){
+            return new WP_REST_Response([
+                'status'  => 'failed',
+                'message' => $response['message'],
+            ]);
+        }
+
+        return new WP_REST_Response([
+			'status'  => 'success',
+			'data'    => $response,
+			'message' => __('Kit headers have been retrieved successfully.', 'mrm'),
+		]);
 	}
 
     /**
