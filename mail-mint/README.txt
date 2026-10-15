@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, AI, email, newslett
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.5
+Stable tag:  1.31.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -585,6 +585,9 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
+= 1.31.5 (2026-10-15) =
+* Improvement: UX Improvement on the Dashboard
+
 = 1.31.5 (2026-10-13) =
 * New: Import contacts from MailerLite, Drip, and Kit.
 * New: Import contacts from LearnDash, LifterLMS, MemberPress, Easy Digital Downloads, BuddyPress and Fluent Booking.
