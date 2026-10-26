@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, AI, email, newslett
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.6
+Stable tag:  1.31.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -585,7 +585,16 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
-= 1.31.5 (2026-10-15) =
+= 1.31.7 (2026-10-26) =
+* New: Send Telegram messages from automations with the new Send Telegram Message step. (Pro)
+* New: Send WhatsApp messages from automations through the WhatsApp Cloud API. (Pro)
+* Improvement: Contact emails tab now shows the actual time each email was sent.
+* Improvement: Automation analytics emails tab now shows when each email was last sent.
+* Improvement: Cleaner settings layout for the Send Message automation step.
+* Fix: Product, post and coupon blocks no longer save empty in the email builder.
+* Fix: Three-column product layout no longer breaks the email layout.
+
+= 1.31.6 (2026-10-15) =
 * Improvement: UX Improvement on the Dashboard
 
 = 1.31.5 (2026-10-13) =

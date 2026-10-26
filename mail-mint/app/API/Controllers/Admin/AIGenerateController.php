@@ -11,6 +11,7 @@
  * Supported tasks:
  *   subject_line                 — write one campaign subject line
  *   preview_text                 — write one campaign preview text (preheader)
+ *   sms_message                  — write an SMS / WhatsApp message body (Twilio automation action)
  *   compose_email                — edit the email open in the builder, or write a new one
  *   rewrite_text                 — rewrite one text block (enhance, spelling, custom) in place
  *   summarize_contact            — summarize a contact profile (cached, per-locale)
@@ -116,9 +117,9 @@ class AIGenerateController extends BaseController {
             return $this->rewrite_text( $params );
         }
 
-        // Subject line / preview text power the inline AI panel: several
-        // suggestions per request plus quick "modify" actions on existing text.
-        if ( 'subject_line' === $task || 'preview_text' === $task ) {
+        // Subject line / preview text / SMS body power the inline AI panel:
+        // several suggestions per request plus quick "modify" actions on existing text.
+        if ( in_array( $task, array( 'subject_line', 'preview_text', 'sms_message' ), true ) ) {
             return $this->generate_writer_suggestions( $task, $params );
         }
 
@@ -162,7 +163,7 @@ class AIGenerateController extends BaseController {
      * instruction (used for "change tone to…", "translate to…", or anything the
      * user types). Returns an array of distinct options for the user to pick.
      *
-     * @param string $task   'subject_line' or 'preview_text'.
+     * @param string $task   'subject_line', 'preview_text' or 'sms_message'.
      * @param array  $params Request params (action, current_text, instruction/prompt, count, campaign context).
      * @return \WP_REST_Response
      */
@@ -231,7 +232,8 @@ class AIGenerateController extends BaseController {
     private function build_writer_context( array $params ) {
         $details = array();
         // 'subject_line' lets the preview-text writer complement the subject.
-        foreach ( array( 'campaign_title', 'subject_line', 'goal', 'audience', 'tone' ) as $key ) {
+        // 'trigger_name' / 'channel' ground the automation writers (e.g. SMS body).
+        foreach ( array( 'campaign_title', 'subject_line', 'trigger_name', 'channel', 'goal', 'audience', 'tone' ) as $key ) {
             $val = trim( (string) ( $params[ $key ] ?? '' ) );
             if ( '' !== $val ) {
                 $details[] = ucfirst( str_replace( '_', ' ', $key ) ) . ': ' . $val;
@@ -245,14 +247,15 @@ class AIGenerateController extends BaseController {
      * output-only: the model must return a JSON array of plain strings so the
      * panel can render each option with no post-processing beyond parsing.
      *
-     * @param string $task   'subject_line' or 'preview_text'.
+     * @param string $task   'subject_line', 'preview_text' or 'sms_message'.
      * @param string $action One of generate|shorten|simplify|rephrase|custom.
      * @param int    $count  Number of options to produce.
      * @return string
      */
     private function build_writer_system( string $task, string $action, int $count ) {
-        $kind  = 'preview_text' === $task ? 'email preview text (also called the preheader)' : 'email subject line';
-        $limit = 'preview_text' === $task ? 'under 100 characters' : 'under 60 characters';
+        $meta  = $this->writer_task_meta( $task );
+        $kind  = $meta['kind'];
+        $limit = $meta['limit'];
 
         switch ( $action ) {
             case 'shorten':
@@ -274,7 +277,7 @@ class AIGenerateController extends BaseController {
         }
 
         return sprintf(
-            'You are an expert email marketing copywriter helping craft an %1$s. %2$s '
+            'You are an expert marketing copywriter helping craft an %1$s. %2$s '
             . 'Produce exactly %3$d distinct options. Each option must be %4$s, specific, and free of spammy words or ALL CAPS. '
             . 'Mail Mint personalization/merge tags use double curly braces with no spaces, e.g. {{contact.first_name}}, with an optional fallback after a pipe like {{contact.first_name|friend}}. '
             . 'Preserve any such tags in the provided text exactly, and if you add personalization use ONLY this {{...}} format (never square brackets, never spaces inside the braces) — never translate or alter the text inside the braces. '
@@ -290,14 +293,14 @@ class AIGenerateController extends BaseController {
      * Build the user-message body for a writer action: the current text (if
      * any), the campaign context, and the user's instruction.
      *
-     * @param string $task         'subject_line' or 'preview_text'.
+     * @param string $task         'subject_line', 'preview_text' or 'sms_message'.
      * @param string $current_text Text already in the field, if any.
      * @param string $instruction  Free-form user instruction, if any.
      * @param string $context      Campaign context lines.
      * @return string
      */
     private function build_writer_user_text( string $task, string $current_text, string $instruction, string $context ) {
-        $label = 'preview_text' === $task ? 'preview text' : 'subject line';
+        $label = $this->writer_task_meta( $task )['label'];
         $parts = array();
         if ( '' !== $current_text ) {
             $parts[] = sprintf( "Current %s:\n\"%s\"", $label, $current_text );
@@ -309,9 +312,43 @@ class AIGenerateController extends BaseController {
             $parts[] = 'User instruction: ' . $instruction;
         }
         if ( empty( $parts ) ) {
-            $parts[] = sprintf( 'Write a compelling %s for a marketing email.', $label );
+            $parts[] = 'sms_message' === $task
+                ? 'Write a compelling short marketing text message.'
+                : sprintf( 'Write a compelling %s for a marketing email.', $label );
         }
         return implode( "\n\n", $parts );
+    }
+
+    /**
+     * Describe a writer task for the prompts: what is being written, its
+     * length limit, and the short label used in the user message.
+     *
+     * @param string $task 'subject_line', 'preview_text' or 'sms_message'.
+     * @return array{kind:string,limit:string,label:string}
+     */
+    private function writer_task_meta( string $task ) {
+        switch ( $task ) {
+            case 'preview_text':
+                return array(
+                    'kind'  => 'email preview text (also called the preheader)',
+                    'limit' => 'under 100 characters',
+                    'label' => 'preview text',
+                );
+            case 'sms_message':
+                // The Twilio field caps input at 201 characters; 160 keeps it to one SMS segment.
+                return array(
+                    'kind'  => 'SMS / WhatsApp marketing text message',
+                    'limit' => 'under 160 characters, conversational, with no subject line, greeting header or email sign-off',
+                    'label' => 'message',
+                );
+            case 'subject_line':
+            default:
+                return array(
+                    'kind'  => 'email subject line',
+                    'limit' => 'under 60 characters',
+                    'label' => 'subject line',
+                );
+        }
     }
 
     /**

@@ -12,6 +12,8 @@
 namespace Mint\MRM\Internal\Admin;
 
 use MailMintPro\App\Utilities\Helper\Integration;
+use MailMintPro\App\Utilities\Helper\Telegram;
+use MailMintPro\App\Utilities\Helper\WhatsApp;
 // Pro-only helpers (Twilio settings, custom date fields) still live on Pro's Common class.
 use MailMintPro\Mint\Internal\AbandonedCart\Helper\Common;
 use Mint\MRM\Internal\AbandonedCart\Helper\CartCommon;
@@ -290,6 +292,7 @@ class AdminAssets {
 			        'email_settings'                 => get_option( '_mrm_email_settings', Email::default_email_settings() ),
 			        'is_wc_active'                   => $wc_active,
 			        'condition_post_types'           => MrmCommon::get_condition_post_types(),
+			        'available_integrations'         => $this->get_available_integrations(),
 			        'start_of_week'                  => get_option( 'start_of_week', 1 ),
 			        'unsubscribe_url'                => home_url(),
 			        'preference_url'                 => home_url(),
@@ -408,9 +411,14 @@ class AdminAssets {
                     'mint_trans'                     => TransStrings::getStrings(),
                     'wc_order_statuses'              => HelperFunctions::get_woocommerce_order_statuses(),
                     'twilio_settings'                => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.9.3' ) ? Common::get_twilio_settings() : array(),
+                    // Public subset only: the bot token stays on the server.
+                    'telegram_settings'              => MrmCommon::is_mailmint_pro_active() && class_exists( 'MailMintPro\\App\\Utilities\\Helper\\Telegram' ) ? Telegram::get_public_settings() : array(),
+                    // Public subset only: the access token stays on the server.
+                    'whatsapp_settings'              => MrmCommon::is_mailmint_pro_active() && class_exists( 'MailMintPro\\App\\Utilities\\Helper\\WhatsApp' ) ? WhatsApp::get_public_settings() : array(),
+                    'available_integrations'         => $this->get_available_integrations(),
                     'local_time'                     => date_i18n( 'Y-m-d H:i:s' ),
                     'timezone'                       => MrmCommon::get_site_timezone_info(),
-                    'date_fields'                    => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.12.0' ) ? Common::get_date_fields() : array(),
+                    'date_fields'                  => MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.12.0' ) ? Common::get_date_fields() : array(),
                     'is_lifterlms_active'            => HelperFunctions::is_lifter_lms_active(),
                     'is_bricks_active'               => HelperFunctions::is_bricks_active(),
                     'is_bricksforge_active'          => HelperFunctions::is_bricksforge_active(),
@@ -450,6 +458,22 @@ class AdminAssets {
      */
     private function maybe_mrm_page( string $hook ) {
         return 'toplevel_page_mrm-admin' === $hook || 'mail-mint_page_mint-mail-automation-editor' === $hook;
+    }
+
+    /**
+     * Integrations the active Pro release can run.
+     *
+     * An active Pro release older than these integrations lacks their REST routes and
+     * automation actions, so their integration cards and automation steps are hidden.
+     *
+     * @return array
+     * @since 1.31.7
+     */
+    private function get_available_integrations() {
+        return array(
+            'telegram' => ! MrmCommon::is_mailmint_pro_active() || class_exists( 'MailMintPro\\App\\Utilities\\Helper\\Telegram' ),
+            'whatsapp' => ! MrmCommon::is_mailmint_pro_active() || class_exists( 'MailMintPro\\App\\Utilities\\Helper\\WhatsApp' ),
+        );
     }
 
 

@@ -54,6 +54,8 @@ class TriggerCatalog {
 		'mint-elementor-form' => 'Elementor Forms',
 		'logical' => 'Condition',
 		'mint-twilio' => 'Twilio',
+		'mint-telegram' => 'Telegram',
+		'mint-whatsapp' => 'WhatsApp',
 		'mint-send-data' => 'Send Data',
 	);
 

@@ -249,7 +249,13 @@ class ContactProfileAction implements Action {
 			function( $email ) {
 				if ( isset( $email['broadcast_email_created_at'] ) ) {
 					$email['created_time'] = $email['broadcast_email_created_at'];
-					$email['sent_at']      = MrmCommon::date_time_format_with_core( $email['broadcast_email_created_at'] ); //phpcs:disable
+					$sent_time             = $email['broadcast_email_created_at'];
+
+					// Campaign rows are queued as 'scheduled' and stamped (GMT) in updated_at when actually sent.
+					if ( isset( $email['status'] ) && 'sent' === $email['status'] && ! empty( $email['broadcast_email_updated_at'] ) ) {
+						$sent_time = get_date_from_gmt( $email['broadcast_email_updated_at'] );
+					}
+					$email['sent_at'] = MrmCommon::date_time_format_with_core( $sent_time ); //phpcs:disable
 				}
 				return $email;
 			},

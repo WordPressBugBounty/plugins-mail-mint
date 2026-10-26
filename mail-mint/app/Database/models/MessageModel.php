@@ -383,12 +383,13 @@ class EmailModel {
 			be.contact_id AS broadcast_email_contact_id,
 			be.email_address AS email_address,
 			be.status AS status,
-			be.created_at AS broadcast_email_created_at
-		
+			be.created_at AS broadcast_email_created_at,
+			be.updated_at AS broadcast_email_updated_at
+
 		FROM $campaign_emails ce
-		
+
 		LEFT JOIN $email_builder ceb ON ce.id = ceb.email_id
-		
+
 		LEFT JOIN $broadcast_emails be ON ce.id = be.email_id WHERE be.contact_id = %d AND be.campaign_id IS NOT NULL AND be.id IN ($step_ids_placeholder) ORDER BY be.id DESC",
 			$contact_id
 		);
