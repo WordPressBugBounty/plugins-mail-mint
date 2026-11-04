@@ -173,6 +173,11 @@ class EmailTrigger {
 	 */
 	public function set_email_content( $message ) {
 		if ( !empty( $this->template['template'] ) && $this->template['customize_enable'] ) {
+			// is_plugin_active() is not loaded on frontend requests before WP 6.8.
+			if ( ! function_exists( 'is_plugin_active' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
+			}
+
 			// Disable WP HTML Mail template.
 			if( is_plugin_active( 'wp-html-mail/wp-html-mail.php' ) ) {
 				add_filter( 'haet_mail_use_template', function( $use_template, $mail ) {

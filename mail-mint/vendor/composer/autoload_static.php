@@ -376,6 +376,7 @@ class ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7
         'Mint\\MRM\\Internal\\Admin\\Page\\HomeScreen' => __DIR__ . '/../..' . '/app/Internal/Admin/Page/HomeScreen.php',
         'Mint\\MRM\\Internal\\Admin\\Page\\PageController' => __DIR__ . '/../..' . '/app/Internal/Admin/Page/PageController.php',
         'Mint\\MRM\\Internal\\Admin\\Segmentation\\SegmentFilterService' => __DIR__ . '/../..' . '/app/Internal/Admin/Segmentation/SegmentFilterService.php',
+        'Mint\\MRM\\Internal\\Admin\\SendingHealth' => __DIR__ . '/../..' . '/app/Internal/Admin/SendingHealth.php',
         'Mint\\MRM\\Internal\\Admin\\SetupWizard' => __DIR__ . '/../..' . '/app/Internal/Admin/Setup-Wizard/SetupWizard.php',
         'Mint\\MRM\\Internal\\Admin\\SpecialOccasionBanner' => __DIR__ . '/../..' . '/app/Internal/Admin/SpecialOccasionBanner.php',
         'Mint\\MRM\\Internal\\Admin\\UserAssignContact' => __DIR__ . '/../..' . '/app/Internal/Frontend/UserAssignContact.php',

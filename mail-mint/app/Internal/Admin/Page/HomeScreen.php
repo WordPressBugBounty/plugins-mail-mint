@@ -224,7 +224,7 @@ class HomeScreen {
 
 	public function mint_delete_promotional_banner( $payload ){
 		check_ajax_referer( 'promotional_banner_nonce', 'nonce' );
-		update_option('_is_show_halloween_26_banner', 'no' );
+		update_option('_is_show_wpf_5th_anniversary_banner', 'no' );
 		return [
             'success' => true,
         ];
@@ -364,7 +364,7 @@ class HomeScreen {
 			new DBUpgradeNotice();
 		}
 
-		new SpecialOccasionBanner('halloween-26', '2026-10-15 00:00:01', '2026-10-30 23:59:59');
+		new SpecialOccasionBanner('wpf-5th-anniversary', '2026-11-02 00:00:01', '2026-11-16 23:59:59');
 
         if( 'toplevel_page_mrm-admin' === $current_screen->base){
             remove_all_actions( 'admin_notices' );
@@ -373,7 +373,7 @@ class HomeScreen {
 				new DBUpgradeNotice();
 			}
 
-			new SpecialOccasionBanner('halloween-26', '2026-10-15 00:00:01', '2026-10-30 23:59:59');
+			new SpecialOccasionBanner('wpf-5th-anniversary', '2026-11-02 00:00:01', '2026-11-16 23:59:59');
         }
 
         if( 'mail-mint_page_mint-mail-automation-editor' === $current_screen->base){

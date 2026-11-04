@@ -311,6 +311,7 @@ return array(
     'Mint\\MRM\\Internal\\Admin\\Page\\HomeScreen' => $baseDir . '/app/Internal/Admin/Page/HomeScreen.php',
     'Mint\\MRM\\Internal\\Admin\\Page\\PageController' => $baseDir . '/app/Internal/Admin/Page/PageController.php',
     'Mint\\MRM\\Internal\\Admin\\Segmentation\\SegmentFilterService' => $baseDir . '/app/Internal/Admin/Segmentation/SegmentFilterService.php',
+    'Mint\\MRM\\Internal\\Admin\\SendingHealth' => $baseDir . '/app/Internal/Admin/SendingHealth.php',
     'Mint\\MRM\\Internal\\Admin\\SetupWizard' => $baseDir . '/app/Internal/Admin/Setup-Wizard/SetupWizard.php',
     'Mint\\MRM\\Internal\\Admin\\SpecialOccasionBanner' => $baseDir . '/app/Internal/Admin/SpecialOccasionBanner.php',
     'Mint\\MRM\\Internal\\Admin\\UserAssignContact' => $baseDir . '/app/Internal/Frontend/UserAssignContact.php',

@@ -370,14 +370,28 @@ class GlobalQueueCoordinator {
 				continue;
 			}
 
+			$failure_reason = '';
+			MM()->mailer->reset_last_error();
 			try {
 				$dispatch_success = $this->dispatchCandidate( $candidate, $contacts_cache, $email_cache );
 				$status           = $dispatch_success ? BroadcastStatus::SENT : BroadcastStatus::FAILED;
+				if ( ! $dispatch_success ) {
+					// An empty mailer error means dispatchCandidate() returned before handing the email to the mailer.
+					$failure_reason = MM()->mailer->get_last_error();
+					if ( '' === $failure_reason ) {
+						$failure_reason = __( 'The email could not be prepared: the contact or the email content was not found.', 'mrm' );
+					}
+				}
 			} catch ( \Throwable $e ) {
-				$status = BroadcastStatus::FAILED;
+				$status         = BroadcastStatus::FAILED;
+				$failure_reason = $e->getMessage();
 			}
 
 			$repository->updateGlobalDispatchCandidateStatus( $candidate_id, $status );
+
+			if ( '' !== $failure_reason ) {
+				( new BroadcastRepository() )->insertOrUpdateMeta( $candidate_id, 'failure_reason', sanitize_text_field( $failure_reason ) );
+			}
 
 			if ( BroadcastStatus::SENT === $status ) {
 				++$sent_count;
@@ -754,15 +768,18 @@ class GlobalQueueCoordinator {
 	/**
 	 * Resolve broadcast rows that are stuck in 'sending' status.
 	 *
-	 * Rows that remain in 'sending' beyond the timeout threshold were already
-	 * handed off to the SMTP layer — the status update failed due to an
-	 * exception or Action Scheduler timeout. Marking them 'sent' prevents
-	 * duplicate delivery and unblocks campaign archival.
+	 * A row stays in 'sending' when the worker died between the claim and the
+	 * status update (fatal error, timeout, memory limit). That can happen before
+	 * the email was built or while it was being handed to the mailer, so delivery
+	 * is unknown. The rows are marked 'failed' with a reason instead of 'sent', so
+	 * reports don't count undelivered email as sent; they are not re-queued, to
+	 * avoid duplicate delivery. Either way the campaign can still be archived.
 	 *
 	 * Invoked from selfHeal() on init, so no dedicated cron job is required.
 	 *
 	 * @return void
 	 * @since 1.24.1
+	 * @since 1.31.8 Mark stuck rows 'failed' with a failure_reason instead of 'sent'.
 	 */
 	private function recoverStuckSendingEmails(): void {
 		$broadcast_repo = new BroadcastRepository();
@@ -781,7 +798,20 @@ class GlobalQueueCoordinator {
 				continue;
 			}
 
-			$campaign_repo->updateGlobalDispatchCandidateStatus( $broadcast_id, BroadcastStatus::SENT );
+			$updated = $campaign_repo->updateGlobalDispatchCandidateStatus( $broadcast_id, BroadcastStatus::FAILED );
+
+			// Only explain rows this call changed; a worker may have finished the row in the meantime.
+			if ( ! is_wp_error( $updated ) && 1 === (int) $updated ) {
+				$broadcast_repo->insertOrUpdateMeta(
+					$broadcast_id,
+					'failure_reason',
+					sprintf(
+						/* translators: %d: number of minutes. */
+						__( 'Sending was interrupted (timeout or PHP error) and the email stayed in "sending" for over %d minutes. It may not have been delivered.', 'mrm' ),
+						self::STUCK_SENDING_TIMEOUT_MINUTES
+					)
+				);
+			}
 
 			$campaign_id = ! empty( $row['campaign_id'] ) ? (int) $row['campaign_id'] : 0;
 			$email_id    = ! empty( $row['email_id'] ) ? (int) $row['email_id'] : 0;

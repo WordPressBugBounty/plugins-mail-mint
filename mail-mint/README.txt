@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, AI, email, newslett
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.7
+Stable tag:  1.31.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -585,6 +585,20 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
+= 1.31.8 (2026-11-04) =
+* New: Test an automation from the trigger settings with an existing or new contact, with the option to skip delays.
+* New: Stop, resume or restart a contact's automation run from the automation report.
+* New: Send SMS through Vonage from automations with the new Send Vonage SMS step. (Pro)
+* New: Email Settings now warns about setup problems that stop emails from sending.
+* Improvement: Refresh automation step stats on the canvas without reloading the page.
+* Improvement: Pasting into the email editor no longer brings in unwanted inline styles.
+* Fix: Contact counts, pagination and export now respect the applied advanced filter.
+* Fix: Test emails now report whether they were actually sent.
+* Fix: Failed emails now keep and show the real error message.
+* Fix: Emails stuck in "sending" are now marked as failed instead of sent.
+* Fix: Forms now show the correct message when a signup succeeds or fails.
+* Fix: Emails failing to send on WordPress versions below 6.8 without Mail Mint Pro.
+
 = 1.31.7 (2026-10-26) =
 * New: Send Telegram messages from automations with the new Send Telegram Message step. (Pro)
 * New: Send WhatsApp messages from automations through the WhatsApp Cloud API. (Pro)

@@ -56,6 +56,7 @@ class TriggerCatalog {
 		'mint-twilio' => 'Twilio',
 		'mint-telegram' => 'Telegram',
 		'mint-whatsapp' => 'WhatsApp',
+		'mint-vonage' => 'Vonage',
 		'mint-send-data' => 'Send Data',
 	);
 

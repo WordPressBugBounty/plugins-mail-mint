@@ -274,7 +274,12 @@ class AutomationManager {
 		 */
 		$data = apply_filters( 'mailmint_before_automation_step_process', $data );
 		if ( $data && is_array( $data ) && isset( $data['automation_id'], $data['step_id'] ) ) {
-			$is_active = HelperFunctions::step_exist_with_active_automation( $data['automation_id'], $data['step_id'] );
+			// Test runs also work on draft and paused automations; they only need the step to exist.
+			if ( !empty( $data['data']['mint_test_run'] ) ) {
+				$is_active = HelperFunctions::step_exist_in_automation( $data['automation_id'], $data['step_id'] );
+			} else {
+				$is_active = HelperFunctions::step_exist_with_active_automation( $data['automation_id'], $data['step_id'] );
+			}
 			if ( !$is_active ) {
 				return;
 			}

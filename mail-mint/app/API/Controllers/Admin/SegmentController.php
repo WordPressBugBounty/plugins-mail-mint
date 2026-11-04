@@ -55,6 +55,11 @@ class SegmentController extends AdminBaseController {
 			return $this->get_error_response( __( 'No contacts matched.', 'mrm' ), 201 );
 		}
 
+		// Contacts list "Export" on an advanced filter needs every matching ID, not a page.
+		if ( ! empty( $params['ids-only'] ) ) {
+			return $this->get_success_response( __( 'Successfully fetched segment contacts!', 'mrm' ), 200, array( 'ids' => $filter_service->getContactIds( $where_query ) ) );
+		}
+
 		$query_params = array(
 			'page'       => $page,
 			'per_page'   => $per_page,
@@ -74,6 +79,11 @@ class SegmentController extends AdminBaseController {
 				$contact                          = ContactGroupModel::get_lists_to_contact( $contact );
 				$segment_contacts['data'][ $key ] = $contact;
 			}
+		}
+
+		// Contacts list status cards reflect the advanced filter result, not the whole list.
+		if ( ! $count_only && is_array( $segment_contacts ) && ! empty( $params['with-status-count'] ) ) {
+			$segment_contacts['count_status'] = $filter_service->getStatusCounts( $where_query );
 		}
 
 		if ( ! empty( $segment_contacts ) ) {

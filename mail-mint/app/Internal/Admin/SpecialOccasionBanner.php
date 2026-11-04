@@ -56,13 +56,13 @@ class SpecialOccasionBanner
     }
 
     /**
-     * Calculate time remaining until the Halloween sale ends
+     * Calculate time remaining until the WPFunnels 5th anniversary sale ends
      *
      * @return array Time remaining in days, hours, and minutes
      */
     function mint_get_promotional_countdown()
     {
-        $end_date  = strtotime('2026-10-30 23:59:59');
+        $end_date  = strtotime('2026-11-16 23:59:59');
         $now       = current_time('timestamp');
         $diff      = $end_date - $now;
 
@@ -83,14 +83,19 @@ class SpecialOccasionBanner
         $screen = get_current_screen();
         $promotional_notice_pages = ['dashboard', 'plugins', 'toplevel_page_mrm-admin'];
         $current_date_time = current_time('timestamp');
-        $btn_link = 'https://getwpfunnels.com/pricing/?utm_source=plugin&utm_medium=dashboard-banner-mm&utm_campaign=halloween26#mail-mint';
-        $discount = '30% OFF';
+        $btn_link = 'https://getwpfunnels.com/pricing/?utm_source=plugin&utm_medium=dashboard-banner-mm&utm_campaign=5yearsofwpf';
+        $discount = '50% OFF';
 
         if (!in_array($screen->id, $promotional_notice_pages)) {
             return;
         }
 
-        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_show_halloween_26_banner') || MrmCommon::is_wpfnl_active()) {
+        if (defined('MAIL_MINT_PRO_VERSION') || ($current_date_time < $this->start_date || $current_date_time > $this->end_date) || 'no' === get_option('_is_show_wpf_5th_anniversary_banner')) {
+            return;
+        }
+
+        // WPFunnels free shows its own banner on the shared screens, but never on Mail Mint's page.
+        if ('toplevel_page_mrm-admin' !== $screen->id && MrmCommon::is_wpfnl_active() && !defined('WPFNL_PRO_VERSION')) {
             return;
         }
         ?>
@@ -98,41 +103,31 @@ class SpecialOccasionBanner
         <div class="gwpf-promotional-notice mailmint-promotional-notice <?php echo esc_attr($this->occasion); ?>-banner notice wp-exclude-emoji">
             <div class="gwpf-tb__notification">
                 <div class="banner-overflow">
-                    <section class="gwpf-promotional-banner" aria-label="<?php esc_attr_e('Halloween sale', 'mrm'); ?>">
+                    <section class="gwpf-promotional-banner" aria-label="<?php esc_attr_e('WPFunnels 5th anniversary sale', 'mrm'); ?>">
                         <div class="gwpf-container">
                             <div class="promotional-banner">
                                 <div class="banner-content">
-                                    <p class="banner-text banner-text--occasion">
-                                        <span class="banner-emoji" aria-hidden="true">👻 </span>
+                                    <p class="banner-text">
+                                        <span><?php esc_html_e('Celebrating The 5th Anniversary Of WPFunnels!!', 'mrm'); ?></span>
+                                        <span class="banner-emoji" aria-hidden="true">🔥</span>
                                         <span>
                                             <?php
                                             printf(
-                                                /* translators: %s: "Halloween" highlighted. */
-                                                esc_html__('Spooktacular %s Sale!', 'mrm'),
-                                                '<span class="highlighted-text">' . esc_html__('Halloween', 'mrm') . '</span>'
+                                                /* translators: 1: discount amount, e.g. "50% OFF". 2: product names. */
+                                                esc_html__('Special Offer - %1$s On %2$s', 'mrm'),
+                                                '<span class="discount-text">' . esc_html($discount) . '</span>',
+                                                esc_html__('WPFunnels & Mail Mint.', 'mrm')
                                             );
                                             ?>
                                         </span>
-                                        <span class="banner-emoji" aria-hidden="true">🎃</span>
-                                    </p>
-
-                                    <p class="banner-text banner-text--offer">
-                                        <?php
-                                        printf(
-                                            /* translators: 1: discount amount, e.g. "30% OFF". 2: product name. */
-                                            esc_html__('Flat %1$s On %2$s', 'mrm'),
-                                            '<span class="discount-text">' . esc_html($discount) . '</span>',
-                                            '<strong>' . esc_html__('Mail Mint!', 'mrm') . '</strong>'
-                                        );
-                                        ?>
                                     </p>
 
                                     <a href="<?php echo esc_url($btn_link); ?>" class="cta-button" target="_blank" rel="noopener noreferrer">
                                         <?php
-                                        /* translators: %s: discount amount, e.g. "30% OFF". */
+                                        /* translators: %s: discount amount, e.g. "50% OFF". */
                                         printf(esc_html__('Get %s', 'mrm'), esc_html($discount));
                                         ?>
-                                        <svg width="12" height="12" fill="none" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="currentColor" stroke="currentColor" stroke-width=".5" d="M11 1.781v8.438a.781.781 0 11-1.563 0V3.667l-7.103 7.104a.781.781 0 01-1.105-1.105l7.104-7.104H1.78A.781.781 0 111.78 1h8.438a.781.781 0 01.78.781z"/></svg>
+                                        <svg width="12" height="10" fill="none" viewBox="0 0 12 10" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M1 5h10m0 0L7 1m4 4L7 9"/></svg>
                                     </a>
                                 </div>
                             </div>
@@ -237,10 +232,13 @@ class SpecialOccasionBanner
             /* ---banner style start--- */
             .mailmint-promotional-notice .gwpf-promotional-banner {
                 position: relative;
-                background-color: #130566;
+                background-color: #211183;
                 background-image:
-                    linear-gradient(90deg, #0A6BB5 0, rgba(19, 5, 102, 0) 140px),
-                    linear-gradient(270deg, #6D9357 0, rgba(19, 5, 102, 0) 320px);
+                    url("<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/promotional/wpf-anniversary-confetti-left.png'); ?>"),
+                    url("<?php echo esc_url(MRM_DIR_URL . 'admin/assets/images/promotional/wpf-anniversary-confetti-right.png'); ?>");
+                background-position: left center, right center;
+                background-size: auto 100%;
+                background-repeat: no-repeat;
                 z-index: 1111;
                 font-family: "Inter", sans-serif;
             }
@@ -265,7 +263,7 @@ class SpecialOccasionBanner
                 align-items: center;
                 justify-content: center;
                 flex-wrap: wrap;
-                column-gap: 24px;
+                column-gap: 30px;
                 row-gap: 8px;
             }
             .mailmint-promotional-notice .gwpf-promotional-banner .banner-text {
@@ -282,45 +280,32 @@ class SpecialOccasionBanner
                 letter-spacing: 0;
                 color: #fff;
             }
-            .mailmint-promotional-notice .gwpf-promotional-banner .banner-text--offer {
-                display: inline-block;
-            }
             .mailmint-promotional-notice .gwpf-promotional-banner .banner-emoji {
                 font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
-                font-size: 18px;
+                font-size: 16px;
                 line-height: 1;
                 flex: none;
             }
-            .mailmint-promotional-notice .gwpf-promotional-banner .highlighted-text {
-                color: #02C4FB;
-                font-size: 18px;
-                font-weight: 800;
-            }
             .mailmint-promotional-notice .gwpf-promotional-banner .discount-text {
-                color: #24EC2C;
-                font-size: 18px;
-                font-weight: 800;
-            }
-            .mailmint-promotional-notice .gwpf-promotional-banner .banner-text strong {
-                color: #fff;
+                color: #EE8134;
                 font-weight: 700;
             }
 
             /* ---cta--- */
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button {
-                margin-left: 46px;
-                padding: 0 0 3px;
+                padding: 8px 16px;
                 display: inline-flex;
                 align-items: center;
-                gap: 8px;
-                color: #02C4FB;
-                font-size: 15px;
+                gap: 6px;
+                color: #3C1F7D;
+                font-size: 14px;
                 font-weight: 700;
-                line-height: 1.2;
+                line-height: 1.15;
                 letter-spacing: 0;
                 text-decoration: none;
-                border-bottom: 2px solid #02C4FB;
-                background: transparent;
+                border: none;
+                border-radius: 100px;
+                background: #fff;
                 box-shadow: none;
                 flex: none;
                 transition: all .3s ease;
@@ -332,18 +317,12 @@ class SpecialOccasionBanner
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:hover,
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:focus,
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:visited {
-                color: #02C4FB;
+                color: #3C1F7D;
                 box-shadow: none;
                 outline: none;
             }
             .mailmint-promotional-notice .gwpf-promotional-banner .cta-button:hover svg {
-                transform: translate(3px, -3px);
-            }
-
-            @media only screen and (max-width: 1199px) {
-                .mailmint-promotional-notice .gwpf-promotional-banner .cta-button {
-                    margin-left: 0;
-                }
+                transform: translateX(3px);
             }
 
             @media only screen and (max-width: 991px) {

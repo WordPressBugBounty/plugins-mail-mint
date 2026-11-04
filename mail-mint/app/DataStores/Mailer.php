@@ -32,6 +32,17 @@ class Mailer {
     public $mailer;
 
     /**
+     * Error message from the most recent failed send, or empty after a successful one.
+     *
+     * Static because MM() builds a new Mailer on every call, so an instance property
+     * would be gone before the caller could read it.
+     *
+     * @var string $last_error
+     * @since 1.31.8
+     */
+    private static $last_error = '';
+
+    /**
      * Constructor method.
      * Initializes the mailer by setting the appropriate mailer instance.
      * 
@@ -107,7 +118,34 @@ class Mailer {
         $message->body    = $content;
         $message->headers = $headers;
 
+        $this->reset_last_error();
+
         $send_response = $this->mailer->send( $message );
-        return ! is_wp_error( $send_response ) ? true : false;
+        if ( is_wp_error( $send_response ) ) {
+            $error            = $send_response->get_error_message();
+            self::$last_error = '' !== $error ? $error : __( 'Unknown mailer error.', 'mrm' );
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Gets the reason the most recent send() failed.
+     *
+     * @return string The mailer's error message, or an empty string if the last send succeeded.
+     * @since 1.31.8
+     */
+    public function get_last_error() {
+        return self::$last_error;
+    }
+
+    /**
+     * Clears the stored error so a later get_last_error() can't report an older failure.
+     *
+     * @return void
+     * @since 1.31.8
+     */
+    public function reset_last_error() {
+        self::$last_error = '';
     }
 }

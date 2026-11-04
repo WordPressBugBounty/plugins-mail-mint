@@ -17,6 +17,7 @@ use Mint\MRM\DataBase\Models\CampaignEmailBuilderModel;
 use Mint\MRM\DataBase\Models\CampaignModel;
 use Mint\MRM\Database\Enums\BroadcastStatus;
 use Mint\MRM\Database\Enums\CampaignType;
+use Mint\MRM\Database\Repositories\BroadcastRepository;
 use Mint\MRM\Database\Repositories\CampaignRepository;
 use Mint\MRM\Internal\Campaign\EmailPersonalizer;
 use Mint\MRM\Internal\Cron\GlobalQueueCoordinator;
@@ -342,11 +343,12 @@ class CampaignsBackgroundProcess {
 					 $table_name   = $wpdb->prefix . EmailSchema::$table_name;
 					 $placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
 					$params       = array_merge(
-						array( BroadcastStatus::SENDING, BroadcastStatus::SCHEDULED ),
+						array( BroadcastStatus::SENDING, current_time( 'mysql', true ), BroadcastStatus::SCHEDULED ),
 						$ids
 					);
 
-					 $sql = "UPDATE {$table_name} SET status = %s WHERE status = %s AND id IN ({$placeholders})";
+					 // Stamp updated_at at claim time: scheduling leaves it NULL (never recovered) or stale (recovered mid-batch).
+					 $sql = "UPDATE {$table_name} SET status = %s, updated_at = %s WHERE status = %s AND id IN ({$placeholders})";
 					 $wpdb->query( $wpdb->prepare( $sql, $params ) ); // phpcs:ignore
 
 					 // If we could not claim all rows, another worker may have claimed some.
@@ -442,6 +444,7 @@ class CampaignsBackgroundProcess {
 						$sent_email_ids[] = $broadcast_email_id;
 					} else {
 						$failed_email_ids[] = $broadcast_email_id;
+						( new BroadcastRepository() )->insertOrUpdateMeta( (int) $broadcast_email_id, 'failure_reason', sanitize_text_field( MM()->mailer->get_last_error() ) );
 					}
 				 },
 

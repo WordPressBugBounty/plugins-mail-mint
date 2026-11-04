@@ -14,6 +14,7 @@ namespace Mint\MRM\Internal\Admin;
 use MailMintPro\App\Utilities\Helper\Integration;
 use MailMintPro\App\Utilities\Helper\Telegram;
 use MailMintPro\App\Utilities\Helper\WhatsApp;
+use MailMintPro\App\Utilities\Helper\Vonage;
 // Pro-only helpers (Twilio settings, custom date fields) still live on Pro's Common class.
 use MailMintPro\Mint\Internal\AbandonedCart\Helper\Common;
 use Mint\MRM\Internal\AbandonedCart\Helper\CartCommon;
@@ -47,6 +48,9 @@ class AdminAssets {
     public function __construct() {
         add_action( 'init', [ $this, 'register_all_scripts' ] );
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+        // An SMTP plugin being switched on/off changes the campaign-screen sending notice.
+        add_action( 'activated_plugin', array( SendingHealth::class, 'clear_notice_cache' ) );
+        add_action( 'deactivated_plugin', array( SendingHealth::class, 'clear_notice_cache' ) );
     }
 
 
@@ -350,6 +354,8 @@ class AdminAssets {
                     'is_zerobounce_connected'        => MrmCommon::is_mailmint_pro_active() && method_exists('MailMintPro\App\Utilities\Helper\Integration', 'is_zero_bounce_connected') ? Integration::is_zero_bounce_connected() : false,
                     'is_wpf_active'                  => MrmCommon::is_wpfnl_active(),
                     'smtp_notice'                    => MrmCommon::find_active_smtp_plugin(),
+                    // Read by the campaign screens' MaillerWaring notice (key spelling is what the JS expects).
+                    'smtp_warring'                   => SendingHealth::get_campaign_notice(),
                     'mint_mail_home_url'             => home_url(),
                     'unsubscribe_reasons'            => UnsubscribeReasons::get_reasons(),
                     'wp_user_roles'                  => MrmCommon::get_wp_user_roles(),
@@ -415,6 +421,8 @@ class AdminAssets {
                     'telegram_settings'              => MrmCommon::is_mailmint_pro_active() && class_exists( 'MailMintPro\\App\\Utilities\\Helper\\Telegram' ) ? Telegram::get_public_settings() : array(),
                     // Public subset only: the access token stays on the server.
                     'whatsapp_settings'              => MrmCommon::is_mailmint_pro_active() && class_exists( 'MailMintPro\\App\\Utilities\\Helper\\WhatsApp' ) ? WhatsApp::get_public_settings() : array(),
+                    // Public subset only: the API key and secret stay on the server.
+                    'vonage_settings'                => MrmCommon::is_mailmint_pro_active() && class_exists( 'MailMintPro\\App\\Utilities\\Helper\\Vonage' ) ? Vonage::get_public_settings() : array(),
                     'available_integrations'         => $this->get_available_integrations(),
                     'local_time'                     => date_i18n( 'Y-m-d H:i:s' ),
                     'timezone'                       => MrmCommon::get_site_timezone_info(),
@@ -473,6 +481,7 @@ class AdminAssets {
         return array(
             'telegram' => ! MrmCommon::is_mailmint_pro_active() || class_exists( 'MailMintPro\\App\\Utilities\\Helper\\Telegram' ),
             'whatsapp' => ! MrmCommon::is_mailmint_pro_active() || class_exists( 'MailMintPro\\App\\Utilities\\Helper\\WhatsApp' ),
+            'vonage'   => ! MrmCommon::is_mailmint_pro_active() || class_exists( 'MailMintPro\\App\\Utilities\\Helper\\Vonage' ),
         );
     }
 

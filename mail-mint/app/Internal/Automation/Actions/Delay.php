@@ -89,6 +89,9 @@ class Delay extends AbstractAutomationAction {
 				if ( isset( $data['delay_time'] ) || !empty( $data['delay_time'] ) ) {
 					$time = $data['delay_time'];
 				}
+				if ( !empty( $data['data']['mint_test_run']['skip_delays'] ) ) {
+					$time = 0;
+				}
 				if ( $time <= 0 ) {
 					$time = 0;
 				} elseif ( $time > 2 * YEAR_IN_SECONDS ) {

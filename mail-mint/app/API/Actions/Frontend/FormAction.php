@@ -126,9 +126,9 @@ class FormAction implements Action {
 		$is_integrated = isset( $zero_bounce['is_integrated'] ) ? $zero_bounce['is_integrated'] : false;
 
 		if( $is_integrated ) {
-			$response = Integration::handle_zero_bounce_request( $api_key, $form_email );
+			$zero_bounce_response = Integration::handle_zero_bounce_request( $api_key, $form_email );
 
-			if( isset($response['body']['status'] ) && 'invalid' === $response['body']['status'] ){
+			if ( isset( $zero_bounce_response['body']['status'] ) && 'invalid' === $zero_bounce_response['body']['status'] ) {
 				$response = array(
 					'status'  => 'failed',
 					'message' => __( 'The email address does not exist. Please check the spelling and try again.', 'mrm' ),
@@ -184,6 +184,9 @@ class FormAction implements Action {
 				setcookie( $cookie_name, wp_json_encode( $cookie_value ), $time, '/' );
 			}
 		}
+
+		// Fallback when the form has no confirmation settings, so the "Form is not valid" default is not shown on success.
+		$response['message'] = __( 'Form submitted successfully.', 'mrm' );
 
 		$confirmation_type = isset( $form_setting->settings->confirmation_type ) ? $form_setting->settings->confirmation_type : array();
 		if ( ! empty( $confirmation_type->same_page ) ) {
@@ -292,6 +295,9 @@ class FormAction implements Action {
 			 */
 			return apply_filters( 'mailmint_after_form_submit_response', $response, $form_id, $contact );
 		}
+
+		// Contact could not be saved; don't show the confirmation (success) message.
+		$response['message'] = __( 'Something went wrong. Please try again.', 'mrm' );
 
 		/**
 		 * This filter was documented in the upper section where it was first initialized

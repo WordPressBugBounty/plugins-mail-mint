@@ -17,6 +17,10 @@
  *
  * Payload is anonymous: route patterns (never ids), feature names, HTTP status
  * and error codes. No request bodies, messages, emails or contact data.
+ * `deactivation_context` also carries mail-health values from
+ * SendingHealth::get_telemetry() (counts, booleans, WordPress version, SMTP
+ * plugin name; never the From address or mailer error text). Events are keyed
+ * by the SDK's site id (a hash of the site URL), so they are pseudonymous.
  *
  * @package Mint\MRM\Internal\Tracking
  * @since 1.32.0
@@ -26,6 +30,7 @@ namespace Mint\MRM\Internal\Tracking;
 
 use LinnoSDK\Telemetry\Client;
 use LinnoSDK\Telemetry\Helpers\Utils;
+use Mint\MRM\Internal\Admin\SendingHealth;
 use Mint\MRM\Utilities\Helper\PermissionManager;
 use PostHog\PostHog;
 
@@ -40,6 +45,21 @@ class ActivityTrail {
 	 * Option that stores the trail (not autoloaded).
 	 */
 	const OPTION = 'mailmint_activity_trail';
+
+	/**
+	 * Most messages per PostHog request; the client flushes on its own at 100.
+	 */
+	const MAX_BATCH_MESSAGES = 90;
+
+	/**
+	 * Most bytes per PostHog request, leaving room under the client's 32 KB limit.
+	 */
+	const MAX_BATCH_BYTES = 24000;
+
+	/**
+	 * Bytes the PostHog client adds to each message (library fields, batch wrapper).
+	 */
+	const MESSAGE_OVERHEAD_BYTES = 300;
 
 	/**
 	 * Maximum unsent entries kept (a busy day on an opted-in site).
@@ -204,6 +224,13 @@ class ActivityTrail {
 	 * @var array
 	 */
 	private $matched_routes = array();
+
+	/**
+	 * Whether PostHog reported an error response since the last flush was checked.
+	 *
+	 * @var bool
+	 */
+	private $flush_failed = false;
 
 	/**
 	 * Register hooks once.
@@ -1037,19 +1064,34 @@ class ActivityTrail {
 
 		$installed = (int) get_option( 'mailmint_install_timestamp', 0 );
 
-		return array(
-			'deactivation_source'         => $this->deactivation_source(),
-			'modal_reason_submitted'      => 'yes' === get_transient( 'mail-mint_deactivation_event_sent' ),
-			'last_activity'               => $last ? $this->label( $last ) : '',
-			'last_feature'                => $last_feature,
-			'last_screen'                 => $last_screen,
-			'last_failure'                => $last_failure,
-			'failures_in_trail'           => $failures,
-			'minutes_since_last_activity' => $last ? (int) floor( ( $now - (int) $last['t'] ) / MINUTE_IN_SECONDS ) : null,
-			'days_since_install'          => $installed ? (int) floor( ( $now - $installed ) / DAY_IN_SECONDS ) : null,
-			'trail_length'                => count( $trail ),
-			'recent_activities'           => array_map( array( $this, 'label' ), array_slice( $trail, -15 ) ),
-			'opted_in'                    => $this->is_opted_in(),
+		// Mail-health values split "email not sending" deactivations by cause. Skipped when
+		// nothing can be sent; a failing check must never stop the event, so errors just
+		// leave them out.
+		$mail_health = array();
+		if ( $this->can_send() ) {
+			try {
+				$mail_health = SendingHealth::get_telemetry();
+			} catch ( \Throwable $e ) {
+				$mail_health = array();
+			}
+		}
+
+		return array_merge(
+			array(
+				'deactivation_source'         => $this->deactivation_source(),
+				'modal_reason_submitted'      => 'yes' === get_transient( 'mail-mint_deactivation_event_sent' ),
+				'last_activity'               => $last ? $this->label( $last ) : '',
+				'last_feature'                => $last_feature,
+				'last_screen'                 => $last_screen,
+				'last_failure'                => $last_failure,
+				'failures_in_trail'           => $failures,
+				'minutes_since_last_activity' => $last ? (int) floor( ( $now - (int) $last['t'] ) / MINUTE_IN_SECONDS ) : null,
+				'days_since_install'          => $installed ? (int) floor( ( $now - $installed ) / DAY_IN_SECONDS ) : null,
+				'trail_length'                => count( $trail ),
+				'recent_activities'           => array_map( array( $this, 'label' ), array_slice( $trail, -15 ) ),
+				'opted_in'                    => $this->is_opted_in(),
+			),
+			$mail_health
 		);
 	}
 
@@ -1120,11 +1162,10 @@ class ActivityTrail {
 	 *
 	 * @param array      $entries Entries to send, oldest first.
 	 * @param array|null $context Deactivation summary, or null.
-	 * @return bool True when PostHog accepted the batch.
+	 * @return bool True when PostHog accepted every batch.
 	 */
 	private function send( array $entries, $context = null ) {
-		if ( ( empty( $entries ) && null === $context ) || ! defined( 'MRM_POSTHOG_API_KEY' )
-			|| ! class_exists( PostHog::class ) || ! class_exists( Utils::class ) ) {
+		if ( ( empty( $entries ) && null === $context ) || ! $this->can_send() ) {
 			return false;
 		}
 
@@ -1137,57 +1178,115 @@ class ActivityTrail {
 			'source'         => null === $context ? 'activity_trail_daily' : 'activity_trail_deactivation',
 		);
 
-		try {
-			PostHog::init( MRM_POSTHOG_API_KEY, array( 'host' => self::POSTHOG_HOST ) );
+		$messages = array();
 
-			foreach ( $entries as $entry ) {
-				$properties = array_merge(
-					$base,
-					is_array( $entry['p'] ?? null ) ? $entry['p'] : array(),
-					array( 'repeat_count' => (int) ( $entry['n'] ?? 1 ) )
-				);
+		// The summary goes first, so it is in the first request even when the trail needs several.
+		if ( null !== $context ) {
+			$messages[] = array(
+				'distinctId' => $distinct_id,
+				'event'      => self::EVENT_PREFIX . 'deactivation_context',
+				'properties' => array_merge( $base, $context ),
+				'timestamp'  => $now,
+			);
+		}
 
-				if ( null !== $context ) {
-					$properties['seconds_before_deactivation'] = max( 0, $now - (int) $entry['t'] );
-				}
-
-				if ( 'screen_viewed' === $entry['a'] ) {
-					$event                      = '$screen';
-					$properties['$screen_name'] = 'mail-mint' . ( $entry['p']['screen'] ?? '' );
-				} else {
-					$event = self::EVENT_PREFIX . $entry['a'];
-				}
-
-				PostHog::capture(
-					array(
-						'distinctId' => $distinct_id,
-						'event'      => $event,
-						'properties' => $properties,
-						'timestamp'  => (int) $entry['t'],
-					)
-				);
-			}
+		foreach ( $entries as $entry ) {
+			$properties = array_merge(
+				$base,
+				is_array( $entry['p'] ?? null ) ? $entry['p'] : array(),
+				array( 'repeat_count' => (int) ( $entry['n'] ?? 1 ) )
+			);
 
 			if ( null !== $context ) {
-				PostHog::capture(
-					array(
-						'distinctId' => $distinct_id,
-						'event'      => self::EVENT_PREFIX . 'deactivation_context',
-						'properties' => array_merge( $base, $context ),
-						'timestamp'  => $now,
-					)
-				);
+				$properties['seconds_before_deactivation'] = max( 0, $now - (int) $entry['t'] );
 			}
 
-			// flush() returns the last HttpResponse (always truthy), so check the status code.
-			$response = PostHog::flush();
+			if ( 'screen_viewed' === $entry['a'] ) {
+				$event                      = '$screen';
+				$properties['$screen_name'] = 'mail-mint' . ( $entry['p']['screen'] ?? '' );
+			} else {
+				$event = self::EVENT_PREFIX . $entry['a'];
+			}
 
-			return is_object( $response ) && method_exists( $response, 'getResponseCode' )
-				? 200 === (int) $response->getResponseCode()
-				: (bool) $response;
+			$messages[] = array(
+				'distinctId' => $distinct_id,
+				'event'      => $event,
+				'properties' => $properties,
+				'timestamp'  => (int) $entry['t'],
+			);
+		}
+
+		try {
+			// With the default consumer flush() returns the response body, so an error response
+			// with a body (a 503 page, a 429 JSON error) looks like success. The client calls
+			// error_handler on every non-200 attempt, including ones a retry then fixes, so an
+			// error counts unless the final body is PostHog's success reply (see flushed()).
+			$this->flush_failed = false;
+			PostHog::init(
+				MRM_POSTHOG_API_KEY,
+				array(
+					'host'          => self::POSTHOG_HOST,
+					'error_handler' => function () {
+						$this->flush_failed = true;
+					},
+				)
+			);
+
+			// PostHog's client silently drops a whole request over 32 KB, and flushes on its own
+			// (unchecked) at 100 queued messages. So batches are cut here, below both limits,
+			// and every flush is checked. Usually everything fits in one request; on the first
+			// failure sending stops, so an unreachable PostHog costs one retry cycle, not one per batch.
+			$batch_bytes = 0;
+			$batch_count = 0;
+			foreach ( $messages as $message ) {
+				// The client adds library fields and the batch wrapper; allow for them per message.
+				$size = strlen( (string) wp_json_encode( $message ) ) + self::MESSAGE_OVERHEAD_BYTES;
+				if ( $batch_count > 0 && ( $batch_count >= self::MAX_BATCH_MESSAGES || $batch_bytes + $size > self::MAX_BATCH_BYTES ) ) {
+					if ( ! $this->flushed( PostHog::flush() ) ) {
+						return false;
+					}
+					$batch_bytes = 0;
+					$batch_count = 0;
+				}
+				PostHog::capture( $message );
+				$batch_bytes += $size;
+				++$batch_count;
+			}
+
+			return $this->flushed( PostHog::flush() );
 		} catch ( \Throwable $e ) {
 			// Never block the request or deactivation on telemetry.
 			return false;
 		}
+	}
+
+	/**
+	 * Whether a PostHog::flush() result means the batch was accepted.
+	 *
+	 * @param mixed $response Return value of PostHog::flush().
+	 * @return bool
+	 */
+	private function flushed( $response ) {
+		$failed             = $this->flush_failed;
+		$this->flush_failed = false;
+		if ( $failed ) {
+			// An attempt failed; the batch still arrived if a retry got PostHog's success reply.
+			$body = is_string( $response ) ? json_decode( $response, true ) : null;
+			return is_array( $body ) && isset( $body['status'] ) && 1 === $body['status'];
+		}
+
+		// Depending on the consumer, flush() returns a bool, the response body or an HttpResponse.
+		return is_object( $response ) && method_exists( $response, 'getResponseCode' )
+			? 200 === (int) $response->getResponseCode()
+			: (bool) $response;
+	}
+
+	/**
+	 * Whether PostHog can be used on this site.
+	 *
+	 * @return bool
+	 */
+	private function can_send() {
+		return defined( 'MRM_POSTHOG_API_KEY' ) && class_exists( PostHog::class ) && class_exists( Utils::class );
 	}
 }

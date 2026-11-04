@@ -1250,6 +1250,10 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Admin/Segmentation/SegmentFilterService.php'
 	),
+	'Mint\\MRM\\Internal\\Admin\\SendingHealth' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Admin/SendingHealth.php'
+	),
 	'Mint\\MRM\\Internal\\Admin\\SetupWizard' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Admin/Setup-Wizard/SetupWizard.php'

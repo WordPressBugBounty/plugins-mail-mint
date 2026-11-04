@@ -317,13 +317,14 @@ class CampaignEmailController extends AdminBaseController {
 		}
 
 		$receivers = ! empty( $params[ 'json_data' ][ 'to' ] ) ? $params[ 'json_data' ][ 'to' ] : '';
+		// Drop empty entries from trailing or doubled commas so they aren't reported as invalid addresses.
+		$receivers = array_values( array_filter( array_map( 'trim', explode( ',', $receivers ) ), 'strlen' ) );
 		if ( empty( $receivers ) ){
 			return array(
 				'status'  => 'error',
 				'message' => __('At least one email address is required.', 'mrm' )
 			);
 		}
-		$receivers  = explode( ',', $receivers );
 
 		$header_data = array(
 			'reply_name'  => ! empty( $params[ 'json_data' ][ 'reply_name' ] ) ? $params[ 'json_data' ][ 'reply_name' ] : '',
@@ -365,20 +366,18 @@ class CampaignEmailController extends AdminBaseController {
 
 		$content = Helper::modify_email_for_rtl( $content );
 
-		$response = array(
-			'status'  => 'success',
-			'message' => __('A test email has been sent successfully.', 'mrm'),
-		);
-
 		// Resolve click-tracking mode once; reused for every recipient.
 		$click_tracking_mode = ComplianceAction::get_click_tracking_mode();
 		$personalizer        = new EmailPersonalizer();
 
-		$false_emails = array();
+		$false_emails   = array();
+		$failed_emails  = array();
+		$sent_count     = 0;
+		$failure_reason = '';
 		foreach( $receivers as $receiver ) {
-			$receiver = trim( $receiver );
 			if ( ! is_email( $receiver ) ) {
 				$false_emails[] = $receiver;
+				continue;
 			}
 
 			$contact = ContactModel::get_contact_by_email($receiver);
@@ -425,17 +424,66 @@ class CampaignEmailController extends AdminBaseController {
 			// Apply Pro lead-magnet tracking (generates the download token; no-op without Pro).
 			$final_content = $personalizer->applyProProcessing( $final_content, $receiver );
 
-			MM()->mailer->send($receiver, $parsed_subject, $final_content, $headers);
+			if ( MM()->mailer->send( $receiver, $parsed_subject, $final_content, $headers ) ) {
+				$sent_count++;
+			} else {
+				$failed_emails[] = $receiver;
+				$failure_reason  = MM()->mailer->get_last_error();
+			}
 		}
 
-		if ( count( $false_emails ) ){
-			$response = array(
-				'status'  => 'error',
-				'message' => __( 'A test email has been sent successfully but some emails are wrong - ', 'mrm' ) . implode( ", ", $false_emails )
+		return $this->build_test_email_response( $sent_count, $failed_emails, $false_emails, $failure_reason );
+	}
+
+	/**
+	 * Build the send-test-email response from what actually happened to each recipient.
+	 *
+	 * @param int    $sent_count     Number of emails the mailer accepted.
+	 * @param array  $failed_emails  Valid addresses the mailer failed to send to.
+	 * @param array  $false_emails   Invalid addresses that were skipped.
+	 * @param string $failure_reason The mailer's error message for the last failed recipient.
+	 * @return array
+	 * @since 1.31.8
+	 */
+	private function build_test_email_response( $sent_count, $failed_emails, $false_emails, $failure_reason = '' ) {
+		if ( ! $failed_emails && ! $false_emails ) {
+			return array(
+				'status'  => 'success',
+				'message' => __( 'A test email has been sent successfully.', 'mrm' ),
 			);
 		}
 
-		return $response;
+		$messages = array();
+		if ( $sent_count ) {
+			$messages[] = sprintf(
+				/* translators: 1: number of recipients the email was sent to, 2: total number of recipients. */
+				__( 'The test email was sent to %1$d of %2$d recipients.', 'mrm' ),
+				$sent_count,
+				$sent_count + count( $failed_emails ) + count( $false_emails )
+			);
+		}
+		if ( $failed_emails ) {
+			$messages[] = $sent_count
+				/* translators: %s: comma-separated email addresses. */
+				? sprintf( __( 'Could not send to: %s.', 'mrm' ), implode( ', ', $failed_emails ) )
+				: __( 'The test email could not be sent. Please check your email sending setup, for example by installing an SMTP plugin.', 'mrm' );
+			if ( '' !== $failure_reason ) {
+				/* translators: %s: error message returned by the mailer. */
+				$messages[] = sprintf( __( 'Mailer error: %s', 'mrm' ), rtrim( $failure_reason, ". \t\n\r" ) . '.' );
+			}
+		}
+		if ( $false_emails ) {
+			$messages[] = sprintf(
+				/* translators: %s: comma-separated email addresses. */
+				_n( 'Invalid email address, not sent: %s.', 'Invalid email addresses, not sent: %s.', count( $false_emails ), 'mrm' ),
+				implode( ', ', $false_emails )
+			);
+		}
+
+		return array(
+			'status'  => 'error',
+			'message' => implode( ' ', $messages ),
+		);
 	}
 
 	/**

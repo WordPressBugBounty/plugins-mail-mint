@@ -1584,6 +1584,7 @@ class CampaignController extends AdminBaseController {
         if( !empty( $params['remove_smtp_notice'] ) ){
             $notice = $params['remove_smtp_notice'];
             update_option('mint_notice_update',$notice);
+            \Mint\MRM\Internal\Admin\SendingHealth::clear_notice_cache();
             return $this->get_success_response( __( 'Notice updated successfully', 'mrm' ), 201 );
         }
         return $this->get_error_response( __( 'Failed to update notice status', 'mrm' ), 400 );

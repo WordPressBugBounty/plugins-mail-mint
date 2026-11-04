@@ -1811,6 +1811,10 @@ class MrmCommon {
 		if ( empty( $plugins ) || !is_array( $plugins ) ) {
 			return false;
 		}
+		// is_plugin_active() is not loaded on REST requests before WP 6.8.
+		if ( ! function_exists( 'is_plugin_active' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
 		foreach ( $plugins as $plugin ) {
 			if ( isset( $plugin['slug'] ) && is_plugin_active( $plugin['slug'] ) ) {
 				$active_plugins[] = $plugin;

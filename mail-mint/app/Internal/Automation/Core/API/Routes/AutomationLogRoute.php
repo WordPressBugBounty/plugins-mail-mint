@@ -85,6 +85,28 @@ class AutomationLogRoute {
 				),
 			)
 		);
+
+		/**
+		 * Stop, resume or restart one contact's run, or start a test run, of an automation
+		 *
+		 * @since 1.32.0
+		*/
+		foreach ( array( 'stop', 'resume', 'restart', 'test' ) as $run_action ) {
+			register_rest_route(
+				$this->namespace,
+				'/' . $this->rest_base . '/(?P<id>[\d]+)/' . $run_action . '-run',
+				array(
+					array(
+						'methods'             => WP_REST_Server::CREATABLE,
+						'callback'            => array(
+							$this->controller,
+							$run_action . '_run',
+						),
+						'permission_callback' => PermissionManager::current_user_can('mint_manage_automations'),
+					),
+				)
+			);
+		}
 	}
 
 }

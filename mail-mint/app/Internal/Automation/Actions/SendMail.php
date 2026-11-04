@@ -16,6 +16,7 @@ use Mint\MRM\Internal\Parser\Parser;
 use Mint\MRM\DataBase\Models\CampaignEmailBuilderModel;
 use Mint\MRM\DataBase\Models\ContactModel;
 use Mint\MRM\DataBase\Models\EmailModel;
+use Mint\MRM\Database\Repositories\BroadcastRepository;
 use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Utilites\Helper\Email;
 use MintMail\App\Internal\Automation\Action\AbstractAutomationAction;
@@ -310,7 +311,13 @@ class SendMail extends AbstractAutomationAction {
 				}
 				$email_data['body'] = $personalizer->applyProProcessing( $email_data['body'], $user_email );
 
+				MM()->mailer->reset_last_error();
 				$is_sent = $this->send_message( $email_data, $rand_hash );
+				// Read it now: hooks below may send other emails and overwrite the mailer's last error.
+				$failure_reason = $is_sent ? '' : MM()->mailer->get_last_error();
+				if ( ! $is_sent && '' === $failure_reason ) {
+					$failure_reason = __( 'The email has no recipient address.', 'mrm' );
+				}
 				do_action('mailmint_after_automation_send_mail', $data['automation_id'], $data['data']['user_email'], $is_sent);
 				$payload = array(
 					'automation_id' => $data['automation_id'],
@@ -344,7 +351,13 @@ class SendMail extends AbstractAutomationAction {
 					);
 					HelperFunctions::update_log( $log_payload );
 				}
-				EmailModel::insert( $payload );
+				// Test sends are left out of the email records so they don't count in the report.
+				if ( !HelperFunctions::is_test_run( $data['identifier'] ) ) {
+					$broadcast_email_id = EmailModel::insert( $payload );
+					if ( '' !== $failure_reason && $broadcast_email_id ) {
+						( new BroadcastRepository() )->insertOrUpdateMeta( (int) $broadcast_email_id, 'failure_reason', sanitize_text_field( $failure_reason ) );
+					}
+				}
 			}
 
 			if ( !isset( $data['double_optin'] ) ) {

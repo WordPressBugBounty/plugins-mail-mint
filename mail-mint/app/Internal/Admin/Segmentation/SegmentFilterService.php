@@ -423,6 +423,59 @@ class SegmentFilterService {
 		}
 	}
 
+	/**
+	 * Count matching contacts grouped by subscription status.
+	 *
+	 * @param string $where_clause SQL WHERE clause.
+	 * @return array Status counts keyed like the contacts list `count_status` payload.
+	 * @since 1.25.0
+	 */
+	public function getStatusCounts( $where_clause ) {
+		global $wpdb;
+		$contacts_table = $wpdb->prefix . ContactSchema::$table_name;
+
+		$query  = $wpdb->prepare( 'SELECT c1.status, COUNT(c1.id) AS total FROM %i AS c1 WHERE ', $contacts_table );
+		$query .= $where_clause;
+		$query .= ' GROUP BY c1.status';
+
+		$rows   = $wpdb->get_results( $query, ARRAY_A );
+		$counts = array(
+			'subscribed'    => 0,
+			'unsubscribed'  => 0,
+			'pending'       => 0,
+			'bounced'       => 0,
+			'complained'    => 0,
+			'inactive'      => 0,
+			'transactional' => 0,
+		);
+
+		foreach ( (array) $rows as $row ) {
+			if ( isset( $counts[ $row['status'] ] ) ) {
+				$counts[ $row['status'] ] = (int) $row['total'];
+			}
+		}
+
+		$counts['total_status'] = array_sum( $counts );
+		return $counts;
+	}
+
+	/**
+	 * Retrieve the IDs of every contact matching the WHERE clause.
+	 *
+	 * @param string $where_clause SQL WHERE clause.
+	 * @return array Contact IDs.
+	 * @since 1.25.0
+	 */
+	public function getContactIds( $where_clause ) {
+		global $wpdb;
+		$contacts_table = $wpdb->prefix . ContactSchema::$table_name;
+
+		$query  = $wpdb->prepare( 'SELECT c1.id FROM %i AS c1 WHERE ', $contacts_table );
+		$query .= $where_clause;
+
+		return array_map( 'absint', (array) $wpdb->get_col( $query ) );
+	}
+
 	// ========================================
 	// Filter Operator Methods
 	// ========================================

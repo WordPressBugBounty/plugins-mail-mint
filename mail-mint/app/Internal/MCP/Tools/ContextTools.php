@@ -15,6 +15,7 @@ namespace Mint\MRM\Internal\MCP\Tools;
 defined( 'ABSPATH' ) || exit;
 
 use Mint\MRM\DataBase\Models\CustomFieldModel;
+use Mint\MRM\Internal\Admin\SendingHealth;
 use Mint\MRM\Utilities\Helper\PermissionManager;
 
 class ContextTools {
@@ -474,82 +475,7 @@ class ContextTools {
 	 * @return array
 	 */
 	private static function checkSmtpSetup(): array {
-		if ( ! function_exists( 'is_plugin_active' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/plugin.php';
-		}
-
-		$smtp_plugins = array(
-			'wp-mail-smtp/wp_mail_smtp.php'       => 'WP Mail SMTP',
-			'fluent-smtp/fluent-smtp.php'         => 'FluentSMTP',
-			'post-smtp/post-smtp.php'             => 'Post SMTP',
-			'easy-wp-smtp/easy-wp-smtp.php'       => 'Easy WP SMTP',
-			'smtp-mailer/main.php'                => 'SMTP Mailer',
-			'wp-offload-ses/wp-offload-ses.php'   => 'WP Offload SES',
-			'gmail-smtp/main.php'                 => 'Gmail SMTP',
-			'sendinblue-subscribe/sendinblue.php' => 'Brevo (Sendinblue)',
-			'mailgun/mailgun.php'                 => 'Mailgun',
-		);
-
-		$detected_plugin = null;
-		foreach ( $smtp_plugins as $plugin_path => $name ) {
-			if ( is_plugin_active( $plugin_path ) ) {
-				$detected_plugin = $name;
-				break;
-			}
-		}
-
-		$mail_mint_mailer  = get_option( 'mrm_email_service_settings', array() );
-		$mailer_slug       = ! empty( $mail_mint_mailer['mailer'] ) ? $mail_mint_mailer['mailer'] : 'wpmail';
-		$has_custom_mailer = 'wpmail' !== $mailer_slug;
-
-		$has_smtp_constants = ( defined( 'SMTP_HOST' ) && SMTP_HOST )
-			|| ( defined( 'WPMS_ON' ) && WPMS_ON )
-			|| defined( 'POST_SMTP_AUTH' );
-
-		$has_smtp_classes = class_exists( 'WPMailSMTP\Core' )
-			|| function_exists( 'wp_mail_smtp' )
-			|| defined( 'FLUENTMAIL' )
-			|| class_exists( 'FluentSmtp\App\App' )
-			|| class_exists( 'Postman' )
-			|| defined( 'POST_SMTP_VER' )
-			|| class_exists( 'EasyWPSMTP' )
-			|| defined( 'EASY_WP_SMTP_VER' );
-
-		if ( $detected_plugin ) {
-			return array(
-				'name'           => __( 'SMTP / Mailer Configuration', 'mrm' ),
-				'status'         => 'pass',
-				// translators: %s: SMTP plugin name.
-				'details'        => sprintf( __( 'SMTP plugin detected (%s). Mail delivery is configured.', 'mrm' ), $detected_plugin ),
-				'recommendation' => null,
-			);
-		}
-
-		if ( $has_custom_mailer ) {
-			return array(
-				'name'           => __( 'SMTP / Mailer Configuration', 'mrm' ),
-				'status'         => 'pass',
-				// translators: %s: Mailer name.
-				'details'        => sprintf( __( 'Mail Mint mailer configured (%s).', 'mrm' ), ucfirst( $mailer_slug ) ),
-				'recommendation' => null,
-			);
-		}
-
-		if ( $has_smtp_constants || $has_smtp_classes ) {
-			return array(
-				'name'           => __( 'SMTP / Mailer Configuration', 'mrm' ),
-				'status'         => 'pass',
-				'details'        => __( 'Custom SMTP configuration detected in WordPress.', 'mrm' ),
-				'recommendation' => null,
-			);
-		}
-
-		return array(
-			'name'           => __( 'SMTP / Mailer Configuration', 'mrm' ),
-			'status'         => 'fail',
-			'details'        => __( 'No SMTP plugin or custom mailer detected. Emails are using default WordPress wp_mail() / PHP mail(), which frequently fails or gets flagged as SPAM.', 'mrm' ),
-			'recommendation' => __( 'Install and configure an SMTP plugin to ensure reliable email deliverability.', 'mrm' ),
-		);
+		return SendingHealth::check_smtp();
 	}
 
 	/**
@@ -558,54 +484,7 @@ class ContextTools {
 	 * @return array
 	 */
 	private static function checkSenderEmail(): array {
-		$email_settings = get_option( '_mrm_email_settings', array() );
-		$from_email     = ! empty( $email_settings['from_email'] ) ? trim( $email_settings['from_email'] ) : get_option( 'admin_email' );
-
-		if ( empty( $from_email ) || ! is_email( $from_email ) ) {
-			return array(
-				'name'           => __( 'Sender Email Address', 'mrm' ),
-				'status'         => 'fail',
-				'details'        => __( 'No sender email address configured.', 'mrm' ),
-				'recommendation' => __( 'Go to Mail Mint > Settings > Email Settings and set a valid From Email address.', 'mrm' ),
-			);
-		}
-
-		$free_domains = array(
-			'gmail.com',
-			'yahoo.com',
-			'hotmail.com',
-			'outlook.com',
-			'icloud.com',
-			'aol.com',
-			'gmx.com',
-			'mail.com',
-			'protonmail.com',
-			'yandex.com',
-			'live.com',
-		);
-
-		$parts  = explode( '@', strtolower( $from_email ) );
-		$domain = end( $parts );
-
-		if ( in_array( $domain, $free_domains, true ) ) {
-			return array(
-				'name'           => __( 'Sender Email Address', 'mrm' ),
-				'status'         => 'warning',
-				'from_email'     => $from_email,
-				// translators: 1: Sender email address, 2: Domain name.
-				'details'        => sprintf( __( 'Sender email (%1$s) uses a free webmail domain (@%2$s).', 'mrm' ), $from_email, $domain ),
-				'recommendation' => __( 'Free webmail domains fail DMARC/SPF authentication when sending bulk emails. Major mailbox providers (Gmail, Yahoo, Outlook) reject these emails or send them to SPAM. Use an email address from your custom domain (e.g. info@yourdomain.com).', 'mrm' ),
-			);
-		}
-
-		return array(
-			'name'           => __( 'Sender Email Address', 'mrm' ),
-			'status'         => 'pass',
-			'from_email'     => $from_email,
-			// translators: %s: Sender email address.
-			'details'        => sprintf( __( 'Sender email is configured with custom domain (%s).', 'mrm' ), $from_email ),
-			'recommendation' => null,
-		);
+		return SendingHealth::check_sender_email();
 	}
 
 	/**

@@ -227,6 +227,26 @@ class SettingRoute {
 		);
 
 		/**
+		 * Sending health checks (SMTP, sender address, background jobs, recent failures).
+		 *
+		 * @since 1.31.8
+		 */
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/email/health',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array(
+						$this->email_controller,
+						'get_sending_health',
+					),
+					'permission_callback' => PermissionManager::current_user_can('mint_manage_settings'),
+				),
+			)
+		);
+
+		/**
 		 * Register rest routes for double opt-in settings
 		 *
 		 * @since 1.0.0

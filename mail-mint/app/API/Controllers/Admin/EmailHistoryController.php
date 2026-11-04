@@ -61,6 +61,7 @@ class EmailHistoryController extends AdminBaseController {
 		$campaign_table   = $wpdb->prefix . CampaignSchema::$campaign_table;
 		$campaign_emails  = $wpdb->prefix . CampaignSchema::$campaign_emails_table;
 		$automation_steps = $wpdb->prefix . AutomationStepSchema::$table_name;
+		$email_meta       = $wpdb->prefix . EmailMetaSchema::$table_name;
 
 		$where_clauses = array( '1=1' );
 		$params        = array();
@@ -114,12 +115,14 @@ class EmailHistoryController extends AdminBaseController {
 				c.status AS contact_status,
 				ce.email_subject AS campaign_subject,
 				camp.title AS campaign_title,
-				cm.meta_value AS avatar_url
+				cm.meta_value AS avatar_url,
+				fr.meta_value AS failure_reason
 			FROM {$broadcast_table} be
 			LEFT JOIN {$contact_table} c ON c.id = be.contact_id
 			LEFT JOIN {$campaign_emails} ce ON ce.id = be.email_id
 			LEFT JOIN {$campaign_table} camp ON camp.id = be.campaign_id
 			LEFT JOIN {$contact_meta} cm ON cm.contact_id = be.contact_id AND cm.meta_key = 'avatar_url'
+			LEFT JOIN {$email_meta} fr ON fr.mint_email_id = be.id AND fr.meta_key = 'failure_reason'
 			WHERE {$where}
 			ORDER BY be.created_at DESC
 			LIMIT %d OFFSET %d
@@ -209,6 +212,7 @@ class EmailHistoryController extends AdminBaseController {
 				'source'                 => ( empty( $row->email_type ) || 'regular' === $row->email_type ) ? __( 'Admin', 'mrm' ) : ( $source_name ?: '' ),
 				'type'                   => ( empty( $row->email_type ) || 'regular' === $row->email_type ) ? 'Direct Message' : $row->email_type,
 				'status'                 => $row->status,
+				'failure_reason'         => 'failed' === $row->status ? (string) $row->failure_reason : '',
 				'contact_status'         => $row->contact_status ?: '',
 				'sending_time'           => $row->created_at,
 				'sending_time_iso'       => $sending_time_iso,
@@ -327,6 +331,7 @@ class EmailHistoryController extends AdminBaseController {
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$open_at    = $wpdb->get_var( $wpdb->prepare( "SELECT created_at FROM {$meta_table} WHERE mint_email_id = %d AND meta_key = 'is_open' AND meta_value = 1 ORDER BY created_at ASC LIMIT 1", $id ) );
 		$clicked_at = $wpdb->get_var( $wpdb->prepare( "SELECT created_at FROM {$meta_table} WHERE mint_email_id = %d AND meta_key = 'is_click' AND meta_value = 1 ORDER BY created_at ASC LIMIT 1", $id ) );
+		$failure    = 'failed' === $row->status ? $wpdb->get_var( $wpdb->prepare( "SELECT meta_value FROM {$meta_table} WHERE mint_email_id = %d AND meta_key = 'failure_reason' LIMIT 1", $id ) ) : '';
 		// phpcs:enable
 
 		$email_settings = get_option( '_mrm_email_settings', array() );
@@ -336,18 +341,19 @@ class EmailHistoryController extends AdminBaseController {
 			__( 'Email record retrieved successfully.', 'mrm' ),
 			200,
 			array(
-				'id'            => (int) $row->id,
-				'email_address' => $row->email_address,
-				'first_name'    => $row->first_name ?: '',
-				'last_name'     => $row->last_name ?: '',
-				'subject'       => $subject ?: __( '(No Subject)', 'mrm' ),
-				'body'          => $email_body ?: '',
-				'status'        => $row->status,
-				'sending_time'  => $row->created_at,
-				'sender_email'  => $from_email,
-				'open_at'       => $open_at,
-				'clicked_at'    => $clicked_at,
-				'type'          => $row->email_type,
+				'id'             => (int) $row->id,
+				'email_address'  => $row->email_address,
+				'first_name'     => $row->first_name ?: '',
+				'last_name'      => $row->last_name ?: '',
+				'subject'        => $subject ?: __( '(No Subject)', 'mrm' ),
+				'body'           => $email_body ?: '',
+				'status'         => $row->status,
+				'failure_reason' => (string) $failure,
+				'sending_time'   => $row->created_at,
+				'sender_email'   => $from_email,
+				'open_at'        => $open_at,
+				'clicked_at'     => $clicked_at,
+				'type'           => $row->email_type,
 			)
 		);
 	}
@@ -488,7 +494,14 @@ class EmailHistoryController extends AdminBaseController {
 		$sent = MM()->mailer->send( $row->email_address, $subject ?: __( '(No Subject)', 'mrm' ), $body, $email_headers );
 
 		if ( ! $sent ) {
-			return $this->get_error_response( __( 'Failed to resend email.', 'mrm' ), 500 );
+			$reason = MM()->mailer->get_last_error();
+			return $this->get_error_response(
+				'' !== $reason
+					/* translators: %s: error message returned by the mailer. */
+					? sprintf( __( 'Failed to resend email: %s', 'mrm' ), $reason )
+					: __( 'Failed to resend email.', 'mrm' ),
+				500
+			);
 		}
 
 		// Log the resend as a new broadcast record.

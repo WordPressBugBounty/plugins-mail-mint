@@ -13,6 +13,7 @@
 namespace Mint\MRM\Admin\API\Controllers;
 
 use Mint\MRM\Internal\Admin\CreateContact;
+use Mint\MRM\Internal\Admin\SendingHealth;
 use Mint\Mrm\Internal\Traits\Singleton;
 use MRM\Common\MrmCommon;
 use WP_REST_Request;
@@ -124,5 +125,16 @@ class EmailSettingController extends SettingBaseController {
 		}
 
 		return $this->get_success_response_data( $settings );
+	}
+
+	/**
+	 * Return the sending-health checks for the Email Settings page.
+	 *
+	 * @param WP_REST_Request $request Request object used to generate the response.
+	 * @return WP_REST_Response
+	 * @since 1.31.8
+	 */
+	public function get_sending_health( WP_REST_Request $request ) {
+		return $this->get_success_response_data( SendingHealth::get_report() );
 	}
 }

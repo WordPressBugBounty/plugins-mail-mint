@@ -558,6 +558,10 @@ class HelperFunctions { //phpcs:ignore
 	 * @since 1.0.0
 	 */
 	public static function update_log( $payload ) {
+		// Test runs are kept out of the automation log, so they never show in the report or stats.
+		if ( isset( $payload['identifier'] ) && self::is_test_run( $payload['identifier'] ) ) {
+			return;
+		}
 		if ( isset( $payload['automation_id'], $payload['step_id'], $payload['email'], $payload['status'], $payload['identifier'] ) ) {
 			global $wpdb;
 			$table_name = $wpdb->prefix . AutomationLogSchema::$table_name;
@@ -2966,6 +2970,375 @@ class HelperFunctions { //phpcs:ignore
 		);
 
 		return $is_active == 0;
+	}
+
+	/**
+	 * Stop one contact's run of an automation.
+	 *
+	 * A run moves forward through pending Action Scheduler jobs (Delay, Sequence and
+	 * send retries), so the run is stopped by cancelling every pending job that carries
+	 * its identifier. Its unfinished log rows are then marked as exited. The automation
+	 * and the contact's other runs are not touched.
+	 *
+	 * @param int    $automation_id The automation ID.
+	 * @param string $identifier    The run identifier stored on the log rows.
+	 *
+	 * @return array{cancelled_actions:int, exited_steps:int}
+	 * @since 1.32.0
+	 */
+	public static function stop_automation_run( $automation_id, $identifier ) {
+		global $wpdb;
+		$automation_id = (int) $automation_id;
+		$identifier    = (string) $identifier;
+		$result        = array(
+			'cancelled_actions' => 0,
+			'exited_steps'      => 0,
+		);
+
+		if ( ! $automation_id || '' === $identifier ) {
+			return $result;
+		}
+
+		$log_table = $wpdb->prefix . AutomationLogSchema::$table_name;
+		$now       = current_time( 'mysql' );
+		foreach ( self::get_run_pending_actions( $automation_id, $identifier ) as $action_id => $run ) {
+			try {
+				\ActionScheduler::store()->cancel_action( $action_id );
+			} catch ( \Exception $e ) {
+				// The job started or finished between the query and the cancel.
+				continue;
+			}
+			++$result['cancelled_actions'];
+
+			// The step this job would have run may have no log row yet. Record it as exited so the report shows where the run stopped.
+			$email = '';
+			if ( ! empty( $run['data']['user_email'] ) ) {
+				$email = $run['data']['user_email'];
+			} elseif ( ! empty( $run['user_email'] ) ) {
+				$email = $run['user_email'];
+			} elseif ( ! empty( $run['email'] ) ) {
+				$email = $run['email'];
+			}
+			if ( ! empty( $run['step_id'] ) && $email ) {
+				self::update_log(
+					array(
+						'automation_id' => $automation_id,
+						'step_id'       => $run['step_id'],
+						'email'         => $email,
+						'status'        => 'exited',
+						'identifier'    => $identifier,
+					)
+				);
+				++$result['exited_steps'];
+			}
+		}
+
+		$updated = $wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"UPDATE {$log_table}
+				SET status = 'exited', updated_at = %s
+				WHERE automation_id = %d
+				AND identifier = %s
+				AND status IN ( 'processing', 'pending', 'hold' )",
+				$now,
+				$automation_id,
+				$identifier
+			)
+		);
+		$result['exited_steps'] += (int) $updated;
+
+		return $result;
+	}
+
+	/**
+	 * Resume a failed or stopped run from its first unfinished step.
+	 *
+	 * The run keeps its identifier. Its failed and exited log rows go back to processing
+	 * and the step is queued in the background. A Delay the run was waiting on when it
+	 * was stopped is not waited again.
+	 *
+	 * @param int    $automation_id The automation ID.
+	 * @param string $identifier    The run identifier stored on the log rows.
+	 *
+	 * @return array|\WP_Error The queued step ID, or an error.
+	 * @since 1.32.0
+	 */
+	public static function resume_automation_run( $automation_id, $identifier ) {
+		global $wpdb;
+		$automation_id = (int) $automation_id;
+		$identifier    = (string) $identifier;
+		$log_table     = $wpdb->prefix . AutomationLogSchema::$table_name;
+
+		$rows = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare( "SELECT step_id, email, status FROM {$log_table} WHERE automation_id = %d AND identifier = %s", $automation_id, $identifier ),
+			ARRAY_A
+		);
+		if ( empty( $rows ) ) {
+			return new \WP_Error( 'run_not_found', __( 'This run was not found.', 'mrm' ) );
+		}
+		if ( ! empty( self::get_run_pending_actions( $automation_id, $identifier ) ) ) {
+			return new \WP_Error( 'run_in_progress', __( 'This run is still in progress.', 'mrm' ) );
+		}
+
+		$statuses = array_column( $rows, 'status', 'step_id' );
+		$email    = $rows[0]['email'];
+
+		// Walk the steps in order from the trigger and stop at the first one this run did not complete.
+		$step  = self::get_next_step( $automation_id );
+		$guard = 0;
+		while ( ! empty( $step['step_id'] ) && isset( $statuses[ $step['step_id'] ] ) && 'completed' === $statuses[ $step['step_id'] ] && $guard++ < 500 ) {
+			$step = self::get_next_step( $automation_id, $step['step_id'] );
+		}
+		if ( empty( $step['step_id'] ) || 'trigger' === $step['step_type'] ) {
+			return new \WP_Error( 'nothing_to_resume', __( 'This run has no unfinished step to resume.', 'mrm' ) );
+		}
+
+		$queued = self::queue_run_step( $step, $identifier, $email );
+		if ( is_wp_error( $queued ) ) {
+			return $queued;
+		}
+
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"UPDATE {$log_table} SET status = 'processing', updated_at = %s WHERE automation_id = %d AND identifier = %s AND status IN ( 'exited', 'fail' )",
+				current_time( 'mysql' ),
+				$automation_id,
+				$identifier
+			)
+		);
+
+		return array( 'step_id' => $step['step_id'] );
+	}
+
+	/**
+	 * Start a fresh run of an automation for the contact of an earlier run.
+	 *
+	 * The new run starts at the first step after the trigger. It gets the contact's
+	 * email and name only, because the original trigger data is not stored.
+	 *
+	 * @param int    $automation_id The automation ID.
+	 * @param string $identifier    The identifier of the earlier run.
+	 *
+	 * @return array|\WP_Error The new run identifier, or an error.
+	 * @since 1.32.0
+	 */
+	public static function restart_automation_run( $automation_id, $identifier ) {
+		global $wpdb;
+		$automation_id = (int) $automation_id;
+		$email         = $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT email FROM {$wpdb->prefix}" . AutomationLogSchema::$table_name . ' WHERE automation_id = %d AND identifier = %s LIMIT 1',
+				$automation_id,
+				(string) $identifier
+			)
+		);
+		if ( empty( $email ) ) {
+			return new \WP_Error( 'run_not_found', __( 'This run was not found.', 'mrm' ) );
+		}
+
+		$trigger = self::get_next_step( $automation_id );
+		$step    = ! empty( $trigger['step_id'] ) ? self::get_next_step( $automation_id, $trigger['step_id'] ) : '';
+		if ( empty( $step['step_id'] ) ) {
+			return new \WP_Error( 'no_steps', __( 'This automation has no steps to run.', 'mrm' ) );
+		}
+
+		$new_identifier = uniqid();
+		$queued         = self::queue_run_step( $step, $new_identifier, $email );
+		if ( is_wp_error( $queued ) ) {
+			return $queued;
+		}
+
+		// Same log rows a trigger creates when a contact enters the automation.
+		self::update_automation_steps_status(
+			$automation_id,
+			array(
+				'status'     => 'processing',
+				'email'      => $email,
+				'identifier' => $new_identifier,
+			)
+		);
+		self::update_log(
+			array(
+				'automation_id' => $automation_id,
+				'step_id'       => $trigger['step_id'],
+				'status'        => 'completed',
+				'email'         => $email,
+				'identifier'    => $new_identifier,
+			)
+		);
+
+		return array( 'identifier' => $new_identifier );
+	}
+
+	/**
+	 * Start a test run of an automation for one recipient.
+	 *
+	 * The run starts at the first step after the trigger and works on draft and paused
+	 * automations too. An email that is not a contact yet becomes a subscribed contact.
+	 * Test runs are not logged, so they stay out of the report and stats.
+	 *
+	 * @param int    $automation_id The automation ID.
+	 * @param string $email         The recipient email.
+	 * @param bool   $skip_delays   Run Delay steps without waiting.
+	 *
+	 * @return array|\WP_Error The test run identifier, or an error.
+	 * @since 1.32.0
+	 */
+	public static function start_test_run( $automation_id, $email, $skip_delays ) {
+		$automation_id = (int) $automation_id;
+		$email         = sanitize_email( $email );
+		if ( ! is_email( $email ) ) {
+			return new \WP_Error( 'invalid_email', __( 'Enter a valid email address.', 'mrm' ) );
+		}
+
+		$trigger = self::get_next_step( $automation_id );
+		$step    = ! empty( $trigger['step_id'] ) ? self::get_next_step( $automation_id, $trigger['step_id'] ) : '';
+		if ( empty( $step['step_id'] ) ) {
+			return new \WP_Error( 'no_steps', __( 'Add a trigger and at least one step before testing.', 'mrm' ) );
+		}
+
+		if ( ! ContactModel::is_contact_exist( $email ) ) {
+			$contact_id = ContactModel::insert( new \Mint\MRM\DataStores\ContactData( $email, array( 'status' => 'subscribed' ) ) );
+			if ( ! $contact_id ) {
+				return new \WP_Error( 'contact_not_created', __( 'Could not create a contact for this email.', 'mrm' ) );
+			}
+		}
+
+		$identifier = 'test_' . uniqid();
+		$queued     = self::queue_run_step(
+			$step,
+			$identifier,
+			$email,
+			array( 'mint_test_run' => array( 'skip_delays' => (bool) $skip_delays ) ),
+			false
+		);
+		if ( is_wp_error( $queued ) ) {
+			return $queued;
+		}
+
+		return array( 'identifier' => $identifier );
+	}
+
+	/**
+	 * Whether a run identifier belongs to a test run.
+	 *
+	 * @param string $identifier The run identifier.
+	 *
+	 * @return bool
+	 * @since 1.32.0
+	 */
+	public static function is_test_run( $identifier ) {
+		return 0 === strpos( (string) $identifier, 'test_' );
+	}
+
+	/**
+	 * Queue one step of a run in the background, with the contact's basic details as trigger data.
+	 *
+	 * @param array  $step           Step from get_next_step().
+	 * @param string $identifier     The run identifier.
+	 * @param string $email          The contact email.
+	 * @param array  $extra_data     More trigger data for the run.
+	 * @param bool   $require_active Refuse when the automation is not active.
+	 *
+	 * @return true|\WP_Error
+	 * @since 1.32.0
+	 */
+	private static function queue_run_step( $step, $identifier, $email, $extra_data = array(), $require_active = true ) {
+		if ( $require_active && ! self::step_exist_with_active_automation( $step['automation_id'], $step['step_id'] ) ) {
+			return new \WP_Error( 'automation_inactive', __( 'Activate the automation first.', 'mrm' ) );
+		}
+
+		$contact            = ContactModel::get_contact_by_email( $email );
+		$step['identifier'] = $identifier;
+		$step['data']       = array_merge(
+			array(
+				'user_email' => $email,
+				'first_name' => isset( $contact['first_name'] ) ? $contact['first_name'] : '',
+				'last_name'  => isset( $contact['last_name'] ) ? $contact['last_name'] : '',
+			),
+			$extra_data
+		);
+		as_enqueue_async_action( MINT_PROCESS_AUTOMATION, array( $step ), MINT_AUTOMATION_GROUP );
+
+		return true;
+	}
+
+	/**
+	 * Get the pending Action Scheduler jobs of one automation run.
+	 *
+	 * A run waiting in a Delay step has only completed log rows, so these jobs are
+	 * the only sign that it is still in progress.
+	 *
+	 * @param int    $automation_id The automation ID.
+	 * @param string $identifier    The run identifier stored on the log rows.
+	 *
+	 * @return array Step payloads keyed by action ID.
+	 * @since 1.32.0
+	 */
+	public static function get_run_pending_actions( $automation_id, $identifier ) {
+		global $wpdb;
+		$automation_id = (int) $automation_id;
+		$identifier    = (string) $identifier;
+		if ( ! $automation_id || '' === $identifier ) {
+			return array();
+		}
+
+		$like = '%' . $wpdb->esc_like( $identifier ) . '%';
+
+		// Short args are stored in `args`, longer ones in `extended_args`.
+		$actions = $wpdb->get_results( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			$wpdb->prepare(
+				"SELECT a.action_id, a.args, a.extended_args
+				FROM {$wpdb->prefix}actionscheduler_actions a
+				INNER JOIN {$wpdb->prefix}actionscheduler_groups g ON g.group_id = a.group_id
+				WHERE a.status = 'pending'
+				AND g.slug IN ( %s, %s )
+				AND ( a.args LIKE %s OR a.extended_args LIKE %s )",
+				MINT_AUTOMATION_GROUP,
+				'mailmint',
+				$like,
+				$like
+			),
+			ARRAY_A
+		);
+
+		$runs = array();
+		foreach ( (array) $actions as $action ) {
+			$args = json_decode( ! empty( $action['extended_args'] ) ? $action['extended_args'] : $action['args'], true );
+			$run  = self::find_run_payload( $args, $automation_id, $identifier );
+			if ( null !== $run ) {
+				$runs[ (int) $action['action_id'] ] = $run;
+			}
+		}
+		return $runs;
+	}
+
+	/**
+	 * Find the step payload of one automation run inside Action Scheduler job args.
+	 *
+	 * Delay and Sequence jobs keep the payload at the top level, send retries keep it under `log`.
+	 *
+	 * @param mixed  $value         Decoded job args.
+	 * @param int    $automation_id The automation ID.
+	 * @param string $identifier    The run identifier.
+	 *
+	 * @return array|null The payload, or null when the job belongs to another run.
+	 * @since 1.32.0
+	 */
+	private static function find_run_payload( $value, $automation_id, $identifier ) {
+		if ( ! is_array( $value ) ) {
+			return null;
+		}
+		if ( isset( $value['identifier'], $value['automation_id'] ) && (string) $value['identifier'] === $identifier && (int) $value['automation_id'] === $automation_id ) {
+			return $value;
+		}
+		foreach ( $value as $child ) {
+			$found = self::find_run_payload( $child, $automation_id, $identifier );
+			if ( null !== $found ) {
+				return $found;
+			}
+		}
+		return null;
 	}
 
 	/**
