@@ -293,6 +293,9 @@ class AdminAssets {
 			        'current_userID'                 => get_current_user_id(),
 			        'editor_data_source'             => $this->get_editor_source(),
 			        'admin_url'                      => get_admin_url(),
+			        // pending | dismissed | hidden | completed; empty for sites that predate it.
+			        'setup_wizard_status'            => current_user_can( 'manage_options' ) ? SetupWizard::get_status() : '',
+			        'getting_started'                => SetupWizard::is_getting_started_active(),
 			        'email_settings'                 => get_option( '_mrm_email_settings', Email::default_email_settings() ),
 			        'is_wc_active'                   => $wc_active,
 			        'condition_post_types'           => MrmCommon::get_condition_post_types(),

@@ -15,7 +15,7 @@
  * Plugin Name:       Email Marketing Automation - Mail Mint
  * Plugin URI:        https://getwpfunnels.com/email-marketing-automation-mail-mint/
  * Description:       Effortless 📧 email marketing automation tool to collect & manage leads, run email campaigns, and initiate basic email automation.
- * Version:           1.31.8
+ * Version:           1.31.9
 
  * Author:            WPFunnels Team
  * Author URI:        https://getwpfunnels.com/
@@ -37,7 +37,7 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'MRM_VERSION', '1.31.8' );
+define( 'MRM_VERSION', '1.31.9' );
 define( 'MAILMINT', 'mailmint' );
 define( 'MRM_DB_VERSION', '1.18.0' );
 define( 'MINT_DEV_MODE', false );
@@ -255,6 +255,56 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 			)
 		);
 
+		/*
+		 * AHA moments: each is sent once per site. The SDK's `aha` trigger sends
+		 * activation/aha_reached on every hook call (it only dedupes check_callback
+		 * triggers), so "first_*" indicators were sent for every campaign, form,
+		 * automation, import and campaign email step. They are wired here instead,
+		 * gated with the SDK's own "event sent" flag. The flag is only set once the
+		 * site has opted in, so a later opt-in still gets the first occurrence.
+		 */
+		$aha_triggers = array(
+			'first_campaign_sent'       => array(
+				'hook' => 'mailmint_campaign_email_sent',
+			),
+			'first_campaign_created'    => array(
+				'hook'     => 'mailmint_campaign_created',
+				'callback' => function ( $campaign_id ) {
+					return array( 'campaign_id' => (int) $campaign_id );
+				},
+			),
+			'contacts_imported'         => array(
+				'hook'     => 'mailmint_contacts_imported',
+				'callback' => function ( $count, $source ) {
+					return array(
+						'count'  => (int) $count,
+						'source' => sanitize_text_field( $source ),
+					);
+				},
+			),
+			'first_form_created'        => array(
+				'hook'     => 'mailmint_first_form_created',
+				'callback' => function ( $form_id ) {
+					return array( 'form_id' => (int) $form_id );
+				},
+			),
+			'first_automation_created'  => array(
+				'hook'     => 'mailmint_automation_created',
+				'callback' => function ( $automation_id, $trigger_name ) {
+					return array(
+						'automation_id' => (int) $automation_id,
+						'trigger_type'  => sanitize_text_field( $trigger_name ),
+					);
+				},
+			),
+			'wpfunnels_connected'       => array(
+				'hook' => 'mailmint_wpfunnels_connected',
+			),
+			'woocommerce_connected'     => array(
+				'hook' => 'mailmint_woocommerce_connected',
+			),
+		);
+
 		$client->define_triggers(
 			array(
 				'onboarding' => array(
@@ -263,104 +313,31 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 						return array( 'goal' => sanitize_text_field( $goal ) );
 					},
 				),
-				'aha' => array(
-					'first_campaign_sent'       => array(
-						'hook' => 'mailmint_campaign_email_sent',
-					),
-					'first_campaign_created'    => array(
-						'hook'     => 'mailmint_campaign_created',
-						'callback' => function ( $campaign_id ) {
-							return array( 'campaign_id' => (int) $campaign_id );
-						},
-					),
-					'contacts_imported'         => array(
-						'hook'     => 'mailmint_contacts_imported',
-						'callback' => function ( $count, $source ) {
-							return array(
-								'count'  => (int) $count,
-								'source' => sanitize_text_field( $source ),
-							);
-						},
-					),
-					'first_form_created'        => array(
-						'hook'     => 'mailmint_first_form_created',
-						'callback' => function ( $form_id ) {
-							return array( 'form_id' => (int) $form_id );
-						},
-					),
-					'first_automation_created'  => array(
-						'hook'     => 'mailmint_automation_created',
-						'callback' => function ( $automation_id, $trigger_name ) {
-							return array(
-								'automation_id' => (int) $automation_id,
-								'trigger_type'  => sanitize_text_field( $trigger_name ),
-							);
-						},
-					),
-					'wpfunnels_connected'       => array(
-						'hook' => 'mailmint_wpfunnels_connected',
-					),
-					'woocommerce_connected'     => array(
-						'hook' => 'mailmint_woocommerce_connected',
-					),
-				),
-				'feature_used' => array(
-					// Fires once per campaign completion (not per recipient) — safe frequency.
-					'campaign_sent'            => array(
-						'hook'     => 'mailmint_campaign_email_sent',
-						'callback' => function ( $campaign_id ) {
-							return array( 'campaign_id' => (int) $campaign_id );
-						},
-					),
-					// Fires once per bulk import operation — safe frequency.
-					'contacts_imported' => array(
-						'hook'     => 'mailmint_contacts_imported',
-						'callback' => function ( $count, $source ) {
-							return array( 'source' => $source, 'count' => (int) $count );
-						},
-					),
-					// Retention signals — low-frequency, admin- or AI-driven actions.
-					// one_off_email_sent — a single email sent to one contact (AI copilot / MCP email tool).
-					'one_off_email_sent'           => array(
-						'hook' => 'mailmint_one_off_email_sent',
-					),
-					// ai_conversation_started — the AI assistant was opened for real work.
-					'ai_conversation_started'      => array(
-						'hook'     => 'mailmint_ai_conversation_started',
-						'callback' => function ( $conversation_id, $context_type = '' ) {
-							return array( 'context_type' => sanitize_key( (string) $context_type ) );
-						},
-					),
-					// split_test_created — A/B test campaign created (Pro).
-					'split_test_created'           => array(
-						'hook' => 'mailmint_pro_split_test_created',
-					),
-					// custom_field_added — contact data model extended.
-					'custom_field_added'           => array(
-						'hook' => 'mailmint_custom_field_added',
-					),
-					// recurring_campaign_scheduled — a recurring campaign saved or resumed in the admin.
-					'recurring_campaign_scheduled' => array(
-						'hook' => 'mailmint_process_recurring_campaign',
-					),
-					/*
-					 * NOTE: High-frequency feature_used events fire on concurrent public
-					 * requests (form submissions, contact saves, cart abandonment) and would
-					 * otherwise emit a burst of duplicate events that inflates telemetry
-					 * volume. They are registered separately below behind a shared atomic
-					 * weekly gate instead of here:
-					 *   - form_submission_received (mailmint_after_form_submit)
-					 *   - contacts_added           (mailmint_contacts_saved)
-					 *   - cart_abandoned           (mailmint_after_cart_abandoned)
-					 */
-				),
 			)
 		);
 
+		foreach ( $aha_triggers as $indicator => $aha ) {
+			add_action(
+				$aha['hook'],
+				function ( ...$args ) use ( $client, $indicator, $aha ) {
+					if ( 'yes' !== $client->get_optin_state() || $client->has_sent_event( 'aha_reached_' . $indicator ) ) {
+						return;
+					}
+
+					$properties = isset( $aha['callback'] ) ? call_user_func_array( $aha['callback'], $args ) : array();
+					$client->track_kui( $indicator, is_array( $properties ) ? $properties : array() );
+					$client->mark_event_sent( 'aha_reached_' . $indicator );
+				},
+				10,
+				10
+			);
+		}
+
 		/**
-		 * Send a high-frequency feature_used event at most once per week, per site.
+		 * Send a feature_used event at most once per week, per site. Every
+		 * retention/feature_used event goes through this gate.
 		 *
-		 * These hooks fire on public, concurrent web requests (automation triggers
+		 * Most of these hooks fire on public, concurrent web requests (automation triggers
 		 * such as email opens, opt-in form submissions, contact saves). A plain
 		 * get_option/compare/update_option gate is NOT atomic: at each week boundary
 		 * a burst of concurrent requests all read the stale timestamp before any of
@@ -422,6 +399,71 @@ if ( ! function_exists( 'init_mail_mint_telemetry' ) ) {
 
 			$client->track_feature_used( $feature, $properties );
 		};
+
+		/*
+		 * Admin- and AI-driven retention signals. Each was sent on every use (every
+		 * campaign email step, import, AI chat...), so they share the weekly gate:
+		 * one retention/feature_used event per feature per site per week. The
+		 * properties describe the occurrence that opened the week.
+		 */
+		$weekly_features = array(
+			// campaign_sent — a campaign email step finished sending.
+			'campaign_sent'                => array(
+				'hook'     => 'mailmint_campaign_email_sent',
+				'callback' => function ( $campaign_id ) {
+					return array( 'campaign_id' => (int) $campaign_id );
+				},
+			),
+			// contacts_imported — a bulk import finished.
+			'contacts_imported'            => array(
+				'hook'     => 'mailmint_contacts_imported',
+				'callback' => function ( $count, $source = '' ) {
+					return array(
+						'source' => sanitize_text_field( (string) $source ),
+						'count'  => (int) $count,
+					);
+				},
+			),
+			// one_off_email_sent — a single email sent to one contact (AI copilot / MCP email tool).
+			'one_off_email_sent'           => array(
+				'hook' => 'mailmint_one_off_email_sent',
+			),
+			// ai_conversation_started — the AI assistant was opened for real work.
+			'ai_conversation_started'      => array(
+				'hook'     => 'mailmint_ai_conversation_started',
+				'callback' => function ( $conversation_id, $context_type = '' ) {
+					return array( 'context_type' => sanitize_key( (string) $context_type ) );
+				},
+			),
+			// split_test_created — A/B test campaign created (Pro).
+			'split_test_created'           => array(
+				'hook' => 'mailmint_pro_split_test_created',
+			),
+			// custom_field_added — contact data model extended.
+			'custom_field_added'           => array(
+				'hook' => 'mailmint_custom_field_added',
+			),
+			// recurring_campaign_scheduled — a recurring campaign saved or resumed in the admin.
+			'recurring_campaign_scheduled' => array(
+				'hook' => 'mailmint_process_recurring_campaign',
+			),
+		);
+
+		foreach ( $weekly_features as $feature => $config ) {
+			add_action(
+				$config['hook'],
+				function ( ...$args ) use ( $send_weekly_feature_used, $feature, $config ) {
+					$properties = isset( $config['callback'] ) ? call_user_func_array( $config['callback'], $args ) : array();
+					$send_weekly_feature_used(
+						$feature,
+						'mail-mint_telemetry_' . $feature . '_last_sent',
+						is_array( $properties ) ? $properties : array()
+					);
+				},
+				10,
+				10
+			);
+		}
 
 		// automation_triggered — fires on every automation execution, incl. email-open triggers.
 		add_action(

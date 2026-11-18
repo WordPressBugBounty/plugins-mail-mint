@@ -159,6 +159,9 @@ class MrmActivator {
 			$upgrade->maybe_upgrade();
 
 			self::set_activation_transient();
+			// Shows the setup wizard on the first Mail Mint page visit until it is
+			// completed or exited, even when the activation redirect is missed.
+			add_option( 'mailmint_setup_wizard_status', 'pending', '', false );
 			self::create_pages();
 			PermissionManager::assign_capabilities_to_admin();
 			set_transient( 'mailmint_fresh_install_pending', 'yes', HOUR_IN_SECONDS );
@@ -192,7 +195,8 @@ class MrmActivator {
 	 */
 	public static function set_activation_transient() {
 		if ( self::is_new_install() ) {
-			set_transient( 'mailmint_show_setup_wizard', 'yes', 30 );
+			// Long enough for bulk activation or a slow first admin page load.
+			set_transient( 'mailmint_show_setup_wizard', 'yes', 5 * MINUTE_IN_SECONDS );
 		}
 	}
 

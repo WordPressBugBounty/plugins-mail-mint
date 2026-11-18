@@ -9,11 +9,11 @@
  *     route pattern, e.g. `POST /campaigns/:campaign_id/status-update` becomes
  *     `campaign_status_update`, and a failure becomes `campaign_status_update_failed`.
  *
- * Delivery to PostHog, one event per entry with its original timestamp and the
- * same distinct id the Linno Telemetry SDK uses:
- *   - opted-in sites: sent daily, so retained and churned users can be compared.
- *   - every site: whatever is unsent is sent when the plugin is deactivated,
- *     followed by a `deactivation_context` summary.
+ * The trail stays on the site. It reaches PostHog only as one
+ * `deactivation_context` event when the plugin is deactivated (every site),
+ * under the same distinct id the Linno Telemetry SDK uses. Activity counts are
+ * added to it only for opted-in sites. Nothing is sent per activity, per screen
+ * or per day.
  *
  * Payload is anonymous: route patterns (never ids), feature names, HTTP status
  * and error codes. No request bodies, messages, emails or contact data.
@@ -47,22 +47,13 @@ class ActivityTrail {
 	const OPTION = 'mailmint_activity_trail';
 
 	/**
-	 * Most messages per PostHog request; the client flushes on its own at 100.
+	 * Most activity names listed in a summary's `activity_counts` (most frequent
+	 * first), keeping the single PostHog message well under the client's 32 KB limit.
 	 */
-	const MAX_BATCH_MESSAGES = 90;
+	const MAX_SUMMARY_ACTIVITIES = 60;
 
 	/**
-	 * Most bytes per PostHog request, leaving room under the client's 32 KB limit.
-	 */
-	const MAX_BATCH_BYTES = 24000;
-
-	/**
-	 * Bytes the PostHog client adds to each message (library fields, batch wrapper).
-	 */
-	const MESSAGE_OVERHEAD_BYTES = 300;
-
-	/**
-	 * Maximum unsent entries kept (a busy day on an opted-in site).
+	 * Maximum unsent entries kept.
 	 */
 	const MAX_UNSENT = 200;
 
@@ -83,7 +74,7 @@ class ActivityTrail {
 	const COLLAPSE_WINDOW = 600;
 
 	/**
-	 * WP-Cron hook for the daily flush on opted-in sites.
+	 * WP-Cron hook of the daily flush that older versions scheduled (removed on init).
 	 */
 	const FLUSH_HOOK = 'mailmint_activity_trail_flush';
 
@@ -105,9 +96,17 @@ class ActivityTrail {
 	const NAMESPACES = array( 'mrm/v1', 'mrm-pro/v1', 'mail-mint/v1' );
 
 	/**
-	 * Routes (without namespace) that are never recorded.
+	 * Normalized routes (without namespace) that are never recorded: the trail's
+	 * own endpoint, and reads the admin sends as POST (contact list filtering,
+	 * dashboard/analytics cache refresh on every page load). Recording those
+	 * counted page loads and searches as actions.
 	 */
-	const IGNORED_ROUTES = array( '/activity-trail/screen' );
+	const IGNORED_ROUTES = array(
+		'/activity-trail/screen',
+		'/contacts/filter',
+		'/reports/dashboard/sync',
+		'/analytics/sync',
+	);
 
 	/**
 	 * First route segment → feature area.
@@ -156,7 +155,6 @@ class ActivityTrail {
 		'WRITE /forms/update-status/:form_id'                                       => 'form_status_update',
 		'WRITE /forms/preview-editor/:form_id'                                      => 'form_preview',
 		'WRITE /campaign/analytics/:campaign_id/resend-to-unopened/:email_id'       => 'campaign_resent_to_unopened',
-		'WRITE /reports/dashboard/sync'                                             => 'dashboard_sync',
 		'WRITE /integration'                                                        => 'integration_connected',
 	);
 
@@ -256,7 +254,7 @@ class ActivityTrail {
 	}
 
 	/**
-	 * Wire recorders, the screen-view endpoint, the daily flush and the
+	 * Wire recorders, the screen-view endpoint, legacy cron cleanup and the
 	 * deactivation sender.
 	 *
 	 * @return void
@@ -312,8 +310,7 @@ class ActivityTrail {
 
 		add_action( 'rest_api_init', array( $this, 'register_routes' ) );
 
-		add_action( self::FLUSH_HOOK, array( $this, 'flush' ) );
-		add_action( 'init', array( $this, 'maybe_schedule_flush' ) );
+		add_action( 'init', array( $this, 'remove_legacy_flush' ) );
 
 		add_action( 'mailmint_plugin_deactivated', array( $this, 'send_on_deactivation' ) );
 	}
@@ -423,13 +420,17 @@ class ActivityTrail {
 
 		try {
 			$path = $this->strip_namespace( $pattern );
-			if ( null === $path || in_array( $path, self::IGNORED_ROUTES, true ) || ! $this->can_record() ) {
+			if ( null === $path ) {
+				return $response;
+			}
+
+			$route = $this->normalize_route( $path );
+			if ( in_array( $route, self::IGNORED_ROUTES, true ) || ! $this->can_record() ) {
 				return $response;
 			}
 
 			$method = strtoupper( $request->get_method() );
 			$class  = 'GET' === $method || 'DELETE' === $method ? $method : 'WRITE';
-			$route  = $this->normalize_route( $path );
 
 			list( $ok, $status, $error_code ) = $this->outcome( $response );
 
@@ -956,63 +957,22 @@ class ActivityTrail {
 	}
 
 	/**
-	 * Keep the daily flush scheduled only while the site is opted in.
+	 * Remove the daily flush cron that older versions scheduled. The
+	 * trail is now only sent once, at deactivation.
 	 *
 	 * @return void
 	 */
-	public function maybe_schedule_flush() {
-		$next = wp_next_scheduled( self::FLUSH_HOOK );
-
-		if ( $this->is_opted_in() ) {
-			if ( ! $next ) {
-				wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', self::FLUSH_HOOK );
-			}
-		} elseif ( $next ) {
-			wp_unschedule_event( $next, self::FLUSH_HOOK );
+	public function remove_legacy_flush() {
+		if ( wp_next_scheduled( self::FLUSH_HOOK ) ) {
+			wp_clear_scheduled_hook( self::FLUSH_HOOK );
 		}
 	}
 
 	/**
-	 * Daily cron (opted-in sites only): send unsent entries and mark them sent.
+	 * On deactivation (every site): send one `deactivation_context` event.
 	 *
-	 * @return void
-	 */
-	public function flush() {
-		if ( ! $this->is_opted_in() ) {
-			return;
-		}
-
-		$unsent = array_values(
-			array_filter(
-				$this->get_trail(),
-				function ( $entry ) {
-					return empty( $entry['s'] );
-				}
-			)
-		);
-
-		if ( empty( $unsent ) ) {
-			return;
-		}
-
-		$last_sent_at = max( array_column( $unsent, 't' ) );
-
-		if ( ! $this->send( $unsent ) ) {
-			return;
-		}
-
-		// Re-read so entries recorded while sending are kept unsent.
-		$trail = $this->get_trail();
-		foreach ( $trail as $index => $entry ) {
-			if ( empty( $entry['s'] ) && (int) $entry['t'] <= $last_sent_at ) {
-				$trail[ $index ]['s'] = true;
-			}
-		}
-		$this->save_trail( $trail );
-	}
-
-	/**
-	 * On deactivation (every site): send unsent entries plus a summary event.
+	 * The unsent activity counts are added only when the site opted in; the
+	 * individual entries are never sent.
 	 *
 	 * @return void
 	 */
@@ -1021,8 +981,26 @@ class ActivityTrail {
 
 		// Always send the context, even with an empty trail: deactivation_source
 		// explains the SDK's `reason: none` deactivations on sites with no activity.
-		$trail  = $this->get_trail();
-		$unsent = array_values(
+		$trail   = $this->get_trail();
+		$context = $this->build_context( $trail );
+
+		if ( $this->is_opted_in() ) {
+			$context = array_merge( $context, $this->summarize( $this->unsent( $trail ) ) );
+		}
+
+		if ( $this->send( 'deactivation_context', $context ) ) {
+			delete_option( self::OPTION );
+		}
+	}
+
+	/**
+	 * Entries not yet sent, oldest first.
+	 *
+	 * @param array $trail Trail entries.
+	 * @return array
+	 */
+	private function unsent( array $trail ) {
+		return array_values(
 			array_filter(
 				$trail,
 				function ( $entry ) {
@@ -1030,10 +1008,62 @@ class ActivityTrail {
 				}
 			)
 		);
+	}
 
-		if ( $this->send( $unsent, $this->build_context( $trail ) ) ) {
-			delete_option( self::OPTION );
+	/**
+	 * Aggregate entries into counts for the single deactivation event.
+	 *
+	 * `activity_counts` maps activity name → times it happened (repeats folded
+	 * into an entry count too), most frequent first, capped at
+	 * MAX_SUMMARY_ACTIVITIES. Screen views are only counted.
+	 *
+	 * @param array $entries Entries, oldest first.
+	 * @return array
+	 */
+	public function summarize( array $entries ) {
+		$activities = array();
+		$areas      = array();
+		$screens    = 0;
+		$failures   = 0;
+		$first      = null;
+		$last       = null;
+
+		foreach ( $entries as $entry ) {
+			$count = max( 1, (int) ( $entry['n'] ?? 1 ) );
+			$time  = (int) $entry['t'];
+			$first = null === $first ? $time : min( $first, $time );
+			$last  = null === $last ? $time : max( $last, $time );
+
+			if ( 'screen_viewed' === $entry['a'] ) {
+				$screens += $count;
+				continue;
+			}
+
+			$activities[ $entry['a'] ] = ( $activities[ $entry['a'] ] ?? 0 ) + $count;
+
+			$area = (string) ( $entry['p']['area'] ?? '' );
+			if ( '' !== $area ) {
+				$areas[ $area ] = ( $areas[ $area ] ?? 0 ) + $count;
+			}
+
+			if ( '_failed' === substr( $entry['a'], -7 ) ) {
+				$failures += $count;
+			}
 		}
+
+		arsort( $activities );
+		arsort( $areas );
+
+		return array(
+			'activity_counts'     => array_slice( $activities, 0, self::MAX_SUMMARY_ACTIVITIES, true ),
+			'area_counts'         => $areas,
+			'distinct_activities' => count( $activities ),
+			'actions_total'       => array_sum( $activities ),
+			'failures_total'      => $failures,
+			'screen_views'        => $screens,
+			'period_start'        => null === $first ? null : gmdate( 'c', $first ),
+			'period_end'          => null === $last ? null : gmdate( 'c', $last ),
+		);
 	}
 
 	/**
@@ -1155,66 +1185,27 @@ class ActivityTrail {
 	}
 
 	/**
-	 * Send entries (and optionally a deactivation summary) to PostHog.
+	 * Send one aggregated event to PostHog as `mailmint_activity/<name>`.
 	 *
-	 * Screens go out as PostHog `$screen` events (`$screen_name` = `mail-mint<route>`)
-	 * so they appear as screens in Paths; everything else as `mailmint_activity/<name>`.
+	 * One message per call, so it always fits in a single request and the result
+	 * is all-or-nothing: nothing is marked sent unless PostHog accepted it, and a
+	 * retry never re-sends part of an earlier send.
 	 *
-	 * @param array      $entries Entries to send, oldest first.
-	 * @param array|null $context Deactivation summary, or null.
-	 * @return bool True when PostHog accepted every batch.
+	 * @param string $name       Event name without prefix (`deactivation_context`).
+	 * @param array  $properties Event properties.
+	 * @return bool True when PostHog accepted the event.
 	 */
-	private function send( array $entries, $context = null ) {
-		if ( ( empty( $entries ) && null === $context ) || ! $this->can_send() ) {
+	private function send( $name, array $properties ) {
+		if ( ! $this->can_send() ) {
 			return false;
 		}
 
-		$now         = time();
-		$distinct_id = Utils::getUniqueSiteId();
-		$base        = array(
+		$base = array(
 			'plugin_name'    => 'Mail Mint',
 			'plugin_version' => defined( 'MRM_VERSION' ) ? MRM_VERSION : '',
 			'is_pro_active'  => defined( 'MAIL_MINT_PRO_VERSION' ),
-			'source'         => null === $context ? 'activity_trail_daily' : 'activity_trail_deactivation',
+			'source'         => 'activity_trail_deactivation',
 		);
-
-		$messages = array();
-
-		// The summary goes first, so it is in the first request even when the trail needs several.
-		if ( null !== $context ) {
-			$messages[] = array(
-				'distinctId' => $distinct_id,
-				'event'      => self::EVENT_PREFIX . 'deactivation_context',
-				'properties' => array_merge( $base, $context ),
-				'timestamp'  => $now,
-			);
-		}
-
-		foreach ( $entries as $entry ) {
-			$properties = array_merge(
-				$base,
-				is_array( $entry['p'] ?? null ) ? $entry['p'] : array(),
-				array( 'repeat_count' => (int) ( $entry['n'] ?? 1 ) )
-			);
-
-			if ( null !== $context ) {
-				$properties['seconds_before_deactivation'] = max( 0, $now - (int) $entry['t'] );
-			}
-
-			if ( 'screen_viewed' === $entry['a'] ) {
-				$event                      = '$screen';
-				$properties['$screen_name'] = 'mail-mint' . ( $entry['p']['screen'] ?? '' );
-			} else {
-				$event = self::EVENT_PREFIX . $entry['a'];
-			}
-
-			$messages[] = array(
-				'distinctId' => $distinct_id,
-				'event'      => $event,
-				'properties' => $properties,
-				'timestamp'  => (int) $entry['t'],
-			);
-		}
 
 		try {
 			// With the default consumer flush() returns the response body, so an error response
@@ -1232,26 +1223,14 @@ class ActivityTrail {
 				)
 			);
 
-			// PostHog's client silently drops a whole request over 32 KB, and flushes on its own
-			// (unchecked) at 100 queued messages. So batches are cut here, below both limits,
-			// and every flush is checked. Usually everything fits in one request; on the first
-			// failure sending stops, so an unreachable PostHog costs one retry cycle, not one per batch.
-			$batch_bytes = 0;
-			$batch_count = 0;
-			foreach ( $messages as $message ) {
-				// The client adds library fields and the batch wrapper; allow for them per message.
-				$size = strlen( (string) wp_json_encode( $message ) ) + self::MESSAGE_OVERHEAD_BYTES;
-				if ( $batch_count > 0 && ( $batch_count >= self::MAX_BATCH_MESSAGES || $batch_bytes + $size > self::MAX_BATCH_BYTES ) ) {
-					if ( ! $this->flushed( PostHog::flush() ) ) {
-						return false;
-					}
-					$batch_bytes = 0;
-					$batch_count = 0;
-				}
-				PostHog::capture( $message );
-				$batch_bytes += $size;
-				++$batch_count;
-			}
+			PostHog::capture(
+				array(
+					'distinctId' => Utils::getUniqueSiteId(),
+					'event'      => self::EVENT_PREFIX . $name,
+					'properties' => array_merge( $base, $properties ),
+					'timestamp'  => time(),
+				)
+			);
 
 			return $this->flushed( PostHog::flush() );
 		} catch ( \Throwable $e ) {
@@ -1261,7 +1240,7 @@ class ActivityTrail {
 	}
 
 	/**
-	 * Whether a PostHog::flush() result means the batch was accepted.
+	 * Whether a PostHog::flush() result means the event was accepted.
 	 *
 	 * @param mixed $response Return value of PostHog::flush().
 	 * @return bool

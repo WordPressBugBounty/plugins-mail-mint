@@ -79,11 +79,115 @@ class OnboardingRoute {
 
 		register_rest_route(
 			$this->namespace,
+			'/' . $this->rest_base . '/setup-data',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_setup_data' ),
+					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/wizard-status',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'update_wizard_status' ),
+					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'args'                => array(
+						'status' => array(
+							'required' => true,
+							'type'     => 'string',
+							'enum'     => array( 'pending', 'dismissed', 'hidden' ),
+						),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/setup-issues',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_setup_issues' ),
+					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/setup-issues/dismiss',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'dismiss_setup_issues' ),
+					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'args'                => array(
+						'keys' => array(
+							'required' => true,
+							'type'     => 'array',
+							'items'    => array( 'type' => 'string' ),
+						),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/host-mail-confirmed',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'confirm_host_mail' ),
+					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+					'args'                => array(
+						'confirmed' => array(
+							'required' => true,
+							'type'     => 'boolean',
+						),
+					),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
 			'/' . $this->rest_base . '/complete',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'callback'            => array( $this->controller, 'complete_wizard' ),
+					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/getting-started',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'callback'            => array( $this->controller, 'get_getting_started' ),
+					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/getting-started/hide',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'callback'            => array( $this->controller, 'hide_getting_started' ),
 					'permission_callback' => array( $this->controller, 'rest_permissions_check' ),
 				),
 			)

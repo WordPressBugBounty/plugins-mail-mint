@@ -806,6 +806,32 @@ class CampaignModel {
 
 
 	/**
+	 * Count user-created campaigns still in draft, plus the most recently
+	 * updated one. Automation emails are stored as campaigns too, so the
+	 * `automation` type is left out.
+	 *
+	 * @return array { count: int, latest: array|null } latest holds id, title, type.
+	 * @since 1.32.0
+	 */
+	public static function get_draft_campaigns_summary() {
+		global $wpdb;
+		$campaign_table = $wpdb->prefix . CampaignSchema::$campaign_table;
+		$types          = array( 'regular', 'sequence', 'recurring', 'split' );
+		$placeholders   = implode( ', ', array_fill( 0, count( $types ), '%s' ) );
+		$args           = array_merge( $types, array( 'draft' ) );
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		$count = absint( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(`id`) FROM {$campaign_table} WHERE `type` IN ( {$placeholders} ) AND `status` = %s", $args ) ) ); // db call ok. ; no-cache ok.
+		$latest = $count ? $wpdb->get_row( $wpdb->prepare( "SELECT `id`, `title`, `type` FROM {$campaign_table} WHERE `type` IN ( {$placeholders} ) AND `status` = %s ORDER BY `updated_at` DESC, `id` DESC LIMIT 1", $args ), ARRAY_A ) : null; // db call ok. ; no-cache ok.
+		// phpcs:enable
+
+		return array(
+			'count'  => $count,
+			'latest' => $latest ? $latest : null,
+		);
+	}
+
+	/**
 	 * Returns all publish campaigns
 	 *
 	 * @return array

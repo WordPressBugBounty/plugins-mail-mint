@@ -792,4 +792,45 @@ class AutomationModel {
 		$table_name = $wpdb->prefix . AutomationSchema::$table_name;
 		return absint($wpdb->get_var($wpdb->prepare('SELECT COUNT(`id`) FROM %1s', $table_name))); //phpcs:ignore
 	}
+
+	/**
+	 * Count automations still in draft, plus the most recently updated one.
+	 *
+	 * @return array { count: int, latest: array|null } latest holds id, name.
+	 * @since 1.32.0
+	 */
+	public static function get_draft_automations_summary() {
+		global $wpdb;
+		$table_name = $wpdb->prefix . AutomationSchema::$table_name;
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$count  = absint( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(`id`) FROM {$table_name} WHERE `status` = %s", 'draft' ) ) ); // db call ok. ; no-cache ok.
+		$latest = $count ? $wpdb->get_row( $wpdb->prepare( "SELECT `id`, `name` FROM {$table_name} WHERE `status` = %s ORDER BY `updated_at` DESC, `id` DESC LIMIT 1", 'draft' ), ARRAY_A ) : null; // db call ok. ; no-cache ok.
+		// phpcs:enable
+
+		return array(
+			'count'  => $count,
+			'latest' => $latest ? $latest : null,
+		);
+	}
+
+	/**
+	 * Count automations, in any status, that start from one of the given triggers.
+	 *
+	 * @param array $trigger_names Trigger keys, e.g. wc_abandoned_cart.
+	 * @return int
+	 * @since 1.32.0
+	 */
+	public static function count_by_triggers( array $trigger_names ) {
+		if ( empty( $trigger_names ) ) {
+			return 0;
+		}
+		global $wpdb;
+		$table_name   = $wpdb->prefix . AutomationSchema::$table_name;
+		$placeholders = implode( ', ', array_fill( 0, count( $trigger_names ), '%s' ) );
+
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		return absint( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(`id`) FROM {$table_name} WHERE `trigger_name` IN ( {$placeholders} )", array_values( $trigger_names ) ) ) ); // db call ok. ; no-cache ok.
+		// phpcs:enable
+	}
 }

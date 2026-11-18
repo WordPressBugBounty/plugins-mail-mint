@@ -110,7 +110,8 @@ class DashboardController {
 		$forms       = DashboardModel::get_recent_form_performance();
 		$onboarding  = DashboardModel::get_onboarding_stats();
 
-		$show_metrics = ( isset( $onboarding['completed'] ) && $onboarding['completed'] > 0 ) || ( isset( $onboarding['show'] ) && ! $onboarding['show'] );
+		// The checklist moved to the Getting Started page, so metrics always show.
+		$show_metrics = true;
 
 		$response = [
 			'success' => true,

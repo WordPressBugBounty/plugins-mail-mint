@@ -1202,6 +1202,10 @@ return array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Admin/Setup-Wizard/CreateContact.php'
 	),
+	'Mint\\MRM\\Internal\\Admin\\DashboardNudges' => array(
+		'version' => 'dev-master',
+		'path'    => $baseDir . '/app/Internal/Admin/DashboardNudges.php'
+	),
 	'Mint\\MRM\\Internal\\Admin\\DefaultListsCreator' => array(
 		'version' => 'dev-master',
 		'path'    => $baseDir . '/app/Internal/Admin/DefaultListsCreator.php'

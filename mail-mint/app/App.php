@@ -20,6 +20,7 @@ use Mint\MRM\Internal\Admin\FrontendAssets;
 use Mint\MRM\Internal\Admin\HandleFrontendMenu;
 use Mint\MRM\Internal\Admin\Page\PageController;
 use Mint\MRM\Internal\Admin\SetupWizard;
+use Mint\MRM\Internal\Admin\DashboardNudges;
 use Mint\MRM\Internal\Admin\UserAssignContact;
 use Mint\MRM\Internal\Admin\WPUserDelete;
 use Mint\MRM\Internal\Admin\MrmPrivacyExporter;
@@ -66,6 +67,7 @@ class App {
 			AdminAssets::get_instance();
 
 			new SetupWizard;
+			new DashboardNudges();
 		}
 
 		// init form-builder.

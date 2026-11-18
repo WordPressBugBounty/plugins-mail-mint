@@ -299,6 +299,7 @@ return array(
     'Mint\\MRM\\Internal\\AbandonedCart\\Scheduler\\CartGroupJanitor' => $baseDir . '/app/Internal/AbandonedCart/Scheduler/CartGroupJanitor.php',
     'Mint\\MRM\\Internal\\Admin\\AdminAssets' => $baseDir . '/app/Internal/Admin/AdminAssets.php',
     'Mint\\MRM\\Internal\\Admin\\CreateContact' => $baseDir . '/app/Internal/Admin/Setup-Wizard/CreateContact.php',
+    'Mint\\MRM\\Internal\\Admin\\DashboardNudges' => $baseDir . '/app/Internal/Admin/DashboardNudges.php',
     'Mint\\MRM\\Internal\\Admin\\DefaultListsCreator' => $baseDir . '/app/Internal/Admin/DefaultListsCreator.php',
     'Mint\\MRM\\Internal\\Admin\\EmailTemplates\\DefaultEmailTemplates' => $baseDir . '/app/Internal/Admin/Email-Templates/DefaultEmailTemplates.php',
     'Mint\\MRM\\Internal\\Admin\\FrontendAssets' => $baseDir . '/app/Internal/Frontend/FrontendAssets.php',

@@ -12,6 +12,7 @@
 namespace Mint\MRM\Internal\Admin\Page;
 
 use Mint\MRM\Internal\Admin\Notices\DBUpgradeNotice;
+use Mint\MRM\Internal\Admin\SetupWizard;
 use Mint\MRM\Internal\Admin\SpecialOccasionBanner;
 use Mint\Mrm\Internal\Traits\Singleton;
 use Mint\MRM\Utilities\Helper\PermissionManager;
@@ -89,6 +90,28 @@ class HomeScreen {
 			self::MENU_SLUG,
 			array( $this, 'load_wrapper' )
 		);
+
+		// New installs only, until everything on it is done or hidden. Moved
+		// above Dashboard, so the top-level "Mail Mint" link opens it while it
+		// applies. Added after Dashboard so WordPress doesn't insert its own
+		// duplicate parent item.
+		if ( $is_admin && SetupWizard::is_getting_started_active() ) {
+			add_submenu_page(
+				self::MENU_SLUG,
+				__( 'Getting Started', 'mrm' ),
+				__( 'Getting Started', 'mrm' ),
+				'manage_options',
+				'mrm-admin#/getting-started',
+				array( $this, 'load_wrapper' )
+			);
+
+			global $submenu;
+			if ( ! empty( $submenu[ self::MENU_SLUG ] ) ) {
+				$items = array_values( $submenu[ self::MENU_SLUG ] );
+				array_unshift( $items, array_pop( $items ) );
+				$submenu[ self::MENU_SLUG ] = $items; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+			}
+		}
 
 		add_submenu_page(
 			self::MENU_SLUG,
@@ -224,7 +247,7 @@ class HomeScreen {
 
 	public function mint_delete_promotional_banner( $payload ){
 		check_ajax_referer( 'promotional_banner_nonce', 'nonce' );
-		update_option('_is_show_wpf_5th_anniversary_banner', 'no' );
+		update_option('_is_show_black_friday_26_banner', 'no' );
 		return [
             'success' => true,
         ];
@@ -364,7 +387,7 @@ class HomeScreen {
 			new DBUpgradeNotice();
 		}
 
-		new SpecialOccasionBanner('wpf-5th-anniversary', '2026-11-02 00:00:01', '2026-11-16 23:59:59');
+		new SpecialOccasionBanner('black-friday-2026', '2026-11-21 00:00:00', '2026-12-11 23:59:59');
 
         if( 'toplevel_page_mrm-admin' === $current_screen->base){
             remove_all_actions( 'admin_notices' );
@@ -373,7 +396,7 @@ class HomeScreen {
 				new DBUpgradeNotice();
 			}
 
-			new SpecialOccasionBanner('wpf-5th-anniversary', '2026-11-02 00:00:01', '2026-11-16 23:59:59');
+			new SpecialOccasionBanner('black-friday-2026', '2026-11-21 00:00:00', '2026-12-11 23:59:59');
         }
 
         if( 'mail-mint_page_mint-mail-automation-editor' === $current_screen->base){

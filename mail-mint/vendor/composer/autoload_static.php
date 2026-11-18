@@ -364,6 +364,7 @@ class ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7
         'Mint\\MRM\\Internal\\AbandonedCart\\Scheduler\\CartGroupJanitor' => __DIR__ . '/../..' . '/app/Internal/AbandonedCart/Scheduler/CartGroupJanitor.php',
         'Mint\\MRM\\Internal\\Admin\\AdminAssets' => __DIR__ . '/../..' . '/app/Internal/Admin/AdminAssets.php',
         'Mint\\MRM\\Internal\\Admin\\CreateContact' => __DIR__ . '/../..' . '/app/Internal/Admin/Setup-Wizard/CreateContact.php',
+        'Mint\\MRM\\Internal\\Admin\\DashboardNudges' => __DIR__ . '/../..' . '/app/Internal/Admin/DashboardNudges.php',
         'Mint\\MRM\\Internal\\Admin\\DefaultListsCreator' => __DIR__ . '/../..' . '/app/Internal/Admin/DefaultListsCreator.php',
         'Mint\\MRM\\Internal\\Admin\\EmailTemplates\\DefaultEmailTemplates' => __DIR__ . '/../..' . '/app/Internal/Admin/Email-Templates/DefaultEmailTemplates.php',
         'Mint\\MRM\\Internal\\Admin\\FrontendAssets' => __DIR__ . '/../..' . '/app/Internal/Frontend/FrontendAssets.php',

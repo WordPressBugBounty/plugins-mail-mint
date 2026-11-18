@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, AI, email, newslett
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.8
+Stable tag:  1.31.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -585,6 +585,15 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
+= 1.31.9 (2026-11-18) =
+* New: Redesigned setup wizard that gets business details, email sending and AI connection ready before your first campaign.
+* New: Getting Started page with a step-by-step checklist to track your setup progress.
+* New: Mail Mint now flags sending problems like a missing SMTP or off-domain sender, with a quick fix link for each.
+* New: Resume the setup wizard any time from the dashboard, WordPress dashboard or Tools & Utilities settings.
+* New: WordPress dashboard reminders for draft campaigns, draft automations, empty contact lists and abandoned cart recovery.
+* Improvement: Setup wizard shows a live preview of your email while you configure it.
+* Fix: Import Contacts no longer opens with CSV upload preselected.
+
 = 1.31.8 (2026-11-04) =
 * New: Test an automation from the trigger settings with an existing or new contact, with the option to skip delays.
 * New: Stop, resume or restart a contact's automation run from the automation report.
