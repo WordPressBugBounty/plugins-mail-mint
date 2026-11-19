@@ -153,7 +153,7 @@ class MintFormBlock {
 	 */
 	public function render_block( $attributes ) {
 		$html           = '';
-		$form_id        = isset( $attributes['form_id'] ) ? $attributes['form_id'] : 0;
+		$form_id        = isset( $attributes['form_id'] ) ? max( 0, (int) $attributes['form_id'] ) : 0;
 		$get_setting    = FormModel::get_meta( $form_id );
 		$form_setting   = isset( $get_setting['meta_fields']['settings'] ) ? $get_setting['meta_fields']['settings'] : '';
 		$form_setting   = json_decode( $form_setting );
@@ -250,8 +250,8 @@ class MintFormBlock {
 		$hidden_recaptcha   = '';
 		$mrm_form_disable   = '';
 		if ( 'v3_invisible' === $version && $recaptch_is_enable ) {
-			$recapcha_js      = '<script src="https://www.google.com/recaptcha/api.js?render=' . $v3_site_key . '"></script>'; //phpcs:ignore
-			$hidden_recaptcha = '<input type="hidden" id="g-recaptcha-response-' . $form_id . '" name="g-recaptcha-response"/>';
+			$recapcha_js      = '<script src="' . esc_url( 'https://www.google.com/recaptcha/api.js?render=' . ( is_string( $v3_site_key ) ? $v3_site_key : '' ) ) . '"></script>'; //phpcs:ignore
+			$hidden_recaptcha = '<input type="hidden" id="g-recaptcha-response-' . esc_attr( $form_id ) . '" name="g-recaptcha-response"/>';
 		}
 		if ( 0 === $form_id ) {
 			$html = '<div class="mintmrm">
@@ -260,35 +260,35 @@ class MintFormBlock {
 		} else {
 			if ( $show ) {
 				$html .= $recapcha_js;
-				$html .= '<div class="mintmrm" id="mintmrm-' . $form_id . '">';
+				$html .= '<div class="mintmrm" id="mintmrm-' . esc_attr( $form_id ) . '">';
 				if ( 'popup' === $form_placement && $is_form_open_button && $form_button_text ) {
 					$mrm_form_disable = 'mrm-form-disable';
-					$html            .= '<div> <button class="mint-form-button">' . $form_button_text . '</button></div>';
+					$html            .= '<div> <button class="mint-form-button">' . esc_html( $form_button_text ) . '</button></div>';
 				}
 				if ( ( 'popup' === $form_placement || 'flyins' === $form_placement ) && $is_time_delay && $time_delay ) {
 					$mrm_form_disable = 'mrm-form-disable';
 				}
-				$exit_intent_attr = ( 'popup' === $form_placement && $exit_intent_enabled ) ? ' data-exit-intent="true" data-form-id="' . $form_id . '"' : '';
-				$html .= '<div id="mrm-' . $form_placement . '" class="mrm-form-wrapper mrm-' . $form_animation . ' mrm-' . $form_placement . ' ' . $mrm_form_disable . '"' . $exit_intent_attr . '>';
+				$exit_intent_attr = ( 'popup' === $form_placement && $exit_intent_enabled ) ? ' data-exit-intent="true" data-form-id="' . esc_attr( $form_id ) . '"' : '';
+				$html .= '<div id="mrm-' . esc_attr( $form_placement ) . '" class="mrm-form-wrapper mrm-' . esc_attr( $form_animation ) . ' mrm-' . esc_attr( $form_placement ) . ' ' . $mrm_form_disable . '"' . $exit_intent_attr . '>';
 				$html .= '<div class="mrm-form-wrapper-inner ' . $class . '">';
 				if ( 'default' !== $form_placement ) {
-					$html .= '<span style="background:' . $form_close_background_color . '" class="mrm-form-close" form-id=' . $form_id . ' >
-                        <svg width="10" height="11" fill="none" viewBox="0 0 14 13" xmlns="http://www.w3.org/2000/svg"><path stroke="' . $form_close_button_color . '" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12.5 1l-11 11m0-11l11 11"/></svg>
+					$html .= '<span style="background:' . esc_attr( $form_close_background_color ) . '" class="mrm-form-close" form-id="' . esc_attr( $form_id ) . '" >
+                        <svg width="10" height="11" fill="none" viewBox="0 0 14 13" xmlns="http://www.w3.org/2000/svg"><path stroke="' . esc_attr( $form_close_button_color ) . '" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12.5 1l-11 11m0-11l11 11"/></svg>
                     </span>';
 				}
 
 				$html .= '
                     <div class="mrm-form-overflow">
                         <form method="post" id="mrm-form">';
-				$html .= '<input type="hidden" name="form_id" value="' . $attributes['form_id'] . '" />';
+				$html .= '<input type="hidden" name="form_id" value="' . esc_attr( $form_id ) . '" />';
 				$html .= $hidden_recaptcha;
 				$html .= $block_html;
 				$html .= '</form>';
 				if ( 'v3_invisible' === $version && $recaptch_is_enable ) {
 					$html .= '<script>
                                 grecaptcha.ready(function() {
-                                    grecaptcha.execute("' . $v3_site_key . '", {action: "homepage"}).then(function(token) {
-                                        document.getElementById("g-recaptcha-response-' . $form_id . '").value = token;
+                                    grecaptcha.execute(' . wp_json_encode( is_string( $v3_site_key ) ? $v3_site_key : '' ) . ', {action: "homepage"}).then(function(token) {
+                                        document.getElementById("g-recaptcha-response-' . (int) $form_id . '").value = token;
                                     });
                                 });
                             </script>';
@@ -296,9 +296,9 @@ class MintFormBlock {
 				if ( ( 'popup' === $form_placement || 'flyins' === $form_placement ) && $is_time_delay && $time_delay ) {
 					$html .="<script>
                         document.addEventListener('DOMContentLoaded', function() {
-                            var elements = document.getElementById('mintmrm-$form_id');
+                            var elements = document.getElementById('mintmrm-" . (int) $form_id . "');
                             var disableForm = elements.querySelector('.mrm-form-disable')
-                            var timeDelay   =  $time_delay * 1000
+                            var timeDelay   =  " . wp_json_encode( is_finite( (float) $time_delay ) ? (float) $time_delay : 0 ) . " * 1000
                             if( elements){
                                 setTimeout(function (){
                                     disableForm.classList.remove('mrm-form-disable')

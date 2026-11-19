@@ -13,6 +13,7 @@
 
 namespace MailMint\App\Actions\Handlers;
 
+use Mint\MRM\API\Actions\FormAction;
 use Mint\MRM\DataBase\Models\FormSubmissionModel;
 use MRM\Common\MrmCommon;
 
@@ -92,7 +93,8 @@ class FormSubmissionHandler {
 	 * Build the entry-detail rows from the raw POST data.
 	 *
 	 * Parses the URL-encoded `post_data` string that the frontend JS
-	 * serialises and sends, storing every submitted field as-is.
+	 * serialises and sends, storing every submitted field as-is except
+	 * internal keys such as the reCAPTCHA token.
 	 *
 	 * @return array Array of ['field_name', 'field_type', 'field_value'] maps.
 	 *
@@ -108,7 +110,14 @@ class FormSubmissionHandler {
 
 		parse_str( $raw_post_data, $post_data );
 
+		// Skip internal keys such as the reCAPTCHA token; they are not visitor input.
+		$internal_keys = FormAction::get_internal_form_keys();
+
 		foreach ( $post_data as $key => $value ) {
+			if ( in_array( $key, $internal_keys, true ) ) {
+				continue;
+			}
+
 			$fields[] = array(
 				'field_name'  => sanitize_text_field( $key ),
 				'field_type'  => $this->infer_field_type( $key, $value ),

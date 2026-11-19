@@ -45,8 +45,16 @@ class FormAction implements Action {
 
 		$form_data                = array();
 		$form_data['meta_fields'] = array();
+		// Internal, non-contact keys (e.g. the reCAPTCHA token) are read straight from
+		// $post_data where needed and must never reach meta_fields, otherwise they end
+		// up in the admin notification email and get stored as contact meta.
+		$internal_keys = self::get_internal_form_keys();
 		if ( $post_data ) {
 			foreach ( $post_data as $key => $value ) {
+				if ( in_array( $key, $internal_keys, true ) ) {
+					continue;
+				}
+
 				if ( 'email' === $key ) {
 					$form_data['email'] = sanitize_email( $value );
 				} elseif ( 'last_name' === $key ) {
@@ -532,6 +540,21 @@ class FormAction implements Action {
 			'From: ' . $email,
 			'Reply-To: ' . $email,
 		);
+	}
+
+	/**
+	 * Keys posted by the form that are not contact data.
+	 *
+	 * These are consumed directly from the raw post data (e.g. reCAPTCHA
+	 * verification) and must be kept out of meta_fields and form entries so they
+	 * are not printed in the admin notification email, saved as contact meta or
+	 * stored as form entry details.
+	 *
+	 * @return array
+	 * @since 1.31.10
+	 */
+	public static function get_internal_form_keys() {
+		return array( 'g-recaptcha-response' );
 	}
 
 	/**

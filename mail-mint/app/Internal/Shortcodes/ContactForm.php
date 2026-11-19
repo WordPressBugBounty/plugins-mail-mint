@@ -95,8 +95,8 @@ class ContactForm {
 	 * @since 1.0.0
 	 */
 	public function get_content() {
-		$form_id = isset( $this->attributes[ 'id' ] ) ? $this->attributes[ 'id' ] : 0;
-		if ( 0 === (int) $form_id ) {
+		$form_id = isset( $this->attributes[ 'id' ] ) ? max( 0, (int) $this->attributes[ 'id' ] ) : 0;
+		if ( 0 === $form_id ) {
 			return __( '<div>No form added</div>', 'mrm' ); //phpcs:ignore
 		}
 
@@ -114,6 +114,7 @@ class ContactForm {
 	 * @since 1.0.0
 	 */
 	public function render_content( $form_id ) {
+		$form_id     = max( 0, (int) $form_id );
 		$form_data   = FormModel::get( $form_id );
 		$form_status = isset( $form_data[ 'status' ] ) ? $form_data[ 'status' ] : 0;
 		if ( empty( $form_data ) ) {
@@ -218,8 +219,8 @@ class ContactForm {
 		$recapcha_js        = '';
 		$hidden_recaptcha   = '';
 		if ( 'v3_invisible' === $version && $recaptch_is_enable ) {
-			$recapcha_js      = ' <script src="https://www.google.com/recaptcha/api.js?render=' . $v3_site_key . '"></script>'; //phpcs:ignore
-			$hidden_recaptcha = '<input type="hidden" id="g-recaptcha-response-' . $form_id . '" name="g-recaptcha-response"/>';
+			$recapcha_js      = ' <script src="' . esc_url( 'https://www.google.com/recaptcha/api.js?render=' . ( is_string( $v3_site_key ) ? $v3_site_key : '' ) ) . '"></script>'; //phpcs:ignore
+			$hidden_recaptcha = '<input type="hidden" id="g-recaptcha-response-' . esc_attr( $form_id ) . '" name="g-recaptcha-response"/>';
 		}
 		$mrm_form_disable = '';
 		if ( $show ) {
@@ -232,7 +233,7 @@ class ContactForm {
 					<?php echo wp_strip_all_tags( $custom_css ); ?>
 				</style>
 			<?php endif; ?>
-			<div class="mintmrm" id="mintmrm-<?php echo $form_id; //phpcs:ignore ?>">
+			<div class="mintmrm" id="mintmrm-<?php echo esc_attr( $form_id ); ?>">
 				<?php
 				if ( 'popup' === $form_placement && $is_form_open_button && $form_button_text ) {
 					$mrm_form_disable = 'mrm-form-disable';
@@ -256,7 +257,7 @@ class ContactForm {
 						<?php
 						if ( 'default' !== $form_placement ) {
 							?>
-							<span style="background: <?php echo esc_attr( $form_close_background_color ); ?> " class="mrm-form-close" form-id=<?php echo esc_attr( $form_id ); ?> >
+							<span style="background: <?php echo esc_attr( $form_close_background_color ); ?> " class="mrm-form-close" form-id="<?php echo esc_attr( $form_id ); ?>" >
 								<svg width="10" height="11" fill="none" viewBox="0 0 14 13" xmlns="http://www.w3.org/2000/svg"><path stroke="<?php echo esc_attr( $form_close_button_color ); ?>" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12.5 1l-11 11m0-11l11 11"/></svg>
 							</span>
 							<?php
@@ -274,7 +275,7 @@ class ContactForm {
 								?>
 								<script>
 									grecaptcha.ready(function() {
-										grecaptcha.execute('<?php echo $v3_site_key; //phpcs:ignore ?>', {action: 'homepage'}).then(function(token) {
+										grecaptcha.execute(<?php echo wp_json_encode( is_string( $v3_site_key ) ? $v3_site_key : '' ); ?>, {action: 'homepage'}).then(function(token) {
 											document.getElementById("g-recaptcha-response-<?php echo intval( $form_id ); //phpcs:ignore ?>").value = token;
 										});
 									});
@@ -292,9 +293,9 @@ class ContactForm {
 					?>
 					<script>
 						document.addEventListener('DOMContentLoaded', function() {
-							var elements = document.getElementById('mintmrm-<?php echo $form_id; //phpcs:ignore ?>');
+							var elements = document.getElementById('mintmrm-<?php echo (int) $form_id; ?>');
 							var disableForm = elements.querySelector('.mrm-form-disable')
-							var timeDelay = <?php echo $time_delay; //phpcs:ignore ?> * 1000
+							var timeDelay = <?php echo wp_json_encode( is_finite( (float) $time_delay ) ? (float) $time_delay : 0 ); ?> * 1000
 							if( elements){
 								setTimeout(function (){
 									disableForm.classList.remove('mrm-form-disable')

@@ -72,7 +72,146 @@ class OptinConfirmation {
 			$attributes
 		);
 
+		// The svg attribute is user-controllable via the shortcode, so restrict it to plain SVG markup.
+		$attributes['svg'] = self::sanitize_svg( $attributes['svg'] );
+
 		return $attributes;
+	}
+
+
+	/**
+	 * Sanitize SVG markup against a strict allowlist of SVG elements and
+	 * presentational attributes (no scripts, event handlers, links or styles).
+	 *
+	 * @param mixed $svg SVG markup.
+	 *
+	 * @return string
+	 * @since 1.31.10
+	 */
+	public static function sanitize_svg( $svg ) {
+		if ( ! is_string( $svg ) || '' === $svg ) {
+			return '';
+		}
+
+		$common = array(
+			'id'                => true,
+			'class'             => true,
+			'fill'              => true,
+			'fill-rule'         => true,
+			'fill-opacity'      => true,
+			'clip-rule'         => true,
+			'clip-path'         => true,
+			'stroke'            => true,
+			'stroke-width'      => true,
+			'stroke-linecap'    => true,
+			'stroke-linejoin'   => true,
+			'stroke-opacity'    => true,
+			'stroke-dasharray'  => true,
+			'stroke-miterlimit' => true,
+			'stroke-dashoffset' => true,
+			'opacity'           => true,
+			'transform'         => true,
+		);
+
+		$shape = array_merge(
+			$common,
+			array(
+				'd'      => true,
+				'cx'     => true,
+				'cy'     => true,
+				'r'      => true,
+				'rx'     => true,
+				'ry'     => true,
+				'x'      => true,
+				'y'      => true,
+				'x1'     => true,
+				'y1'     => true,
+				'x2'     => true,
+				'y2'     => true,
+				'width'  => true,
+				'height' => true,
+				'points' => true,
+			)
+		);
+
+		$text = array_merge(
+			$common,
+			array(
+				'x'           => true,
+				'y'           => true,
+				'dx'          => true,
+				'dy'          => true,
+				'text-anchor' => true,
+				'font-size'   => true,
+				'font-family' => true,
+				'font-weight' => true,
+			)
+		);
+
+		$gradient = array(
+			'id'                => true,
+			'x1'                => true,
+			'y1'                => true,
+			'x2'                => true,
+			'y2'                => true,
+			'cx'                => true,
+			'cy'                => true,
+			'r'                 => true,
+			'fx'                => true,
+			'fy'                => true,
+			'gradientunits'     => true,
+			'gradienttransform' => true,
+		);
+
+		$allowed = array(
+			'svg'            => array_merge(
+				$common,
+				array(
+					'xmlns'               => true,
+					'width'               => true,
+					'height'              => true,
+					'viewbox'             => true,
+					'preserveaspectratio' => true,
+					'role'                => true,
+					'aria-hidden'         => true,
+					'aria-label'          => true,
+					'focusable'           => true,
+				)
+			),
+			'g'              => $common,
+			'path'           => $shape,
+			'circle'         => $shape,
+			'ellipse'        => $shape,
+			'rect'           => $shape,
+			'line'           => $shape,
+			'polyline'       => $shape,
+			'polygon'        => $shape,
+			'text'           => $text,
+			'tspan'          => $text,
+			'title'          => array(),
+			'desc'           => array(),
+			'defs'           => array(),
+			'lineargradient' => $gradient,
+			'radialgradient' => $gradient,
+			'stop'           => array(
+				'offset'       => true,
+				'stop-color'   => true,
+				'stop-opacity' => true,
+			),
+			'clippath'       => array(
+				'id'            => true,
+				'clippathunits' => true,
+			),
+		);
+
+		$svg = trim( force_balance_tags( wp_kses( $svg, $allowed ) ) );
+
+		// Only accept a single, complete <svg> element so stray tags (e.g. a bare <title>) can't break the page.
+		if ( ! preg_match( '/^<svg\b/i', $svg ) || ! preg_match( '/<\/svg>$/i', $svg ) ) {
+			return '';
+		}
+
+		return $svg;
 	}
 
 

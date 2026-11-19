@@ -5,7 +5,7 @@ Tags: woocommerce emails, email automation, email marketing, AI, email, newslett
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag:  1.31.9
+Stable tag:  1.32.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -585,6 +585,10 @@ No! The AI Assistant at Mail Mint will not push anything live or change anything
 10. Visual Automation Workflow
 
 == Changelog ==
+= 1.32.0 (2026-11-19) =
+* Fix: Security issue where form and opt-in confirmation shortcodes could run injected scripts.
+* Fix: reCAPTCHA token no longer shows up in form admin notification emails or gets saved to contact data.
+
 = 1.31.9 (2026-11-18) =
 * New: Redesigned setup wizard that gets business details, email sending and AI connection ready before your first campaign.
 * New: Getting Started page with a step-by-step checklist to track your setup progress.
