@@ -210,6 +210,7 @@ return array(
     'Mint\\MRM\\DataBase\\Tables\\ContactNoteSchema' => $baseDir . '/app/Database/Schemas/ContactNote.php',
     'Mint\\MRM\\DataBase\\Tables\\ContactSchema' => $baseDir . '/app/Database/Schemas/Contact.php',
     'Mint\\MRM\\DataBase\\Tables\\CustomFieldSchema' => $baseDir . '/app/Database/Schemas/CustomField.php',
+    'Mint\\MRM\\DataBase\\Tables\\EDDCustomerSchema' => $baseDir . '/app/Database/Schemas/EDDCustomerSchema.php',
     'Mint\\MRM\\DataBase\\Tables\\EmailMetaSchema' => $baseDir . '/app/Database/Schemas/MessageMeta.php',
     'Mint\\MRM\\DataBase\\Tables\\EmailSchema' => $baseDir . '/app/Database/Schemas/Message.php',
     'Mint\\MRM\\DataBase\\Tables\\EmailTemplatesSchema' => $baseDir . '/app/Database/Schemas/EmailTemplatesSchema.php',

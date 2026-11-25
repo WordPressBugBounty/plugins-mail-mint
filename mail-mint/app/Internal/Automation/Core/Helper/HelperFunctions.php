@@ -3392,6 +3392,19 @@ class HelperFunctions { //phpcs:ignore
     }
 
 	/**
+	 * Check if the RexTheme theme is active.
+	 *
+	 * Gates private, theme-holder-only features (e.g. the EDD Upgrade Plan
+	 * email block). Uses get_template() so RexTheme child themes also qualify.
+	 *
+	 * @return bool True if RexTheme (or a RexTheme child theme) is active.
+	 * @since 1.22.0
+	 */
+	public static function is_rextheme_active() {
+        return wp_get_theme()->get_template() === 'rextheme';
+    }
+
+	/**
 	 * Check if Bricksforge is active.
 	 *
 	 * Bricksforge adds its own "Pro Forms" on top of the Bricks builder and defines

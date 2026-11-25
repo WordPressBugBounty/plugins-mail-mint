@@ -111,6 +111,13 @@ class EmailPersonalizer {
 	public function applyProProcessing( string $body, string $recipient_email ): string {
 		if ( MrmCommon::is_mailmint_pro_active() && MrmCommon::is_mailmint_pro_version_compatible( '1.15.1' ) ) {
 			$body = Mint_Pro_Helper::process_lead_magnet_tracking( $body, $recipient_email );
+
+			// Resolve the per-contact href of any EDD Upgrade Plan CTA block.
+			// Guarded by method_exists so older Pro builds without the method
+			// are a no-op rather than a fatal error.
+			if ( method_exists( Mint_Pro_Helper::class, 'process_edd_upgrade_button' ) ) {
+				$body = Mint_Pro_Helper::process_edd_upgrade_button( $body, $recipient_email );
+			}
 		}
 
 		return $body;

@@ -78,6 +78,7 @@ class DatabaseMigrator {
 	public function init() {
 		add_action( 'mail_mint_run_update_callback', array( $this, 'run_update_callback' ), 10, 2 );
 		add_action( 'mail_mint_sync_wc_customers', array( $this, 'sync_wc_customers_batch' ), 10, 1 );
+		add_action( 'mail_mint_sync_edd_customers', array( $this, 'sync_edd_customers_batch' ), 10, 1 );
 		add_action( 'mailmint_dedupe_broadcast_email_meta', array( $this, 'mm_update_1163_dedupe_broadcast_email_meta' ) );
 		add_action( 'init', array( $this, 'maybe_schedule_broadcast_email_meta_dedupe' ), 20 );
 		add_action( self::CART_INDEX_HOOK, array( $this, 'build_abandoned_cart_indexes' ) );
@@ -125,6 +126,7 @@ class DatabaseMigrator {
 			$this->maybe_create_email_templates_table();
 			$this->maybe_create_abandoned_cart_tables();
 			$this->maybe_create_wc_customers_table();
+			$this->maybe_create_edd_customers_table();
 			// Must follow the table check above — it has nothing to alter until the
 			// tables exist.
 			$this->maybe_upgrade_abandoned_cart_columns();
@@ -710,6 +712,38 @@ class DatabaseMigrator {
 
 		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
 			update_option( '_mrm_wc_customers_table_ready', 'yes', false );
+		}
+	}
+
+	/**
+	 * Ensure the Easy Digital Downloads customers table exists.
+	 *
+	 * Mirrors maybe_create_wc_customers_table(): self-healing rather than version gated, and
+	 * deliberately not conditional on EDD being active so a site that installs EDD later is not
+	 * left without the table. A no-op once the table exists, short-circuited by an option so the
+	 * common path costs nothing.
+	 *
+	 * @return void
+	 * @since 1.31.3
+	 */
+	private function maybe_create_edd_customers_table() {
+		if ( 'yes' === get_option( '_mrm_edd_customers_table_ready' ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\EDDCustomerSchema::$table_name;
+
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
+			update_option( '_mrm_edd_customers_table_ready', 'yes', false );
+			return;
+		}
+
+		( new \Mint\MRM\DataBase\Tables\EDDCustomerSchema() )->get_sql();
+
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table ) {
+			update_option( '_mrm_edd_customers_table_ready', 'yes', false );
 		}
 	}
 
@@ -1857,6 +1891,198 @@ class DatabaseMigrator {
 				array(
 					'hook'     => 'mail_mint_sync_wc_customers',
 					'group'    => 'mail-mint-wc-sync',
+					'status'   => $status,
+					'per_page' => -1,
+				)
+			);
+			foreach ( $action_ids as $action_id ) {
+				$store->delete_action( $action_id );
+			}
+		}
+	}
+
+	/**
+	 * Sync Easy Digital Downloads customer data into the mint_edd_customers table in batches.
+	 *
+	 * Triggered on demand via the REST API. Creates the table if missing, truncates on the first
+	 * batch (offset 0), then processes completed EDD orders in batches of 200 and schedules the
+	 * next batch via Action Scheduler until all orders are processed.
+	 *
+	 * Mirrors sync_wc_customers_batch(). Each order contributes its download IDs to
+	 * `purchased_downloads` and composite "<download_id>:<price_id>" keys to `purchased_price_ids`
+	 * so segments can match either a product or a specific price variation (e.g. Annual vs Lifetime).
+	 *
+	 * @param array $args Associative array with 'offset' key for batch pagination.
+	 *
+	 * @return void
+	 *
+	 * @since 1.31.3
+	 */
+	public function sync_edd_customers_batch( $args = array() ) {
+		if ( ! MrmCommon::is_edd_active() || ! function_exists( 'edd_get_orders' ) ) {
+			return;
+		}
+
+		global $wpdb;
+		$new_table_name = $wpdb->prefix . \Mint\MRM\DataBase\Tables\EDDCustomerSchema::$table_name;
+
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $new_table_name ) ) !== $new_table_name ) {
+			( new \Mint\MRM\DataBase\Tables\EDDCustomerSchema() )->get_sql();
+
+			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $new_table_name ) ) !== $new_table_name ) {
+				self::cleanup_sync_edd_customers_actions();
+				return;
+			}
+		}
+
+		$batch_size = 200;
+		$offset     = ! empty( $args['offset'] ) ? (int) $args['offset'] : 0;
+
+		if ( 0 === $offset ) {
+			$wpdb->query( "TRUNCATE TABLE $new_table_name" ); //phpcs:ignore
+		}
+
+		$orders = edd_get_orders(
+			array(
+				'number' => $batch_size,
+				'offset' => $offset,
+				'type'   => 'sale',
+				'status' => 'complete',
+			)
+		);
+
+		if ( ! empty( $orders ) ) {
+			foreach ( $orders as $order ) {
+				self::apply_edd_order_to_rollup( $order, $new_table_name );
+			}
+
+			// Only schedule the next batch if we got a full batch — a partial result means this was the last one.
+			if ( count( $orders ) >= $batch_size ) {
+				$next_offset = $offset + $batch_size;
+				as_schedule_single_action(
+					time() + 60,
+					'mail_mint_sync_edd_customers',
+					array( 'offset' => $next_offset ),
+					'mail-mint-edd-sync'
+				);
+			} else {
+				self::cleanup_sync_edd_customers_actions();
+			}
+		} else {
+			self::cleanup_sync_edd_customers_actions();
+		}
+	}
+
+	/**
+	 * Add a single completed EDD order to the mint_edd_customers rollup (insert or accumulate).
+	 *
+	 * Shared by the backfill batch and the real-time sync in Hooks so both build identical rows.
+	 *
+	 * @param \EDD\Orders\Order $order          The EDD order object.
+	 * @param string            $new_table_name Fully prefixed mint_edd_customers table name.
+	 *
+	 * @return void
+	 * @since 1.31.3
+	 */
+	public static function apply_edd_order_to_rollup( $order, $new_table_name ) {
+		global $wpdb;
+
+		$email_address = isset( $order->email ) ? $order->email : '';
+		if ( empty( $email_address ) ) {
+			return;
+		}
+		$order_date  = ! empty( $order->date_created ) ? gmdate( 'Y-m-d H:i:s', strtotime( $order->date_created ) ) : current_time( 'mysql' );
+		$total_value = (float) $order->total;
+		$items       = method_exists( $order, 'get_items' ) ? $order->get_items() : array();
+
+		$downloads  = array();
+		$price_ids  = array();
+		$cats       = array();
+		$tags       = array();
+		foreach ( $items as $item ) {
+			$download_id = (int) $item->product_id;
+			if ( ! $download_id ) {
+				continue;
+			}
+			$price_id    = is_null( $item->price_id ) ? 0 : (int) $item->price_id;
+			$downloads[] = (string) $download_id;
+			$price_ids[] = $download_id . ':' . $price_id;
+			$cats        = array_merge( $cats, wp_get_post_terms( $download_id, 'download_category', array( 'fields' => 'ids' ) ) );
+			$tags        = array_merge( $tags, wp_get_post_terms( $download_id, 'download_tag', array( 'fields' => 'ids' ) ) );
+		}
+
+		$existing_data = $wpdb->get_row(
+			$wpdb->prepare( "SELECT * FROM $new_table_name WHERE email_address = %s", $email_address ), //phpcs:ignore
+			ARRAY_A
+		);
+
+		if ( $existing_data ) {
+			$l_order_date      = max( $existing_data['l_order_date'], $order_date );
+			$f_order_date      = min( $existing_data['f_order_date'], $order_date );
+			$total_order_count = (int) $existing_data['total_order_count'] + 1;
+			$total_order_value = (float) $existing_data['total_order_value'] + $total_value;
+
+			$downloads = array_merge( (array) json_decode( $existing_data['purchased_downloads'], true ), $downloads );
+			$price_ids = array_merge( (array) json_decode( $existing_data['purchased_price_ids'], true ), $price_ids );
+			$cats      = array_merge( (array) json_decode( $existing_data['purchased_downloads_cats'], true ), $cats );
+			$tags      = array_merge( (array) json_decode( $existing_data['purchased_downloads_tags'], true ), $tags );
+
+			$aov = $total_order_count > 0 ? ( $total_order_value / $total_order_count ) : 0;
+
+			$wpdb->update(
+				$new_table_name,
+				array(
+					'l_order_date'             => $l_order_date,
+					'f_order_date'             => $f_order_date,
+					'total_order_count'        => $total_order_count,
+					'total_order_value'        => $total_order_value,
+					'aov'                      => $aov,
+					'purchased_downloads'      => wp_json_encode( array_values( array_unique( $downloads ) ) ),
+					'purchased_price_ids'      => wp_json_encode( array_values( array_unique( $price_ids ) ) ),
+					'purchased_downloads_cats' => wp_json_encode( array_values( array_unique( $cats ) ) ),
+					'purchased_downloads_tags' => wp_json_encode( array_values( array_unique( $tags ) ) ),
+				),
+				array( 'email_address' => $email_address )
+			);
+		} else {
+			$wpdb->insert(
+				$new_table_name,
+				array(
+					'email_address'            => $email_address,
+					'l_order_date'             => $order_date,
+					'f_order_date'             => $order_date,
+					'total_order_count'        => 1,
+					'total_order_value'        => $total_value,
+					'aov'                      => $total_value,
+					'purchased_downloads'      => wp_json_encode( array_values( array_unique( $downloads ) ) ),
+					'purchased_price_ids'      => wp_json_encode( array_values( array_unique( $price_ids ) ) ),
+					'purchased_downloads_cats' => wp_json_encode( array_values( array_unique( $cats ) ) ),
+					'purchased_downloads_tags' => wp_json_encode( array_values( array_unique( $tags ) ) ),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Delete all pending and completed Action Scheduler entries for the EDD customer sync hook.
+	 *
+	 * @return void
+	 * @since 1.31.3
+	 */
+	private static function cleanup_sync_edd_customers_actions() {
+		$store    = \ActionScheduler::store();
+		$statuses = array(
+			\ActionScheduler_Store::STATUS_PENDING,
+			\ActionScheduler_Store::STATUS_COMPLETE,
+			\ActionScheduler_Store::STATUS_FAILED,
+			\ActionScheduler_Store::STATUS_CANCELED,
+		);
+
+		foreach ( $statuses as $status ) {
+			$action_ids = $store->query_actions(
+				array(
+					'hook'     => 'mail_mint_sync_edd_customers',
+					'group'    => 'mail-mint-edd-sync',
 					'status'   => $status,
 					'per_page' => -1,
 				)

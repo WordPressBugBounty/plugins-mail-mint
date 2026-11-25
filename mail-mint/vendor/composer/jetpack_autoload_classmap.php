@@ -39,11 +39,11 @@ return array(
 		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/ManifestGenerator.php'
 	),
 	'ContactImportAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Admin/Contact/ContactImportAction.php'
 	),
 	'ContactProfileAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Admin/Contact/ContactProfileAction.php'
 	),
 	'Container' => array(
@@ -51,15 +51,15 @@ return array(
 		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/class-container.php'
 	),
 	'Flatted' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/flatted/php/flatted.php'
 	),
 	'FlattedString' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/flatted/php/flatted.php'
 	),
 	'GeneralFieldActions' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Admin/GeneralFieldActions.php'
 	),
 	'Hook_Manager' => array(
@@ -119,27 +119,27 @@ return array(
 		'path'    => $vendorDir . '/linno/telemetry/src/TriggerManager.php'
 	),
 	'MRM\\Common\\MrmCommon' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/MrmCommon.php'
 	),
 	'MailMint' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/includes/MailMint.php'
 	),
 	'MailMint\\App\\Actions\\Handlers\\FormSubmissionHandler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Actions/Handlers/FormSubmissionHandler.php'
 	),
 	'MailMint\\App\\Actions\\Hooks' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Actions/Hooks.php'
 	),
 	'MailMint\\App\\Helper' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Helper.php'
 	),
 	'MailMint\\App\\Internal\\FormBuilder\\Storage' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/templates/Storage.php'
 	),
 	'Manifest_Reader' => array(
@@ -147,1431 +147,1435 @@ return array(
 		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/class-manifest-reader.php'
 	),
 	'MintMail\\App\\Internal\\Automation' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Automation.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\ActionScheduler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Scheduler/ActionScheduler.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Action\\AbstractAutomationAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Actions/AbstractAutomationAction.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Action\\AddList' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Actions/AddList.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Action\\AddTag' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Actions/AddTag.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Action\\AutomationAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Actions/AutomationActions.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Action\\Delay' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Actions/Delay.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Action\\SendMail' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Actions/SendMail.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\AutomationJobModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/DataStore/AutomationJobStore.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\AutomationLogModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/DataStore/AutomationLogStore.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\AutomationManager' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/AutomationManager.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\AutomationModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/DataStore/AutomationStore.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\AutomationStepModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/DataStore/AutomationStepStore.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Automation_Connector' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/AbstractAutomationConnector.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/AutomationConnector.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\ConnectorMintForm' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/MintForm/ConnectorMintForm.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\ConnectorWordPress' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WP/ConnectorWordpress.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\ConnectorWpfnlCore' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WpfnlCore/ConnectorWpfnlCore.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\trigger\\MintFormTriggers' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/MintForm/Triggers/MintFormTriggers.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\trigger\\PostPublishedTriggers' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WP/Triggers/PostPublishedTriggers.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\trigger\\WordpressTriggers' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WP/Triggers/WordPressTriggers.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Connector\\trigger\\WpfnlCoreTriggers' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Connectors/WpfnlCore/Triggers/WpfnlCoreTriggers.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\HelperFunctions' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/Helper/HelperFunctions.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Hooks\\AutomationHooks' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/Hooks/AutomationHook.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\Recipe\\AutomationRecipe' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Recipe/AutomationRecipe.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\TriggerAvailability' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/TriggerAvailability.php'
 	),
 	'MintMail\\App\\Internal\\Automation\\TriggerCatalog' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/TriggerCatalog.php'
 	),
 	'Mint\\App\\Classes\\Mailer' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/Mailer.php'
 	),
 	'Mint\\App\\Classes\\Message' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/Message.php'
 	),
 	'Mint\\App\\Classes\\WPRemoteRequestHandler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/WPRemoteRequestHandler.php'
 	),
 	'Mint\\App\\Database\\Repositories\\Email\\Template' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Repositories/Email/Template.php'
 	),
 	'Mint\\App\\Internal\\Actions\\Handlers\\RedirectionHandler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Actions/Handlers/RedirectionHandler.php'
 	),
 	'Mint\\App\\Internal\\Cron\\BackgroundProcessHelper' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Cron/BackgroundProcessHelper.php'
 	),
 	'Mint\\App\\Internal\\EmailCustomization\\Render\\BlockRender' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/EmailCustomization/Render/BlockRender.php'
 	),
 	'Mint\\App\\Internal\\EmailCustomization\\Render\\EmailRender' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/EmailCustomization/Render/EmailRender.php'
 	),
 	'Mint\\App\\Internal\\EmailCustomization\\Shortcode\\WCShortcode' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/EmailCustomization/Shortcode/WCShortcode.php'
 	),
 	'Mint\\App\\Internal\\EmailCustomization\\WooCommerce\\EmailTrigger' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/EmailCustomization/WooCommerce/EmailTrigger.php'
 	),
 	'Mint\\App\\Internal\\FormBuilder\\MintFormBlock' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/FormBlock/MintFormBlock.php'
 	),
 	'Mint\\App\\Internal\\Mailers\\BaseMailer' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Mailers/BaseMailer.php'
 	),
 	'Mint\\App\\Internal\\Mailers\\WpmailMailer' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Mailers/WPMailMailer.php'
 	),
 	'Mint\\MRM\\API\\Actions\\Action' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Action.php'
 	),
 	'Mint\\MRM\\API\\Actions\\ActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/ActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\AnalyticsActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Admin/AnalyticsActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\CampaignAnalyticsAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Admin/Campaign/CampaignAnalyticsAction.php'
 	),
 	'Mint\\MRM\\API\\Actions\\CampaignAnalyticsActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Admin/CampaignAnalyticsActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\ComplianceAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Admin/ComplianceAction.php'
 	),
 	'Mint\\MRM\\API\\Actions\\ContactImportActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Admin/Contact/ContactImportActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\ContactProfileActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Admin/Contact/ContactProfileActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\CookieAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Frontend/CookieAction.php'
 	),
 	'Mint\\MRM\\API\\Actions\\CookieActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Frontend/CookieActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\FormAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Frontend/FormAction.php'
 	),
 	'Mint\\MRM\\API\\Actions\\FormActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Frontend/FormActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\GeneralFieldActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Admin/GeneralFieldActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\PreferenceAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Frontend/PreferenceAction.php'
 	),
 	'Mint\\MRM\\API\\Actions\\PreferenceActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Frontend/PreferenceActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Actions\\TemplateActionCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Creators/Admin/Email/TemplateActionCreator.php'
 	),
 	'Mint\\MRM\\API\\Controllers\\BaseController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/BaseController.php'
 	),
 	'Mint\\MRM\\API\\Controllers\\Traits\\CrudControllerTrait' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Traits/CrudControllerTrait.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AIChatController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/AIChatController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AIGenerateController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/AIGenerateController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AISettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/AISettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AbandonedCartController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/AbandonedCartController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AbandonedCartSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/AbandonedCartSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AdminBaseController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/AdminBaseController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AdvancedSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/AdvancedSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ApplicationPasswordController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/ApplicationPasswordController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AutomationController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/API/Controllers/AutomationController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AutomationJobController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/API/Controllers/AutomationJobController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AutomationLogController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/API/Controllers/AutomationLogController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\AutomationStepController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/API/Controllers/AutomationStepController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\BaseConnectorHandler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/Connector/BaseConnectorHandler.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\BusinessBasicSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/BusinessBasicSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\BusinessSocialSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/BusinessSocialSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\CampaignAnalyticsController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/CampaignAnalyticsController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\CampaignController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/CampaignController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\CampaignEmailController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/CampaignEmailController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ComplianceSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/ComplianceSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ConnectorController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/ConnectorController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\Connector\\LearnDashConnectorHandler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/Connector/LearnDashConnectorHandler.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ContactController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/ContactController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ContactImportController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/Contact/ContactImportController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ContactPivotController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/ContactPivotController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ContactProfileController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/Contact/ContactProfileController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\CustomFieldController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/CustomFieldController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\DashboardController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/DashboardController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\DataCleanupController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/DataCleanupController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\EmailHistoryController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/EmailHistoryController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\EmailSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/EmailSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\FormController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/FormController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\GeneralFieldController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/GeneralFieldController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\GeneralSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/GeneralSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\IntegrationDataController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/IntegrationDataController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ListController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/ListController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\McpSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/McpSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\MessageController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/MessageController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\OnboardingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/OnboardingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\OptinSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/OptinSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\ProductController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/ProductContoller.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\SegmentController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/SegmentController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\SettingBaseController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/SettingBaseController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\TagController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/TagController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\TemplateController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/Email/TemplateController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\TrackingSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/TrackingSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\UsageReportSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/UsageReportSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\WCSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/WCSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\WPController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/WPController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Controllers\\reCaptchaSettingController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Admin/reCaptchaSettingController.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AIChatRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/AIChatRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AISettingRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/AISettingRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AbandonedCartRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/AbandonedCartRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AbandonedCartSettingRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/AbandonedCartSettingRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AdminRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/AdminRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AnalyticsRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/AnalyticsRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\ApplicationPasswordRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/ApplicationPasswordRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AutomationJobRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/API/Routes/AutomationJobRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AutomationLogRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/API/Routes/AutomationLogRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AutomationRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/API/Routes/AutomationRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\AutomationStepRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Automation/Core/API/Routes/AutomationStepRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\CampaignEmailRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/CampaignEmailRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\CampaignRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/CampaignRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\ConnectorRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/ConnectorRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\ContactColumnRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/ContactColumnRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\ContactImportRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/Contact/ContactImportRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\ContactProfileRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/Contact/ContactProfileRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\ContactRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/ContactRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\CustomFieldRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/CustomFieldRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\DashboardRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/DashboardRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\DataCleanupRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/DataCleanupRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\EmailHistoryRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/EmailHistoryRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\FormRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/FormRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\GeneralFieldRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/GeneralFieldRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\IntegrationDataRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/IntegrationDataRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\ListRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/ListRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\McpSettingRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/McpSettingRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\OnboardingRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/OnboardingRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\SegmentRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/SegmentRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\SendEmailRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/SendEmailRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\SettingRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/SettingRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\TagRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/TagRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\TemplateRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/Email/TemplateRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Routes\\WPRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Admin/WPRoute.php'
 	),
 	'Mint\\MRM\\Admin\\API\\Server' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Server.php'
 	),
 	'Mint\\MRM\\App' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/App.php'
 	),
 	'Mint\\MRM\\Constants' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Constants.php'
 	),
 	'Mint\\MRM\\DataBase\\Migration\\DatabaseMigrator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Migrations/DatabaseMigrator.php'
 	),
 	'Mint\\MRM\\DataBase\\Model' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Model.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\CampaignEmailBuilderModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/CampaignEmailBuilderModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\CampaignModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/CampaignModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\ContactGroupModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/ContactGroupModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\ContactGroupPivotModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/ContactGroupPivotModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\ContactModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/ContactModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\CustomFieldModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/CustomFieldModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\DashboardModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/DashboardModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\EmailModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/MessageModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\FormModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/FormModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\FormSubmissionModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/FormSubmissionModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\NoteModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/NoteModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Models\\WPModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/models/WPModel.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AIConversationSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/AIConversation.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AIMessageSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/AIMessage.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AbandonedCartSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/AbandonedCartSchema.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AutomationJobSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Automation/AutomationJobs.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AutomationLogSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Automation/AutomationLog.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AutomationMetaSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Automation/AutomationMeta.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AutomationSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Automation/Automation.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AutomationStepMetaSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Automation/AutomationStepMeta.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\AutomationStepSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Automation/AutomationSteps.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\CampaignEmailBuilderSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/CampaignEmailBuilderSchema.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\CampaignSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/CampaignSchema.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\ContactGroupPivotSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/ContactGroupPivot.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\ContactGroupSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/ContactGroup.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\ContactMetaSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/ContactMeta.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\ContactNoteSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/ContactNote.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\ContactSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Contact.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\CustomFieldSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/CustomField.php'
 	),
+	'Mint\\MRM\\DataBase\\Tables\\EDDCustomerSchema' => array(
+		'version' => 'dev-develop',
+		'path'    => $baseDir . '/app/Database/Schemas/EDDCustomerSchema.php'
+	),
 	'Mint\\MRM\\DataBase\\Tables\\EmailMetaSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/MessageMeta.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\EmailSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Message.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\EmailTemplatesSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/EmailTemplatesSchema.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\FormEntryDetailsSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/FormEntryDetailsSchema.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\FormMetaSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/FormMeta.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\FormSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/Form.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\FormSubmissionsSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/FormSubmissionsSchema.php'
 	),
 	'Mint\\MRM\\DataBase\\Tables\\WCCustomerSchema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Schemas/WCCustomerSchema.php'
 	),
 	'Mint\\MRM\\DataBase\\Upgrade' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Upgrade.php'
 	),
 	'Mint\\MRM\\DataStores\\Campaign' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/Campaign.php'
 	),
 	'Mint\\MRM\\DataStores\\ContactData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/ContactData.php'
 	),
 	'Mint\\MRM\\DataStores\\CustomFieldData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/CustomFieldData.php'
 	),
 	'Mint\\MRM\\DataStores\\DataStoreInterface' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Interfaces/DataStoreInterface.php'
 	),
 	'Mint\\MRM\\DataStores\\FormData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/FormData.php'
 	),
 	'Mint\\MRM\\DataStores\\ListData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/ListData.php'
 	),
 	'Mint\\MRM\\DataStores\\MessageData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/MessageData.php'
 	),
 	'Mint\\MRM\\DataStores\\SegmentData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/SegmentData.php'
 	),
 	'Mint\\MRM\\DataStores\\TagData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/TagData.php'
 	),
 	'Mint\\MRM\\DataStores\\WordkflowData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/DataStores/WordkflowData.php'
 	),
 	'Mint\\MRM\\Database\\AbstractRepository' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/AbstractRepository.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\AutomationJobStatus' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/AutomationJobStatus.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\AutomationLogStatus' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/AutomationLogStatus.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\AutomationStatus' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/AutomationStatus.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\BroadcastStatus' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/BroadcastStatus.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\CampaignEmailStatus' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/CampaignEmailStatus.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\CampaignStatus' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/CampaignStatus.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\CampaignType' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/CampaignType.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\ContactStatus' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/ContactStatus.php'
 	),
 	'Mint\\MRM\\Database\\Enums\\FormStatus' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Enums/FormStatus.php'
 	),
 	'Mint\\MRM\\Database\\QueryBuilder' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/QueryBuilder.php'
 	),
 	'Mint\\MRM\\Database\\Repositories\\BroadcastRepository' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Repositories/BroadcastRepository.php'
 	),
 	'Mint\\MRM\\Database\\Repositories\\CampaignRepository' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Repositories/CampaignRepository.php'
 	),
 	'Mint\\MRM\\Database\\Repositories\\ContactGroupRepository' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Repositories/ContactGroupRepository.php'
 	),
 	'Mint\\MRM\\Database\\Repositories\\ContactRepository' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Repositories/ContactRepository.php'
 	),
 	'Mint\\MRM\\Database\\Traits\\CacheableTrait' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Database/Traits/CacheableTrait.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\AbandonedCartController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/AbandonedCartController.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\BounceHandlerController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/BounceHandlerController.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\CookieController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/CookieController.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\FormSubmissionController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/FormSubmissionController.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\FrontendBaseController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/FrontendBaseController.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\PreferenceController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/PreferenceController.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\ResubscribeController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/ResubscribeController.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Controllers\\UnsubscribeSurveyController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Controllers/Frontend/UnsubscribeSurveyController.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\AbandonedCartRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Frontend/AbandonedCartRoute.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\BounceHandlerRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Frontend/BounceHandlerRoute.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\CookieRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Frontend/CookieRoute.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\FormRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Frontend/FormRoute.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\FrontendRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Frontend/FrontendRoute.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\PreferenceRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Frontend/PreferenceRoute.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\ResubscribeRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Frontend/ResubscribeRoute.php'
 	),
 	'Mint\\MRM\\Frontend\\API\\Routes\\UnsubscribeSurveyRoute' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Routes/Frontend/UnsubscribeSurveyRoute.php'
 	),
 	'Mint\\MRM\\Includes\\DeletePluginData' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/includes/DeletePluginData.php'
 	),
 	'Mint\\MRM\\Includes\\MintMailCLI' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/includes/MintMailCLI.php'
 	),
 	'Mint\\MRM\\Interfaces\\Schema' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Interfaces/Schema.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\AIInit' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/AIInit.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\AgentLoop' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/AgentLoop.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Context\\ContactSummaryContext' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Context/ContactSummaryContext.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\ConversationStore' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/ConversationStore.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\EmailTemplateEditor' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/EmailTemplateEditor.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Providers\\AbstractProvider' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Providers/AbstractProvider.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Providers\\AnthropicProvider' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Providers/AnthropicProvider.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Providers\\GeminiProvider' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Providers/GeminiProvider.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Providers\\OpenAIProvider' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Providers/OpenAIProvider.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Providers\\ProviderInterface' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Providers/ProviderInterface.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Providers\\SchemaTranslator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Providers/SchemaTranslator.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Providers\\WordPressAIProvider' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Providers/WordPressAIProvider.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\Settings\\AISettings' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/Settings/AISettings.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\SingleShotAIService' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/SingleShotAIService.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\SystemPrompt' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/SystemPrompt.php'
 	),
 	'Mint\\MRM\\Internal\\AI\\ToolGateway' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AI/ToolGateway.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\AbandonedCart' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/AbandonedCart.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Helper\\CartCommon' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Helper/CartCommon.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Helper\\CartGate' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Helper/CartGate.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Helper\\CartModel' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Helper/CartModel.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Helper\\CartRecovery' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Helper/CartRecovery.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceAddToCart' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceAddToCart.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCartItemRemoved' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCartItemRemoved.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCartItemRestored' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCartItemRestored.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCartItemSetQuantity' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCartItemSetQuantity.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCouponApplied' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCouponApplied.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceCouponRemoved' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceCouponRemoved.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceNewOrder' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceNewOrder.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceOrderStatusChanged' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceOrderStatusChanged.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Hooks\\WooCommerce\\WooCommerceUserLogin' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Hooks/WooCommerce/WooCommerceUserLogin.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Scheduler\\AbandonedCartRunScheduler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Scheduler/AbandonedCartRunScheduler.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Scheduler\\AbandonedCartScheduler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Scheduler/AbandonedCartScheduler.php'
 	),
 	'Mint\\MRM\\Internal\\AbandonedCart\\Scheduler\\CartGroupJanitor' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/AbandonedCart/Scheduler/CartGroupJanitor.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\AdminAssets' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/AdminAssets.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\CreateContact' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Setup-Wizard/CreateContact.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\DashboardNudges' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/DashboardNudges.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\DefaultListsCreator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/DefaultListsCreator.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\EmailTemplates\\DefaultEmailTemplates' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Email-Templates/DefaultEmailTemplates.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\FrontendAssets' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Frontend/FrontendAssets.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\HandleFrontendMenu' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Frontend/HandleFrontendMenu.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\MRMSecurity' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Security/MRMSecurity.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\MrmPrivacyEraser' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/WP-Privacy/MrmPrivacyEraser.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\MrmPrivacyExporter' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/WP-Privacy/MrmPrivacyExporter.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\Notices' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Notices/Notices.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\Notices\\DBUpgradeNotice' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Notices/DBUpgradeNotice.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\Page\\HomeScreen' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Page/HomeScreen.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\Page\\PageController' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Page/PageController.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\Segmentation\\SegmentFilterService' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Segmentation/SegmentFilterService.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\SendingHealth' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/SendingHealth.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\SetupWizard' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/Setup-Wizard/SetupWizard.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\SpecialOccasionBanner' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/SpecialOccasionBanner.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\UserAssignContact' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Frontend/UserAssignContact.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\WPUserDelete' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/WP-User/WPUserDelete.php'
 	),
 	'Mint\\MRM\\Internal\\Admin\\WooCommerceOrderDetails' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Admin/WooCommerce-Order/WooCommerceOrderDetails.php'
 	),
 	'Mint\\MRM\\Internal\\Campaign\\EmailPersonalizer' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Campaign/EmailPersonalizer.php'
 	),
 	'Mint\\MRM\\Internal\\Constants' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Constants.php'
 	),
 	'Mint\\MRM\\Internal\\Cron\\AsyncQueueRunnerGuard' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Cron/AsyncQueueRunnerGuard.php'
 	),
 	'Mint\\MRM\\Internal\\Cron\\CampaignsBackgroundProcess' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Cron/CampaignsBackgroundProcess.php'
 	),
 	'Mint\\MRM\\Internal\\Cron\\GlobalQueueCoordinator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Cron/GlobalQueueCoordinator.php'
 	),
 	'Mint\\MRM\\Internal\\Cron\\Traits\\ActionSchedulerTrait' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Cron/Traits/ActionSchedulerTrait.php'
 	),
 	'Mint\\MRM\\Internal\\Cron\\Traits\\BatchProcessTrait' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Cron/Traits/BatchProcessTrait.php'
 	),
 	'Mint\\MRM\\Internal\\DataCleanup\\DataCleanupScheduler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/DataCleanup/DataCleanupScheduler.php'
 	),
 	'Mint\\MRM\\Internal\\DataCleanup\\DatabaseIndexes' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/DataCleanup/DatabaseIndexes.php'
 	),
 	'Mint\\MRM\\Internal\\DataCleanup\\DeleteJob' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/DataCleanup/DeleteJob.php'
 	),
 	'Mint\\MRM\\Internal\\DataCleanup\\ExportJob' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/DataCleanup/ExportJob.php'
 	),
 	'Mint\\MRM\\Internal\\DataCleanup\\JobStateManager' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/DataCleanup/JobStateManager.php'
 	),
 	'Mint\\MRM\\Internal\\FormBuilder\\FormBlockBuilder' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/FormBlockBuilder.php'
 	),
 	'Mint\\MRM\\Internal\\FormBuilder\\FormBuilderHelper' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/FormBuilderHelper.php'
 	),
 	'Mint\\MRM\\Internal\\Frontend\\AbandonedCartAssets' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Frontend/AbandonedCartAssets.php'
 	),
 	'Mint\\MRM\\Internal\\Frontend\\WooCommerceCheckoutContact' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Frontend/WooCommerceCheckoutContact.php'
 	),
 	'Mint\\MRM\\Internal\\Import\\ImportService' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Import/ImportService.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\AbilitiesRegistrar' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/AbilitiesRegistrar.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Helpers\\EmailComposer' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Helpers/EmailComposer.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Helpers\\EmailPlaybooks' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Helpers/EmailPlaybooks.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Helpers\\MCPHelper' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Helpers/MCPHelper.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\MCPInit' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/MCPInit.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthAuthorize' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthAuthorize.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthClients' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthClients.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthRoutes' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthRoutes.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthServer' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthServer.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\OAuth\\OAuthTokens' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/OAuth/OAuthTokens.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Observability\\MintMcpObservabilityHandler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Observability/MintMcpObservabilityHandler.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\AutomationTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/AutomationTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\CampaignTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/CampaignTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\ContactTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/ContactTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\ContextTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/ContextTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\CustomFieldTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/CustomFieldTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\EmailTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/EmailTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\FormTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/FormTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\ReportTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/ReportTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\SegmentTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/SegmentTools.php'
 	),
 	'Mint\\MRM\\Internal\\MCP\\Tools\\TemplateTools' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/MCP/Tools/TemplateTools.php'
 	),
 	'Mint\\MRM\\Internal\\Optin\\CampaignArchiveView' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Optin/CampaignArchiveView.php'
 	),
 	'Mint\\MRM\\Internal\\Optin\\EmailPreview' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Optin/EmailPreview.php'
 	),
 	'Mint\\MRM\\Internal\\Optin\\OptinConfirmation' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Optin/OptinConfirmation.php'
 	),
 	'Mint\\MRM\\Internal\\Optin\\UnsubscribeConfirmation' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Optin/UnsubscribeConfirmation.php'
 	),
 	'Mint\\MRM\\Internal\\Optin\\UnsubscribeReasons' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Optin/UnsubscribeReasons.php'
 	),
 	'Mint\\MRM\\Internal\\Parser\\MergeTagParser' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Parser/MergeTagParser.php'
 	),
 	'Mint\\MRM\\Internal\\Parser\\Parser' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Parser/Parser.php'
 	),
 	'Mint\\MRM\\Internal\\ShortCode\\CampaignArchive' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Shortcodes/CampaignArchive.php'
 	),
 	'Mint\\MRM\\Internal\\ShortCode\\ContactForm' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Shortcodes/ContactForm.php'
 	),
 	'Mint\\MRM\\Internal\\ShortCode\\FormPreview' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Shortcodes/FormPreview.php'
 	),
 	'Mint\\MRM\\Internal\\ShortCode\\OptinConfirmation' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Shortcodes/OptinConfirmation.php'
 	),
 	'Mint\\MRM\\Internal\\ShortCode\\PreferencePage' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Shortcodes/PreferencePage.php'
 	),
 	'Mint\\MRM\\Internal\\ShortCode\\ShortCode' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Shortcodes/Shortcode.php'
 	),
 	'Mint\\MRM\\Internal\\ShortCode\\UnsubscribeConfirmation' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Shortcodes/UnsubscribeConfirmation.php'
 	),
 	'Mint\\MRM\\Internal\\ShortCode\\UnsubscribeSurvey' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Shortcodes/UnsubscribeSurvey.php'
 	),
 	'Mint\\MRM\\Internal\\Templates\\TemplateHandler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Templates/TemplateHandler.php'
 	),
 	'Mint\\MRM\\Internal\\Tracking\\ActivityTrail' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Tracking/ActivityTrail.php'
 	),
 	'Mint\\MRM\\Internal\\Tracking\\EventTracker' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Tracking/EventTracker.php'
 	),
 	'Mint\\MRM\\Internal\\UsageReport\\UsageReportScheduler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/UsageReport/UsageReportScheduler.php'
 	),
 	'Mint\\MRM\\Scheduler\\AbstractActionScheduler' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Scheduler/AbstractActionScheduler.php'
 	),
 	'Mint\\MRM\\Utilites\\Helper\\AnimatedGif' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Helper/GIFEncoder.php'
 	),
 	'Mint\\MRM\\Utilites\\Helper\\Campaign' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Helper/Campaign.php'
 	),
 	'Mint\\MRM\\Utilites\\Helper\\Contact' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Helper/Contact.php'
 	),
 	'Mint\\MRM\\Utilites\\Helper\\Email' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Helper/Email.php'
 	),
 	'Mint\\MRM\\Utilites\\Helper\\Import' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Helper/Import.php'
 	),
 	'Mint\\MRM\\Utilities\\Helper\\PermissionManager' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Helper/PermissionManager.php'
 	),
 	'Mint\\MRM\\Utilities\\Helper\\TranslationString\\TransStrings' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/TranslationString/TransStrings.php'
 	),
 	'Mint\\MRM\\Utilities\\Helper\\WPMLHelper' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Helper/WPMLHelper.php'
 	),
 	'Mint\\MRM\\Utilities\\Integrations\\EmailBounce' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Integrations/EmailBounce.php'
 	),
 	'Mint\\Mrm\\Internal\\Traits\\Singleton' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/Traits/Singleton.php'
 	),
 	'Mint\\Utilities\\Arr' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/Arr.php'
 	),
 	'Mint\\Utilities\\CustomFonts' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/CustomFonts.php'
 	),
 	'Mint\\Utilities\\MacroableTrait' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Utilities/MacroableTrait.php'
 	),
 	'MrmActivator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/includes/MrmActivator.php'
 	),
 	'MrmDeactivator' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/includes/MrmDeactivator.php'
 	),
 	'Mrmi18n' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/includes/Mrmi18n.php'
 	),
 	'PHP_Autoloader' => array(
@@ -1635,7 +1639,7 @@ return array(
 		'path'    => $vendorDir . '/automattic/jetpack-autoloader/src/class-shutdown-handler.php'
 	),
 	'TemplateAction' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/API/Actions/Admin/Email/TemplateAction.php'
 	),
 	'Version_Loader' => array(
@@ -2647,39 +2651,39 @@ return array(
 		'path'    => $vendorDir . '/wordpress/php-mcp-schema/src/Server/Tools/DTO/ToolOutputSchema.php'
 	),
 	'WP_Block_Parser' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser.php'
 	),
 	'WP_Block_Parser_Block' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-block.php'
 	),
 	'WP_Block_Parser_Frame' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/block-serialization-default-parser/class-wp-block-parser-frame.php'
 	),
 	'WP_Navigation_Block_Renderer' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/block-library/src/navigation/index.php'
 	),
 	'WP_Style_Engine' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine.php'
 	),
 	'WP_Style_Engine_CSS_Declarations' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-declarations.php'
 	),
 	'WP_Style_Engine_CSS_Rule' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-rule.php'
 	),
 	'WP_Style_Engine_CSS_Rules_Store' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-css-rules-store.php'
 	),
 	'WP_Style_Engine_Processor' => array(
-		'version' => 'dev-master',
+		'version' => 'dev-develop',
 		'path'    => $baseDir . '/app/Internal/FormBuilder/node_modules/@wordpress/style-engine/class-wp-style-engine-processor.php'
 	),
 	'cweagans\\Composer\\PatchEvent' => array(

@@ -275,6 +275,7 @@ class ComposerStaticInit3a0c92364a629bfdef82464f77fd42f7
         'Mint\\MRM\\DataBase\\Tables\\ContactNoteSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/ContactNote.php',
         'Mint\\MRM\\DataBase\\Tables\\ContactSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/Contact.php',
         'Mint\\MRM\\DataBase\\Tables\\CustomFieldSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/CustomField.php',
+        'Mint\\MRM\\DataBase\\Tables\\EDDCustomerSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/EDDCustomerSchema.php',
         'Mint\\MRM\\DataBase\\Tables\\EmailMetaSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/MessageMeta.php',
         'Mint\\MRM\\DataBase\\Tables\\EmailSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/Message.php',
         'Mint\\MRM\\DataBase\\Tables\\EmailTemplatesSchema' => __DIR__ . '/../..' . '/app/Database/Schemas/EmailTemplatesSchema.php',

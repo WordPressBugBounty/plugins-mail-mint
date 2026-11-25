@@ -46,6 +46,7 @@ class Hooks {
 		add_action( 'init', array($this, 'handle_email_open_tracking'));
 		add_filter( 'mint_merge_tag_fallback', array( $this, 'mint_merge_tag_fallback' ), 10, 2 );
 		add_action( 'woocommerce_order_status_changed', array($this, 'handle_payment_status_changed'), 100, 4);
+		add_action( 'edd_update_payment_status', array($this, 'handle_edd_payment_status_changed'), 100, 3);
 		add_action( 'woocommerce_refund_created', array($this, 'handle_partial_refund'), 10, 2);
 		add_action( 'init', array( $this, 'check_and_assign_capabilities_on_update' ) );
 		add_action( 'init', array( $this, 'remove_recover_stuck_emails_cron' ) );
@@ -877,6 +878,111 @@ class Hooks {
 		}
 
 		return $this->sync_woo_order($order, $require_sync);
+	}
+
+	/**
+	 * Callback for the EDD payment status transition hook.
+	 *
+	 * Fired on every EDD order status change (`edd_update_payment_status`). When the transition
+	 * involves the `complete` status in either direction, the customer's entire rollup row in
+	 * mint_edd_customers is recomputed from their completed orders. Recomputing (rather than
+	 * incrementally adding) keeps the row correct across refunds, revokes and repeated transitions
+	 * without any risk of double counting.
+	 *
+	 * @param int    $order_id   The EDD order ID.
+	 * @param string $new_status The new order status.
+	 * @param string $old_status The previous order status.
+	 *
+	 * @return bool True when a recompute ran, false otherwise.
+	 * @since 1.31.3
+	 */
+	public function handle_edd_payment_status_changed( $order_id, $new_status, $old_status ) {
+		if ( ! MrmCommon::is_edd_active() || ! function_exists( 'edd_get_order' ) ) {
+			return false;
+		}
+
+		if ( $new_status === $old_status ) {
+			return false;
+		}
+
+		// Only react when completeness actually changes.
+		if ( 'complete' !== $new_status && 'complete' !== $old_status ) {
+			return false;
+		}
+
+		if ( ! self::edd_customers_table_exists() ) {
+			return false;
+		}
+
+		$order = edd_get_order( $order_id );
+		if ( ! $order || empty( $order->email ) ) {
+			return false;
+		}
+
+		return $this->recalculate_edd_customer( $order->email );
+	}
+
+	/**
+	 * Whether the mint_edd_customers table exists.
+	 *
+	 * Resolved once per request, mirroring wc_customers_table_exists().
+	 *
+	 * @return bool True if the table exists.
+	 * @since 1.31.3
+	 */
+	private static function edd_customers_table_exists() {
+		static $exists = null;
+
+		if ( null !== $exists ) {
+			return $exists;
+		}
+
+		global $wpdb;
+		$table  = $wpdb->prefix . 'mint_edd_customers';
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
+
+		return $exists;
+	}
+
+	/**
+	 * Recompute a single customer's mint_edd_customers row from their completed EDD orders.
+	 *
+	 * Deletes the existing row and re-aggregates every completed order for the email via
+	 * DatabaseMigrator::apply_edd_order_to_rollup(), the same builder the backfill uses, so the
+	 * real-time and backfill rows are identical.
+	 *
+	 * @param string $email_address The customer email.
+	 *
+	 * @return bool True once the recompute ran.
+	 * @since 1.31.3
+	 */
+	private function recalculate_edd_customer( $email_address ) {
+		if ( empty( $email_address ) || ! function_exists( 'edd_get_orders' ) ) {
+			return false;
+		}
+
+		global $wpdb;
+		$table = $wpdb->prefix . 'mint_edd_customers';
+
+		// Clear the existing rollup so apply_edd_order_to_rollup rebuilds it from scratch.
+		$wpdb->delete( $table, array( 'email_address' => $email_address ) );
+
+		$orders = edd_get_orders(
+			array(
+				'email'  => $email_address,
+				'type'   => 'sale',
+				'status' => 'complete',
+				'number' => -1,
+			)
+		);
+
+		if ( ! empty( $orders ) && is_array( $orders ) ) {
+			foreach ( $orders as $order ) {
+				\Mint\MRM\DataBase\Migration\DatabaseMigrator::apply_edd_order_to_rollup( $order, $table );
+			}
+		}
+
+		return true;
 	}
 
 	/**

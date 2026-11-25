@@ -45,6 +45,18 @@ class AbandonedCartController extends BaseController {
 	public function update_checkout( WP_REST_Request $request ) {
 		$params = MrmCommon::get_api_params_values( $request );
 
+		// Verify the REST nonce to prevent cross-site request forgery. The frontend
+		// script localises this nonce and sends it with every request.
+		$nonce = isset( $params['wp_nonce'] ) ? sanitize_text_field( wp_unslash( $params['wp_nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			return rest_ensure_response(
+				array(
+					'success' => false,
+					'message' => __( 'Nonce verification failed.', 'mrm' ),
+				)
+			);
+		}
+
 		if ( ! MrmCommon::is_wc_active() ) {
 			return rest_ensure_response(
 				array(
@@ -207,6 +219,20 @@ class AbandonedCartController extends BaseController {
 	 * @since 1.31.0
 	 */
 	public function delete_abandoned_cart( WP_REST_Request $request ) {
+		$params = MrmCommon::get_api_params_values( $request );
+
+		// Verify the REST nonce to prevent cross-site request forgery. The frontend
+		// script localises this nonce and sends it with every request.
+		$nonce = isset( $params['wp_nonce'] ) ? sanitize_text_field( wp_unslash( $params['wp_nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			return rest_ensure_response(
+				array(
+					'success' => false,
+					'message' => __( 'Nonce verification failed.', 'mrm' ),
+				)
+			);
+		}
+
 		if ( ! MrmCommon::is_wc_active() ) {
 			return rest_ensure_response(
 				array(

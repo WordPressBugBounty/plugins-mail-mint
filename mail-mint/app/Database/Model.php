@@ -60,6 +60,7 @@ class Model {
 				'ai_messages'                   => 'AIMessageSchema',
 				'abandoned_cart'                => 'AbandonedCartSchema',
 				'wc_customers'                  => 'WCCustomerSchema',
+				'edd_customers'                 => 'EDDCustomerSchema',
 			)
 		);
 	}

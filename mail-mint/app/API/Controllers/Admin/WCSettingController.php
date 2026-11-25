@@ -161,6 +161,48 @@ class WCSettingController extends SettingBaseController {
 	}
 
 	/**
+	 * Trigger a background sync of Easy Digital Downloads order data into the mint_edd_customers table.
+	 *
+	 * Mirrors sync_customers(): creates the table synchronously so the response reflects reality,
+	 * cancels any pending EDD sync, then schedules the first batch. DatabaseMigrator::sync_edd_customers_batch
+	 * processes subsequent batches via Action Scheduler.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 * @since 1.31.3
+	 */
+	public function sync_edd_customers( WP_REST_Request $request ) {
+		if ( ! MrmCommon::is_edd_active() ) {
+			return $this->get_error_response( __( 'Easy Digital Downloads is not active.', 'mrm' ) );
+		}
+
+		global $wpdb;
+		$table = $wpdb->prefix . \Mint\MRM\DataBase\Tables\EDDCustomerSchema::$table_name;
+
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
+			( new \Mint\MRM\DataBase\Tables\EDDCustomerSchema() )->get_sql();
+
+			if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
+				return $this->get_error_response(
+					/* translators: %s: database table name. */
+					sprintf( __( 'Could not create the %s database table. Please check that your database user has CREATE TABLE permission.', 'mrm' ), $table )
+				);
+			}
+		}
+
+		as_unschedule_all_actions( 'mail_mint_sync_edd_customers', array(), 'mail-mint-edd-sync' );
+
+		as_schedule_single_action(
+			time() + 5,
+			'mail_mint_sync_edd_customers',
+			array( 'offset' => 0 ),
+			'mail-mint-edd-sync'
+		);
+
+		return $this->get_success_response( __( 'Easy Digital Downloads customer sync has been started. It will complete in the background.', 'mrm' ) );
+	}
+
+	/**
 	 * Validate selected tags/lists in the WooCommerce setting in MRM are still exists or not
 	 *
 	 * @param array $settings MRM WooCommerce Settings.

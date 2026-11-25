@@ -101,6 +101,9 @@ class SegmentFilterService {
 		'purchased_tags',
 		'purchased_categories',
 		'used_coupons',
+		'edd_purchased_products',
+		'edd_purchased_categories',
+		'edd_purchased_tags',
 	);
 
 	/**
@@ -618,7 +621,7 @@ class SegmentFilterService {
 
 	private function greater_than( $filter_name, $filter_value ) {
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
-		$wc_fields    = array( 'total_order_count', 'total_order_value', 'average_order_value' );
+		$wc_fields    = array( 'total_order_count', 'total_order_value', 'average_order_value', 'edd_total_order_count', 'edd_total_order_value', 'edd_average_order_value' );
 
 		if ( in_array( $filter_name, $wc_fields, true ) ) {
 			return $this->$filter_name( $filter_value, '>' );
@@ -629,7 +632,7 @@ class SegmentFilterService {
 
 	private function less_than( $filter_name, $filter_value ) {
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
-		$wc_fields    = array( 'total_order_count', 'total_order_value', 'average_order_value' );
+		$wc_fields    = array( 'total_order_count', 'total_order_value', 'average_order_value', 'edd_total_order_count', 'edd_total_order_value', 'edd_average_order_value' );
 
 		if ( in_array( $filter_name, $wc_fields, true ) ) {
 			return $this->$filter_name( $filter_value, '<' );
@@ -640,7 +643,7 @@ class SegmentFilterService {
 
 	private function equal( $filter_name, $filter_value ) {
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
-		$wc_fields    = array( 'total_order_count', 'total_order_value', 'average_order_value' );
+		$wc_fields    = array( 'total_order_count', 'total_order_value', 'average_order_value', 'edd_total_order_count', 'edd_total_order_value', 'edd_average_order_value' );
 
 		if ( in_array( $filter_name, $wc_fields, true ) ) {
 			return $this->$filter_name( $filter_value, '=' );
@@ -651,7 +654,7 @@ class SegmentFilterService {
 
 	private function does_not_equal( $filter_name, $filter_value ) {
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
-		$wc_fields    = array( 'total_order_count', 'total_order_value', 'average_order_value' );
+		$wc_fields    = array( 'total_order_count', 'total_order_value', 'average_order_value', 'edd_total_order_count', 'edd_total_order_value', 'edd_average_order_value' );
 
 		if ( in_array( $filter_name, $wc_fields, true ) ) {
 			return $this->$filter_name( $filter_value, '<>' );
@@ -664,7 +667,7 @@ class SegmentFilterService {
 		global $wpdb;
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
 
-		if ( 'first_order_date' === $filter_name || 'last_order_date' === $filter_name ) {
+		if ( 'first_order_date' === $filter_name || 'last_order_date' === $filter_name || 'edd_first_order_date' === $filter_name || 'edd_last_order_date' === $filter_name ) {
 			return $this->$filter_name( $filter_value, '<' );
 		}
 
@@ -675,7 +678,7 @@ class SegmentFilterService {
 		global $wpdb;
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
 
-		if ( 'first_order_date' === $filter_name || 'last_order_date' === $filter_name ) {
+		if ( 'first_order_date' === $filter_name || 'last_order_date' === $filter_name || 'edd_first_order_date' === $filter_name || 'edd_last_order_date' === $filter_name ) {
 			return $this->$filter_name( $filter_value, '>' );
 		}
 
@@ -686,7 +689,7 @@ class SegmentFilterService {
 		global $wpdb;
 		$filter_value = isset( $filter_value[0] ) ? $filter_value[0] : '';
 
-		if ( 'first_order_date' === $filter_name || 'last_order_date' === $filter_name ) {
+		if ( 'first_order_date' === $filter_name || 'last_order_date' === $filter_name || 'edd_first_order_date' === $filter_name || 'edd_last_order_date' === $filter_name ) {
 			return $this->$filter_name( $filter_value, '=' );
 		}
 
@@ -696,7 +699,7 @@ class SegmentFilterService {
 	private function in_the_between_dates( $filter_name, $start_date, $end_date ) {
 		$start_date = isset( $start_date[0] ) ? $start_date[0] : '';
 
-		if ( 'first_order_date' === $filter_name || 'last_order_date' === $filter_name ) {
+		if ( 'first_order_date' === $filter_name || 'last_order_date' === $filter_name || 'edd_first_order_date' === $filter_name || 'edd_last_order_date' === $filter_name ) {
 			return $this->{$filter_name . '_between'}( $start_date, $end_date );
 		}
 
@@ -781,16 +784,20 @@ class SegmentFilterService {
 
 	private function is_exist( $filter_name, $filter_value ) {
 		global $wpdb;
-		$wc_customers_table = $wpdb->prefix . 'mint_wc_customers';
+		$customers_table = ( 0 === strpos( (string) $filter_name, 'edd_' ) )
+			? $wpdb->prefix . 'mint_edd_customers'
+			: $wpdb->prefix . 'mint_wc_customers';
 
-		return $wpdb->prepare( "c1.email IN (SELECT DISTINCT t2.email_address FROM {$wc_customers_table} AS t2) " );
+		return $wpdb->prepare( "c1.email IN (SELECT DISTINCT t2.email_address FROM {$customers_table} AS t2) " );
 	}
 
 	private function is_not_exist( $filter_name, $filter_value ) {
 		global $wpdb;
-		$wc_customers_table = $wpdb->prefix . 'mint_wc_customers';
+		$customers_table = ( 0 === strpos( (string) $filter_name, 'edd_' ) )
+			? $wpdb->prefix . 'mint_edd_customers'
+			: $wpdb->prefix . 'mint_wc_customers';
 
-		return $wpdb->prepare( "c1.email NOT IN (SELECT DISTINCT t2.email_address FROM {$wc_customers_table} AS t2) " );
+		return $wpdb->prepare( "c1.email NOT IN (SELECT DISTINCT t2.email_address FROM {$customers_table} AS t2) " );
 	}
 
 	private function first_order_date( $filter_value, $operator ) {
@@ -877,6 +884,101 @@ class SegmentFilterService {
 		$where_clause = implode( ' OR ', $json_clauses );
 
 		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$wc_customers_table} AS t2 WHERE ({$where_clause})) " );
+	}
+
+	private function edd_purchased_products( $values, $operator ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+
+		$json_clauses = array();
+		foreach ( (array) $values as $value ) {
+			$column         = ( false !== strpos( (string) $value, ':' ) ) ? 'purchased_price_ids' : 'purchased_downloads';
+			$json_clauses[] = $wpdb->prepare( "{$operator}(t2.{$column}, %s)", wp_json_encode( (string) $value ) );
+		}
+
+		if ( empty( $json_clauses ) ) {
+			return '';
+		}
+
+		$where_clause = implode( ' OR ', $json_clauses );
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE ({$where_clause})) " );
+	}
+
+	private function edd_purchased_categories( $values, $operator ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+
+		$json_clauses = array();
+		foreach ( (array) $values as $value ) {
+			$json_clauses[] = $wpdb->prepare( "{$operator}(t2.purchased_downloads_cats, %s)", wp_json_encode( $value ) );
+		}
+
+		if ( empty( $json_clauses ) ) {
+			return '';
+		}
+
+		$where_clause = implode( ' OR ', $json_clauses );
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE ({$where_clause})) " );
+	}
+
+	private function edd_purchased_tags( $values, $operator ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+
+		$json_clauses = array();
+		foreach ( (array) $values as $value ) {
+			$json_clauses[] = $wpdb->prepare( "{$operator}(t2.purchased_downloads_tags, %s)", wp_json_encode( $value ) );
+		}
+
+		if ( empty( $json_clauses ) ) {
+			return '';
+		}
+
+		$where_clause = implode( ' OR ', $json_clauses );
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE ({$where_clause})) " );
+	}
+
+	private function edd_total_order_count( $filter_value, $operator ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE t2.total_order_count {$operator} %d) ", $filter_value );
+	}
+
+	private function edd_total_order_value( $filter_value, $operator ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE t2.total_order_value {$operator} %s) ", $filter_value );
+	}
+
+	private function edd_average_order_value( $filter_value, $operator ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+		$decimal_precision   = function_exists( 'edd_currency_decimal_filter' ) ? (int) edd_currency_decimal_filter() : 2;
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE ROUND(t2.aov, %d) {$operator} %s) ", $decimal_precision, round( (float) $filter_value, $decimal_precision ) );
+	}
+
+	private function edd_first_order_date( $filter_value, $operator ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE DATE(t2.f_order_date) {$operator} %s) ", $filter_value );
+	}
+
+	private function edd_last_order_date( $filter_value, $operator ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE DATE(t2.l_order_date) {$operator} %s) ", $filter_value );
+	}
+
+	private function edd_first_order_date_between( $start_date, $end_date ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE DATE(t2.f_order_date) BETWEEN %s AND %s) ", $start_date, $end_date );
+	}
+
+	private function edd_last_order_date_between( $start_date, $end_date ) {
+		global $wpdb;
+		$edd_customers_table = $wpdb->prefix . 'mint_edd_customers';
+		return $wpdb->prepare( "c1.email IN (SELECT t2.email_address FROM {$edd_customers_table} AS t2 WHERE DATE(t2.l_order_date) BETWEEN %s AND %s) ", $start_date, $end_date );
 	}
 
 	private function used_coupons( $values, $operator ) {

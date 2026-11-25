@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'coderex/code-rex-crm',
-        'pretty_version' => 'dev-master',
-        'version' => 'dev-master',
-        'reference' => '0e908cbf9b039a94969f96d5fb3cf4b124f1e454',
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
+        'reference' => '95ce31dfac3c31160371b9b8a5c3fbb5a3ef0a2c',
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -20,9 +20,9 @@
             'dev_requirement' => false,
         ),
         'coderex/code-rex-crm' => array(
-            'pretty_version' => 'dev-master',
-            'version' => 'dev-master',
-            'reference' => '0e908cbf9b039a94969f96d5fb3cf4b124f1e454',
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'reference' => '95ce31dfac3c31160371b9b8a5c3fbb5a3ef0a2c',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
